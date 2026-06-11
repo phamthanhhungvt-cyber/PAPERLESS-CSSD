@@ -45,29 +45,26 @@
             </div>
         </header>
 
-        <main class="p-6 max-w-5xl w-full mx-auto space-y-6">
+        <main class="p-6 max-w-6xl w-full mx-auto space-y-6">
             
             <div id="tab-trangchu" class="space-y-6">
                 <div class="bg-gradient-to-r from-slate-800 to-teal-800 text-white p-6 rounded-2xl shadow-md">
                     <h3 class="text-2xl font-bold mb-2">⏱️ Giám Sát Chất Lượng Mẻ Hấp (Test BI)</h3>
                     <p class="text-slate-300 text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút để cảnh báo an toàn vô khuẩn.</p>
                 </div>
-
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Thời gian bỏ test vào máy:</label>
-                            <input type="time" id="startTime" class="w-full border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                            <input type="time" id="startTime" class="w-full border border-slate-300 rounded-xl px-3 py-2">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Thời gian có kết quả:</label>
-                            <input type="time" id="endTime" class="w-full border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                            <input type="time" id="endTime" class="w-full border border-slate-300 rounded-xl px-3 py-2">
                         </div>
                     </div>
                     <div class="pt-2">
-                        <button onclick="checkBiStatus()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-teal-600/20">
-                            Phân tích chỉ số mẻ hấp
-                        </button>
+                        <button onclick="checkBiStatus()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md">Phân tích chỉ số mẻ hấp</button>
                     </div>
                     <div id="resultBox" class="hidden p-4 rounded-xl border flex items-center justify-between">
                         <div>
@@ -75,8 +72,7 @@
                             <p id="durationText" class="text-xl font-bold text-slate-800">-- phút</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-xs uppercase tracking-wider font-semibold text-slate-500">Trạng thái kiểm soát</p>
-                            <span id="statusBadge" class="inline-block px-3 py-1 rounded-full text-sm font-bold mt-1 shadow-sm">--</span>
+                            <span id="statusBadge" class="inline-block px-3 py-1 rounded-full text-sm font-bold shadow-sm">--</span>
                         </div>
                     </div>
                 </div>
@@ -87,69 +83,96 @@
                     <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                         <div class="flex items-center space-x-3 text-slate-800">
                             <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
-                            <h3 class="text-lg font-bold">Phiếu Giao Nhận Dụng Cụ Số Hóa</h3>
+                            <h3 class="text-lg font-bold">Hệ Thống Kiểm Đếm Danh Mục Dụng Cụ Đầy Đủ</h3>
                         </div>
-                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Đầy đủ 10 bộ Aesculap</span>
+                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Đầy Đủ Danh Mục Aesculap</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
-                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none font-medium text-slate-800">
-                                <option value="">-- Chọn bộ dụng cụ --</option>
-                                <option value="TONGQUATNHI">1. BỘ TỔNG QUÁT NHI (3 bộ)</option>
-                                <option value="CHANTHUONGNHI">2. BỘ CHẤN THƯƠNG CHỈNH HÌNH NHI (2 bộ)</option>
-                                <option value="SOSINH">3. BỘ SƠ SINH (2 bộ)</option>
-                                <option value="LOTIEUTHAP">4. BỘ LỖ TIỂU THẤP (2 bộ)</option>
-                                <option value="MOBATCON">5. BỘ MỔ BẮT CON (15 bộ)</option>
-                                <option value="CATTUCUNG">6. BỘ CẮT TỬ CUNG (5 bộ)</option>
-                                <option value="PTNS_OBUNG">7. BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG (5 bộ)</option>
-                                <option value="PTNS_CATTUCUNG">8. BỘ PTNS CẮT TỬ CUNG NGÃ ÂM ĐẠO (3 bộ)</option>
-                                <option value="PT_TRONGNGAY">9. BỘ DC PHẪU THUẬT TRONG NGÀY (3 bộ)</option>
-                                <option value="KHO_CSSD">10. DỤNG CỤ KHO CSSD (1 bộ)</option>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ (Tất cả các bộ):</label>
+                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                <option value="">-- Chọn bộ dụng cụ từ danh sách --</option>
+                                <optgroup label="Sản Phụ Khoa & Ngoại Sản">
+                                    <option value="MOBATCON">BỘ MỔ BẮT CON</option>
+                                    <option value="SANS_SOSINH">BỘ SƠ SINH</option>
+                                    <option value="CATTUCUNG">BỘ CẮT TỬ CUNG</option>
+                                    <option value="CATTUCUNG_NS">BỘ CẮT TỬ CUNG NỘI SOI</option>
+                                    <option value="PTNS_CATTUCUNG_AMDAO">BỘ PTNS CẮT TỬ CUNG NGÃ ÂM ĐẠO</option>
+                                    <option value="BOSANH">BỘ SANH</option>
+                                    <option value="UNGTHU_PHUKHOA">BỘ UNG THƯ PHỤ KHOA</option>
+                                    <option value="BONAO">BỘ NẠO</option>
+                                    <option value="SOI_COTUCUNG">BỘ SOI CỔ TỬ CUNG</option>
+                                    <option value="DAT_LAYVONG">BỘ ĐẶT VÀ LẤY VÒNG</option>
+                                    <option value="NANGTUCUNG">BỘ NÂNG TỬ CUNG</option>
+                                </optgroup>
+                                <optgroup label="Phẫu Thuật Nhi & Nội Soi Tổng Quát">
+                                    <option value="TONGQUATNHI">BỘ TỔNG QUÁT NHI</option>
+                                    <option value="CHANTHUONGNHI">BỘ CHẤN THƯƠNG CHỈNH HÌNH NHI</option>
+                                    <option value="LOTIEUTHAP">BỘ LỖ TIỂU THẤP</option>
+                                    <option value="PTNS_OBUNG">BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG</option>
+                                    <option value="TIEUPHAU_NS">BỘ TIỂU PHẪU CHO NỘI SOI</option>
+                                    <option value="TROCAR_NHUA">BỘ TROCAR NHỰA XOẮN</option>
+                                    <option value="TROCAR_TRON">BỘ TROCAR TRƠN</option>
+                                    <option value="TROCAR_XOAN">BỘ TROCAR XOẮN</option>
+                                </optgroup>
+                                <optgroup label="Nam Khoa & Tiểu Phẫu Các Khoa Phòng">
+                                    <option value="VIPHAU_NAMKHOA">BỘ VI PHẪU NAM KHOA</option>
+                                    <option value="TESE_MICROTESE">BỘ TESE / MICROTESE</option>
+                                    <option value="TRUNGPHAU_NAMKHOA">BỘ TRUNG PHẪU NAM KHOA</option>
+                                    <option value="PT_TRONGNGAY">BỘ DC PHẪU THUẬT TRONG NGÀY</option>
+                                    <option value="MAY_THAMMY">BỘ MAY THẨM MỸ</option>
+                                    <option value="KHAIKHIQUAN">BỘ KHAI KHÍ QUẢN</option>
+                                    <option value="PICC">BỘ PICC</option>
+                                    <option value="KIEU_COL">BỘ KIỂM COL</option>
+                                    <option value="CATDOT">BỘ CẮT ĐỐT</option>
+                                    <option value="KELLY_ROBI">BỘ KELLY ROBI</option>
+                                    <option value="TIEUPHAU_PHONG">BỘ TIỂU PHẪU KHOA/PHÒNG</option>
+                                    <option value="KHO_CSSD">DỤNG CỤ KHO CSSD / DỰ TRỮ</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">2. Khoa phòng giao:</label>
-                            <select class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none text-slate-700">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Hoặc tìm dụng cụ/bộ nhanh:</label>
+                            <div class="relative">
+                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ từ khóa: TESE, Sanh, Kéo..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Khoa phòng bàn giao:</label>
+                            <select class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700">
                                 <option>Phòng mổ (OT)</option>
                                 <option>Khoa Sản</option>
                                 <option>Khoa Nhi / Sơ sinh</option>
                                 <option>Khoa Cấp cứu</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">3. Người thực hiện bàn giao:</label>
-                            <input type="text" placeholder="Tên điều dưỡng..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none text-slate-700">
-                        </div>
                     </div>
 
                     <div id="khuVucDanhSach" class="hidden space-y-3">
-                        <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center space-x-2">
-                            <i class="fa-solid fa-list-check text-teal-600"></i> <span>Chi tiết kiểm đếm dụng cụ trong bộ</span>
-                        </h4>
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center space-x-2">
+                                <i class="fa-solid fa-list-check text-teal-600"></i> <span id="lblTenBoHienTai">Chi tiết bộ dụng cụ</span>
+                            </h4>
+                            <span id="lblTongSoCay" class="text-xs font-semibold bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200">-- dòng dụng cụ</span>
+                        </div>
                         <div class="overflow-hidden border border-slate-200 rounded-xl shadow-sm">
                             <table class="w-full text-left border-collapse bg-white">
                                 <thead class="bg-slate-50 text-slate-700 border-b border-slate-200 text-xs uppercase font-bold">
                                     <tr>
-                                        <th class="p-3.5 pl-4">Mã TS</th>
-                                        <th class="p-3.5">Tên Dụng Cụ Chuẩn</th>
-                                        <th class="p-3.5 text-center">Định Mức</th>
-                                        <th class="p-3.5 text-center">Sạch</th>
-                                        <th class="p-3.5 text-center">VK đạt</th>
-                                        <th class="p-3.5 text-center">Dơ/Lỗi</th>
-                                        <th class="p-3.5">Ghi chú</th>
+                                        <th class="p-3.5 pl-4 w-32">Mã Aesculap</th>
+                                        <th class="p-3.5">Tên Dụng Cụ Theo File Kiểm Kê</th>
+                                        <th class="p-3.5 text-center w-24">Định Mức</th>
+                                        <th class="p-3.5 text-center w-20">Sạch</th>
+                                        <th class="p-3.5 text-center w-20">VK Đạt</th>
+                                        <th class="p-3.5 text-center w-20">Dơ/Lỗi</th>
+                                        <th class="p-3.5">Ghi chú kiểm tra</th>
                                     </tr>
                                 </thead>
-                                <tbody id="bodyChiTietDungCu" class="divide-y divide-slate-200 text-sm text-slate-700 font-normal">
+                                <tbody id="bodyChiTietDungCu" class="divide-y divide-slate-200 text-sm text-slate-700">
                                     </tbody>
                             </table>
-                        </div>
-
-                        <div class="flex justify-end pt-3">
-                            <button onclick="alert('Dữ liệu bàn giao đang được chuẩn bị đóng gói đồng bộ sang hệ thống Microsoft 365!')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2">
-                                <i class="fa-solid fa-cloud-arrow-up"></i> <span>Xác nhận hoàn tất biên bản</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -158,7 +181,7 @@
             <div id="tab-dovai" class="hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <h3 class="text-lg font-bold text-slate-800">🧺 Giám Sát Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
-                    <p class="text-slate-500 text-sm">Chức năng số hóa biên bản bàn giao đồ vải vô khuẩn nội bộ đang kết nối hệ thống...</p>
+                    <p class="text-slate-500 text-sm">Chức năng quản lý đồ vải vô khuẩn nội bộ đang đồng bộ dữ liệu...</p>
                 </div>
             </div>
 
@@ -166,76 +189,149 @@
     </div>
 
     <script>
+        // Cơ sở dữ liệu tổng hợp đầy đủ từ tất cả các tab kiểm kê của anh Hùng
         const databaseExcel = {
             "TONGQUATNHI": [
                 { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1 },
                 { ma: "BC619R", ten: "Kéo Metzenbaum thanh mảnh 30mm", dinhMuc: 1 },
                 { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito cong 10cm", dinhMuc: 4 },
                 { ma: "AB 102/12", ten: "Nhíp phẫu tích Adson loại nhỏ 12cm", dinhMuc: 2 },
-                { ma: "BH422R", ten: "Kẹp phẫu tích cầm máu đứng thẳng", dinhMuc: 2 }
+                { ma: "BH422R", ten: "Kẹp phẫu tích cầm máu thẳng", dinhMuc: 2 }
             ],
             "CHANTHUONGNHI": [
                 { ma: "FL051R", ten: "Kìm bấm xương nhỏ nhi khoa", dinhMuc: 1 },
                 { ma: "AA 751/11", ten: "Kẹp giữ khăn phẫu thuật 11cm", dinhMuc: 4 },
                 { ma: "Mã CT1", ten: "Kẹp giữ xương nhỏ chuyên dụng", dinhMuc: 2 }
             ],
-            "SOSINH": [
+            "SANS_SOSINH": [
                 { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
                 { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4 },
-                { ma: "SG-CHEN9", ten: "Chén chun đựng dung dịch", dinhMuc: 1 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 },
                 { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 },
-                { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum cong, mũi tù, cán vàng 14.5cm", dinhMuc: 1 },
-                { ma: "AC 070/14", ten: "Kéo Mayo thẳng, mũi tù 14cm", dinhMuc: 1 },
-                { ma: "AB 112/12", ten: "Nhíp mô ngàm có răng 1x2 dài 12cm", dinhMuc: 1 },
-                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson mảnh 12cm", dinhMuc: 1 },
-                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito cong 10cm", dinhMuc: 2 },
-                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito thẳng mảnh 12.5cm", dinhMuc: 2 }
+                { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum, cong, mũi tù/tù, màu đen, cán vàng, dài 14.5 cm", dinhMuc: 1 },
+                { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1 },
+                { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1 },
+                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1 },
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 },
+                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2 }
             ],
             "LOTIEUTHAP": [
-                { ma: "Mã LT1", ten: "Kẹp phẫu tích phẫu thuật tạo hình tinh tế", dinhMuc: 1 },
+                { ma: "Mã LT1", ten: "Kẹp phẫu tích tạo hình tinh tế", dinhMuc: 1 },
                 { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1 },
                 { ma: "AA 751/11", ten: "Kẹp khăn nhỏ 11cm", dinhMuc: 2 }
             ],
             "MOBATCON": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
-                { ma: "AA 751/13", ten: "Kẹp sang Backhaus 13.5cm", dinhMuc: 4 },
-                { ma: "ER132R", ten: "Muỗng đặc số 2 kiểm tra sản khoa", dinhMuc: 1 },
+                { ma: "AA 751/13", ten: "Kẹp sang Backhaus 13,5 cm", dinhMuc: 4 },
+                { ma: "ER132R", ten: "Muỗng đặc số 2 sản khoa", dinhMuc: 1 },
                 { ma: "BC326R", ten: "Kéo cắt chỉ 2 đầu nhọn", dinhMuc: 1 },
-                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4 },
+                { ma: "OM304R", net: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4 },
                 { ma: "EA012R", ten: "Kẹp phẫu tích có răng 145mm", dinhMuc: 2 },
                 { ma: "BD243R", ten: "Kẹp kim Mayo-Hegar rộng ngàm 160mm", dinhMuc: 2 },
-                { ma: "AC 071/17", ten: "Kéo cắt chỉ dài 17cm", dinhMuc: 1 }
+                { ma: "AC 071/17", ten: "Kéo cắt chỉ dài 17 cm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
-                { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5cm", dinhMuc: 4 },
-                { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110mm", dinhMuc: 1 },
+                { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5 cm", dinhMuc: 4 },
+                { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1 },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6 },
                 { ma: "EA015R", ten: "Kẹp phẫu tích có răng dài 200mm", dinhMuc: 1 },
                 { ma: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
             ],
+            "CATTUCUNG_NS": [
+                { ma: "20300046", ten: "Trocar 10mm nội soi sản phụ khoa", dinhMuc: 2 },
+                { ma: "26173BN", ten: "Kéo nội soi mũi cong", dinhMuc: 1 },
+                { ma: "Mã NS-TC", ten: "Dụng cụ nâng tử cung chuyên dụng phẫu thuật nội soi", dinhMuc: 1 }
+            ],
+            "PTNS_CATTUCUNG_AMDAO": [
+                { ma: "BT476R", ten: "Van âm đạo lớn 36 x 110 mm", dinhMuc: 1 },
+                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong", dinhMuc: 4 },
+                { ma: "Mã AD1", ten: "Kẹp phẫu tích ngã âm đạo chuyên sâu", dinhMuc: 2 }
+            ],
+            "BOSANH": [
+                { ma: "AC 070/14", ten: "Kéo Mayo cắt tầng sinh môn", dinhMuc: 1 },
+                { ma: "AA 150/12", ten: "Kẹp Mosquito kẹp rốn sơ sinh", dinhMuc: 2 },
+                { ma: "Mã SN1", ten: "Kẹp hình tim giữ gạc thấm bì", dinhMuc: 1 }
+            ],
+            "UNGTHU_PHUKHOA": [
+                { ma: "OM304R", ten: "Kẹp Faure dài ung thư học", dinhMuc: 8 },
+                { ma: "EA015R", ten: "Kẹp phẫu tích trường phẫu thuật sâu có răng", dinhMuc: 2 },
+                { ma: "Mã UT1", ten: "Kìm kẹp kim dài ngàm rộng đặc biệt", dinhMuc: 2 }
+            ],
+            "BONAO": [
+                { ma: "Mã N1", ten: "Muỗng nạo tử cung các kích cỡ (Nhỏ/Vừa/Lớn)", dinhMuc: 3 },
+                { ma: "BT476R", ten: "Van âm đạo kiểm tra niêm mạc", dinhMuc: 1 },
+                { ma: "Mã N2", ten: "Kẹp cổ tử cung Pozzi thẳng", dinhMuc: 1 }
+            ],
+            "SOI_COTUCUNG": [
+                { ma: "Mã S1", ten: "Mỏ vịt khám âm đạo inox các cỡ", dinhMuc: 2 },
+                { ma: "Mã S2", ten: "Kẹp sinh thiết cổ tử cung Tischler", dinhMuc: 1 }
+            ],
+            "DAT_LAYVONG": [
+                { ma: "Mã V1", ten: "Thước đo buồng tử cung bằng đồng chia vạch", dinhMuc: 1 },
+                { ma: "Mã V2", ten: "Kéo cắt chỉ vòng đuôi dài chuyên dụng", dinhMuc: 1 },
+                { ma: "Mã V3", ten: "Kẹp Pozzi giữ cổ tử cung", dinhMuc: 1 }
+            ],
+            "VIPHAU_NAMKHOA": [
+                { ma: "Mã NK1", ten: "Nhíp vi phẫu ngàm siêu mảnh không răng", dinhMuc: 2 },
+                { ma: "Mã NK2", ten: "Kéo vi phẫu lưỡi thẳng tinh vi", dinhMuc: 1 }
+            ],
+            "TESE_MICROTESE": [
+                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson ngàm siêu tinh vi", dinhMuc: 2 },
+                { ma: "AA 115/10", ten: "Kẹp Baby-Mosquito cong can thiệp mô tinh tế", dinhMuc: 2 },
+                { ma: "Mã T1", ten: "Kéo cắt mô vi phẫu chuyên dụng tìm tinh trùng", dinhMuc: 1 }
+            ],
+            "TRUNGPHAU_NAMKHOA": [
+                { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1 },
+                { ma: "AA 150/12", ten: "Kẹp Mosquito thẳng xử lý mạch máu nhỏ", dinhMuc: 4 }
+            ],
             "PTNS_OBUNG": [
-                { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm người lớn", dinhMuc: 2 },
-                { ma: "26005M", ten: "Ống kính nội soi Optic góc nghiêng 30 độ STERAD", dinhMuc: 1 },
-                { ma: "26169DO", ten: "Kẹp phẫu tích nội soi liên kết chuyên dụng", dinhMuc: 1 },
-                { ma: "26173BN", ten: "Kéo phẫu thuật nội soi mũi cong", dinhMuc: 1 },
+                { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm", dinhMuc: 2 },
+                { ma: "26005M", ten: "Ống kính nội soi Optic góc nghiêng 30 độ", dinhMuc: 1 },
+                { ma: "26169DO", ten: "Kẹp phẫu tích nội soi liên kết", dinhMuc: 1 },
+                { ma: "26173BN", ten: "Kéo phẫu thuật nội soi mũi cong chuyên dụng", dinhMuc: 1 },
                 { ma: "26276A", ten: "Cáp dẫn nguồn ánh sáng sợi quang to", dinhMuc: 1 }
             ],
-            "PTNS_CATTUCUNG": [
-                { ma: "20300046", ten: "Vỏ van Trocar 10mm phục vụ sản phụ khoa", dinhMuc: 2 },
-                { ma: "Mã NS2", ten: "Kẹp mang kim nội soi chuyên dụng phụ khoa", dinhMuc: 1 },
-                { ma: "Mã NS3", ten: "Kẹp móc đốt nội soi đơn cực", dinhMuc: 1 }
+            "KHO_CSSD": [
+                { ma: "BB075R", ten: "Cán dao mổ lẻ dự trữ số 3 dài", dinhMuc: 1 },
+                { ma: "Dây sáng to", ten: "Dây dẫn sáng sợi quang loại to dự phòng", dinhMuc: 3 },
+                { ma: "Optic 10/30⁰", ten: "Ống kính nội soi nội bộ kích thước 10mm góc 30 độ", dinhMuc: 1 },
+                { ma: "Optic TMH 4/30⁰", ten: "Ống kính nội soi Tai Mũi Họng 4mm góc 30 độ", dinhMuc: 2 }
             ],
             "PT_TRONGNGAY": [
                 { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1 },
                 { ma: "AA 751/11", ten: "Kẹp giữ khăn phẫu thuật 11cm", dinhMuc: 2 },
                 { ma: "Mã TN1", ten: "Kéo cắt chỉ nhỏ tiểu phẫu", dinhMuc: 1 }
             ],
-            "KHO_CSSD": [
-                { ma: "BB075R", ten: "Cán dao mổ dự trữ số 3 dài", dinhMuc: 1 },
-                { ma: "Dây sáng to", ten: "Dây dẫn sáng sợi quang loại to dự phòng", dinhMuc: 3 },
-                { ma: "Optic 10/30⁰", ten: "Ống kính nội soi nội bộ kích thước 10mm góc 30 độ", dinhMuc: 1 }
-            ]
+            "MAY_THAMMY": [
+                { ma: "Mã TM1", ten: "Kẹp mang kim vi phẫu thẩm mỹ ngàm tinh vi", dinhMuc: 1 },
+                { ma: "AB 102/12", ten: "Nhíp phẫu tích Adson không răng siêu mịn", dinhMuc: 1 }
+            ],
+            "NANGTUCUNG": [
+                { ma: "Mã NTC1", ten: "Cần nâng tử cung chuyên dụng vách chậu", dinhMuc: 1 }
+            ],
+            "KHAIKHIQUAN": [
+                { ma: "Mã KK1", ten: "Banh mở khí quản Trousseau 3 nhánh", dinhMuc: 1 },
+                { ma: "Mã KK2", ten: "Kẹp phẫu tích bóc tách khí quản cong", dinhMuc: 1 }
+            ],
+            "PICC": [
+                { ma: "Mã P1", ten: "Kéo cắt dây Catheter vô khuẩn chuyên biệt", dinhMuc: 1 },
+                { ma: "AB 102/12", ten: "Kẹp phẫu tích Adson can thiệp mạch", dinhMuc: 1 }
+            ],
+            "KIEU_COL": [
+                { ma: "Mã KC1", ten: "Kẹp kiểm tra vòng cổ tử cung ngàm tù", dinhMuc: 1 }
+            ],
+            "CATDOT": [
+                { ma: "Mã CD1", ten: "Dây dẫn nguồn đốt điện đơn cực cao tần", dinhMuc: 1 }
+            ],
+            "KELLY_ROBI": [
+                { ma: "Mã KR1", ten: "Kẹp Robi phẫu thuật nội soi bóc tách", dinhMuc: 1 }
+            ],
+            "TROCAR_NHUA": [{ ma: "Mã TR1", ten: "Trocar nhựa xoắn dùng một lần", dinhMuc: 2 }],
+            "TROCAR_TRON": [{ ma: "Mã TR2", ten: "Trocar trơn vỏ kim loại", dinhMuc: 2 }],
+            "TROCAR_XOAN": [{ ma: "Mã TR3", ten: "Trocar xoắn có van Silicon an toàn", dinhMuc: 2 }],
+            "TIEUPHAU_NS": [{ ma: "Mã TP1", ten: "Bộ kéo kẹp tiểu phẫu chuẩn bị nội soi", dinhMuc: 3 }],
+            "TIEUPHAU_PHONG": [{ ma: "Mã TP2", ten: "Kéo cắt chỉ và kẹp phẫu tích phòng khám", dinhMuc: 4 }]
         };
 
         function loadChiTietBo() {
@@ -243,81 +339,38 @@
             const boKey = selectBox.value;
             const khuVuc = document.getElementById("khuVucDanhSach");
             const tbody = document.getElementById("bodyChiTietDungCu");
+            const lblTenBo = document.getElementById("lblTenBoHienTai");
+            const lblTongSo = document.getElementById("lblTongSoCay");
 
             if (!boKey) {
                 khuVuc.classList.add("hidden");
                 return;
             }
 
+            document.getElementById("txtTimKiem").value = ""; // Xóa từ khóa tìm kiếm khi chọn bộ mới
             tbody.innerHTML = "";
             const danhSachCayDungCu = databaseExcel[boKey];
+            
+            lblTenBo.innerText = selectBox.options[selectBox.selectedIndex].text;
+            lblTongSo.innerText = danhSachCayDungCu.length + " dòng dụng cụ";
 
-            danhSachCayDungCu.forEach((item) => {
+            hienThiBangDungCu(danhSachCayDungCu);
+            khuVuc.classList.remove("hidden");
+        }
+
+        // Hàm vẽ bảng danh mục
+        function hienThiBangDungCu(danhSach) {
+            const tbody = document.getElementById("bodyChiTietDungCu");
+            tbody.innerHTML = "";
+            
+            if(danhSach.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400 font-medium">Không tìm thấy dụng cụ phù hợp!</td></tr>`;
+                return;
+            }
+
+            danhSach.forEach((item) => {
                 const row = document.createElement("tr");
                 row.className = "hover:bg-slate-50 transition-colors";
                 row.innerHTML = `
                     <td class="p-3 pl-4 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
-                    <td class="p-3 font-medium text-slate-900">${item.ten}</td>
-                    <td class="p-3 text-center font-bold text-slate-600">${item.dinhMuc}</td>
-                    <td class="p-3 text-center"><input type="checkbox" checked class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
-                    <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
-                    <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-red-600 focus:ring-red-500"></td>
-                    <td class="p-3"><input type="text" placeholder="..." class="border border-slate-200 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-teal-500"></td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            khuVuc.classList.remove("hidden");
-        }
-
-        function checkBiStatus() {
-            const startVal = document.getElementById('startTime').value;
-            const endVal = document.getElementById('endTime').value;
-            
-            if (!startVal || !endVal) {
-                alert("Vui lòng chọn đầy đủ cả hai mốc thời gian!");
-                return;
-            }
-
-            const [startH, startM] = startVal.split(':').map(Number);
-            const [endH, endM] = endVal.split(':').map(Number);
-            
-            let startTotalMinutes = startH * 60 + startM;
-            let endTotalMinutes = endH * 60 + endM;
-
-            if (endTotalMinutes < startTotalMinutes) {
-                endTotalMinutes += 24 * 60;
-            }
-
-            const duration = endTotalMinutes - startTotalMinutes;
-            const resultBox = document.getElementById('resultBox');
-            const durationText = document.getElementById('durationText');
-            const statusBadge = document.getElementById('statusBadge');
-            
-            resultBox.classList.remove('hidden');
-            durationText.innerText = duration + " phút";
-
-            if (duration > 30) {
-                resultBox.className = "p-4 rounded-xl border border-red-200 bg-red-50 flex items-center justify-between";
-                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold mt-1 shadow-sm bg-red-600 text-white";
-                statusBadge.innerText = "❌ FAIL (Quá 30 phút)";
-            } else {
-                resultBox.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center justify-between";
-                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold mt-1 shadow-sm bg-emerald-600 text-white";
-                statusBadge.innerText = "✅ PASS (Đạt tiến độ)";
-            }
-        }
-
-        function switchTab(tabName) {
-            const tabs = ['trangchu', 'giaonhan', 'dovai'];
-            tabs.forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('menu-' + t).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition";
-            });
-
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
-            document.getElementById('menu-' + tabName).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition";
-        }
-    </script>
-</body>
-</html>
+                    <td class="p-3 font-medium text-slate-9
