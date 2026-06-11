@@ -232,7 +232,7 @@
                 { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6, hinhAnh: "" },
                 { ma: "EA015R", ten: "Kẹp phẫu tích có răng dài 200mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
+                { ma: "BD245R", warm: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
             ],
             "PTNS_OBUNG": [
                 { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm người lớn", dinhMuc: 2, hinhAnh: "" },
@@ -319,17 +319,19 @@
             khuVuc.classList.remove("hidden");
         }
 
+        // HÀM HIỂN THỊ VÀ ĐỔI TIÊU ĐỀ THEO ĐÚNG THỨ TỰ ANH HÙNG YÊU CẦU
         function hienThiBangDungCu(danhSach) {
             const headerRow = document.getElementById("tableHeaderRow");
             const tbody = document.getElementById("bodyChiTietDungCu");
             tbody.innerHTML = "";
 
             if(currentInterfaceMode === 'VIEW') {
+                // Đã đổi chính xác thành: Hình ảnh, Mã, Tên Dụng Cụ, Số lượng từ trái qua phải
                 headerRow.innerHTML = `
                     <th class="p-3.5 pl-4 w-20 text-center">Hình ảnh</th>
-                    <th class="p-3.5 w-32">Mã Aesculap</th>
-                    <th class="p-3.5">Tên Dụng Cụ Thành Phần Chuẩn Vô Khuẩn</th>
-                    <th class="p-3.5 text-center w-32">Định Mức Dự Trữ</th>
+                    <th class="p-3.5 w-32">Mã</th>
+                    <th class="p-3.5">Tên Dụng Cụ</th>
+                    <th class="p-3.5 text-center w-32">Số lượng</th>
                 `;
             } else {
                 headerRow.innerHTML = `
@@ -398,7 +400,6 @@
             document.getElementById("imageModal").classList.add("hidden");
         }
 
-        // SỬA LỖI TRA CỨU NHANH ĐỒNG BỘ 100% KHÔNG LỖI CÚ PHÁP
         function timKiemNhanh() {
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
             const khuVuc = document.getElementById("khuVucDanhSach");
