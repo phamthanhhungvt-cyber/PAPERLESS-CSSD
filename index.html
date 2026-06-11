@@ -85,7 +85,7 @@
                             <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
                             <h3 class="text-lg font-bold">Hệ Thống Kiểm Đếm Danh Mục Chi Tiết</h3>
                         </div>
-                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Bấm Vào Ảnh Để Phóng To Giữa Màn Hình</span>
+                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Bấm Vào Ảnh Để Xem Lớn Chính Giữa</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -163,4 +163,37 @@
 
     <div id="imageModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl relative border border-slate-100 p-6 flex flex-col items-center">
-            <button onclick="closeModal()" class="absolute top-4 right-4 bg-
+            <button onclick="closeModal()" class="absolute top-4 right-4 bg-slate-900/60 hover:bg-slate-950 text-white w-10 h-10 rounded-full flex items-center justify-center transition shadow border border-white/20 z-10">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <img id="modalImg" src="" class="max-h-[70vh] w-auto object-contain rounded-xl border shadow">
+            <h3 id="modalTitle" class="text-lg font-bold text-slate-800 mt-4 text-center">Tên dụng cụ</h3>
+            <p id="modalCode" class="text-sm font-mono text-slate-500 mt-1">Mã tài sản</p>
+        </div>
+    </div>
+
+    <script>
+        const databaseExcel = {
+            "SOSINH": [
+                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1, hinhAnh: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600" },
+                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4, hinhAnh: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600" },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum, cong, mũi tù/tù, màu đen, cán vàng, dài 14.5 cm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2, hinhAnh: "" },
+                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2, hinhAnh: "" }
+            ],
+            "MOBATCON": [
+                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AA 751/13", ten: "Kẹp sang Backhaus 13,5 cm", dinhMuc: 4, hinhAnh: "" },
+                { ma: "ER132R", ten: "Muỗng đặc số 2 sản khoa", dinhMuc: 1, hinhAnh: "" },
+                { ma: "BC326R", ten: "Kéo cắt chỉ 2 đầu nhọn", dinhMuc: 1, hinhAnh: "" },
+                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4, hinhAnh: "" },
+                { ma: "EA012R", ten: "Kẹp phẫu tích có răng 145mm", dinhMuc: 2, hinhAnh: "" },
+                { ma: "BD243R", ten: "Kẹp kim Mayo-Hegar rộng ngàm 160mm", dinhMuc: 2, hinhAnh: "" },
+                { ma: "AC 071/17", ten: "Kéo cắt chỉ dài 17 cm", dinhMuc: 1, hinhAnh: "" }
+            ],
+            "TONGQUATNHI":
