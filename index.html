@@ -45,12 +45,12 @@
             </div>
         </header>
 
-        <main class="p-6 max-w-4xl w-full mx-auto space-y-6">
+        <main class="p-6 max-w-5xl w-full mx-auto space-y-6">
             
             <div id="tab-trangchu" class="space-y-6">
                 <div class="bg-gradient-to-r from-slate-800 to-teal-800 text-white p-6 rounded-2xl shadow-md">
                     <h3 class="text-2xl font-bold mb-2">⏱️ Giám Sát Chất Lượng Mẻ Hấp (Test BI)</h3>
-                    <p class="text-slate-300 text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút để cảnh báo an toàn vô khuẩn kịp thời.</p>
+                    <p class="text-slate-300 text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút.</p>
                 </div>
 
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -64,14 +64,12 @@
                             <input type="time" id="endTime" class="w-full border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
                         </div>
                     </div>
-
                     <div class="pt-2">
                         <button onclick="checkBiStatus()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-teal-600/20">
                             Phân tích chỉ số mẻ hấp
                         </button>
                     </div>
-
-                    <div id="resultBox" class="hidden p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between transition-all duration-300">
+                    <div id="resultBox" class="hidden p-4 rounded-xl border flex items-center justify-between">
                         <div>
                             <p class="text-xs uppercase tracking-wider font-semibold text-slate-500">Thời gian xử lý</p>
                             <p id="durationText" class="text-xl font-bold text-slate-800">-- phút</p>
@@ -85,42 +83,74 @@
             </div>
 
             <div id="tab-giaonhan" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center space-x-3 text-slate-800">
-                        <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
-                        <h3 class="text-lg font-bold">Số Hóa Quy Trình Giao Nhận Dụng Cụ</h3>
-                    </div>
-                    <p class="text-slate-600 text-sm">Hệ thống đồng bộ dữ liệu bàn giao dụng cụ bẩn và sạch giữa khoa Kiểm soát nhiễm khuẩn và các khoa lâm sàng thông qua nền tảng số hóa của bệnh viện.</p>
-                    
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div>
-                            <p class="font-semibold text-slate-800">Ứng dụng Giao Nhận Dụng Cụ</p>
-                            <p class="text-xs text-slate-500">Khởi chạy form nhập liệu để gọi luồng tự động thông báo qua Teams</p>
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                        <div class="flex items-center space-x-3 text-slate-800">
+                            <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
+                            <h3 class="text-lg font-bold">Phiếu Giao Nhận Dụng Cụ Số Hóa</h3>
                         </div>
-                        <a href="https://apps.powerapps.com/play/YOUR-APP-ID-HERE" target="_blank" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-sm transition flex items-center space-x-2 flex-shrink-0">
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Mở Power Apps</span>
-                        </a>
+                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Dữ liệu Aesculap chuẩn</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
+                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none font-medium text-slate-800">
+                                <option value="">-- Chọn bộ dụng cụ --</option>
+                                <option value="SOSINH">BỘ SƠ SINH (2 bộ)</option>
+                                <option value="MOBATCON">BỘ MỔ BẮT CON (15 bộ)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">2. Khoa phòng giao:</label>
+                            <select class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none text-slate-700">
+                                <option>Khoa Sản</option>
+                                <option>Khoa Nhi / Sơ sinh</option>
+                                <option>Phòng mổ (OT)</option>
+                                <option>Khoa Cấp cứu</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">3. Người thực hiện:</label>
+                            <input type="text" placeholder="Tên điều dưỡng..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 focus:outline-none text-slate-700">
+                        </div>
+                    </div>
+
+                    <div id="khuVucDanhSach" class="hidden space-y-3">
+                        <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center space-x-2">
+                            <i class="fa-solid fa-list-check text-teal-600"></i> <span>Chi tiết kiểm đếm dụng cụ trong bộ</span>
+                        </h4>
+                        <div class="overflow-hidden border border-slate-200 rounded-xl shadow-sm">
+                            <table class="w-full text-left border-collapse bg-white">
+                                <thead class="bg-slate-50 text-slate-700 border-b border-slate-200 text-xs uppercase font-bold">
+                                    <tr>
+                                        <th class="p-3.5 pl-4">Mã TS</th>
+                                        <th class="p-3.5">Tên Dụng Cụ Chuẩn</th>
+                                        <th class="p-3.5 text-center">Định Mức</th>
+                                        <th class="p-3.5 text-center">Sạch</th>
+                                        <th class="p-3.5 text-center">Vô Khuẩn</th>
+                                        <th class="p-3.5 text-center">Dơ</th>
+                                        <th class="p-3.5">Ghi chú</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bodyChiTietDungCu" class="divide-y divide-slate-200 text-sm text-slate-700 font-normal">
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="flex justify-end pt-3">
+                            <button onclick="alert('Tính năng đồng bộ dữ liệu kiểm đếm đang kết nối với luồng M365 của anh!')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> <span>Xác nhận & Đồng bộ bàn giao</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div id="tab-dovai" class="hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="flex items-center space-x-3 text-slate-800">
-                        <i class="fa-solid fa-shirt text-2xl text-teal-600"></i>
-                        <h3 class="text-lg font-bold">Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
-                    </div>
-                    <p class="text-slate-600 text-sm">Quản lý và đối chiếu khối lượng đồ vải giao nhận hàng ngày với đơn vị giặt là, kiểm soát chặt chẽ quy trình vô khuẩn đồ vải y tế.</p>
-                    
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div>
-                            <p class="font-semibold text-slate-800">Biểu mẫu Giao Nhận Đồ Vải</p>
-                            <p class="text-xs text-slate-500">Ghi nhận thông tin số lượng, chủng loại đồ vải qua hệ thống Forms</p>
-                        </div>
-                        <a href="https://forms.office.com/r/YOUR-FORMS-HERE" target="_blank" class="bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-sm transition flex items-center space-x-2 flex-shrink-0">
-                            <i class="fa-solid fa-file-invoice"></i> <span>Mở MS Forms</span>
-                        </a>
-                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">🧺 Giám Sát Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
+                    <p class="text-slate-500 text-sm">Chức năng quản lý đồ vải vô khuẩn đang phát triển...</p>
                 </div>
             </div>
 
@@ -128,7 +158,63 @@
     </div>
 
     <script>
-        // Hàm xử lý logic tính toán mẻ hấp sinh học (BI)
+        // Cơ sở dữ liệu trích xuất từ file Excel của anh
+        const databaseExcel = {
+            "SOSINH": [
+                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
+                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 },
+                { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 },
+                { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum, cong, mũi tù/tù, màu đen, cán vàng, 14.5 cm", dinhMuc: 1 },
+                { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1 },
+                { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1 },
+                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1 },
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 }
+            ],
+            "MOBATCON": [
+                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
+                { ma: "AA 751/13", ten: "Kẹp sang Backhaus 13,5 cm", dinhMuc: 4 },
+                { ma: "ER132R", ten: "Muỗng đặc số 2", dinhMuc: 1 },
+                { ma: "BC326R", ten: "Kéo cắt chỉ 2 đầu nhọn", dinhMuc: 1 },
+                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4 },
+                { ma: "EA012R", ten: "Kẹp phẫu tích có răng 145mm", dinhMuc: 2 }
+            ]
+        };
+
+        // Hàm đổ chi tiết dụng cụ khi chọn Bộ
+        function loadChiTietBo() {
+            const selectBox = document.getElementById("selectBoDungCu");
+            const boKey = selectBox.value;
+            const khuVuc = document.getElementById("khuVucDanhSach");
+            const tbody = document.getElementById("bodyChiTietDungCu");
+
+            if (!boKey) {
+                khuVuc.classList.add("hidden");
+                return;
+            }
+
+            tbody.innerHTML = ""; // Xóa dữ liệu cũ
+            const danhSachCayDungCu = databaseExcel[boKey];
+
+            danhSachCayDungCu.forEach((item, index) => {
+                const row = document.createElement("tr");
+                row.className = "hover:bg-slate-50 transition-colors";
+                row.innerHTML = `
+                    <td class="p-3 pl-4 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
+                    <td class="p-3 font-medium text-slate-900">${item.ten}</td>
+                    <td class="p-3 text-center font-bold text-slate-600">${item.dinhMuc}</td>
+                    <td class="p-3 text-center"><input type="checkbox" checked class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
+                    <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
+                    <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-red-600 focus:ring-red-500"></td>
+                    <td class="p-3"><input type="text" placeholder="..." class="border border-slate-200 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-teal-500"></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            khuVuc.classList.remove("hidden"); // Hiện bảng kiểm đếm
+        }
+
+        // Logic tính toán mẻ hấp BI
         function checkBiStatus() {
             const startVal = document.getElementById('startTime').value;
             const endVal = document.getElementById('endTime').value;
@@ -144,7 +230,6 @@
             let startTotalMinutes = startH * 60 + startM;
             let endTotalMinutes = endH * 60 + endM;
 
-            // Xử lý trường hợp mẻ hấp chạy xuyên đêm qua ngày mới
             if (endTotalMinutes < startTotalMinutes) {
                 endTotalMinutes += 24 * 60;
             }
@@ -158,7 +243,6 @@
             resultBox.classList.remove('hidden');
             durationText.innerText = duration + " phút";
 
-            // LOGIC CHUẨN: Lớn hơn 30 phút đánh dấu FAIL, từ 30 phút trở xuống đánh dấu PASS
             if (duration > 30) {
                 resultBox.className = "p-4 rounded-xl border border-red-200 bg-red-50 flex items-center justify-between";
                 statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold mt-1 shadow-sm bg-red-600 text-white";
@@ -170,7 +254,7 @@
             }
         }
 
-        // Hàm xử lý chuyển đổi mượt mà giữa các tab menu
+        // Logic chuyển tab menu mượt mà
         function switchTab(tabName) {
             const tabs = ['trangchu', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
