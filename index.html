@@ -7,94 +7,94 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 font-sans flex h-screen overflow-hidden">
+<body class="bg-slate-100 font-sans flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <div class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between flex-shrink-0">
+    <div class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col justify-between flex-shrink-0 z-20 shadow-lg">
         <div>
-            <div class="p-5 bg-slate-950 flex items-center space-x-3">
-                <i class="fa-solid fa-virus-slash text-teal-400 text-2xl"></i>
+            <div class="p-4 md:p-5 bg-slate-950 flex items-center space-x-3">
+                <i class="fa-solid fa-virus-slash text-teal-400 text-xl md:text-2xl"></i>
                 <div>
-                    <h1 class="text-white font-bold text-sm tracking-wide">KIỂM SOÁT NHIỄM KHUẨN</h1>
-                    <p class="text-xs text-slate-400">Dự án Paperless CSSD</p>
+                    <h1 class="text-white font-bold text-xs md:text-sm tracking-wide uppercase">KIỂM SOÁT NHIỄM KHUẨN</h1>
+                    <p class="text-[10px] md:text-xs text-slate-400">Dự án Paperless CSSD</p>
                 </div>
             </div>
             
-            <div class="p-3 text-xs uppercase text-slate-500 font-semibold tracking-wider">Chức năng</div>
-            <nav class="space-y-1 px-2">
-                <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition">
+            <div class="hidden md:block p-3 text-xs uppercase text-slate-500 font-semibold tracking-wider">Chức năng</div>
+            <nav class="flex flex-row md:flex-col space-x-1 md:space-x-0 md:space-y-1 p-2 md:px-2 overflow-x-auto md:overflow-x-visible scrollbar-none">
+                <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg bg-teal-600 text-white font-medium text-xs md:text-sm transition shadow-sm">
                     <i class="fa-solid fa-flask-vial"></i> <span>Giám sát Test BI</span>
                 </a>
-                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition">
+                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-xs md:text-sm transition">
                     <i class="fa-solid fa-boxes-stacked"></i> <span>Tra cứu & Giao nhận</span>
                 </a>
-                <a href="#" onclick="switchTab('dovai')" id="menu-dovai" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition">
+                <a href="#" onclick="switchTab('dovai')" id="menu-dovai" class="whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-xs md:text-sm transition">
                     <i class="fa-solid fa-shirt"></i> <span>Quản lý đồ vải</span>
                 </a>
             </nav>
         </div>
-        <div class="p-4 bg-slate-950 text-xs text-center border-t border-slate-800 text-slate-500">
+        <div class="hidden md:block p-4 bg-slate-950 text-xs text-center border-t border-slate-800 text-slate-500">
             Phiên bản v1.2026
         </div>
     </div>
 
     <div class="flex-1 flex flex-col overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm flex-shrink-0">
-            <h2 id="header-title" class="text-xl font-bold text-slate-800">Hệ Thống Hỗ Trợ Giám Sát CSSD</h2>
-            <div class="text-sm text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
+        <header class="bg-white border-b border-slate-200 px-4 py-3 md:px-6 md:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-sm flex-shrink-0 gap-2">
+            <h2 id="header-title" class="text-lg md:text-xl font-bold text-slate-800">Hệ Thống Hỗ Trợ Giám Sát CSSD</h2>
+            <div class="text-xs md:text-sm text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
                 <i class="fa-regular fa-hospital text-teal-600 mr-1"></i> Bệnh viện Phương Nam
             </div>
         </header>
 
-        <main class="p-6 max-w-6xl w-full mx-auto space-y-6">
+        <main class="p-3 md:p-6 max-w-6xl w-full mx-auto space-y-4 md:space-y-6">
             
-            <div id="tab-trangchu" class="space-y-6">
-                <div class="bg-gradient-to-r from-slate-800 to-teal-800 text-white p-6 rounded-2xl shadow-md">
-                    <h3 class="text-2xl font-bold mb-2">⏱️ Giám Sát Chất Lượng Mẻ Hấp (Test BI)</h3>
-                    <p class="text-slate-300 text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút để cảnh báo an toàn vô khuẩn.</p>
+            <div id="tab-trangchu" class="space-y-4 md:space-y-6">
+                <div class="bg-gradient-to-r from-slate-800 to-teal-800 text-white p-4 md:p-6 rounded-xl md:rounded-2xl shadow-md">
+                    <h3 class="text-xl md:text-2xl font-bold mb-1 md:mb-2">⏱️ Giám Sát Chất Lượng Mẻ Hấp (Test BI)</h3>
+                    <p class="text-slate-300 text-xs md:text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút để cảnh báo an toàn vô khuẩn.</p>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Thời gian bỏ test vào máy:</label>
-                            <input type="time" id="startTime" class="w-full border border-slate-300 rounded-xl px-3 py-2">
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">Thời gian bỏ test vào máy:</label>
+                            <input type="time" id="startTime" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Thời gian có kết quả:</label>
-                            <input type="time" id="endTime" class="w-full border border-slate-300 rounded-xl px-3 py-2">
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">Thời gian có kết quả:</label>
+                            <input type="time" id="endTime" class="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm">
                         </div>
                     </div>
                     <div class="pt-2">
-                        <button onclick="checkBiStatus()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md">Phân tích chỉ số mẻ hấp</button>
+                        <button onclick="checkBiStatus()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md">Phân tích chỉ số mẻ hấp</button>
                     </div>
-                    <div id="resultBox" class="hidden p-4 rounded-xl border flex items-center justify-between">
+                    <div id="resultBox" class="hidden p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div>
-                            <p class="text-xs uppercase tracking-wider font-semibold text-slate-500">Thời gian xử lý</p>
-                            <p id="durationText" class="text-xl font-bold text-slate-800">-- phút</p>
+                            <p class="text-[10px] uppercase tracking-wider font-semibold text-slate-500">Thời gian xử lý</p>
+                            <p id="durationText" class="text-lg md:text-xl font-bold text-slate-800">-- phút</p>
                         </div>
-                        <div class="text-right">
-                            <span id="statusBadge" class="inline-block px-3 py-1 rounded-full text-sm font-bold shadow-sm">--</span>
+                        <div class="sm:text-right">
+                            <span id="statusBadge" class="inline-block px-3 py-1 rounded-full text-xs md:text-sm font-bold shadow-sm">--</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="tab-giaonhan" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            <div id="tab-giaonhan" class="hidden space-y-4 md:space-y-6">
+                <div class="bg-white p-4 md:p-6 rounded-xl md:rounded-2xl border border-slate-200 shadow-sm space-y-4 md:space-y-6">
                     
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-200 pb-4 gap-4">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-200 pb-4 gap-3">
                         <div class="flex items-center space-x-3 text-slate-800">
-                            <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
+                            <i class="fa-solid fa-boxes-stacked text-xl md:text-2xl text-teal-600"></i>
                             <div>
-                                <h3 class="text-lg font-bold">Danh Mục & Giao Nhận Bộ Dụng Cụ</h3>
-                                <p class="text-xs text-slate-500 font-normal">Hỗ trợ tra cứu nhanh danh mục thành phần của bộ</p>
+                                <h3 class="text-base md:text-lg font-bold">Danh Mục & Giao Nhận Bộ Dụng Cụ</h3>
+                                <p class="text-[11px] md:text-xs text-slate-500 font-normal">Hỗ trợ tra cứu nhanh danh mục thành phần của bộ</p>
                             </div>
                         </div>
                         
-                        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
-                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-teal-600 shadow-sm">
+                        <div class="flex w-full lg:w-auto items-center bg-slate-100 p-1 rounded-xl border border-slate-200 justify-between sm:justify-start">
+                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all bg-white text-teal-600 shadow-sm">
                                 <i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu
                             </button>
-                            <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900">
+                            <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all text-slate-600 hover:text-slate-900">
                                 <i class="fa-solid fa-file-signature mr-1"></i> Điều dưỡng Kiểm Đếm
                             </button>
                         </div>
@@ -102,8 +102,8 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
-                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
+                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2 md:py-2.5 bg-white text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
                                 <option value="">-- Chọn bộ dụng cụ từ danh sách --</option>
                                 <option value="SOSINH">BỘ SƠ SINH</option>
                                 <option value="MOBATCON">BỘ MỔ BẮT CON</option>
@@ -118,15 +118,15 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Tìm mã hoặc tên dụng cụ:</label>
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">Tìm mã hoặc tên dụng cụ:</label>
                             <div class="relative">
-                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ mã hoặc tên cần tra nhanh..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ mã hoặc tên..." class="w-full border border-slate-300 rounded-xl px-3 py-2 md:py-2.5 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 md:top-3.5 text-slate-400"></i>
                             </div>
                         </div>
                         <div id="divKhoaPhong" class="invisible">
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Khoa phòng bàn giao:</label>
-                            <select class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700">
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">Khoa phòng bàn giao:</label>
+                            <select class="w-full border border-slate-300 rounded-xl px-3 py-2 md:py-2.5 bg-white text-sm text-slate-700">
                                 <option>Phòng mổ (OT)</option>
                                 <option>Khoa Sản</option>
                                 <option>Khoa Nhi / Sơ sinh</option>
@@ -136,24 +136,24 @@
 
                     <div id="khuVucDanhSach" class="hidden space-y-3">
                         <div class="flex justify-between items-center">
-                            <h4 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center space-x-2">
+                            <h4 class="text-xs md:text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center space-x-2">
                                 <i class="fa-solid fa-list-check text-teal-600"></i> <span id="lblTenBoHienTai">Chi tiết bộ dụng cụ</span>
                             </h4>
-                            <span id="lblTongSoCay" class="text-xs font-semibold bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200">-- dòng</span>
+                            <span id="lblTongSoCay" class="text-[11px] font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full border border-slate-200">-- dòng</span>
                         </div>
-                        <div class="overflow-hidden border border-slate-200 rounded-xl shadow-sm">
-                            <table class="w-full text-left border-collapse bg-white">
-                                <thead class="bg-slate-50 text-slate-700 border-b border-slate-200 text-xs uppercase font-bold">
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+                            <table class="w-full text-left border-collapse bg-white min-w-[600px] md:min-w-0">
+                                <thead class="bg-slate-50 text-slate-700 border-b border-slate-200 text-[11px] md:text-xs uppercase font-bold">
                                     <tr id="tableHeaderRow">
                                         </tr>
                                 </thead>
-                                <tbody id="bodyChiTietDungCu" class="divide-y divide-slate-200 text-sm text-slate-700">
+                                <tbody id="bodyChiTietDungCu" class="divide-y divide-slate-200 text-xs md:text-sm text-slate-700">
                                     </tbody>
                             </table>
                         </div>
                         
                         <div id="divNutXacNhan" class="hidden flex justify-end pt-3">
-                            <button onclick="alert('Biên bản kiểm đếm đã được sẵn sàng lưu trữ nội bộ!')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition">
+                            <button onclick="alert('Biên bản kiểm đếm đã được sẵn sàng lưu trữ nội bộ!')" class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl text-sm shadow-md transition">
                                 <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Xác nhận hoàn tất biên bản
                             </button>
                         </div>
@@ -162,9 +162,9 @@
             </div>
 
             <div id="tab-dovai" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <h3 class="text-lg font-bold text-slate-800">🧺 Giám Sát Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
-                    <p class="text-slate-500 text-sm">Chức năng quản lý đồ vải vô khuẩn nội bộ đang đồng bộ dữ liệu...</p>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-base md:text-lg font-bold text-slate-800">🧺 Giám Sát Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
+                    <p class="text-slate-500 text-xs md:text-sm">Chức năng quản lý đồ vải vô khuẩn nội bộ đang đồng bộ dữ liệu...</p>
                 </div>
             </div>
 
@@ -172,13 +172,13 @@
     </div>
 
     <div id="imageModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl relative border border-slate-100 p-6 flex flex-col items-center">
-            <button onclick="closeModal()" class="absolute top-4 right-4 bg-slate-900/60 hover:bg-slate-950 text-white w-10 h-10 rounded-full flex items-center justify-center transition shadow border border-white/20 z-10">
-                <i class="fa-solid fa-xmark text-lg"></i>
+        <div class="bg-white rounded-2xl max-w-xl w-full overflow-hidden shadow-2xl relative border border-slate-100 p-4 md:p-6 flex flex-col items-center">
+            <button onclick="closeModal()" class="absolute top-3 right-3 bg-slate-900/60 hover:bg-slate-950 text-white w-9 h-9 rounded-full flex items-center justify-center transition shadow z-10">
+                <i class="fa-solid fa-xmark text-base"></i>
             </button>
-            <img id="modalImg" src="" class="max-h-[70vh] w-auto object-contain rounded-xl border shadow">
-            <h3 id="modalTitle" class="text-lg font-bold text-slate-800 mt-4 text-center">Tên dụng cụ</h3>
-            <p id="modalCode" class="text-sm font-mono text-slate-500 mt-1">Mã tài sản</p>
+            <img id="modalImg" src="" class="max-h-[60vh] md:max-h-[70vh] w-auto object-contain rounded-xl border shadow">
+            <h3 id="modalTitle" class="text-base md:text-lg font-bold text-slate-800 mt-4 text-center">Tên dụng cụ</h3>
+            <p id="modalCode" class="text-xs md:text-sm font-mono text-slate-500 mt-1">Mã tài sản</p>
         </div>
     </div>
 
@@ -266,10 +266,11 @@
             const tabs = ['trangchu', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
                 document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('menu-' + t).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition";
+                // Tách biệt class responsive cho menu điều hướng
+                document.getElementById('menu-' + t).className = "whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-xs md:text-sm transition";
             });
             document.getElementById('tab-' + tabName).classList.remove('hidden');
-            document.getElementById('menu-' + tabName).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition";
+            document.getElementById('menu-' + tabName).className = "whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg bg-teal-600 text-white font-medium text-xs md:text-sm transition shadow-sm";
         }
 
         function toggleInterfaceMode(mode) {
@@ -280,13 +281,13 @@
             const divNut = document.getElementById("divNutXacNhan");
 
             if(mode === 'VIEW') {
-                btnView.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-teal-600 shadow-sm";
-                btnEdit.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
+                btnView.className = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all bg-white text-teal-600 shadow-sm";
+                btnEdit.className = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
                 divKhoa.className = "invisible";
                 divNut.classList.add("hidden");
             } else {
-                btnEdit.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-teal-600 shadow-sm";
-                btnView.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
+                btnEdit.className = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all bg-white text-teal-600 shadow-sm";
+                btnView.className = "flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
                 divKhoa.className = "visible";
                 divNut.classList.remove("hidden");
             }
@@ -313,37 +314,34 @@
             currentActiveData = databaseExcel[boKey];
             
             lblTenBo.innerText = selectBox.options[selectBox.selectedIndex].text;
-            lblTongSo.innerText = currentActiveData.length + " dòng dụng cụ";
+            lblTongSo.innerText = currentActiveData.length + " dòng";
 
             hienThiBangDungCu(currentActiveData);
             khuVuc.classList.remove("hidden");
         }
 
-        // ĐÃ ĐỒI TÊN CỘT THEO THỨ TỰ: HÌNH ẢNH, MÃ, TÊN DỤNG CỤ, SỐ LƯỢNG CHO CẢ 2 CHẾ ĐỘ CHUYỂN ĐỔI
         function hienThiBangDungCu(danhSach) {
             const headerRow = document.getElementById("tableHeaderRow");
             const tbody = document.getElementById("bodyChiTietDungCu");
             tbody.innerHTML = "";
 
             if(currentInterfaceMode === 'VIEW') {
-                // Chế độ bác sĩ tra cứu nhanh
                 headerRow.innerHTML = `
                     <th class="p-3.5 pl-4 w-20 text-center">Hình ảnh</th>
-                    <th class="p-3.5 w-32">Mã</th>
+                    <th class="p-3.5 w-28">Mã</th>
                     <th class="p-3.5">Tên Dụng Cụ</th>
-                    <th class="p-3.5 text-center w-32">Số lượng</th>
+                    <th class="p-3.5 text-center w-28">Số lượng</th>
                 `;
             } else {
-                // Chế độ điều dưỡng làm việc kiểm đếm
                 headerRow.innerHTML = `
                     <th class="p-3.5 pl-4 w-20 text-center">Hình ảnh</th>
-                    <th class="p-3.5 w-32">Mã</th>
+                    <th class="p-3.5 w-28">Mã</th>
                     <th class="p-3.5">Tên Dụng Cụ</th>
                     <th class="p-3.5 text-center w-24">Số lượng</th>
-                    <th class="p-3.5 text-center w-20">Sạch</th>
-                    <th class="p-3.5 text-center w-20">VK Đạt</th>
-                    <th class="p-3.5 text-center w-20">Dơ/Lỗi</th>
-                    <th class="p-3.5">Ghi chú kiểm tra</th>
+                    <th class="p-3.5 text-center w-16">Sạch</th>
+                    <th class="p-3.5 text-center w-16">VK Đạt</th>
+                    <th class="p-3.5 text-center w-16">Dơ/Lỗi</th>
+                    <th class="p-3.5 w-40">Ghi chú kiểm tra</th>
                 `;
             }
 
@@ -355,31 +353,31 @@
 
             danhSach.forEach((item) => {
                 const cellHinhAnh = item.hinhAnh 
-                    ? `<div class="w-12 h-12 flex items-center justify-center border border-slate-200 rounded bg-white shadow-sm overflow-hidden p-0.5 cursor-pointer hover:border-teal-500 transition mx-auto" onclick="openModal('${item.hinhAnh}', '${item.ten}', '${item.ma}')">
+                    ? `<div class="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center border border-slate-200 rounded bg-white shadow-sm overflow-hidden p-0.5 cursor-pointer hover:border-teal-500 transition mx-auto" onclick="openModal('${item.hinhAnh}', '${item.ten}', '${item.ma}')">
                         <img src="${item.hinhAnh}" class="max-w-full max-h-full object-contain">
                        </div>`
-                    : `<div class="w-12 h-12 bg-slate-50 rounded border border-slate-100 flex items-center justify-center text-slate-300 text-sm mx-auto"><i class="fa-solid fa-screwdriver-wrench"></i></div>`;
+                    : `<div class="w-10 h-10 md:w-12 md:h-12 bg-slate-50 rounded border border-slate-100 flex items-center justify-center text-slate-300 text-xs mx-auto"><i class="fa-solid fa-screwdriver-wrench"></i></div>`;
 
                 const row = document.createElement("tr");
                 row.className = "hover:bg-slate-50 transition-colors";
 
                 if(currentInterfaceMode === 'VIEW') {
                     row.innerHTML = `
-                        <td class="p-2 text-center h-16">${cellHinhAnh}</td>
+                        <td class="p-2 text-center">${cellHinhAnh}</td>
                         <td class="p-3 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
-                        <td class="p-3 font-semibold text-slate-900 text-base">${item.ten}</td>
-                        <td class="p-3 text-center font-bold text-teal-600 text-base">${item.dinhMuc} cây</td>
+                        <td class="p-3 font-semibold text-slate-900 text-sm md:text-base">${item.ten}</td>
+                        <td class="p-3 text-center font-bold text-teal-600 text-sm md:text-base">${item.dinhMuc} cây</td>
                     `;
                 } else {
                     row.innerHTML = `
-                        <td class="p-2 text-center h-16">${cellHinhAnh}</td>
+                        <td class="p-2 text-center">${cellHinhAnh}</td>
                         <td class="p-3 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
-                        <td class="p-3 font-medium text-slate-900">${item.ten}</td>
-                        <td class="p-3 text-center font-bold text-slate-600">${item.dinhMuc}</td>
+                        <td class="p-3 font-medium text-slate-900 text-xs md:text-sm">${item.ten}</td>
+                        <td class="p-3 text-center font-bold text-slate-600 text-xs md:text-sm">${item.dinhMuc}</td>
                         <td class="p-3 text-center"><input type="checkbox" checked class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
                         <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
                         <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-red-600 focus:ring-red-500"></td>
-                        <td class="p-3"><input type="text" placeholder="..." class="border border-slate-200 rounded px-2 py-1 text-xs w-full focus:outline-none"></td>
+                        <td class="p-2"><input type="text" placeholder="..." class="border border-slate-200 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-teal-500"></td>
                     `;
                 }
                 tbody.appendChild(row);
@@ -389,7 +387,7 @@
         function openModal(imgUrl, name, code) {
             document.getElementById("modalImg").src = imgUrl;
             document.getElementById("modalTitle").innerText = name;
-            document.getElementById("modalCode").innerText = "Mã Aesculap: " + code;
+            document.getElementById("modalCode").innerText = "Mã: " + code;
             document.getElementById("imageModal").classList.remove("hidden");
         }
 
@@ -415,7 +413,7 @@
             }
 
             document.getElementById("selectBoDungCu").value = "";
-            lblTenBo.innerText = `Kết quả tra cứu nhanh cho khóa: "${tuKhoa}"`;
+            lblTenBo.innerText = `Kết quả tra cứu cho khóa: "${tuKhoa}"`;
             
             currentActiveData = [];
             for (let boKey in databaseExcel) {
@@ -446,11 +444,11 @@
             resultBox.classList.remove('hidden'); durationText.innerText = duration + " phút";
             
             if (duration > 30) {
-                resultBox.className = "p-4 rounded-xl border border-red-200 bg-red-50 flex items-center justify-between";
-                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold bg-red-600 text-white"; statusBadge.innerText = "❌ FAIL (Quá 30 phút)";
+                resultBox.className = "p-4 rounded-xl border border-red-200 bg-red-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white"; statusBadge.innerText = "❌ FAIL (Quá 30 phút)";
             } else {
-                resultBox.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center justify-between";
-                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold bg-emerald-600 text-white"; statusBadge.innerText = "✅ PASS (Đạt tiến độ)";
+                resultBox.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white"; statusBadge.innerText = "✅ PASS (Đạt tiến độ)";
             }
         }
     </script>
