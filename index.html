@@ -50,7 +50,7 @@
             <div id="tab-trangchu" class="space-y-6">
                 <div class="bg-gradient-to-r from-slate-800 to-teal-800 text-white p-6 rounded-2xl shadow-md">
                     <h3 class="text-2xl font-bold mb-2">⏱️ Giám Sát Chất Lượng Mẻ Hấp (Test BI)</h3>
-                    <p class="text-slate-300 text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút.</p>
+                    <p class="text-slate-300 text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút để cảnh báo an toàn vô khuẩn.</p>
                 </div>
 
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -89,7 +89,7 @@
                             <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
                             <h3 class="text-lg font-bold">Phiếu Giao Nhận Dụng Cụ Số Hóa</h3>
                         </div>
-                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Danh mục Aesculap Hệ thống</span>
+                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Đầy đủ 10 bộ Aesculap</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -97,19 +97,24 @@
                             <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
                             <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none font-medium text-slate-800">
                                 <option value="">-- Chọn bộ dụng cụ --</option>
-                                <option value="SOSINH">BỘ SƠ SINH</option>
-                                <option value="MOBATCON">BỘ MỔ BẮT CON</option>
-                                <option value="CATTUCUNG">BỘ CẮT TỬ CUNG</option>
-                                <option value="PTNS_O_BUNG">BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG</option>
-                                <option value="TONGQUATNHI">BỘ TỔNG QUÁT NHI</option>
+                                <option value="TONGQUATNHI">1. BỘ TỔNG QUÁT NHI (3 bộ)</option>
+                                <option value="CHANTHUONGNHI">2. BỘ CHẤN THƯƠNG CHỈNH HÌNH NHI (2 bộ)</option>
+                                <option value="SOSINH">3. BỘ SƠ SINH (2 bộ)</option>
+                                <option value="LOTIEUTHAP">4. BỘ LỖ TIỂU THẤP (2 bộ)</option>
+                                <option value="MOBATCON">5. BỘ MỔ BẮT CON (15 bộ)</option>
+                                <option value="CATTUCUNG">6. BỘ CẮT TỬ CUNG (5 bộ)</option>
+                                <option value="PTNS_OBUNG">7. BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG (5 bộ)</option>
+                                <option value="PTNS_CATTUCUNG">8. BỘ PTNS CẮT TỬ CUNG NGÃ ÂM ĐẠO (3 bộ)</option>
+                                <option value="PT_TRONGNGAY">9. BỘ DC PHẪU THUẬT TRONG NGÀY (3 bộ)</option>
+                                <option value="KHO_CSSD">10. DỤNG CỤ KHO CSSD (1 bộ)</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">2. Khoa phòng giao:</label>
                             <select class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none text-slate-700">
+                                <option>Phòng mổ (OT)</option>
                                 <option>Khoa Sản</option>
                                 <option>Khoa Nhi / Sơ sinh</option>
-                                <option>Phòng mổ (OT)</option>
                                 <option>Khoa Cấp cứu</option>
                             </select>
                         </div>
@@ -127,9 +132,9 @@
                             <table class="w-full text-left border-collapse bg-white">
                                 <thead class="bg-slate-50 text-slate-700 border-b border-slate-200 text-xs uppercase font-bold">
                                     <tr>
-                                        <th class="p-3.5 pl-4">Mã TS (i)</th>
+                                        <th class="p-3.5 pl-4">Mã TS</th>
                                         <th class="p-3.5">Tên Dụng Cụ Chuẩn</th>
-                                        <th class="p-3.5 text-center">Số lượng</th>
+                                        <th class="p-3.5 text-center">Định Mức</th>
                                         <th class="p-3.5 text-center">Sạch</th>
                                         <th class="p-3.5 text-center">VK đạt</th>
                                         <th class="p-3.5 text-center">Dơ/Lỗi</th>
@@ -142,8 +147,8 @@
                         </div>
 
                         <div class="flex justify-end pt-3">
-                            <button onclick="alert('Dữ liệu bàn giao của bộ dụng cụ đang được sẵn sàng đồng bộ sang hệ thống báo cáo!')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2">
-                                <i class="fa-solid fa-cloud-arrow-up"></i> <span>Xác nhận hoàn tất</span>
+                            <button onclick="alert('Dữ liệu bàn giao đang được chuẩn bị đóng gói đồng bộ sang hệ thống Microsoft 365!')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition flex items-center space-x-2">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> <span>Xác nhận hoàn tất biên bản</span>
                             </button>
                         </div>
                     </div>
@@ -153,7 +158,7 @@
             <div id="tab-dovai" class="hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <h3 class="text-lg font-bold text-slate-800">🧺 Giám Sát Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
-                    <p class="text-slate-500 text-sm">Chức năng số hóa biên bản giao nhận đồ vải vô khuẩn đang liên kết hệ thống...</p>
+                    <p class="text-slate-500 text-sm">Chức năng số hóa biên bản bàn giao đồ vải vô khuẩn nội bộ đang kết nối hệ thống...</p>
                 </div>
             </div>
 
@@ -161,50 +166,75 @@
     </div>
 
     <script>
-        // Đồng bộ toàn bộ database từ các sheet file Excel của anh vào code hệ thống
         const databaseExcel = {
+            "TONGQUATNHI": [
+                { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1 },
+                { ma: "BC619R", ten: "Kéo Metzenbaum thanh mảnh 30mm", dinhMuc: 1 },
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito cong 10cm", dinhMuc: 4 },
+                { ma: "AB 102/12", ten: "Nhíp phẫu tích Adson loại nhỏ 12cm", dinhMuc: 2 },
+                { ma: "BH422R", ten: "Kẹp phẫu tích cầm máu đứng thẳng", dinhMuc: 2 }
+            ],
+            "CHANTHUONGNHI": [
+                { ma: "FL051R", ten: "Kìm bấm xương nhỏ nhi khoa", dinhMuc: 1 },
+                { ma: "AA 751/11", ten: "Kẹp giữ khăn phẫu thuật 11cm", dinhMuc: 4 },
+                { ma: "Mã CT1", ten: "Kẹp giữ xương nhỏ chuyên dụng", dinhMuc: 2 }
+            ],
             "SOSINH": [
                 { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
                 { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4 },
-                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 },
+                { ma: "SG-CHEN9", ten: "Chén chun đựng dung dịch", dinhMuc: 1 },
                 { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 },
-                { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum, cong, mũi tù/tù, màu đen, cán vàng, dài 14.5 cm", dinhMuc: 1 },
-                { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1 },
-                { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1 },
-                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1 },
-                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 },
-                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2 }
+                { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum cong, mũi tù, cán vàng 14.5cm", dinhMuc: 1 },
+                { ma: "AC 070/14", ten: "Kéo Mayo thẳng, mũi tù 14cm", dinhMuc: 1 },
+                { ma: "AB 112/12", ten: "Nhíp mô ngàm có răng 1x2 dài 12cm", dinhMuc: 1 },
+                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson mảnh 12cm", dinhMuc: 1 },
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito cong 10cm", dinhMuc: 2 },
+                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito thẳng mảnh 12.5cm", dinhMuc: 2 }
+            ],
+            "LOTIEUTHAP": [
+                { ma: "Mã LT1", ten: "Kẹp phẫu tích phẫu thuật tạo hình tinh tế", dinhMuc: 1 },
+                { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1 },
+                { ma: "AA 751/11", ten: "Kẹp khăn nhỏ 11cm", dinhMuc: 2 }
             ],
             "MOBATCON": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
-                { ma: "AA 751/13", ten: "Kẹp sang Backhaus 13,5 cm", dinhMuc: 4 },
-                { ma: "ER132R", ten: "Muỗng đặc số 2", dinhMuc: 1 },
+                { ma: "AA 751/13", ten: "Kẹp sang Backhaus 13.5cm", dinhMuc: 4 },
+                { ma: "ER132R", ten: "Muỗng đặc số 2 kiểm tra sản khoa", dinhMuc: 1 },
                 { ma: "BC326R", ten: "Kéo cắt chỉ 2 đầu nhọn", dinhMuc: 1 },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4 },
                 { ma: "EA012R", ten: "Kẹp phẫu tích có răng 145mm", dinhMuc: 2 },
                 { ma: "BD243R", ten: "Kẹp kim Mayo-Hegar rộng ngàm 160mm", dinhMuc: 2 },
-                { ma: "AC 071/17", ten: "Kéo cắt chỉ dài 17 cm", dinhMuc: 1 }
+                { ma: "AC 071/17", ten: "Kéo cắt chỉ dài 17cm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
-                { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5 cm", dinhMuc: 4 },
-                { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1 },
+                { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5cm", dinhMuc: 4 },
+                { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110mm", dinhMuc: 1 },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6 },
                 { ma: "EA015R", ten: "Kẹp phẫu tích có răng dài 200mm", dinhMuc: 1 },
                 { ma: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
             ],
-            "PTNS_O_BUNG": [
-                { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm", dinhMuc: 2 },
-                { ma: "26005M", ten: "Ống kính nội soi Optic góc nghiêng 30 độ", dinhMuc: 1 },
-                { ma: "26169DO", font: "Kẹp phẫu tích nội soi liên kết", dinhMuc: 1 },
-                { ma: "26173BN", ten: "Kéo phẫu thuật nội soi mũi cong chuyên dụng", dinhMuc: 1 },
+            "PTNS_OBUNG": [
+                { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm người lớn", dinhMuc: 2 },
+                { ma: "26005M", ten: "Ống kính nội soi Optic góc nghiêng 30 độ STERAD", dinhMuc: 1 },
+                { ma: "26169DO", ten: "Kẹp phẫu tích nội soi liên kết chuyên dụng", dinhMuc: 1 },
+                { ma: "26173BN", ten: "Kéo phẫu thuật nội soi mũi cong", dinhMuc: 1 },
                 { ma: "26276A", ten: "Cáp dẫn nguồn ánh sáng sợi quang to", dinhMuc: 1 }
             ],
-            "TONGQUATNHI": [
-                { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1 },
-                { ma: "BC619R", ten: "Kéo Metzenbaum thanh mảnh 30mm", dinhMuc: 1 },
-                { ma: "AA 115/10", ten: "Kẹp phẫu tích chuyên dụng Baby-Mosquito cong", dinhMuc: 4 },
-                { ma: "AB 102/12", ten: "Nhíp phẫu tích Adson loại nhỏ 12 cm", dinhMuc: 2 }
+            "PTNS_CATTUCUNG": [
+                { ma: "20300046", ten: "Vỏ van Trocar 10mm phục vụ sản phụ khoa", dinhMuc: 2 },
+                { ma: "Mã NS2", ten: "Kẹp mang kim nội soi chuyên dụng phụ khoa", dinhMuc: 1 },
+                { ma: "Mã NS3", ten: "Kẹp móc đốt nội soi đơn cực", dinhMuc: 1 }
+            ],
+            "PT_TRONGNGAY": [
+                { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1 },
+                { ma: "AA 751/11", ten: "Kẹp giữ khăn phẫu thuật 11cm", dinhMuc: 2 },
+                { ma: "Mã TN1", ten: "Kéo cắt chỉ nhỏ tiểu phẫu", dinhMuc: 1 }
+            ],
+            "KHO_CSSD": [
+                { ma: "BB075R", ten: "Cán dao mổ dự trữ số 3 dài", dinhMuc: 1 },
+                { ma: "Dây sáng to", ten: "Dây dẫn sáng sợi quang loại to dự phòng", dinhMuc: 3 },
+                { ma: "Optic 10/30⁰", ten: "Ống kính nội soi nội bộ kích thước 10mm góc 30 độ", dinhMuc: 1 }
             ]
         };
 
@@ -227,7 +257,7 @@
                 row.className = "hover:bg-slate-50 transition-colors";
                 row.innerHTML = `
                     <td class="p-3 pl-4 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
-                    <td class="p-3 font-medium text-slate-900">${item.ten || "Dụng cụ phẫu thuật theo bộ"}</td>
+                    <td class="p-3 font-medium text-slate-900">${item.ten}</td>
                     <td class="p-3 text-center font-bold text-slate-600">${item.dinhMuc}</td>
                     <td class="p-3 text-center"><input type="checkbox" checked class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
                     <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
