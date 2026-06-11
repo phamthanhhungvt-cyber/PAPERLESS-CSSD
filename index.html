@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSSD Digital Tool - Quản lý Nhiễm Khuẩn</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 font-sans flex h-screen overflow-hidden">
+
+    <div class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between flex-shrink-0">
+        <div>
+            <div class="p-5 bg-slate-950 flex items-center space-x-3">
+                <i class="fa-solid fa-virus-slash text-teal-400 text-2xl"></i>
+                <div>
+                    <h1 class="text-white font-bold text-sm tracking-wide">KIỂM SOÁT NHIỄM KHUẨN</h1>
+                    <p class="text-xs text-slate-400">Dự án Paperless CSSD</p>
+                </div>
+            </div>
+            
+            <div class="p-3 text-xs uppercase text-slate-500 font-semibold tracking-wider">Chức năng</div>
+            <nav class="space-y-1 px-2">
+                <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition">
+                    <i class="fa-solid fa-flask-vial"></i> <span>Giám sát Test BI</span>
+                </a>
+                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-boxes-stacked"></i> <span>Giao nhận dụng cụ</span>
+                </a>
+                <a href="#" onclick="switchTab('dovai')" id="menu-dovai" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-shirt"></i> <span>Quản lý đồ vải</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 bg-slate-950 text-xs text-center border-t border-slate-800 text-slate-500">
+            Phiên bản v1.2026
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm flex-shrink-0">
+            <h2 id="header-title" class="text-xl font-bold text-slate-800">Hệ Thống Hỗ Trợ Giám Sát CSSD</h2>
+            <div class="text-sm text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full font-medium">
+                <i class="fa-regular fa-hospital text-teal-600 mr-1"></i> Bệnh viện Phương Nam
+            </div>
+        </header>
+
+        <main class="p-6 max-w-4xl w-full mx-auto space-y-6">
+            
+            <div id="tab-trangchu" class="space-y-6">
+                <div class="bg-gradient-to-r from-slate-800 to-teal-800 text-white p-6 rounded-2xl shadow-md">
+                    <h3 class="text-2xl font-bold mb-2">⏱️ Giám Sát Chất Lượng Mẻ Hấp (Test BI)</h3>
+                    <p class="text-slate-300 text-sm">Tự động phân tích tốc độ trả kết quả kiểm soát sinh học trong vòng 30 phút để cảnh báo an toàn vô khuẩn kịp thời.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Thời gian bỏ test vào máy:</label>
+                            <input type="time" id="startTime" class="w-full border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Thời gian có kết quả:</label>
+                            <input type="time" id="endTime" class="w-full border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button onclick="checkBiStatus()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-xl transition shadow-md shadow-teal-600/20">
+                            Phân tích chỉ số mẻ hấp
+                        </button>
+                    </div>
+
+                    <div id="resultBox" class="hidden p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between transition-all duration-300">
+                        <div>
+                            <p class="text-xs uppercase tracking-wider font-semibold text-slate-500">Thời gian xử lý</p>
+                            <p id="durationText" class="text-xl font-bold text-slate-800">-- phút</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs uppercase tracking-wider font-semibold text-slate-500">Trạng thái kiểm soát</p>
+                            <span id="statusBadge" class="inline-block px-3 py-1 rounded-full text-sm font-bold mt-1 shadow-sm">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-giaonhan" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 text-slate-800">
+                        <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
+                        <h3 class="text-lg font-bold">Số Hóa Quy Trình Giao Nhận Dụng Cụ</h3>
+                    </div>
+                    <p class="text-slate-600 text-sm">Hệ thống đồng bộ dữ liệu bàn giao dụng cụ bẩn và sạch giữa khoa Kiểm soát nhiễm khuẩn và các khoa lâm sàng thông qua nền tảng số hóa của bệnh viện.</p>
+                    
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <p class="font-semibold text-slate-800">Ứng dụng Giao Nhận Dụng Cụ</p>
+                            <p class="text-xs text-slate-500">Khởi chạy form nhập liệu để gọi luồng tự động thông báo qua Teams</p>
+                        </div>
+                        <a href="https://apps.powerapps.com/play/YOUR-APP-ID-HERE" target="_blank" class="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-sm transition flex items-center space-x-2 flex-shrink-0">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Mở Power Apps</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-dovai" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center space-x-3 text-slate-800">
+                        <i class="fa-solid fa-shirt text-2xl text-teal-600"></i>
+                        <h3 class="text-lg font-bold">Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
+                    </div>
+                    <p class="text-slate-600 text-sm">Quản lý và đối chiếu khối lượng đồ vải giao nhận hàng ngày với đơn vị giặt là, kiểm soát chặt chẽ quy trình vô khuẩn đồ vải y tế.</p>
+                    
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <p class="font-semibold text-slate-800">Biểu mẫu Giao Nhận Đồ Vải</p>
+                            <p class="text-xs text-slate-500">Ghi nhận thông tin số lượng, chủng loại đồ vải qua hệ thống Forms</p>
+                        </div>
+                        <a href="https://forms.office.com/r/YOUR-FORMS-HERE" target="_blank" class="bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium px-5 py-2.5 rounded-xl shadow-sm transition flex items-center space-x-2 flex-shrink-0">
+                            <i class="fa-solid fa-file-invoice"></i> <span>Mở MS Forms</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Hàm xử lý logic tính toán mẻ hấp sinh học (BI)
+        function checkBiStatus() {
+            const startVal = document.getElementById('startTime').value;
+            const endVal = document.getElementById('endTime').value;
+            
+            if (!startVal || !endVal) {
+                alert("Vui lòng chọn đầy đủ cả hai mốc thời gian!");
+                return;
+            }
+
+            const [startH, startM] = startVal.split(':').map(Number);
+            const [endH, endM] = endVal.split(':').map(Number);
+            
+            let startTotalMinutes = startH * 60 + startM;
+            let endTotalMinutes = endH * 60 + endM;
+
+            // Xử lý trường hợp mẻ hấp chạy xuyên đêm qua ngày mới
+            if (endTotalMinutes < startTotalMinutes) {
+                endTotalMinutes += 24 * 60;
+            }
+
+            const duration = endTotalMinutes - startTotalMinutes;
+            
+            const resultBox = document.getElementById('resultBox');
+            const durationText = document.getElementById('durationText');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            resultBox.classList.remove('hidden');
+            durationText.innerText = duration + " phút";
+
+            // LOGIC CHUẨN: Lớn hơn 30 phút đánh dấu FAIL, từ 30 phút trở xuống đánh dấu PASS
+            if (duration > 30) {
+                resultBox.className = "p-4 rounded-xl border border-red-200 bg-red-50 flex items-center justify-between";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold mt-1 shadow-sm bg-red-600 text-white";
+                statusBadge.innerText = "❌ FAIL (Quá 30 phút)";
+            } else {
+                resultBox.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center justify-between";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold mt-1 shadow-sm bg-emerald-600 text-white";
+                statusBadge.innerText = "✅ PASS (Đạt tiến độ)";
+            }
+        }
+
+        // Hàm xử lý chuyển đổi mượt mà giữa các tab menu
+        function switchTab(tabName) {
+            const tabs = ['trangchu', 'giaonhan', 'dovai'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('menu-' + t).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition";
+            });
+
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('menu-' + tabName).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition";
+        }
+    </script>
+</body>
+</html>
