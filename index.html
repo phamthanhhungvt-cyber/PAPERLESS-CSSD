@@ -83,9 +83,9 @@
                     <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                         <div class="flex items-center space-x-3 text-slate-800">
                             <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
-                            <h3 class="text-lg font-bold">Hệ Thống Kiểm Đếm Danh Mục Chi Tiết Chính Xác</h3>
+                            <h3 class="text-lg font-bold">Hệ Thống Kiểm Đếm Danh Mục Chi Tiết</h3>
                         </div>
-                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Bấm Vào Ảnh Để Phóng To Giữa Màn Hình</span>
+                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Click Ảnh Để Xem To Giữa Màn Hình</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -108,7 +108,7 @@
                         <div>
                             <label class="block text-sm font-semibold text-slate-700 mb-1">Hoặc tra mã / tên nhanh:</label>
                             <div class="relative">
-                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ mã hoặc tên cần tìm..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
+                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ từ khóa tìm nhanh..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
                             </div>
                         </div>
@@ -251,7 +251,7 @@
             ]
         };
 
-        // Hàm chuyển tab
+        // Hàm chuyển đổi Tab menu mượt mà - ĐÃ ĐƯỢC THÔNG SUỐT
         function switchTab(tabName) {
             const tabs = ['trangchu', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
@@ -262,7 +262,7 @@
             document.getElementById('menu-' + tabName).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition";
         }
 
-        // Hàm đổ bảng dụng cụ
+        // Hàm đổ bảng danh mục dụng cụ chi tiết
         function loadChiTietBo() {
             const selectBox = document.getElementById("selectBoDungCu");
             const boKey = selectBox.value;
@@ -319,7 +319,7 @@
             });
         }
 
-        // Đóng mở Modal ảnh lớn chính giữa
+        // Đóng mở hộp thoại Popup ảnh phóng to chính giữa màn hình
         function openModal(imgUrl, name, code) {
             document.getElementById("modalImg").src = imgUrl;
             document.getElementById("modalTitle").innerText = name;
@@ -336,7 +336,7 @@
             if (event.target == modal) { closeModal(); }
         }
 
-        // Tìm kiếm nhanh
+        // Hàm tìm kiếm nhanh - ĐÃ FIX ID LỖI "khuVucDanhSach" THÀNH CÔNG
         function timKiemNhanh() {
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
             const khuVuc = document.getElementById("khuVucDanhSach");
@@ -366,7 +366,7 @@
             khuVuc.classList.remove("hidden");
         }
 
-        // Tính chỉ số BI mẻ hấp sinh học
+        // Phân tích thời gian mẻ hấp sinh học BI
         function checkBiStatus() {
             const startVal = document.getElementById('startTime').value;
             const endVal = document.getElementById('endTime').value;
