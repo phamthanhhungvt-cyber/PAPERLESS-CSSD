@@ -86,7 +86,7 @@
                             <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
                             <div>
                                 <h3 class="text-lg font-bold">Danh Mục & Giao Nhận Bộ Dụng Cụ</h3>
-                                <p class="text-xs text-slate-500 font-normal">Hỗ trợ Bác sĩ tra cứu nhanh danh mục thành phần của bộ</p>
+                                <p class="text-xs text-slate-500 font-normal">Hỗ trợ tra cứu nhanh danh mục thành phần của bộ</p>
                             </div>
                         </div>
                         
@@ -102,7 +102,7 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ Tra Cứu:</label>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
                             <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
                                 <option value="">-- Chọn bộ dụng cụ từ danh sách --</option>
                                 <option value="SOSINH">BỘ SƠ SINH</option>
@@ -118,13 +118,14 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Hoặc tìm cây dụng cụ bất kỳ:</label>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Tìm mã hoặc tên dụng cụ:</label>
                             <div class="relative">
-                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ mã hoặc tên cần tra..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
+                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ mã hoặc tên cần tra nhanh..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
                             </div>
                         </div>
-                        <div id="divKhoaPhong" class="invisible"> <label class="block text-sm font-semibold text-slate-700 mb-1">Khoa phòng bàn giao:</label>
+                        <div id="divKhoaPhong" class="invisible">
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Khoa phòng bàn giao:</label>
                             <select class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white text-slate-700">
                                 <option>Phòng mổ (OT)</option>
                                 <option>Khoa Sản</option>
@@ -152,7 +153,7 @@
                         </div>
                         
                         <div id="divNutXacNhan" class="hidden flex justify-end pt-3">
-                            <button onclick="alert('Biên bản bàn giao số hóa đã sẵn sàng gửi dữ liệu!')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition">
+                            <button onclick="alert('Biên bản kiểm đếm đã được sẵn sàng lưu trữ nội bộ!')" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2.5 rounded-xl shadow-md transition">
                                 <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Xác nhận hoàn tất biên bản
                             </button>
                         </div>
@@ -182,9 +183,8 @@
     </div>
 
     <script>
-        // Trạng thái giao diện hiện tại: 'VIEW' (Bác sĩ tra cứu) hoặc 'EDIT' (Điều dưỡng kiểm đếm)
         let currentInterfaceMode = 'VIEW';
-        let currentActiveData = []; // Lưu trữ danh sách dụng cụ đang hiển thị hiện tại
+        let currentActiveData = [];
 
         const databaseExcel = {
             "SOSINH": [
@@ -262,7 +262,6 @@
             ]
         };
 
-        // Hàm chuyển tab menu chính độc lập không lỗi
         function switchTab(tabName) {
             const tabs = ['trangchu', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
@@ -273,7 +272,6 @@
             document.getElementById('menu-' + tabName).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition";
         }
 
-        // Hàm gạt công tắc đổi chế độ Xem / Tương tác
         function toggleInterfaceMode(mode) {
             currentInterfaceMode = mode;
             const btnView = document.getElementById("btnModeView");
@@ -284,22 +282,20 @@
             if(mode === 'VIEW') {
                 btnView.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-teal-600 shadow-sm";
                 btnEdit.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
-                divKhoa.classList.add("invisible");
+                divKhoa.className = "invisible";
                 divNut.classList.add("hidden");
             } else {
                 btnEdit.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all bg-white text-teal-600 shadow-sm";
                 btnView.className = "px-4 py-1.5 rounded-lg text-xs font-bold transition-all text-slate-600 hover:text-slate-900";
-                divKhoa.classList.remove("invisible");
+                divKhoa.className = "visible";
                 divNut.classList.remove("hidden");
             }
 
-            // Vẽ lại bảng dữ liệu hiện tại dựa theo cấu trúc cột mới của chế độ vừa chọn
             if(currentActiveData.length > 0) {
                 hienThiBangDungCu(currentActiveData);
             }
         }
 
-        // Hàm chọn bộ dụng cụ
         function loadChiTietBo() {
             const selectBox = document.getElementById("selectBoDungCu");
             const boKey = selectBox.value;
@@ -323,13 +319,11 @@
             khuVuc.classList.remove("hidden");
         }
 
-        // Hàm hiển thị bảng động theo Chế độ Bác sĩ tra cứu hoặc Điều dưỡng làm việc
         function hienThiBangDungCu(danhSach) {
             const headerRow = document.getElementById("tableHeaderRow");
             const tbody = document.getElementById("bodyChiTietDungCu");
             tbody.innerHTML = "";
 
-            // 1. Tái cấu trúc tiêu đề bảng theo chế độ
             if(currentInterfaceMode === 'VIEW') {
                 headerRow.innerHTML = `
                     <th class="p-3.5 pl-4 w-20 text-center">Hình ảnh</th>
@@ -350,7 +344,6 @@
                 `;
             }
 
-            // 2. Điền dữ liệu vào bảng
             if(danhSach.length === 0) {
                 const totalCols = currentInterfaceMode === 'VIEW' ? 4 : 8;
                 tbody.innerHTML = `<tr><td colspan="${totalCols}" class="p-4 text-center text-slate-400 font-medium">Không tìm thấy dụng cụ phù hợp!</td></tr>`;
@@ -368,7 +361,6 @@
                 row.className = "hover:bg-slate-50 transition-colors";
 
                 if(currentInterfaceMode === 'VIEW') {
-                    // Cấu trúc bảng tối giản cho Bác sĩ tra cứu
                     row.innerHTML = `
                         <td class="p-2 text-center h-16">${cellHinhAnh}</td>
                         <td class="p-3 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
@@ -376,7 +368,6 @@
                         <td class="p-3 text-center font-bold text-teal-600 text-base">${item.dinhMuc} cây</td>
                     `;
                 } else {
-                    // Cấu trúc bảng đầy đủ cho điều dưỡng kiểm đếm giao nhận
                     row.innerHTML = `
                         <td class="p-2 text-center h-16">${cellHinhAnh}</td>
                         <td class="p-3 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
@@ -392,7 +383,22 @@
             });
         }
 
-        // Tra cứu tìm kiếm từ khóa trên toàn bộ database
+        function openModal(imgUrl, name, code) {
+            document.getElementById("modalImg").src = imgUrl;
+            document.getElementById("modalTitle").innerText = name;
+            document.getElementById("modalCode").innerText = "Mã Aesculap: " + code;
+            document.getElementById("imageModal").classList.remove("hidden");
+        }
+
+        document.getElementById("imageModal").onclick = function(e) {
+            if(e.target === this) closeModal();
+        };
+
+        function closeModal() {
+            document.getElementById("imageModal").classList.add("hidden");
+        }
+
+        // SỬA LỖI TRA CỨU NHANH ĐỒNG BỘ 100% KHÔNG LỖI CÚ PHÁP
         function timKiemNhanh() {
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
             const khuVuc = document.getElementById("khuVucDanhSach");
@@ -423,24 +429,6 @@
             khuVuc.classList.remove("hidden");
         }
 
-        // Hộp thoại popup ảnh lớn phóng to chính giữa màn hình
-        function openModal(imgUrl, name, code) {
-            document.getElementById("modalImg").src = imgUrl;
-            document.getElementById("modalTitle").innerText = name;
-            document.getElementById("modalCode").innerText = "Mã Aesculap: " + code;
-            document.getElementById("imageModal").classList.remove("hidden");
-        }
-
-        function closeModal() {
-            document.getElementById("imageModal").classList.add("hidden");
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById("imageModal");
-            if (event.target == modal) { closeModal(); }
-        }
-
-        // Tính toán tiến độ mẻ hấp BI
         function checkBiStatus() {
             const startVal = document.getElementById('startTime').value;
             const endVal = document.getElementById('endTime').value;
