@@ -373,4 +373,97 @@
                 row.className = "hover:bg-slate-50 transition-colors";
                 row.innerHTML = `
                     <td class="p-3 pl-4 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
-                    <td class="p-3 font-medium text-slate-9
+                    <td class="p-3 font-medium text-slate-900">${item.ten}</td>
+                    <td class="p-3 text-center font-bold text-slate-600">${item.dinhMuc}</td>
+                    <td class="p-3 text-center"><input type="checkbox" checked class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
+                    <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"></td>
+                    <td class="p-3 text-center"><input type="checkbox" class="w-4 h-4 rounded text-red-600 focus:ring-red-500"></td>
+                    <td class="p-3"><input type="text" placeholder="..." class="border border-slate-200 rounded px-2 py-1 text-xs w-full focus:outline-none focus:border-teal-500"></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Hàm tìm kiếm thông minh từ khóa trên toàn bộ kho Excel
+        function timKiemNhanh() {
+            const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
+            const khuVuc = document.getElementById("khuVucDanhSach");
+            const lblTenBo = document.getElementById("lblTenBoHienTai");
+            const lblTongSo = document.getElementById("lblTongSoCay");
+            
+            if (!tuKhoa) {
+                document.getElementById("selectBoDungCu").value = "";
+                khuVuc.classList.add("hidden");
+                return;
+            }
+
+            // Reset ô chọn bộ về mặc định khi đang gõ tìm kiếm
+            document.getElementById("selectBoDungCu").value = "";
+            lblTenBo.innerText = `Kết quả tìm kiếm cho khóa: "${tuKhoa}"`;
+            
+            let kếtQuảLọc = [];
+            
+            // Quét qua toàn bộ dữ liệu Excel để tìm cây phù hợp
+            for (let boKey in databaseExcel) {
+                databaseExcel[boKey].forEach(item => {
+                    if (item.ten.toLowerCase().includes(tuKhoa) || item.ma.toLowerCase().includes(tuKhoa)) {
+                        // Tránh trùng lặp mã tài sản trên bảng hiển thị kết quả tìm kiếm chung
+                        if(!kếtQuảLọc.some(x => x.ma === item.ma)) {
+                            kếtQuảLọc.push(item);
+                        }
+                    }
+                });
+            }
+
+            lblTongSo.innerText = kếtQuảLọc.length + " cây dụng cụ tìm thấy";
+            hienThiBangDungCu(kếtQuảLọc);
+            khuVuc.classList.remove("hidden");
+        }
+
+        function checkBiStatus() {
+            const startVal = document.getElementById('startTime').value;
+            const endVal = document.getElementById('endTime').value;
+            
+            if (!startVal || !endVal) {
+                alert("Vui lòng nhập đầy đủ mốc thời gian!");
+                return;
+            }
+
+            const [startH, startM] = startVal.split(':').map(Number);
+            const [endH, endM] = endVal.split(':').map(Number);
+            let startTotal = startH * 60 + startM;
+            let endTotal = endH * 60 + endM;
+
+            if (endTotal < startTotal) endTotal += 24 * 60;
+
+            const duration = endTotal - startTotal;
+            const resultBox = document.getElementById('resultBox');
+            const durationText = document.getElementById('durationText');
+            const statusBadge = document.getElementById('statusBadge');
+            
+            resultBox.classList.remove('hidden');
+            durationText.innerText = duration + " phút";
+
+            if (duration > 30) {
+                resultBox.className = "p-4 rounded-xl border border-red-200 bg-red-50 flex items-center justify-between";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold bg-red-600 text-white";
+                statusBadge.innerText = "❌ FAIL (Quá 30 phút)";
+            } else {
+                resultBox.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex items-center justify-between";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-sm font-bold bg-emerald-600 text-white";
+                statusBadge.innerText = "✅ PASS (Đạt tiến độ)";
+            }
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['trangchu', 'giaonhan', 'dovai'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('menu-' + t).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-slate-800 transition";
+            });
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('menu-' + tabName).className = "flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-teal-600 text-white font-medium transition";
+        }
+    </script>
+</body>
+</html>
