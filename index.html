@@ -232,7 +232,7 @@
                 { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6, hinhAnh: "" },
                 { ma: "EA015R", ten: "Kẹp phẫu tích có răng dài 200mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BD245R", warm: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
+                { ma: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
             ],
             "PTNS_OBUNG": [
                 { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm người lớn", dinhMuc: 2, hinhAnh: "" },
@@ -319,14 +319,14 @@
             khuVuc.classList.remove("hidden");
         }
 
-        // HÀM HIỂN THỊ VÀ ĐỔI TIÊU ĐỀ THEO ĐÚNG THỨ TỰ ANH HÙNG YÊU CẦU
+        // ĐÃ ĐỒI TÊN CỘT THEO THỨ TỰ: HÌNH ẢNH, MÃ, TÊN DỤNG CỤ, SỐ LƯỢNG CHO CẢ 2 CHẾ ĐỘ CHUYỂN ĐỔI
         function hienThiBangDungCu(danhSach) {
             const headerRow = document.getElementById("tableHeaderRow");
             const tbody = document.getElementById("bodyChiTietDungCu");
             tbody.innerHTML = "";
 
             if(currentInterfaceMode === 'VIEW') {
-                // Đã đổi chính xác thành: Hình ảnh, Mã, Tên Dụng Cụ, Số lượng từ trái qua phải
+                // Chế độ bác sĩ tra cứu nhanh
                 headerRow.innerHTML = `
                     <th class="p-3.5 pl-4 w-20 text-center">Hình ảnh</th>
                     <th class="p-3.5 w-32">Mã</th>
@@ -334,11 +334,12 @@
                     <th class="p-3.5 text-center w-32">Số lượng</th>
                 `;
             } else {
+                // Chế độ điều dưỡng làm việc kiểm đếm
                 headerRow.innerHTML = `
                     <th class="p-3.5 pl-4 w-20 text-center">Hình ảnh</th>
-                    <th class="p-3.5 w-32">Mã Aesculap</th>
-                    <th class="p-3.5">Tên Dụng Cụ Theo File Kiểm Kê Gốc</th>
-                    <th class="p-3.5 text-center w-24">Định Mức</th>
+                    <th class="p-3.5 w-32">Mã</th>
+                    <th class="p-3.5">Tên Dụng Cụ</th>
+                    <th class="p-3.5 text-center w-24">Số lượng</th>
                     <th class="p-3.5 text-center w-20">Sạch</th>
                     <th class="p-3.5 text-center w-20">VK Đạt</th>
                     <th class="p-3.5 text-center w-20">Dơ/Lỗi</th>
