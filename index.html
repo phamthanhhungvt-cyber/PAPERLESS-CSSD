@@ -6,17 +6,6 @@
     <title>CSSD Digital Tool - Quản lý Nhiễm Khuẩn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .img-tooltip {
-            transition: transform 0.2s;
-        }
-        .img-tooltip:hover {
-            transform: scale(4);
-            position: relative;
-            z-index: 50;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        }
-    </style>
 </head>
 <body class="bg-slate-100 font-sans flex h-screen overflow-hidden">
 
@@ -96,7 +85,7 @@
                             <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
                             <h3 class="text-lg font-bold">Hệ Thống Kiểm Đếm Danh Mục Chi Tiết Chính Xác</h3>
                         </div>
-                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Đồng Bộ Khớp File Excel</span>
+                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Bấm Vào Ảnh Để Phóng To Giữa Màn Hình</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -144,7 +133,7 @@
                             <table class="w-full text-left border-collapse bg-white">
                                 <thead class="bg-slate-50 text-slate-700 border-b border-slate-200 text-xs uppercase font-bold">
                                     <tr>
-                                        <th class="p-3.5 pl-4 w-16 text-center">Hình ảnh</th>
+                                        <th class="p-3.5 pl-4 w-20 text-center">Hình ảnh</th>
                                         <th class="p-3.5 w-32">Mã Aesculap</th>
                                         <th class="p-3.5">Tên Dụng Cụ Theo File Kiểm Kê Gốc</th>
                                         <th class="p-3.5 text-center w-24">Định Mức</th>
@@ -172,11 +161,24 @@
         </main>
     </div>
 
+    <div id="imageModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300">
+        <div class="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl relative border border-slate-100 animate-fade-in">
+            <button onclick="closeModal()" class="absolute top-4 right-4 bg-slate-900/60 hover:bg-slate-950 text-white w-10 h-10 rounded-full flex items-center justify-center transition shadow border border-white/20 z-10">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="p-6 flex flex-col items-center">
+                <img id="modalImg" src="" class="max-h-[70vh] w-auto object-contain rounded-xl border border-slate-100 shadow">
+                <h3 id="modalTitle" class="text-lg font-bold text-slate-800 mt-4 text-center">Tên dụng cụ</h3>
+                <p id="modalCode" class="text-sm font-mono text-slate-500 mt-1">Mã tài sản</p>
+            </div>
+        </div>
+    </div>
+
     <script>
         const databaseExcel = {
             "SOSINH": [
-                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1, hinhAnh: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=150" },
-                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4, hinhAnh: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=150" },
+                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1, hinhAnh: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600" },
+                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4, hinhAnh: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600" },
                 { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum, cong, mũi tù/tù, màu đen, cán vàng, dài 14.5 cm", dinhMuc: 1, hinhAnh: "" },
@@ -215,7 +217,7 @@
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5 cm", dinhMuc: 4, hinhAnh: "" },
+                { ma: "AA 751/13",通 "Kẹp khăn Backhaus 13.5 cm", dinhMuc: 4, hinhAnh: "" },
                 { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6, hinhAnh: "" },
                 { ma: "EA015R", ten: "Kẹp phẫu tích có răng dài 200mm", dinhMuc: 1, hinhAnh: "" },
@@ -296,14 +298,17 @@
             }
 
             danhSach.forEach((item) => {
+                // Thêm sự kiện onclick vào ảnh nhỏ để kích hoạt Popup phóng to chính giữa màn hình
                 const cellHinhAnh = item.hinhAnh 
-                    ? `<img src="${item.hinhAnh}" class="w-10 h-10 object-cover rounded border border-slate-200 shadow-sm img-tooltip bg-white cursor-zoom-in">`
-                    : `<div class="w-10 h-10 bg-slate-100 rounded border border-slate-200 flex items-center justify-center text-slate-400 text-xs shadow-sm"><i class="fa-solid fa-screwdriver-wrench"></i></div>`;
+                    ? `<div class="w-12 h-12 flex items-center justify-center border border-slate-200 rounded bg-white shadow-sm overflow-hidden p-0.5 cursor-pointer hover:border-teal-500 transition" onclick="openModal('${item.hinhAnh}', '${item.ten}', '${item.ma}')">
+                        <img src="${item.hinhAnh}" class="max-w-full max-h-full object-contain">
+                       </div>`
+                    : `<div class="w-12 h-12 bg-slate-50 rounded border border-slate-100 flex items-center justify-center text-slate-300 text-sm"><i class="fa-solid fa-screwdriver-wrench"></i></div>`;
 
                 const row = document.createElement("tr");
                 row.className = "hover:bg-slate-50 transition-colors";
                 row.innerHTML = `
-                    <td class="p-2 text-center flex justify-center items-center h-14">${cellHinhAnh}</td>
+                    <td class="p-2 flex justify-center items-center h-16">${cellHinhAnh}</td>
                     <td class="p-3 font-mono text-xs text-slate-500 font-medium">${item.ma}</td>
                     <td class="p-3 font-medium text-slate-900">${item.ten}</td>
                     <td class="p-3 text-center font-bold text-slate-600">${item.dinhMuc}</td>
@@ -314,6 +319,26 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        // --- CÁC HÀM XỬ LÝ ĐÓNG MỞ POPUP ẢNH CHÍNH GIỮA MÀN HÌNH ---
+        function openModal(imgUrl, name, code) {
+            document.getElementById("modalImg").src = imgUrl;
+            document.getElementById("modalTitle").innerText = name;
+            document.getElementById("modalCode").innerText = "Mã Aesculap: " + code;
+            document.getElementById("imageModal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("imageModal").classList.add("hidden");
+        }
+
+        // Đóng popup khi điều dưỡng bấm lệch ra ngoài vùng ảnh
+        window.onclick = function(event) {
+            const modal = document.getElementById("imageModal");
+            if (event.target == modal) {
+                closeModal();
+            }
         }
 
         function timKiemNhanh() {
