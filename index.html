@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Hiệu ứng phóng to ảnh khi rê chuột vào */
         .img-tooltip {
             transition: transform 0.2s;
         }
@@ -95,32 +94,32 @@
                     <div class="flex justify-between items-center border-b border-slate-200 pb-4">
                         <div class="flex items-center space-x-3 text-slate-800">
                             <i class="fa-solid fa-boxes-stacked text-2xl text-teal-600"></i>
-                            <h3 class="text-lg font-bold">Hệ Thống Kiểm Đếm Có Hình Ảnh Trực Quan</h3>
+                            <h3 class="text-lg font-bold">Hệ Thống Kiểm Đếm Danh Mục Chi Tiết Chính Xác</h3>
                         </div>
-                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Tích hợp hình ảnh dụng cụ</span>
+                        <span class="text-xs bg-teal-50 text-teal-700 font-bold px-2.5 py-1 rounded-full border border-teal-200">Đồng Bộ Khớp File Excel</span>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ Thực Tế:</label>
                             <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-xl px-3 py-2.5 bg-white font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
-                                <option value="">-- Chọn bộ dụng cụ --</option>
-                                <optgroup label="Danh mục đầy đủ">
-                                    <option value="TONGQUATNHI">1. BỘ TỔNG QUÁT NHI</option>
-                                    <option value="CHANTHUONGNHI">2. BỘ CHẤN THƯƠNG CHỈNH HÌNH NHI</option>
-                                    <option value="SOSINH">3. BỘ SƠ SINH (Xem ảnh mẫu)</option>
-                                    <option value="LOTIEUTHAP">4. BỘ LỖ TIỂU THẤP</option>
-                                    <option value="MOBATCON">5. BỘ MỔ BẮT CON</option>
-                                    <option value="CATTUCUNG">6. BỘ CẮT TỬ CUNG</option>
-                                    <option value="PTNS_OBUNG">7. BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG</option>
-                                    <option value="KHO_CSSD">8. DỤNG CỤ KHO CSSD / DỰ TRỮ</option>
-                                </optgroup>
+                                <option value="">-- Chọn bộ dụng cụ từ danh sách --</option>
+                                <option value="SOSINH">BỘ SƠ SINH</option>
+                                <option value="MOBATCON">BỘ MỔ BẮT CON</option>
+                                <option value="CATTUCUNG">BỘ CẮT TỬ CUNG</option>
+                                <option value="PTNS_OBUNG">BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG</option>
+                                <option value="TONGQUATNHI">BỘ TỔNG QUÁT NHI</option>
+                                <option value="CHANTHUONGNHI">BỘ CHẤN THƯƠNG CHỈNH HÌNH NHI</option>
+                                <option value="LOTIEUTHAP">BỘ LỖ TIỂU THẤP</option>
+                                <option value="PTNS_CATTUCUNG_AMDAO">BỘ PTNS CẮT TỬ CUNG NGÃ ÂM ĐẠO</option>
+                                <option value="PT_TRONGNGAY">BỘ DC PHẪU THUẬT TRONG NGÀY</option>
+                                <option value="KHO_CSSD">DỤNG CỤ KHO CSSD / LẺ DỰ TRỮ</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Hoặc gõ tìm dụng cụ nhanh:</label>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Hoặc tra cứu mã cây nhanh:</label>
                             <div class="relative">
-                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ từ khóa: Kẹp khăn, Tim..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
+                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ mã hoặc tên: AF 200/18, kẹp tăm..." class="w-full border border-slate-300 rounded-xl px-3 py-2.5 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500 text-slate-700">
                                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
                             </div>
                         </div>
@@ -147,7 +146,7 @@
                                     <tr>
                                         <th class="p-3.5 pl-4 w-16 text-center">Hình ảnh</th>
                                         <th class="p-3.5 w-32">Mã Aesculap</th>
-                                        <th class="p-3.5">Tên Dụng Cụ Theo File Kiểm Kê</th>
+                                        <th class="p-3.5">Tên Dụng Cụ Theo File Kiểm Kê Gốc</th>
                                         <th class="p-3.5 text-center w-24">Định Mức</th>
                                         <th class="p-3.5 text-center w-20">Sạch</th>
                                         <th class="p-3.5 text-center w-20">VK Đạt</th>
@@ -174,24 +173,23 @@
     </div>
 
     <script>
-        // MẸO CHO ANH HÙNG: Muốn thêm ảnh cho cây nào, anh chỉ cần thay link ảnh vào phần hinhAnh: "link-anh" dưới đây.
-        // Nếu không có ảnh, cứ để trống "" hệ thống sẽ tự hiển thị icon mặc định 🛠️ cực kỳ thông minh.
         const databaseExcel = {
             "SOSINH": [
-                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1, hinhAnh: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=150" }, // Demo link ảnh
-                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4, hinhAnh: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=150" }, // Demo link ảnh
+                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1, hinhAnh: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=150" },
+                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4, hinhAnh: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=150" },
                 { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum, cong, mũi tù/tù, màu đen, cán vàng, dài 14.5 cm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2, hinhAnh: "" }
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2, hinhAnh: "" },
+                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2, hinhAnh: "" }
             ],
             "MOBATCON": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AA 751/13", ten: "Kẹp sang Backhaus 13,5 cm", dinhMuc: 4, hinhAnh: "" },
-                { ma: "ER132R", ten: "Muỗng đặc số 2 sản khoa", dinhMuc: 1, hinhAnh: "" },
+                { ma: "ER132R", ten: "Muỗng đặc số 2", dinhMuc: 1, hinhAnh: "" },
                 { ma: "BC326R", ten: "Kéo cắt chỉ 2 đầu nhọn", dinhMuc: 1, hinhAnh: "" },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4, hinhAnh: "" },
                 { ma: "EA012R", ten: "Kẹp phẫu tích có răng 145mm", dinhMuc: 2, hinhAnh: "" },
@@ -201,29 +199,66 @@
             "TONGQUATNHI": [
                 { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "BC619R", ten: "Kéo Metzenbaum thanh mảnh 30mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito cong 10cm", dinhMuc: 4, hinhAnh: "" }
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito cong 10cm", dinhMuc: 4, hinhAnh: "" },
+                { ma: "AB 102/12", ten: "Nhíp phẫu tích Adson loại nhỏ 12cm", dinhMuc: 2, hinhAnh: "" },
+                { ma: "BH422R", ten: "Kẹp phẫu tích cầm máu đứng thẳng", dinhMuc: 2, hinhAnh: "" }
             ],
             "CHANTHUONGNHI": [
                 { ma: "FL051R", ten: "Kìm bấm xương nhỏ nhi khoa", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AA 751/11", ten: "Kẹp giữ khăn phẫu thuật 11cm", dinhMuc: 4, hinhAnh: "" }
+                { ma: "AA 751/11", ten: "Kẹp giữ khăn phẫu thuật 11cm", dinhMuc: 4, hinhAnh: "" },
+                { ma: "Mã CT1", ten: "Kẹp giữ xương nhỏ chuyên dụng", dinhMuc: 2, hinhAnh: "" }
             ],
             "LOTIEUTHAP": [
-                { ma: "Mã LT1", ten: "Kẹp phẫu tích tạo hình tinh tế", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1, hinhAnh: "" }
+                { ma: "Mã LT1", ten: "Kẹp phẫu tích phẫu thuật tạo hình tinh tế", dinhMuc: 1, hinhAnh: "" },
+                { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AA 751/11", ten: "Kẹp khăn nhỏ 11cm", dinhMuc: 2 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5 cm", dinhMuc: 4, hinhAnh: "" },
                 { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6, hinhAnh: "" }
+                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6, hinhAnh: "" },
+                { ma: "EA015R", ten: "Kẹp phẫu tích có răng dài 200mm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
             ],
             "PTNS_OBUNG": [
-                { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm", dinhMuc: 2, hinhAnh: "" },
+                { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm người lớn", dinhMuc: 2, hinhAnh: "" },
                 { ma: "26005M", ten: "Ống kính nội soi Optic góc nghiêng 30 độ", dinhMuc: 1, hinhAnh: "" },
-                { ma: "26173BN", ten: "Kéo phẫu thuật nội soi mũi cong chuyên dụng", dinhMuc: 1, hinhAnh: "" }
+                { ma: "26169DO", ten: "Kẹp phẫu tích nội soi liên kết", dinhMuc: 1, hinhAnh: "" },
+                { ma: "26173BN", ten: "Kéo phẫu thuật nội soi mũi cong chuyên dụng", dinhMuc: 1, hinhAnh: "" },
+                { ma: "26176HW", ten: "Kẹp bóc tách nội soi ngàm cong ngắn", dinhMuc: 1, hinhAnh: "" },
+                { ma: "26176LE", ten: "Kẹp cầm máu nội soi lưỡi dài bọc cách điện", dinhMuc: 1, hinhAnh: "" },
+                { ma: "26276A", ten: "Cáp dẫn nguồn ánh sáng sợi quang to", dinhMuc: 1, hinhAnh: "" },
+                { ma: "26276B", ten: "Cáp dẫn nguồn ánh sáng sợi quang nhỏ dự phòng", dinhMuc: 1, hinhAnh: "" },
+                { ma: "26296HM", ten: "Thanh dẫn luồn gạc vệ sinh phẫu trường", dinhMuc: 1, hinhAnh: "" },
+                { ma: "26596CL", ten: "Kìm bấm clip titan kích cỡ trung bình", dinhMuc: 1, hinhAnh: "" }
+            ],
+            "PTNS_CATTUCUNG_AMDAO": [
+                { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4, hinhAnh: "" },
+                { ma: "Mã AD1", ten: "Kẹp phẫu tích ngã âm đạo chuyên sâu", dinhMuc: 2, hinhAnh: "" }
+            ],
+            "PT_TRONGNGAY": [
+                { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AA 751/11", ten: "Kẹp giữ khăn phẫu thuật 11cm", dinhMuc: 2, hinhAnh: "" },
+                { ma: "Mã TN1", ten: "Kéo cắt chỉ nhỏ tiểu phẫu", dinhMuc: 1, hinhAnh: "" }
             ],
             "KHO_CSSD": [
-                { ma: "BB075R", ten: "Cán dao mổ lẻ dự trữ số 3 dài", dinhMuc: 1, hinhAnh: "" },
-                { ma: "Optic 10/30⁰", ten: "Ống kính nội soi nội bộ kích thước 10mm góc 30 độ", dinhMuc: 1, hinhAnh: "" }
+                { ma: "BB075R", ten: "Cán dao mổ lẻ dự trữ số 3 dáng dài", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Dây sáng to", ten: "Dây dẫn sáng sợi quang loại to dự phòng", dinhMuc: 3, hinhAnh: "" },
+                { ma: "Dây sáng nhỏ", ten: "Dây dẫn sáng sợi quang loại nhỏ dự phòng", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic TMH 3/30⁰", ten: "Ống kính nội soi Tai Mũi Họng 3mm góc 30 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic TMH 4/30⁰", ten: "Ống kính nội soi Tai Mũi Họng 4mm góc 30 độ", dinhMuc: 2, hinhAnh: "" },
+                { ma: "Optic TMH 4/0⁰", ten: "Ống kính nội soi Tai Mũi Họng 4mm góc 0 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic TMH 4/70⁰", ten: "Ống kính nội soi Tai Mũi Họng 4mm góc 70 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic 10/30⁰", ten: "Ống kính nội soi ổ bụng kích thước 10mm góc 30 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic 10/0⁰", ten: "Ống kính nội soi ổ bụng kích thước 10mm góc 0 độ", dinhMuc: 2, hinhAnh: "" },
+                { ma: "Optic 4/70⁰", ten: "Ống kính nội soi can thiệp 4mm góc 70 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic 4/0⁰", ten: "Ống kính nội soi can thiệp 4mm góc 0 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic 5/30⁰", ten: "Ống kính nội soi can thiệp 5mm góc 30 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic 5/0⁰", ten: "Ống kính nội soi can thiệp 5mm góc 0 độ", dinhMuc: 1, hinhAnh: "" },
+                { ma: "Optic tim", ten: "Ống kính nội soi tim chuyên dụng bọc sapphire", dinhMuc: 1, hinhAnh: "" },
+                { ma: "FO514R", ten: "Kìm bấm sinh thiết ngàm tròn lớn kho dự phòng", dinhMuc: 1, hinhAnh: "" }
             ]
         };
 
@@ -251,7 +286,6 @@
             khuVuc.classList.remove("hidden");
         }
 
-        // Hàm đổ bảng dữ liệu thông minh có kèm Cột Hình Ảnh
         function hienThiBangDungCu(danhSach) {
             const tbody = document.getElementById("bodyChiTietDungCu");
             tbody.innerHTML = "";
@@ -262,7 +296,6 @@
             }
 
             danhSach.forEach((item) => {
-                // Kiểm tra xem dòng đó có chứa link hình ảnh hay không
                 const cellHinhAnh = item.hinhAnh 
                     ? `<img src="${item.hinhAnh}" class="w-10 h-10 object-cover rounded border border-slate-200 shadow-sm img-tooltip bg-white cursor-zoom-in">`
                     : `<div class="w-10 h-10 bg-slate-100 rounded border border-slate-200 flex items-center justify-center text-slate-400 text-xs shadow-sm"><i class="fa-solid fa-screwdriver-wrench"></i></div>`;
@@ -283,7 +316,6 @@
             });
         }
 
-        // Tìm kiếm thông minh qua từ khóa
         function timKiemNhanh() {
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
             const khuVuc = document.getElementById("khuVucDanhSach");
