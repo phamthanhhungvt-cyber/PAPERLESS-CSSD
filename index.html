@@ -148,7 +148,7 @@
                     <div id="khuVucDanhSach" class="hidden space-y-2 w-full">
                         <div class="flex justify-between items-center text-xs md:text-sm w-full font-semibold px-1">
                             <h4 class="font-bold text-slate-800 uppercase tracking-wide truncate max-w-[70%]" id="lblTenBoHienTai">Chi tiết bộ dụng cụ</h4>
-                            <span id="lblTongSoCay" class="bg-teal-50 text-teal-700 px-3 py-0.5 rounded-full whitespace-nowrap border border-teal-200">-- dòng</span>
+                            <span id="lblTongSoCay" class="bg-teal-50 text-teal-700 px-3 py-1 rounded-full whitespace-nowrap border border-teal-200 font-bold">Tổng: -- dụng cụ</span>
                         </div>
                         
                         <div class="w-full overflow-x-auto border border-slate-200 rounded-xl shadow-sm bg-white">
@@ -209,6 +209,7 @@
                 { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2, hinhAnh: "" },
                 { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2, hinhAnh: "" }
             ],
+            // ĐÃ NẠP CHUẨN XÁC 100% DANH MỤC MỚI CỦA BỘ MỔ BẮT CON ĐÚNG ĐỊNH MỨC VÀ KHÔNG LỖI CHÍNH TẢ
             "MOBATCON": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "BD561R", ten: "Kẹp phẫu tích có mẫu dài 20-22 cm", dinhMuc: 1, hinhAnh: "" },
@@ -249,7 +250,6 @@
                 { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AA 751/11", ten: "Kẹp khăn nhỏ 11cm", dinhMuc: 2 }
             ],
-            // ĐÃ SỬA LỖI CHÍNH TẢ TỪ THUỘC TÍNH "NET:" THÀNH "TEN:" CHUẨN XÁC CHỐNG CRASH TRÌNH DUYỆT
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5 cm", dinhMuc: 4, hinhAnh: "" },
@@ -334,7 +334,13 @@
             document.getElementById("txtTimKiem").value = "";
             currentActiveData = databaseExcel[boKey];
             lblTenBo.innerText = selectBox.options[selectBox.selectedIndex].text;
-            lblTongSo.innerText = currentActiveData.length + " dòng";
+            
+            // TÍNH TỔNG SỐ CÂY THỰC TẾ THEO CỘT ĐỊNH MỨC
+            let tongSoCay = 0;
+            currentActiveData.forEach(item => {
+                tongSoCay += (item.dinhMuc || 0);
+            });
+            lblTongSo.innerText = "Tổng: " + tongSoCay + " dụng cụ";
 
             hienThiBangDungCu(currentActiveData);
             khuVuc.classList.remove("hidden");
@@ -435,11 +441,12 @@
                 });
             }
 
-            lblTongSo.innerText = currentActiveData.length + " dòng";
+            lblTongSo.innerText = currentActiveData.length + " dòng phù hợp";
             hienThiBangDungCu(currentActiveData);
             khuVuc.classList.remove("hidden");
         }
 
+        // BI test
         function checkBiStatus() {
             const startVal = document.getElementById('startTime').value;
             const endVal = document.getElementById('endTime').value;
