@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Sổ Theo Dõi Mẻ Hấp - SharePoint Sync</title>
+    <title>CSSD Digital Tool - Quản lý Nhiễm Khuẩn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,165 +11,423 @@
             max-width: 100%;
             overflow-x: hidden;
             height: 100%;
-            background-color: #faf9f8;
         }
-        .scrollbar-none::-webkit-scrollbar { display: none; }
-        .badge-nhanvien {
-            background-color: #fce4ec;
-            color: #c2185b;
-            font-weight: 600;
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
         }
-        .badge-dat {
-            background-color: #107c41;
-            color: #ffffff;
-            font-weight: bold;
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
-<body class="font-sans flex flex-col h-screen overflow-hidden text-slate-700">
+<body class="bg-slate-100 font-sans flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <header class="w-full bg-[#801965] text-white px-4 py-2.5 flex items-center justify-between shadow-md flex-shrink-0 z-30">
-        <div class="flex items-center space-x-3 truncate">
-            <div class="bg-fuchsia-700 w-8 h-8 rounded flex items-center justify-center font-bold text-sm shadow-inner">BP</div>
-            <h1 class="text-sm md:text-base font-bold tracking-wide truncate">PN - Khoa Kiểm Soát Nhiễm Khuẩn</h1>
+    <div class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col justify-between flex-shrink-0 z-20 shadow-lg">
+        <div>
+            <div class="p-3.5 md:p-5 bg-slate-950 flex items-center space-x-3">
+                <i class="fa-solid fa-virus-slash text-teal-400 text-xl md:text-2xl"></i>
+                <div>
+                    <h1 class="text-white font-bold text-xs md:text-sm tracking-wide uppercase">KIỂM SOÁT NHIỄM KHUẨN</h1>
+                    <p class="text-[10px] md:text-xs text-slate-400">Dự án Paperless CSSD</p>
+                </div>
+            </div>
+            
+            <div class="hidden md:block p-3 text-xs uppercase text-slate-500 font-semibold tracking-wider">Chức năng</div>
+            <nav class="flex flex-row md:flex-col space-x-1 md:space-x-0 md:space-y-1 p-2 md:px-2 overflow-x-auto md:overflow-x-visible scrollbar-none">
+                <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg bg-teal-600 text-white font-medium text-xs md:text-sm transition shadow-sm">
+                    <i class="fa-solid fa-flask-vial"></i> <span>Giám sát Test BI</span>
+                </a>
+                <a href="#" onclick="switchTab('chuTrinhTab')" id="menu-chuTrinhTab" class="whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-xs md:text-sm transition">
+                    <i class="fa-solid fa-rotate"></i> <span>Chu Trình Vô Khuẩn</span>
+                </a>
+                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-xs md:text-sm transition">
+                    <i class="fa-solid fa-boxes-stacked"></i> <span>Tra cứu & Giao nhận</span>
+                </a>
+                <a href="#" onclick="switchTab('dovai')" id="menu-dovai" class="whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-3 py-2 rounded-lg hover:bg-slate-800 text-xs md:text-sm transition">
+                    <i class="fa-solid fa-shirt"></i> <span>Quản lý đồ vải</span>
+                </a>
+            </nav>
         </div>
-        <div class="flex items-center space-x-4 text-xs font-semibold whitespace-nowrap">
-            <span class="text-fuchsia-100 hidden sm:inline">Nhóm riêng tư</span>
-            <span class="bg-fuchsia-900/40 px-2 py-1 rounded text-[11px]"><i class="fa-solid fa-user-group mr-1"></i> 12 thành viên</span>
+        <div class="hidden md:block p-4 bg-slate-950 text-xs text-center border-t border-slate-800 text-slate-500">
+            Phiên bản v1.2026
         </div>
-    </header>
-
-    <div class="w-full bg-white border-b border-slate-200 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 flex-shrink-0 shadow-sm text-xs font-medium text-slate-600">
-        <div class="flex items-center space-x-1.5 overflow-x-auto scrollbar-none">
-            <button onclick="dongBoDuLieuSharePoint()" class="bg-[#5c2d91] hover:bg-[#4b2475] text-white px-3 py-1.5 rounded flex items-center space-x-1.5 font-bold shadow-sm transition">
-                <i class="fa-solid fa-sync text-[11px]"></i> <span>Làm mới dữ liệu từ SharePoint</span>
-            </button>
-            <span class="text-slate-300">|</span>
-            <button class="hover:bg-slate-100 px-2.5 py-1.5 rounded flex items-center space-x-1"><i class="fa-solid fa-file-excel"></i> <span>Xuất Excel</span></button>
-            <button class="hover:bg-slate-100 px-2.5 py-1.5 rounded flex items-center space-x-1"><i class="fa-solid fa-diagram-project"></i> <span>Automate Flow</span></button>
-        </div>
-        <div id="lblStatusCapNhat" class="text-[11px] text-slate-400 font-mono italic">Đang tải...</div>
     </div>
 
-    <div class="flex-1 flex flex-row overflow-hidden w-full h-full">
-        
-        <aside class="w-56 bg-white border-r border-slate-200 flex-shrink-0 hidden md:flex flex-col justify-between text-xs font-semibold text-slate-600 select-none">
-            <div class="py-2 overflow-y-auto space-y-0.5">
-                <a href="#" class="flex items-center px-4 py-2 hover:bg-slate-100">Trang chủ</a>
-                <div class="h-px bg-slate-200 my-1 mx-3"></div>
-                <a href="#" class="flex items-center px-4 py-2 bg-slate-100 text-[#801965] font-bold border-r-2 border-[#801965]">MÁY NHIỆT ĐỘ CAO-SỔ THEO DÕI</a>
-                <a href="#" class="flex items-center px-4 py-2 hover:bg-slate-100 text-slate-400">MÁY NHIỆT ĐỘ THẤP (Sắp có)</a>
-                <a href="#" class="flex items-center px-4 py-2 hover:bg-slate-100 text-slate-400">DANH MỤC BỘ DỤNG CỤ</a>
+    <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full">
+        <header class="bg-white border-b border-slate-200 px-4 py-3 md:px-6 md:py-4 flex flex-row justify-between items-center shadow-sm flex-shrink-0 w-full box-border">
+            <h2 id="header-title" class="text-base md:text-xl font-bold text-slate-800 truncate">Hệ Thống Giám Sát CSSD</h2>
+            <div class="text-xs md:text-sm text-slate-600 bg-slate-100 px-3 py-1 rounded-full font-medium whitespace-nowrap">
+                <i class="fa-regular fa-hospital text-teal-600 mr-1"></i> BV Phương Nam
             </div>
-            <div class="p-3 bg-slate-50 border-t border-slate-100 text-center text-[10px] text-slate-400">v1.2026 Live Sync</div>
-        </aside>
+        </header>
 
-        <main class="flex-1 bg-white overflow-y-auto p-4 flex flex-col min-w-0">
-            <div class="space-y-3 w-full flex-1 flex flex-col min-h-0">
-                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                    <div class="flex items-center space-x-2">
-                        <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-tight">Dữ liệu liên thông thực tế từ SharePoint</h2>
+        <main class="p-3 md:p-6 w-full box-border space-y-4 md:space-y-6 flex-1 min-h-0">
+            
+            <div id="tab-trangchu" class="space-y-4 w-full">
+                <div class="bg-gradient-to-r from-slate-800 to-teal-800 text-white p-4 md:p-6 rounded-xl shadow-md">
+                    <h3 class="text-lg md:text-2xl font-bold mb-1">⏱️ Giám Sát Mẻ Hấp (Test BI)</h3>
+                    <p class="text-slate-300 text-xs md:text-sm">Tự động phân tích kết quả kiểm soát sinh học trong vòng 30 phút.</p>
+                </div>
+                <div class="bg-white p-4 md:p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">Thời gian bỏ test vào máy:</label>
+                            <input type="time" id="startTime" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm md:text-base">
+                        </div>
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">Thời gian có kết quả:</label>
+                            <input type="time" id="endTime" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm md:text-base">
+                        </div>
+                    </div>
+                    <div class="pt-1">
+                        <button onclick="checkBiStatus()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2.5 rounded-lg text-sm md:text-base transition shadow-sm">Phân tích chỉ số mẻ hấp</button>
+                    </div>
+                    <div id="resultBox" class="hidden p-4 rounded-lg border flex flex-row items-center justify-between gap-2 text-sm md:text-base">
+                        <div>
+                            <p class="text-[10px] md:text-xs uppercase tracking-wider font-semibold text-slate-500">Thời gian xử lý</p>
+                            <p id="durationText" class="text-base md:text-2xl font-bold text-slate-800">-- phút</p>
+                        </div>
+                        <div class="text-right">
+                            <span id="statusBadge" class="inline-block px-3 py-1 rounded-full text-xs md:text-sm font-bold shadow-sm">--</span>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="w-full overflow-x-auto border border-slate-200 rounded shadow-sm flex-1">
-                    <table class="w-full text-left border-collapse table-auto text-xs font-medium text-slate-700 min-w-[1200px]">
-                        <thead class="bg-slate-50 text-slate-500 uppercase font-bold tracking-tight text-[10px] border-b border-slate-200 select-none">
-                            <tr>
-                                <th class="p-2.5 border-r border-slate-200 w-12 text-center"><input type="checkbox" class="rounded text-fuchsia-700 focus:ring-0"></th>
-                                <th class="p-2.5 border-r border-slate-200 w-44">Ngày</th>
-                                <th class="p-2.5 border-r border-slate-200 w-28 text-center">Máy hấp số</th>
-                                <th class="p-2.5 border-r border-slate-200 w-24 text-center">Số mẻ</th>
-                                <th class="p-2.5 border-r border-slate-200 w-36">Mã Batch của chu trình</th>
-                                <th class="p-2.5 border-r border-slate-200 w-32 text-center">Chỉ thị hoá học</th>
-                                <th class="p-2.5 border-r border-slate-200 w-36 text-center">Nhân viên kết luận</th>
-                                <th class="p-2.5 border-r border-slate-200 w-32 text-center">Kết luận chu trình</th>
-                                <th class="p-2.5 border-r border-slate-200 w-44">Thời gian kết thúc chu trình</th>
-                                <th class="p-2.5 border-r border-slate-200 w-44">Thời gian kết luận</th>
-                                <th class="p-2.5 w-32 text-center">Thời gian đọc test BI</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodySoTheoDoi" class="divide-y divide-slate-100 bg-white">
-                            <tr>
-                                <td colspan="11" class="p-8 text-center text-slate-400 font-bold">Đang tải dữ liệu chu trình từ SharePoint...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+            <div id="tab-chuTrinhTab" class="hidden space-y-4 w-full">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                        <h3 class="text-base md:text-lg font-bold text-slate-800 uppercase tracking-wide"><i class="fa-solid fa-spinner text-teal-600 mr-1 animate-spin"></i> Theo Dõi Vòng Đời Bộ Dụng Cụ</h3>
+                        <span class="text-xs text-slate-500 font-medium">Hạn dùng mặc định: 30 ngày</span>
+                    </div>
+                    <div id="divDanhSachChuTrinh" class="space-y-4"></div>
                 </div>
             </div>
+
+            <div id="tab-giaonhan" class="hidden space-y-4 w-full">
+                <div class="bg-white p-3 md:p-6 rounded-xl border border-slate-200 shadow-sm space-y-4 w-full">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-3 gap-3 w-full">
+                        <div class="flex items-center space-x-2 text-slate-800 max-w-full">
+                            <i class="fa-solid fa-boxes-stacked text-base md:text-xl text-teal-600 flex-shrink-0"></i>
+                            <h3 class="text-sm md:text-lg font-bold truncate">Danh Mục & Kiểm Đếm Dụng Cụ</h3>
+                        </div>
+                        <div class="flex w-full sm:w-auto items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all bg-white text-teal-600 shadow-sm">
+                                <i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu
+                            </button>
+                            <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs md:text-sm font-bold transition-all text-slate-600 hover:text-slate-900">
+                                <i class="fa-solid fa-file-signature mr-1"></i> ĐD Kiểm Đếm
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">1. Chọn Bộ Dụng Cụ:</label>
+                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded-lg px-3 py-2 md:py-2.5 bg-white text-sm md:text-base font-medium text-slate-800 focus:outline-none">
+                                <option value="">-- Chọn bộ dụng cụ --</option>
+                                <option value="SOSINH">BỘ SƠ SINH</option>
+                                <option value="MOBATCON">BỘ MỔ BẮT CON</option>
+                                <option value="TONGQUATNHI">BỘ TỔNG QUÁT NHI</option>
+                                <option value="CHANTHUONGNHI">BỘ CHẤN THƯƠNG CHỈNH HÌNH NHI</option>
+                                <option value="LOTIEUTHAP">BỘ LỖ TIỂU THẤP</option>
+                                <option value="CATTUCUNG">BỘ CẮT TỬ CUNG</option>
+                                <option value="PTNS_OBUNG">BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG</option>
+                                <option value="PTNS_CATTUCUNG_AMDAO">BỘ PTNS CẮT TỬ CUNG NGÃ ÂM ĐẠO</option>
+                                <option value="PT_TRONGNGAY">BỘ DC PHẪU THUẬT TRONG NGÀY</option>
+                                <option value="KHO_CSSD">DỤNG CỤ KHO CSSD / LẺ DỰ TRỮ</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs md:text-sm font-semibold text-slate-700 mb-1">Tìm mã hoặc tên dụng cụ:</label>
+                            <div class="relative">
+                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ từ khóa cần tra..." class="w-full border border-slate-300 rounded-lg px-3 py-2 md:py-2.5 pl-9 text-sm md:text-base focus:outline-none focus:ring-1 focus:ring-teal-500 text-slate-700">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 md:top-3.5 text-slate-400 text-xs md:text-sm"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="khuVucDanhSach" class="hidden space-y-2 w-full">
+                        <div class="flex justify-between items-center text-xs md:text-sm w-full font-semibold px-1">
+                            <h4 class="font-bold text-slate-800 uppercase tracking-wide truncate max-w-[70%]" id="lblTenBoHienTai">Chi tiết bộ dụng cụ</h4>
+                            <span id="lblTongSoCay" class="bg-teal-50 text-teal-700 px-3 py-1 rounded-full border border-teal-200 font-bold">Tổng: -- dụng cụ</span>
+                        </div>
+                        <div class="w-full overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                            <table class="w-full text-left border-collapse min-w-[620px] table-auto">
+                                <thead class="bg-slate-50 text-slate-700 border-b border-slate-200 text-xs md:text-sm uppercase font-bold">
+                                    <tr id="tableHeaderRow"></tr>
+                                </thead>
+                                <tbody id="bodyChiTietDungCu" class="divide-y divide-slate-200 text-sm md:text-base text-slate-800"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-dovai" class="hidden space-y-4 w-full">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                    <h3 class="text-sm md:text-base font-bold text-slate-800">🧺 Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
+                    <p class="text-slate-500 text-xs mt-1">Chức năng đang đồng bộ dữ liệu nội bộ...</p>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <script>
-        let listMẻHấpData = [];
+    <div id="imageModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl relative p-5 flex flex-col items-center">
+            <button onclick="closeModal()" class="absolute top-2 right-2 bg-slate-900/60 hover:bg-slate-950 text-white w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-xmark"></i></button>
+            <img id="modalImg" src="" class="max-h-[50vh] w-auto object-contain rounded-xl">
+            <h3 id="modalTitle" class="text-sm md:text-base font-bold text-slate-800 mt-4 text-center">Tên dụng cụ</h3>
+            <p id="modalCode" class="text-xs font-mono text-slate-500 mt-0.5">Mã</p>
+        </div>
+    </div>
 
-        // HÀM ĐỌC DỮ LIỆU TỪ FILE data.json ĐƯỢC ĐẨY TỪ SHAREPOINT QUA FLOW
-        async function dongBoDuLieuSharePoint() {
-            document.getElementById("lblStatusCapNhat").innerText = "🔄 Đang đồng bộ...";
-            try {
-                // Thêm chuỗi thời gian ngẫu nhiên (?v=) để ép trình duyệt luôn tải file mới, tránh lưu cache cũ
-                const response = await fetch('data.json?v=' + new Date().getTime());
-                
-                if (response.ok) {
-                    listMẻHấpData = await response.json();
-                    document.getElementById("lblStatusCapNhat").innerText = "✅ Đồng bộ SharePoint thành công";
-                } else {
-                    XửLýLỗiDuLieu("Không tìm thấy tệp data.json");
-                }
-            } catch (error) {
-                XửLýLỗiDuLieu(error.message);
-            }
-            hienThiSoTheoDoiMayHap();
+    <script>
+        let currentInterfaceMode = 'VIEW';
+        let currentActiveData = [];
+
+        // Trạng thái chu trình
+        const trackingList = [
+            { id: "SOSINH", tenBo: "BỘ SƠ SINH", step: 4, ngayHap: "12-06-2026", hanDung: "12-07-2026", ghiChu: "Sẵn sàng cấp phát" },
+            { id: "MOBATCON", tenBo: "BỘ MỔ BẮT CON", step: 1, ngayHap: "--", hanDung: "--", ghiChu: "Vừa nhận từ Phòng Mổ" },
+            { id: "CATTUCUNG", tenBo: "BỘ CẮT TỬ CUNG", step: 2, ngayHap: "--", hanDung: "--", ghiChu: "Đang đóng gói chuyên sâu" },
+            { id: "PTNS_OBUNG", tenBo: "BỘ PHẪU THUẬT NỘI SOI Ổ BỤNG", step: 3, ngayHap: "12-06-2026", hanDung: "--", ghiChu: "Đang trong mẻ hấp vô trùng" }
+        ];
+
+        // INDEX 1: Độc lập lưu trữ thư viện hình ảnh theo mã (Giữ cấu trúc bộ sạch sẽ)
+        const imageIndex = {
+            "BB084R": "https://products.api.bbraun.io/api/image/BB084R?countryISOCode=01&watermark=true",
+            "BD561R": "https://products.api.bbraun.io/api/image/BD561R?countryISOCode=01&watermark=true",
+            "BD051R": "https://products.api.bbraun.io/api/image/BD051R?countryISOCode=01&watermark=true",
+            "BC575R": "https://products.api.bbraun.io/api/image/BC575R?countryISOCode=01&watermark=true",
+            "AC 071/17": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/1010.jpg",
+            "BC606R": "https://products.api.bbraun.io/api/image/BC606R?countryISOCode=01&watermark=true",
+            "BH167R": "https://products.api.bbraun.io/api/image/BH167R?countryISOCode=01&watermark=true",
+            "BH166R": "https://products.api.bbraun.io/api/image/BH166R?countryISOCode=01&watermark=true",
+            "BH644R": "https://products.api.bbraun.io/api/image/BH644R?countryISOCode=01&watermark=true",
+            "BM237R": "https://products.api.bbraun.io/api/image/BM237R?countryISOCode=01&watermark=true",
+            "BF122R": "https://products.api.bbraun.io/api/image/BF122R?countryISOCode=01&watermark=true",
+            "BF120R": "https://products.api.bbraun.io/api/image/BF120R?countryISOCode=01&watermark=true",
+            "AF 144/24": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2245.jpg",
+            "AK 354/00": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/0354_00.jpg",
+            "BV617R": "https://products.api.bbraun.io/api/image/BV617R?countryISOCode=01&watermark=true",
+            "BF123R": "https://products.api.bbraun.io/api/image/BF123R?countryISOCode=01&watermark=true",
+            "AF 200/18": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600",
+            "AA 751/11": "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600",
+            "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500"
+        };
+
+        // CẤU TRÚC DANH MỤC GỐC CHUẨN (Giữ nguyên cấu trúc Excel bệnh viện)
+        const databaseExcel = {
+            "SOSINH": [
+                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
+                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 },
+                { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 }
+            ],
+            "MOBATCON": [
+                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
+                { ma: "BD561R", ten: "Kẹp phẫu tích có mẫu dài 20-22 cm", dinhMuc: 1 },
+                { ma: "BD051R", ten: "Kẹp phẫu tích không mấu dài 22 cm", dinhMuc: 1 },
+                { ma: "BC575R", ten: "Kéo Mayo-Stille cong 17/19.5 cm", dinhMuc: 1 },
+                { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1 },
+                { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
+                { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2 },
+                { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4 },
+                { ma: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4 },
+                { ma: "BM237R", ten: "Kềm mang kim 20 cm", dinhMuc: 2 },
+                { ma: "BF122R", ten: "Kẹp hình tim, thẳng, có mấu, dài 245mm", dinhMuc: 2 },
+                { ma: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1 },
+                { ma: "AF 144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1 },
+                { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2 },
+                { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu 400ml", dinhMuc: 1 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
+                { ma: "KYE 283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
+                { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
+                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
+            ],
+            "CATTUCUNG": [
+                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
+                { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1 },
+                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6 }
+            ],
+            "TONGQUATNHI": [
+                { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1 },
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito cong 10cm", dinhMuc: 4 }
+            ]
+        };
+
+        // Hàm hỗ trợ lấy ảnh thông minh từ Index động
+        function layAnhTuIndex(maDungCu) {
+            if(!maDungCu) return "";
+            const maChuan = maDungCu.trim().toUpperCase();
+            return imageIndex[maChuan] || "";
         }
 
-        // Vẽ bảng mẻ hấp động chuẩn 100% giao diện Microsoft Lists của anh
-        function hienThiSoTheoDoiMayHap() {
-            const tbody = document.getElementById("bodySoTheoDoi");
-            tbody.innerHTML = "";
-            
-            if (listMẻHấpData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-red-500 font-bold">Chưa có dữ liệu mẻ hấp. Hãy kích hoạt Power Automate!</td></tr>`;
-                return;
-            }
+        function switchTab(tabName) {
+            const tabs = ['trangchu', 'chuTrinhTab', 'giaonhan', 'dovai'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.add('hidden');
+                document.getElementById('menu-' + t).className = "whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-xs md:text-sm transition";
+            });
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+            document.getElementById('menu-' + tabName).className = "whitespace-nowrap flex items-center space-x-2 md:space-x-3 px-2.5 py-1.5 rounded-lg bg-teal-600 text-white font-medium text-xs md:text-sm transition shadow-sm";
+            if(tabName === 'chuTrinhTab') { hienThiChuTrinhVôKhuan(); }
+        }
 
-            listMẻHấpData.forEach(item => {
-                const tr = document.createElement("tr");
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-100 text-slate-800 text-[11px] font-medium";
-                
-                let meBadgeColor = "bg-sky-500";
-                if(parseInt(item.me) === 2) meBadgeColor = "bg-emerald-500";
-                if(parseInt(item.me) === 3) meBadgeColor = "bg-amber-500";
-                if(parseInt(item.me) >= 4) meBadgeColor = "bg-red-400";
-
-                tr.innerHTML = `
-                    <td class="p-2 border-r border-slate-100 text-center"><input type="checkbox" class="rounded text-fuchsia-700 focus:ring-0"></td>
-                    <td class="p-2 border-r border-slate-100 font-normal text-slate-500">${item.ngay || '--'}</td>
-                    <td class="p-2 border-r border-slate-100 text-center"><span class="w-5 h-5 inline-flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-[10px]">${item.may || '1'}</span></td>
-                    <td class="p-2 border-r border-slate-100 text-center"><span class="w-5 h-5 inline-flex items-center justify-center rounded-full ${meBadgeColor} text-white font-bold text-[10px]">${item.me || '1'}</span></td>
-                    <td class="p-2 border-r border-slate-100 font-mono font-semibold text-slate-600">${item.batch || '--'}</td>
-                    <td class="p-2 border-r border-slate-100 text-center"><span class="badge-dat px-2.5 py-0.5 rounded-full text-[10px]">ĐẠT</span></td>
-                    <td class="p-2 border-r border-slate-100 text-center"><span class="badge-nhanvien px-3 py-1 rounded text-[10px] uppercase tracking-wide">${item.nv || '--'}</span></td>
-                    <td class="p-2 border-r border-slate-100 text-center"><span class="badge-dat px-2.5 py-0.5 rounded-full text-[10px]">ĐẠT</span></td>
-                    <td class="p-2 border-r border-slate-100 font-normal text-slate-500">${item.kt || '--'}</td>
-                    <td class="p-2 border-r border-slate-100 font-normal text-slate-500">${item.luon || '--'}</td>
-                    <td class="p-2 text-center font-bold text-slate-600 font-mono">${item.doc || '--'}</td>
+        function hienThiChuTrinhVôKhuan() {
+            const container = document.getElementById("divDanhSachChuTrinh");
+            container.innerHTML = "";
+            trackingList.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 shadow-sm";
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1">
+                        <div>
+                            <h4 class="font-extrabold text-slate-900 text-sm md:text-base">${item.tenBo}</h4>
+                            <p class="text-xs text-slate-500 font-medium">Trạng thái: <span class="text-teal-600 font-bold">${item.ghiChu}</span></p>
+                        </div>
+                        <div class="text-left sm:text-right text-xs">
+                            <p class="text-slate-600 font-medium">Ngày hấp: <span class="font-bold text-slate-900">${item.ngayHap}</span></p>
+                            <p class="text-slate-600 font-medium">Hạn dùng: <span class="font-bold text-emerald-600">${item.hanDung}</span></p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 text-center text-xs md:text-sm font-bold">
+                        <button onclick="updateStep('${item.id}', 1)" class="py-2 rounded-lg ${item.step >= 1 ? 'bg-red-500 text-white' : 'bg-slate-200 text-slate-500'}">1. Nhận Bẩn</button>
+                        <button onclick="updateStep('${item.id}', 2)" class="py-2 rounded-lg ${item.step >= 2 ? 'bg-orange-500 text-white' : 'bg-slate-200 text-slate-500'}">2. Đóng Gói</button>
+                        <button onclick="updateStep('${item.id}', 3)" class="py-2 rounded-lg ${item.step >= 3 ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-500'}">3. Đang Hấp</button>
+                        <button onclick="updateStep('${item.id}', 4)" class="py-2 rounded-lg ${item.step >= 4 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-500'}">4. Vô Trùng</button>
+                    </div>
                 `;
-                tbody.appendChild(tr);
+                container.appendChild(card);
             });
         }
 
-        function XửLýLỗiDuLieu(msg) {
-            document.getElementById("lblStatusCapNhat").innerText = "❌ Lỗi kết nối";
-            console.log("Chi tiết lỗi:", msg);
-            // Mảng dữ liệu chạy thử nghiệm để web không bị trống trước khi kết nối Flow thành công
-            listMẻHấpData = [
-                { ngay: "04/07/2025 2:34 CH", may: 1, me: 1, batch: "A120570401", nv: "TRẦN THỊ THOA", kt: "04/07/2025 2:00 CH", luon: "04/07/2025 2:34 CH", doc: "00:34" }
-            ];
+        function updateStep(id, newStep) {
+            const item = trackingList.find(x => x.id === id);
+            if(item) {
+                item.step = newStep;
+                if(newStep === 1) { item.ghiChu = "Vừa nhận từ phòng mổ"; item.ngayHap = "--"; item.hanDung = "--"; }
+                if(newStep === 2) { item.ghiChu = "Đang đóng gói chuyên sâu"; item.ngayHap = "--"; item.hanDung = "--"; }
+                if(newStep === 3) { item.ghiChu = "Đang trong mẻ hấp vô trùng"; item.ngayHap = "12-06-2026"; item.hanDung = "--"; }
+                if(newStep === 4) { item.ghiChu = "Sẵn sàng cấp phát mổ"; item.ngayHap = "12-06-2026"; item.hanDung = "12-07-2026"; }
+                hienThiChuTrinhVôKhuan();
+            }
         }
 
-        window.onload = function() {
-            dongBoDuLieuSharePoint();
-        };
+        function toggleInterfaceMode(mode) {
+            currentInterfaceMode = mode;
+            if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
+        }
+
+        function loadChiTietBo() {
+            const selectBox = document.getElementById("selectBoDungCu");
+            const boKey = selectBox.value;
+            if (!boKey) { document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
+            currentActiveData = databaseExcel[boKey] || [];
+            document.getElementById("lblTenBoHienTai").innerText = selectBox.options[selectBox.selectedIndex].text;
+            
+            let tongSoCay = 0;
+            currentActiveData.forEach(item => { tongSoCay += (item.dinhMuc || 0); });
+            document.getElementById("lblTongSoCay").innerText = "Tổng: " + tongSoCay + " dụng cụ";
+            hienThiBangDungCu(currentActiveData);
+            document.getElementById("khuVucDanhSach").classList.remove("hidden");
+        }
+
+        function hienThiBangDungCu(danhSach) {
+            const headerRow = document.getElementById("tableHeaderRow");
+            const tbody = document.getElementById("bodyChiTietDungCu");
+            tbody.innerHTML = "";
+
+            if(currentInterfaceMode === 'VIEW') {
+                headerRow.innerHTML = `<th class="p-3 text-center w-14">Ảnh</th><th class="p-3">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-3 text-center">Số lượng</th>`;
+            } else {
+                headerRow.innerHTML = `<th class="p-3 text-center w-14">Ảnh</th><th class="p-3">Mã</th><th class="p-3">Tên</th><th class="p-2 text-center">SL</th><th class="p-1 text-center">Sạch</th><th class="p-1 text-center">VK</th><th class="p-1 text-center">Lỗi</th><th class="p-2">Ghi chú</th>`;
+            }
+
+            danhSach.forEach((item) => {
+                // TỰ ĐỘNG DÒ ẢNH THÔNG MINH QUA INDEX (GIỮ NGUYÊN CẤU TRÚC GỐC)
+                const urlAnh = layAnhTuIndex(item.ma);
+                const cellHinhAnh = urlAnh 
+                    ? `<div class="w-10 h-10 border rounded bg-white flex items-center justify-center cursor-pointer mx-auto shadow-sm" onclick="openModal('${urlAnh}', '${item.ten}', '${item.ma}')"><img src="${urlAnh}" class="max-w-full max-h-full object-contain"></div>`
+                    : `<div class="w-10 h-10 bg-slate-50 border rounded flex items-center justify-center text-slate-300 mx-auto"><i class="fa-solid fa-screwdriver-wrench"></i></div>`;
+
+                const row = document.createElement("tr");
+                if(currentInterfaceMode === 'VIEW') {
+                    row.innerHTML = `<td class="p-2">${cellHinhAnh}</td><td class="p-3 font-mono text-xs">${item.ma}</td><td class="p-3 font-bold text-slate-900">${item.ten}</td><td class="p-3 text-center text-teal-600 font-extrabold">${item.dinhMuc} cây</td>`;
+                } else {
+                    row.innerHTML = `<td class="p-2">${cellHinhAnh}</td><td class="p-3 font-mono text-xs">${item.ma}</td><td class="p-3 font-semibold text-xs">${item.ten}</td><td class="p-3 text-center font-bold">${item.dinhMuc}</td><td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded text-teal-600"></td><td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded text-teal-600"></td><td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded text-red-600"></td><td class="p-1"><input type="text" placeholder="..." class="border rounded px-2 py-1 text-xs w-full"></td>`;
+                }
+                tbody.appendChild(row);
+            });
+        }
+
+        function openModal(imgUrl, name, code) {
+            document.getElementById("modalImg").src = imgUrl;
+            document.getElementById("modalTitle").innerText = name;
+            document.getElementById("modalCode").innerText = "Mã: " + code;
+            document.getElementById("imageModal").classList.remove("hidden");
+        }
+        function closeModal() { document.getElementById("imageModal").classList.add("hidden"); }
+
+        function timKiemNhanh() {
+            const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
+            if (!tuKhoa) { document.getElementById("selectBoDungCu").value = ""; document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
+
+            document.getElementById("selectBoDungCu").value = "";
+            document.getElementById("lblTenBoHienTai").innerText = `Kết quả cho: "${tuKhoa}"`;
+            
+            currentActiveData = [];
+            for (let bo in databaseExcel) {
+                databaseExcel[bo].forEach(item => {
+                    if (item.ten.toLowerCase().includes(tuKhoa) || item.ma.toLowerCase().includes(tuKhoa)) {
+                        if(!currentActiveData.some(x => x.ma === item.ma)) { currentActiveData.push(item); }
+                    }
+                });
+            }
+
+            let tongSoCayTimKiem = 0;
+            currentActiveData.forEach(item => { tongSoCayTimKiem += (item.dinhMuc || 0); });
+            document.getElementById("lblTongSoCay").innerText = "Tổng: " + tongSoCayTimKiem + " dụng cụ";
+            hienThiBangDungCu(currentActiveData);
+            document.getElementById("khuVucDanhSach").classList.remove("hidden");
+        }
+
+        function checkBiStatus() {
+            const startVal = document.getElementById('startTime').value;
+            const endVal = document.getElementById('endTime').value;
+            if (!startVal || !endVal) { alert("Vui lòng nhập đầy đủ mốc thời gian!"); return; }
+            const [startH, startM] = startVal.split(':').map(Number);
+            const [endH, endM] = endVal.split(':').map(Number);
+            let startTotal = startH * 60 + startM; let endTotal = endH * 60 + endM;
+            if (endTotal < startTotal) endTotal += 24 * 60;
+            const duration = endTotal - startTotal;
+            
+            const resultBox = document.getElementById('resultBox');
+            const durationText = document.getElementById('durationText');
+            const statusBadge = document.getElementById('statusBadge');
+            resultBox.classList.remove('hidden'); durationText.innerText = duration + " phút";
+            
+            if (duration > 30) {
+                resultBox.className = "p-4 rounded-lg border border-red-200 bg-red-50 flex flex-row items-center justify-between gap-2 text-sm";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-red-600 text-white"; statusBadge.innerText = "❌ FAIL (>30p)";
+            } else {
+                resultBox.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 flex flex-row items-center justify-between gap-2 text-sm";
+                statusBadge.className = "inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white"; statusBadge.innerText = "✅ PASS (Đạt)";
+                
+                const boNgoaiKhoa = trackingList.find(x => x.id === "MOBATCON");
+                if (boNgoaiKhoa && boNgoaiKhoa.step < 4) {
+                    setTimeout(() => {
+                        alert("Mẻ hấp đạt tiêu chuẩn sinh học BI trong vòng 30 phút. Bộ MỔ BẮT CON đã được hệ thống tự động duyệt sang trạng thái VÔ TRÙNG.");
+                        updateStep("MOBATCON", 4);
+                    }, 600);
+                }
+            }
+        }
     </script>
 </body>
 </html>
