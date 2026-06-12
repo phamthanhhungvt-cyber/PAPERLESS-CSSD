@@ -196,42 +196,42 @@
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
 
+        // Cơ sở dữ liệu gốc (Chưa đồng bộ ảnh)
         const databaseExcel = {
             "SOSINH": [
                 { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1, hinhAnh: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600" },
-                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4, hinhAnh: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600" },
+                { ma: "AA 751/11", ten: "Kẹp khăn 11cm", dinhMuc: 4, hinhAnh: "" },
                 { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AC 101/14 SC", ten: "Kéo Metzenbaum, cong, mũi tù/tù, màu đen, cán vàng, dài 14.5 cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1, hinhAnh: "" }, // Sẽ tự động lấy ảnh từ bộ mổ bắt con
                 { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2, hinhAnh: "" },
                 { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2, hinhAnh: "" }
             ],
-            // NẠP CHUẨN DANH MỤC THÀNH PHẦN MỚI BỘ MỔ BẮT CON CỦA ANH HÙNG (TỔNG 35 CÂY)
             "MOBATCON": [
-                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BD561R", ten: "Kẹp phẫu tích có mẫu dài 20-22 cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BD051R", ten: "Kẹp phẫu tích không mấu dài 22 cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BC575R", ten: "Kéo Mayo-Stille cong 17/19.5 cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2, hinhAnh: "" },
-                { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4, hinhAnh: "" },
-                { ma: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4, hinhAnh: "" },
-                { ma: "BM237R", ten: "Kềm mang kim 20 cm", dinhMuc: 2, hinhAnh: "" },
-                { ma: "BF122R", ten: "Kẹp hình tim, thẳng, có mấu, dài 245mm", dinhMuc: 2, hinhAnh: "" },
-                { ma: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AF 144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2, hinhAnh: "" },
-                { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2, hinhAnh: "" },
+                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BB084R?countryISOCode=01&watermark=true" },
+                { ma: "BD561R", ten: "Kẹp phẫu tích có mẫu dài 20-22 cm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BD561R?countryISOCode=01&watermark=true" },
+                { ma: "BD051R", ten: "Kẹp phẫu tích không mấu dài 22 cm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BD051R?countryISOCode=01&watermark=true" },
+                { ma: "BC575R", ten: "Kéo Mayo-Stille cong 17/19.5 cm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BC575R?countryISOCode=01&watermark=true" },
+                { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1, hinhAnh: "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/1010.jpg" },
+                { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BC606R?countryISOCode=01&watermark=true" },
+                { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2, hinhAnh: "https://products.api.bbraun.io/api/image/BH167R?countryISOCode=01&watermark=true" },
+                { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4, hinhAnh: "https://products.api.bbraun.io/api/image/BH166R?countryISOCode=01&watermark=true" },
+                { ma: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4, hinhAnh: "https://products.api.bbraun.io/api/image/BH644R?countryISOCode=01&watermark=true" },
+                { ma: "BM237R", ten: "Kềm mang kim 20 cm", dinhMuc: 2, hinhAnh: "https://products.api.bbraun.io/api/image/BM237R?countryISOCode=01&watermark=true" },
+                { ma: "BF122R", ten: "Kẹp hình tim, thẳng, có mấu, dài 245mm", dinhMuc: 2, hinhAnh: "https://products.api.bbraun.io/api/image/BF122R?countryISOCode=01&watermark=true" },
+                { ma: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BF120R?countryISOCode=01&watermark=true" },
+                { ma: "AF 144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1, hinhAnh: "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2245.jpg" },
+                { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2, hinhAnh: "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/0354_00.jpg" },
+                { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BV617R?countryISOCode=01&watermark=true" },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2, hinhAnh: "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500" },
                 { ma: "SG-BHD400", ten: "Bồn hạt đậu 400ml", dinhMuc: 1, hinhAnh: "" },
                 { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1, hinhAnh: "" },
                 { ma: "KYE 283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1, hinhAnh: "" }
+                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1, hinhAnh: "https://products.api.bbraun.io/api/image/BF123R?countryISOCode=01&watermark=true" }
             ],
             "TONGQUATNHI": [
                 { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1, hinhAnh: "" },
@@ -248,15 +248,15 @@
             "LOTIEUTHAP": [
                 { ma: "Mã LT1", ten: "Kẹp phẫu tích phẫu thuật tạo hình tinh tế", dinhMuc: 1, hinhAnh: "" },
                 { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1, hinhAnh: "" },
-                { ma: "AA 751/11", ten: "Kẹp khăn nhỏ 11cm", dinhMuc: 2 }
+                { ma: "AA 751/11", text: "AA 751/11", ten: "Kẹp khăn nhỏ 11cm", dinhMuc: 2, hinhAnh: "" }
             ],
             "CATTUCUNG": [
-                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
+                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" }, // Sẽ tự động lấy ảnh từ bộ mổ bắt con
                 { ma: "AA 751/13", ten: "Kẹp khăn Backhaus 13.5 cm", dinhMuc: 4, hinhAnh: "" },
                 { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 6, hinhAnh: "" },
                 { ma: "EA015R", ten: "Kẹp phẫu tích có răng dài 200mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2 }
+                { ma: "BD245R", ten: "Kẹp mang kim Mayo-Hegar ngàm rộng 200mm", dinhMuc: 2, hinhAnh: "" }
             ],
             "PTNS_OBUNG": [
                 { ma: "20300046", ten: "Vỏ van Trocar phân loại 10mm người lớn", dinhMuc: 2, hinhAnh: "" },
@@ -266,12 +266,11 @@
                 { ma: "26176HW", ten: "Kẹp bóc tách nội soi ngàm cong ngắn", dinhMuc: 1, hinhAnh: "" },
                 { ma: "26176LE", ten: "Kẹp cầm máu nội soi lưỡi dài bọc cách điện", dinhMuc: 1, hinhAnh: "" },
                 { ma: "26276A", ten: "Cáp dẫn nguồn ánh sáng sợi quang to", dinhMuc: 1, hinhAnh: "" },
-                { ma: "26276B", ten: "Cáp dẫn nguồn ánh sáng sợi quang nhỏ dự phòng", dinhMuc: 1, hinhAnh: "" }
+                { ma: "26276B", ten: "Cáp dẫn nguồn ánh sáng sợi quang loại nhỏ dự phòng", dinhMuc: 1, hinhAnh: "" }
             ],
             "PTNS_CATTUCUNG_AMDAO": [
                 { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1, hinhAnh: "" },
-                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4, hinhAnh: "" },
-                { ma: "Mã AD1", ten: "Kẹp phẫu tích ngã âm đạo chuyên sâu", dinhMuc: 2, hinhAnh: "" }
+                { ma: "OM304R", ten: "Kẹp phúc mạc Faure cong 210mm", dinhMuc: 4, hinhAnh: "" }
             ],
             "PT_TRONGNGAY": [
                 { ma: "BB073R", ten: "Cán dao mổ số 3", dinhMuc: 1, hinhAnh: "" },
@@ -285,6 +284,33 @@
                 { ma: "Optic 10/30⁰", ten: "Ống kính nội soi ổ bụng kích thước 10mm góc 30 độ", dinhMuc: 1, hinhAnh: "" }
             ]
         };
+
+        // THUẬT TOÁN ĐỒNG BỘ ẢNH TỰ ĐỘNG TỪ BỘ MỔ BẮT CON SANG CÁC BỘ KHÁC
+        function tuDongDongBoHinhAnh() {
+            // Bước 1: Trích xuất toàn bộ "Thư viện ảnh" có sẵn từ bộ MỔ BẮT CON
+            const thuVienAnhBoMatCon = {};
+            databaseExcel["MOBATCON"].forEach(item => {
+                if (item.hinhAnh && item.hinhAnh.trim() !== "") {
+                    thuVienAnhBoMatCon[item.ma.trim().toUpperCase()] = item.hinhAnh;
+                }
+            });
+
+            // Bước 2: Quét qua tất cả các bộ còn lại, nếu trùng mã và chưa có ảnh -> Tự động gắn vào
+            for (let tenBo in databaseExcel) {
+                if (tenBo !== "MOBATCON") { // Tránh quét lại chính nó
+                    databaseExcel[tenBo].forEach(item => {
+                        const maChuan = item.ma.trim().toUpperCase();
+                        // Nếu bộ khác có dụng cụ trùng mã với bộ Mổ bắt con, và dòng đó chưa có ảnh
+                        if (thuVienAnhBoMatCon[maChuan] && (!item.hinhAnh || item.hinhAnh.trim() === "")) {
+                            item.hinhAnh = thuVienAnhBoMatCon[maChuan];
+                        }
+                    });
+                }
+            }
+        }
+
+        // Kích hoạt đồng bộ ngay khi tải trang ứng dụng
+        tuDongDongBoHinhAnh();
 
         function switchTab(tabName) {
             const tabs = ['trangchu', 'giaonhan', 'dovai'];
@@ -335,7 +361,6 @@
             currentActiveData = databaseExcel[boKey];
             lblTenBo.innerText = selectBox.options[selectBox.selectedIndex].text;
             
-            // THUẬT TOÁN TỰ ĐỘNG CỘNG DỒN TỔNG SỐ LƯỢNG DỤNG CỤ THEO ĐỊNH MỨC
             let tongSoCay = 0;
             currentActiveData.forEach(item => {
                 tongSoCay += (item.dinhMuc || 0);
@@ -441,7 +466,12 @@
                 });
             }
 
-            lblTongSo.innerText = currentActiveData.length + " dòng phù hợp";
+            let tongSoCayTimKiem = 0;
+            currentActiveData.forEach(item => {
+                tongSoCayTimKiem += (item.dinhMuc || 0);
+            });
+            lblTongSo.innerText = "Tổng: " + tongSoCayTimKiem + " dụng cụ";
+
             hienThiBangDungCu(currentActiveData);
             khuVuc.classList.remove("hidden");
         }
