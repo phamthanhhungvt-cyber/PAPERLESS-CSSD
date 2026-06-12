@@ -209,7 +209,7 @@
                 { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2, hinhAnh: "" },
                 { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2, hinhAnh: "" }
             ],
-            // ĐÃ NẠP CHUẨN XÁC 100% DANH MỤC MỚI CỦA BỘ MỔ BẮT CON ĐÚNG ĐỊNH MỨC VÀ KHÔNG LỖI CHÍNH TẢ
+            // NẠP CHUẨN DANH MỤC THÀNH PHẦN MỚI BỘ MỔ BẮT CON CỦA ANH HÙNG (TỔNG 35 CÂY)
             "MOBATCON": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1, hinhAnh: "" },
                 { ma: "BD561R", ten: "Kẹp phẫu tích có mẫu dài 20-22 cm", dinhMuc: 1, hinhAnh: "" },
@@ -335,7 +335,7 @@
             currentActiveData = databaseExcel[boKey];
             lblTenBo.innerText = selectBox.options[selectBox.selectedIndex].text;
             
-            // TÍNH TỔNG SỐ CÂY THỰC TẾ THEO CỘT ĐỊNH MỨC
+            // THUẬT TOÁN TỰ ĐỘNG CỘNG DỒN TỔNG SỐ LƯỢNG DỤNG CỤ THEO ĐỊNH MỨC
             let tongSoCay = 0;
             currentActiveData.forEach(item => {
                 tongSoCay += (item.dinhMuc || 0);
@@ -446,7 +446,6 @@
             khuVuc.classList.remove("hidden");
         }
 
-        // BI test
         function checkBiStatus() {
             const startVal = document.getElementById('startTime').value;
             const endVal = document.getElementById('endTime').value;
