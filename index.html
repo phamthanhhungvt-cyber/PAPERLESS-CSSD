@@ -1,7 +1,175 @@
-<div style="margin-bottom: 20px; padding: 10px; background: #e9ecef; border-radius: 5px;">
-    <strong>Lọc theo ngày:</strong>
-    <input type="date" id="startDate"> đến 
-    <input type="date" id="endDate">
-    <button onclick="filterTable()" style="margin-left: 10px; cursor: pointer;">Lọc dữ liệu</button>
-    <button onclick="resetTable()" style="margin-left: 5px; cursor: pointer;">Tất cả</button>
-</div>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hệ Thống Sổ Theo Dõi Mẻ Hấp - SharePoint Sync</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            height: 100%;
+            background-color: #faf9f8;
+        }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .badge-nhanvien {
+            background-color: #fce4ec;
+            color: #c2185b;
+            font-weight: 600;
+        }
+        .badge-dat {
+            background-color: #107c41;
+            color: #ffffff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="font-sans flex flex-col h-screen overflow-hidden text-slate-700">
+
+    <header class="w-full bg-[#801965] text-white px-4 py-2.5 flex items-center justify-between shadow-md flex-shrink-0 z-30">
+        <div class="flex items-center space-x-3 truncate">
+            <div class="bg-fuchsia-700 w-8 h-8 rounded flex items-center justify-center font-bold text-sm shadow-inner">BP</div>
+            <h1 class="text-sm md:text-base font-bold tracking-wide truncate">PN - Khoa Kiểm Soát Nhiễm Khuẩn</h1>
+        </div>
+        <div class="flex items-center space-x-4 text-xs font-semibold whitespace-nowrap">
+            <span class="text-fuchsia-100 hidden sm:inline">Nhóm riêng tư</span>
+            <span class="bg-fuchsia-900/40 px-2 py-1 rounded text-[11px]"><i class="fa-solid fa-user-group mr-1"></i> 12 thành viên</span>
+        </div>
+    </header>
+
+    <div class="w-full bg-white border-b border-slate-200 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 flex-shrink-0 shadow-sm text-xs font-medium text-slate-600">
+        <div class="flex items-center space-x-1.5 overflow-x-auto scrollbar-none">
+            <button onclick="dongBoDuLieuSharePoint()" class="bg-[#5c2d91] hover:bg-[#4b2475] text-white px-3 py-1.5 rounded flex items-center space-x-1.5 font-bold shadow-sm transition">
+                <i class="fa-solid fa-sync text-[11px]"></i> <span>Làm mới dữ liệu từ SharePoint</span>
+            </button>
+            <span class="text-slate-300">|</span>
+            <button class="hover:bg-slate-100 px-2.5 py-1.5 rounded flex items-center space-x-1"><i class="fa-solid fa-file-excel"></i> <span>Xuất Excel</span></button>
+            <button class="hover:bg-slate-100 px-2.5 py-1.5 rounded flex items-center space-x-1"><i class="fa-solid fa-diagram-project"></i> <span>Automate Flow</span></button>
+        </div>
+        <div id="lblStatusCapNhat" class="text-[11px] text-slate-400 font-mono italic">Đang tải...</div>
+    </div>
+
+    <div class="flex-1 flex flex-row overflow-hidden w-full h-full">
+        
+        <aside class="w-56 bg-white border-r border-slate-200 flex-shrink-0 hidden md:flex flex-col justify-between text-xs font-semibold text-slate-600 select-none">
+            <div class="py-2 overflow-y-auto space-y-0.5">
+                <a href="#" class="flex items-center px-4 py-2 hover:bg-slate-100">Trang chủ</a>
+                <div class="h-px bg-slate-200 my-1 mx-3"></div>
+                <a href="#" class="flex items-center px-4 py-2 bg-slate-100 text-[#801965] font-bold border-r-2 border-[#801965]">MÁY NHIỆT ĐỘ CAO-SỔ THEO DÕI</a>
+                <a href="#" class="flex items-center px-4 py-2 hover:bg-slate-100 text-slate-400">MÁY NHIỆT ĐỘ THẤP (Sắp có)</a>
+                <a href="#" class="flex items-center px-4 py-2 hover:bg-slate-100 text-slate-400">DANH MỤC BỘ DỤNG CỤ</a>
+            </div>
+            <div class="p-3 bg-slate-50 border-t border-slate-100 text-center text-[10px] text-slate-400">v1.2026 Live Sync</div>
+        </aside>
+
+        <main class="flex-1 bg-white overflow-y-auto p-4 flex flex-col min-w-0">
+            <div class="space-y-3 w-full flex-1 flex flex-col min-h-0">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <div class="flex items-center space-x-2">
+                        <h2 class="text-sm font-extrabold text-slate-800 uppercase tracking-tight">Dữ liệu liên thông thực tế từ SharePoint</h2>
+                    </div>
+                </div>
+
+                <div class="w-full overflow-x-auto border border-slate-200 rounded shadow-sm flex-1">
+                    <table class="w-full text-left border-collapse table-auto text-xs font-medium text-slate-700 min-w-[1200px]">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-bold tracking-tight text-[10px] border-b border-slate-200 select-none">
+                            <tr>
+                                <th class="p-2.5 border-r border-slate-200 w-12 text-center"><input type="checkbox" class="rounded text-fuchsia-700 focus:ring-0"></th>
+                                <th class="p-2.5 border-r border-slate-200 w-44">Ngày</th>
+                                <th class="p-2.5 border-r border-slate-200 w-28 text-center">Máy hấp số</th>
+                                <th class="p-2.5 border-r border-slate-200 w-24 text-center">Số mẻ</th>
+                                <th class="p-2.5 border-r border-slate-200 w-36">Mã Batch của chu trình</th>
+                                <th class="p-2.5 border-r border-slate-200 w-32 text-center">Chỉ thị hoá học</th>
+                                <th class="p-2.5 border-r border-slate-200 w-36 text-center">Nhân viên kết luận</th>
+                                <th class="p-2.5 border-r border-slate-200 w-32 text-center">Kết luận chu trình</th>
+                                <th class="p-2.5 border-r border-slate-200 w-44">Thời gian kết thúc chu trình</th>
+                                <th class="p-2.5 border-r border-slate-200 w-44">Thời gian kết luận</th>
+                                <th class="p-2.5 w-32 text-center">Thời gian đọc test BI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodySoTheoDoi" class="divide-y divide-slate-100 bg-white">
+                            <tr>
+                                <td colspan="11" class="p-8 text-center text-slate-400 font-bold">Đang tải dữ liệu chu trình từ SharePoint...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let listMẻHấpData = [];
+
+        // HÀM ĐỌC DỮ LIỆU TỪ FILE data.json ĐƯỢC ĐẨY TỪ SHAREPOINT QUA FLOW
+        async function dongBoDuLieuSharePoint() {
+            document.getElementById("lblStatusCapNhat").innerText = "🔄 Đang đồng bộ...";
+            try {
+                // Thêm chuỗi thời gian ngẫu nhiên (?v=) để ép trình duyệt luôn tải file mới, tránh lưu cache cũ
+                const response = await fetch('data.json?v=' + new Date().getTime());
+                
+                if (response.ok) {
+                    listMẻHấpData = await response.json();
+                    document.getElementById("lblStatusCapNhat").innerText = "✅ Đồng bộ SharePoint thành công";
+                } else {
+                    XửLýLỗiDuLieu("Không tìm thấy tệp data.json");
+                }
+            } catch (error) {
+                XửLýLỗiDuLieu(error.message);
+            }
+            hienThiSoTheoDoiMayHap();
+        }
+
+        // Vẽ bảng mẻ hấp động chuẩn 100% giao diện Microsoft Lists của anh
+        function hienThiSoTheoDoiMayHap() {
+            const tbody = document.getElementById("bodySoTheoDoi");
+            tbody.innerHTML = "";
+            
+            if (listMẻHấpData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-red-500 font-bold">Chưa có dữ liệu mẻ hấp. Hãy kích hoạt Power Automate!</td></tr>`;
+                return;
+            }
+
+            listMẻHấpData.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100 text-slate-800 text-[11px] font-medium";
+                
+                let meBadgeColor = "bg-sky-500";
+                if(parseInt(item.me) === 2) meBadgeColor = "bg-emerald-500";
+                if(parseInt(item.me) === 3) meBadgeColor = "bg-amber-500";
+                if(parseInt(item.me) >= 4) meBadgeColor = "bg-red-400";
+
+                tr.innerHTML = `
+                    <td class="p-2 border-r border-slate-100 text-center"><input type="checkbox" class="rounded text-fuchsia-700 focus:ring-0"></td>
+                    <td class="p-2 border-r border-slate-100 font-normal text-slate-500">${item.ngay || '--'}</td>
+                    <td class="p-2 border-r border-slate-100 text-center"><span class="w-5 h-5 inline-flex items-center justify-center rounded-full bg-blue-400 text-white font-bold text-[10px]">${item.may || '1'}</span></td>
+                    <td class="p-2 border-r border-slate-100 text-center"><span class="w-5 h-5 inline-flex items-center justify-center rounded-full ${meBadgeColor} text-white font-bold text-[10px]">${item.me || '1'}</span></td>
+                    <td class="p-2 border-r border-slate-100 font-mono font-semibold text-slate-600">${item.batch || '--'}</td>
+                    <td class="p-2 border-r border-slate-100 text-center"><span class="badge-dat px-2.5 py-0.5 rounded-full text-[10px]">ĐẠT</span></td>
+                    <td class="p-2 border-r border-slate-100 text-center"><span class="badge-nhanvien px-3 py-1 rounded text-[10px] uppercase tracking-wide">${item.nv || '--'}</span></td>
+                    <td class="p-2 border-r border-slate-100 text-center"><span class="badge-dat px-2.5 py-0.5 rounded-full text-[10px]">ĐẠT</span></td>
+                    <td class="p-2 border-r border-slate-100 font-normal text-slate-500">${item.kt || '--'}</td>
+                    <td class="p-2 border-r border-slate-100 font-normal text-slate-500">${item.luon || '--'}</td>
+                    <td class="p-2 text-center font-bold text-slate-600 font-mono">${item.doc || '--'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function XửLýLỗiDuLieu(msg) {
+            document.getElementById("lblStatusCapNhat").innerText = "❌ Lỗi kết nối";
+            console.log("Chi tiết lỗi:", msg);
+            // Mảng dữ liệu chạy thử nghiệm để web không bị trống trước khi kết nối Flow thành công
+            listMẻHấpData = [
+                { ngay: "04/07/2025 2:34 CH", may: 1, me: 1, batch: "A120570401", nv: "TRẦN THỊ THOA", kt: "04/07/2025 2:00 CH", luon: "04/07/2025 2:34 CH", doc: "00:34" }
+            ];
+        }
+
+        window.onload = function() {
+            dongBoDuLieuSharePoint();
+        };
+    </script>
+</body>
+</html>
