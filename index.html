@@ -103,12 +103,12 @@
             
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
-                    <button class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
-                    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">BẨN <span class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
-                    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
-                    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">HẤP <span class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
-                    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">VÔ TRÙNG <span class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
-                </div>
+    <button class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">HẤP <span id="count-step3" class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4" class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+</div>
 
                 <div class="bg-[#334155] rounded border border-[#475569] shadow-lg overflow-hidden">
                     <div class="p-3 bg-[#1e293b] border-b border-[#475569] flex items-center justify-between">
@@ -324,7 +324,21 @@
         function hienThiChuTrinhVôKhuan() {
             const container = document.getElementById("divDanhSachChuTrinh");
             container.innerHTML = "";
+function hienThiChuTrinhVôKhuan() {
+            const container = document.getElementById("divDanhSachChuTrinh");
+            container.innerHTML = "";
 
+            // --- ĐOẠN THÊM MỚI: TỰ ĐỘNG ĐẾM VÀ CẬP NHẬT SỐ LƯỢNG LÊN NÚT ---
+            document.getElementById("count-all").innerText = trackingList.length;
+            document.getElementById("count-step1").innerText = trackingList.filter(x => x.step === 1).length;
+            document.getElementById("count-step2").innerText = trackingList.filter(x => x.step === 2).length;
+            document.getElementById("count-step3").innerText = trackingList.filter(x => x.step === 3).length;
+            document.getElementById("count-step4").innerText = trackingList.filter(x => x.step === 4).length;
+            // --------------------------------------------------------------
+
+            trackingList.forEach(item => {
+                // (Phần code vẽ danh sách ở dưới giữ nguyên không đụng tới nha anh)
+                const row = document.createElement("div");
             trackingList.forEach(item => {
                 const row = document.createElement("div");
                 row.className = "p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:bg-[#475569]/50 transition border-b border-[#475569]/50";
