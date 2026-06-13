@@ -103,12 +103,12 @@
             
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
-    <button class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">HẤP <span id="count-step3" class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-    <button class="px-3 py-1.5 text-slate-300 hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4" class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-</div>
+                    <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(3)" id="btn-filter-3" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">HẤP <span id="count-step3" class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(4)" id="btn-filter-4" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4" class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                </div>
 
                 <div class="bg-[#334155] rounded border border-[#475569] shadow-lg overflow-hidden">
                     <div class="p-3 bg-[#1e293b] border-b border-[#475569] flex items-center justify-between">
@@ -228,6 +228,7 @@
     <script>
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
+        let boLocHienTai = 'ALL'; // Biến theo dõi bộ lọc trạng thái đang chọn
 
         const trackingList = [
             { id: "SOSINH", tenBo: "BỘ SƠ SINH", step: 4, ngayHap: "12-06-2026", hanDung: "12-07-2026", ghiChu: "Vô trùng (Trong kho)" },
@@ -270,7 +271,7 @@
                 { ma: "BD051R", ten: "Kẹp phẫu tích không mấu dài 22 cm", dinhMuc: 1 },
                 { ma: "BC575R", ten: "Kéo Mayo-Stille cong 17/19.5 cm", dinhMuc: 1 },
                 { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1 },
-                { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
+                { ma: "BC606R", text: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
                 { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2 },
                 { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4 },
                 { ma: "BH644R", text: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4 },
@@ -321,25 +322,24 @@
             }
         }
 
+        // HÀM HIỂN THỊ VÀ TỰ ĐỘNG ĐẾM SỐ CHUẨN XÁC CHẠY NGẦM
         function hienThiChuTrinhVôKhuan() {
             const container = document.getElementById("divDanhSachChuTrinh");
             container.innerHTML = "";
-function hienThiChuTrinhVôKhuan() {
-            const container = document.getElementById("divDanhSachChuTrinh");
-            container.innerHTML = "";
 
-            // --- ĐOẠN THÊM MỚI: TỰ ĐỘNG ĐẾM VÀ CẬP NHẬT SỐ LƯỢNG LÊN NÚT ---
+            // --- CẬP NHẬT CON SỐ REAL-TIME CHO CÁC KHỐI NÚT LỌC ---
             document.getElementById("count-all").innerText = trackingList.length;
             document.getElementById("count-step1").innerText = trackingList.filter(x => x.step === 1).length;
             document.getElementById("count-step2").innerText = trackingList.filter(x => x.step === 2).length;
             document.getElementById("count-step3").innerText = trackingList.filter(x => x.step === 3).length;
             document.getElementById("count-step4").innerText = trackingList.filter(x => x.step === 4).length;
-            // --------------------------------------------------------------
 
             trackingList.forEach(item => {
-                // (Phần code vẽ danh sách ở dưới giữ nguyên không đụng tới nha anh)
-                const row = document.createElement("div");
-            trackingList.forEach(item => {
+                // Kiểm tra bộ lọc trạng thái (Nếu chọn Lọc riêng lẻ thì ẩn các bộ không liên quan)
+                if (boLocHienTai !== 'ALL' && item.step !== boLocHienTai) {
+                    return; 
+                }
+
                 const row = document.createElement("div");
                 row.className = "p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:bg-[#475569]/50 transition border-b border-[#475569]/50";
 
@@ -374,6 +374,24 @@ function hienThiChuTrinhVôKhuan() {
                 `;
                 container.appendChild(row);
             });
+        }
+
+        // HÀM MỚI: Xử lý đổi màu nút lọc và kích hoạt lọc dữ liệu trực quan
+        function locTrangThaiChuTrinh(status) {
+            boLocHienTai = status;
+            
+            // Khôi phục tất cả các nút lọc về trạng thái nền mờ bình thường
+            const filters = ['all', '1', '2', '3', '4'];
+            filters.forEach(f => {
+                document.getElementById('btn-filter-' + f).className = "px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition";
+            });
+
+            // Làm sáng rực nút lọc đang được chọn
+            const activeId = status === 'ALL' ? 'all' : status;
+            document.getElementById('btn-filter-' + activeId).className = "px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]";
+            
+            // Gọi hàm render lại danh sách ứng với bộ lọc mới
+            hienThiChuTrinhVôKhuan();
         }
 
         function updateStep(id, newStep) {
