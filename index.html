@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - IQVIA CSSD</title>
+    <title>Hệ Thống Quản Lý Kho Vô Khuẩn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -16,14 +16,12 @@
         .scrollbar-none::-webkit-scrollbar {
             display: none;
         }
-        /* Phong cách IQVIA Sidebar Active */
         .sidebar-item-active {
             background-color: #0b6983 !important;
             color: #ffffff !important;
             border-left: 4px solid #00a896;
         }
-        /* Định dạng tab trạng thái chuẩn IQVIA */
-        .iqvia-tab-active {
+        .tab-active-custom {
             border-bottom: 3px solid #0b6983;
             color: #0b6983;
             font-weight: 700;
@@ -36,7 +34,6 @@
         <div>
             <div class="p-4 bg-[#0b3c49] flex items-center justify-between border-b border-[#0d3f4d]">
                 <div class="flex items-center space-x-2">
-                    <span class="text-white font-black text-xl tracking-tighter">IQVIA</span>
                     <span class="text-xs text-teal-400 font-bold border-l border-teal-500/30 pl-2">CSSD</span>
                 </div>
                 <i class="fa-solid fa-angle-left text-xs text-slate-400 hidden md:block"></i>
@@ -144,7 +141,7 @@
                     
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-1.5 gap-3 w-full">
                         <div class="flex items-center space-x-1">
-                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="iqvia-tab-active px-4 py-2 text-xs md:text-sm font-bold transition-all"><i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu</button>
+                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all"><i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu</button>
                             <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all"><i class="fa-solid fa-file-signature mr-1"></i> ĐD Kiểm Đếm</button>
                         </div>
                     </div>
@@ -210,7 +207,6 @@
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
 
-        // Dữ liệu Vòng đời chu trình của từng bộ dụng cụ
         const trackingList = [
             { id: "SOSINH", tenBo: "BỘ SƠ SINH", step: 4, ngayHap: "12-06-2026", hanDung: "12-07-2026", ghiChu: "Vô trùng (Trong kho)" },
             { id: "MOBATCON", tenBo: "BỘ MỔ BẮT CON", step: 1, ngayHap: "--", hanDung: "--", ghiChu: "Bẩn (Phòng mổ trả về)" },
@@ -218,7 +214,6 @@
             { id: "TONGQUATNHI", tenBo: "BỘ TỔNG QUÁT NHI", step: 3, ngayHap: "12-06-2026", hanDung: "--", ghiChu: "Đang tiệt trùng trong buồng hấp" }
         ];
 
-        // INDEX HÌNH ẢNH ĐỘC LẬP (Ý tưởng cực hay của anh Hùng - Giữ cấu trúc gốc sạch sẽ)
         const imageIndex = {
             "BB084R": "https://products.api.bbraun.io/api/image/BB084R?countryISOCode=01&watermark=true",
             "BD561R": "https://products.api.bbraun.io/api/image/BD561R?countryISOCode=01&watermark=true",
@@ -241,7 +236,6 @@
             "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500"
         };
 
-        // CẤU TRÚC MẢNG GỐC CHUẨN ĐÚNG THEO FILE BỆNH VIỆN
         const databaseExcel = {
             "SOSINH": [
                 { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
@@ -281,7 +275,6 @@
             ]
         };
 
-        // Trích xuất link ảnh từ Index động chạy ngầm
         function layAnhTuIndex(maDungCu) {
             if(!maDungCu) return "";
             return imageIndex[maDungCu.trim().toUpperCase()] || "";
@@ -297,7 +290,7 @@
             document.getElementById('menu-' + tabName).className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-medium transition w-full";
             
             if(tabName === 'chuTrinhTab') {
-                document.getElementById("header-title").innerText = "Vần hành Chu trình Vô khuẩn";
+                document.getElementById("header-title").innerText = "Vận hành Chu trình Vô khuẩn";
                 hienThiChuTrinhVôKhuan();
             } else if (tabName === 'trangchu') {
                 document.getElementById("header-title").innerText = "Giám sát & Ủ mẫu sinh học BI";
@@ -306,16 +299,12 @@
             }
         }
 
-        // THIẾT KẾ GRID LIST THEO DÕI CHU TRÌNH CHUẨN IQVIA HỆ THỐNG
         function hienThiChuTrinhVôKhuan() {
             const container = document.getElementById("divDanhSachChuTrinh");
             container.innerHTML = "";
-
             trackingList.forEach(item => {
                 const row = document.createElement("div");
                 row.className = "p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:bg-slate-50 transition";
-
-                // Định nghĩa màu sắc nhãn Badge trạng thái
                 let badgeClass = "bg-slate-100 text-slate-600";
                 if(item.step === 1) badgeClass = "bg-red-100 text-red-700 border border-red-200";
                 if(item.step === 2) badgeClass = "bg-orange-100 text-orange-700 border border-orange-200";
@@ -332,14 +321,12 @@
                             <span class="px-2 py-0.5 text-[10px] font-extrabold rounded ${badgeClass}">${item.ghiChu}</span>
                         </div>
                     </div>
-                    
                     <div class="w-full lg:w-2/4 grid grid-cols-4 gap-1 text-[11px] md:text-xs font-bold bg-slate-200 p-1 rounded">
                         <button onclick="updateStep('${item.id}', 1)" class="py-1.5 rounded transition ${item.step === 1 ? 'bg-red-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">BẨN</button>
                         <button onclick="updateStep('${item.id}', 2)" class="py-1.5 rounded transition ${item.step === 2 ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">ĐÓNG GÓI</button>
                         <button onclick="updateStep('${item.id}', 3)" class="py-1.5 rounded transition ${item.step === 3 ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">HẤP</button>
                         <button onclick="updateStep('${item.id}', 4)" class="py-1.5 rounded transition ${item.step === 4 ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">VÔ TRÙNG</button>
                     </div>
-
                     <div class="w-full lg:w-1/4 flex lg:justify-end text-left lg:text-right text-[11px] font-semibold text-slate-500 gap-4 lg:gap-6">
                         <div><p class="text-[10px] text-slate-400">Ngày xử lý</p><p class="text-slate-800">${item.ngayHap}</p></div>
                         <div><p class="text-[10px] text-slate-400">Hạn sử dụng</p><p class="text-emerald-700 font-bold">${item.hanDung}</p></div>
@@ -363,8 +350,8 @@
 
         function toggleInterfaceMode(mode) {
             currentInterfaceMode = mode;
-            document.getElementById("btnModeView").className = mode === 'VIEW' ? "iqvia-tab-active px-4 py-2 text-xs md:text-sm font-bold transition-all" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all";
-            document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "iqvia-tab-active px-4 py-2 text-xs md:text-sm font-bold transition-all" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all";
+            document.getElementById("btnModeView").className = mode === 'VIEW' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all";
+            document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all";
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
@@ -464,18 +451,16 @@
                 resultBox.className = "p-4 rounded border border-emerald-200 bg-emerald-50 flex flex-row items-center justify-between gap-2 text-xs md:text-sm";
                 statusBadge.className = "inline-block px-3 py-1 rounded text-xs font-black bg-emerald-600 text-white shadow-sm"; statusBadge.innerText = "✅ PASS (Đạt)";
                 
-                // ĐỒNG BỘ THÔNG MẠCH: Nếu mẻ BI Đạt, tự động chuyển trạng thái Bộ Mổ Bắt Con sang Vô Trùng
                 const boMatCon = trackingList.find(x => x.id === "MOBATCON");
                 if (boMatCon && boMatCon.step < 4) {
                     setTimeout(() => {
-                        alert("Mẻ chỉ thị sinh học BI hoàn tất đạt tiêu chuẩn vô khuẩn trong vòng 30 phút. Bột MỔ BẮT CON đã được hệ thống IQVIA tự động duyệt liên thông sang trạng thái VÔ TRÙNG.");
+                        alert("Mẻ chỉ thị sinh học BI hoàn tất đạt tiêu chuẩn vô khuẩn trong vòng 30 phút. Bộ MỔ BẮT CON đã được hệ thống tự động duyệt liên thông sang trạng thái VÔ TRÙNG.");
                         updateStep("MOBATCON", 4);
                     }, 500);
                 }
             }
         }
 
-        // Tự động kích hoạt nạp danh sách chu trình ngay khi mở trang web lên
         window.onload = function() { hienThiChuTrinhVôKhuan(); };
     </script>
 </body>
