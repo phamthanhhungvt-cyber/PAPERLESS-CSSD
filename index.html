@@ -86,7 +86,6 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
@@ -103,7 +102,6 @@
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
-                <!-- Bộ nút lọc trạng thái -->
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
                     <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
@@ -230,7 +228,7 @@
     <script>
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
-        let boLocHienTai = 'ALL'; // Theo dõi bộ lọc trạng thái đang chọn
+        let boLocHienTai = 'ALL'; 
 
         const trackingList = [
             { id: "SOSINH", tenBo: "BỘ SƠ SINH", step: 4, ngayHap: "12-06-2026", hanDung: "12-07-2026", ghiChu: "Vô trùng (Trong kho)" },
@@ -256,8 +254,6 @@
             "AK 354/00": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2700.jpg",
             "BV617R": "https://products.api.bbraun.io/api/image/BV617R?countryISOCode=01&watermark=true",
             "BF123R": "https://products.api.bbraun.io/api/image/BF123R?countryISOCode=01&watermark=true",
-            "AF 200/18": "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600",
-            "AA 751/11": "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600",
             "AA 800/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2809.jpg",
             "AD 010/03": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AD/1603.jpg",
             "AF 200/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2263.jpg",
@@ -270,7 +266,7 @@
             "AK 060/02": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2336.jpg",
             "KD 050/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4283.jpg",
             "AL 003/20": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AL/2815.gif",
-            "KD 240/18" "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4357.jpg",    
+            "KD 240/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4357.jpg",    
             "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500"
         };
 
@@ -329,11 +325,6 @@
             ]
         };
 
-        function layAnhTuIndex(maDungCu) {
-            if(!maDungCu) return "";
-            return imageIndex[maDungCu.trim().toUpperCase()] || "";
-        }
-
         function switchTab(tabName) {
             const tabs = ['trangchu', 'chuTrinhTab', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
@@ -353,16 +344,13 @@
             }
         }
 
-        // HÀM HIỂN THỊ DANH SÁCH VÀ LỌC TRỰC QUAN
         function hienThiChuTrinhVôKhuan() {
             const container = document.getElementById("divDanhSachChuTrinh");
             container.innerHTML = "";
 
-            // Cập nhật số đếm lên các nút bộ lọc ở phía trên trước
             capNhatSoLuongBoLoc();
 
             trackingList.forEach(item => {
-                // Logic bộ lọc: Nếu lọc riêng lẻ thì bỏ qua các bộ không trùng khớp
                 if (boLocHienTai !== 'ALL' && item.step !== boLocHienTai) {
                     return; 
                 }
@@ -403,7 +391,6 @@
             });
         }
 
-        // HÀM RIÊNG BIỆT ĐỂ ĐẾM SỐ LƯỢNG TRÁNH LỖI XUNG ĐỘT KHỞI TẠO
         function capNhatSoLuongBoLoc() {
             if (document.getElementById("count-all")) {
                 document.getElementById("count-all").innerText = trackingList.length;
@@ -414,7 +401,6 @@
             }
         }
 
-        // HÀM KÍCH HOẠT LỌC VÀ ĐỔI STYLE NÚT LỌC
         function locTrangThaiChuTrinh(status) {
             boLocHienTai = status;
             
@@ -545,7 +531,7 @@
             const resultBox = document.getElementById('resultBox');
             const durationText = document.getElementById('durationText');
             const statusBadge = document.getElementById('statusBadge');
-            resultBox.classList.remove('hidden'); durationText.innerText = duration + " bandwidth";
+            resultBox.classList.remove('hidden'); durationText.innerText = duration + " phút";
             
             if (duration > 30) {
                 resultBox.className = "p-4 rounded border border-red-500/50 bg-red-900/30 flex flex-row items-center justify-between gap-2 text-xs md:text-sm mt-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]";
