@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý Kho Vô Khuẩn</title>
+    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,75 +11,93 @@
             max-width: 100%;
             overflow-x: hidden;
             height: 100%;
-            background-color: #f4f7f9;
+            /* Nền tối sâu thẳm */
+            background-color: #0B1121; 
+            color: #94a3b8; /* slate-400 */
         }
         .scrollbar-none::-webkit-scrollbar {
             display: none;
         }
+        /* Hiệu ứng Neon cho Sidebar đang chọn */
         .sidebar-item-active {
-            background-color: #0b6983 !important;
-            color: #ffffff !important;
-            border-left: 4px solid #00a896;
+            background-color: rgba(14, 165, 233, 0.1) !important;
+            color: #38bdf8 !important;
+            border-left: 4px solid #0ea5e9;
+            box-shadow: inset 4px 0 15px rgba(14, 165, 233, 0.15);
         }
+        /* Hiệu ứng Neon cho Tab đang chọn */
         .tab-active-custom {
-            border-bottom: 3px solid #0b6983;
-            color: #0b6983;
+            border-bottom: 3px solid #0ea5e9;
+            color: #38bdf8;
             font-weight: 700;
+            text-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+        }
+        /* Style chung cho các ô input nền tối */
+        input, select {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #e2e8f0 !important;
+            color-scheme: dark;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0ea5e9 !important;
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.3) !important;
         }
     </style>
 </head>
-<body class="font-sans flex flex-col md:flex-row h-screen overflow-hidden text-slate-700">
+<body class="font-sans flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <div class="w-full md:w-64 bg-[#0f4c5c] text-slate-200 flex flex-col justify-between flex-shrink-0 z-20 shadow-xl border-r border-[#0d3f4d]">
+    <div class="w-full md:w-64 bg-[#0F172A] flex flex-col justify-between flex-shrink-0 z-20 shadow-[4px_0_24px_rgba(0,0,0,0.5)] border-r border-[#1e293b]">
         <div>
-            <div class="p-4 bg-[#0b3c49] flex items-center justify-between border-b border-[#0d3f4d]">
+            <div class="p-4 bg-[#0B1121] flex items-center justify-between border-b border-[#1e293b]">
                 <div class="flex items-center space-x-2">
-                    <span class="text-xs text-teal-400 font-bold border-l border-teal-500/30 pl-2">CSSD</span>
+                    <span class="text-xs text-[#38bdf8] font-bold border-l-2 border-[#38bdf8] pl-2 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]">CSSD</span>
                 </div>
-                <i class="fa-solid fa-angle-left text-xs text-slate-400 hidden md:block"></i>
+                <i class="fa-solid fa-angle-left text-xs text-slate-500 hidden md:block"></i>
             </div>
             
-            <div class="p-3 text-[11px] uppercase text-slate-400 font-bold tracking-wider bg-[#125364]/50 flex items-center justify-between">
+            <div class="p-3 text-[11px] uppercase text-slate-500 font-bold tracking-wider bg-[#0f172a] flex items-center justify-between border-b border-[#1e293b]/50">
                 <span>Kiểm Soát Nhiễm Khuẩn</span>
                 <i class="fa-solid fa-angle-down text-[10px]"></i>
             </div>
 
-            <nav class="flex flex-row md:flex-col p-1 md:p-2 overflow-x-auto md:overflow-x-visible scrollbar-none md:space-y-0.5">
-                <a href="#" onclick="switchTab('chuTrinhTab')" id="menu-chuTrinhTab" class="sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#145d70] text-xs md:text-[13px] font-medium transition w-full">
+            <nav class="flex flex-row md:flex-col p-1 md:p-2 overflow-x-auto md:overflow-x-visible scrollbar-none md:space-y-1">
+                <a href="#" onclick="switchTab('chuTrinhTab')" id="menu-chuTrinhTab" class="sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#1e293b] text-xs md:text-[13px] font-medium transition w-full text-slate-300">
                     <i class="fa-solid fa-rotate text-sm w-4 text-center"></i> <span>Theo dõi vòng đời</span>
                 </a>
-                <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#145d70] text-xs md:text-[13px] font-medium transition w-full">
+                <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#1e293b] text-xs md:text-[13px] font-medium transition w-full text-slate-300">
                     <i class="fa-solid fa-flask-vial text-sm w-4 text-center"></i> <span>Giám sát Test BI</span>
                 </a>
-                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#145d70] text-xs md:text-[13px] font-medium transition w-full">
+                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#1e293b] text-xs md:text-[13px] font-medium transition w-full text-slate-300">
                     <i class="fa-solid fa-boxes-stacked text-sm w-4 text-center"></i> <span>Danh mục Bộ dụng cụ</span>
                 </a>
-                <a href="#" onclick="switchTab('dovai')" id="menu-dovai" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#145d70] text-xs md:text-[13px] font-medium transition w-full">
+                <a href="#" onclick="switchTab('dovai')" id="menu-dovai" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#1e293b] text-xs md:text-[13px] font-medium transition w-full text-slate-300">
                     <i class="fa-solid fa-shirt text-sm w-4 text-center"></i> <span>Quản lý đồ vải KSNK</span>
                 </a>
             </nav>
         </div>
         
-        <div class="hidden md:flex items-center space-x-3 p-3 bg-[#0b3c49] border-t border-[#0d3f4d]">
-            <div class="w-8 h-8 rounded-full bg-slate-400 flex items-center justify-center text-white font-bold text-xs shadow-inner">
+        <div class="hidden md:flex items-center space-x-3 p-3 bg-[#0B1121] border-t border-[#1e293b]">
+            <div class="w-8 h-8 rounded-full bg-[#1e293b] border border-[#38bdf8]/50 flex items-center justify-center text-[#38bdf8] font-bold text-xs shadow-[0_0_10px_rgba(56,189,248,0.2)]">
                 PTH
             </div>
             <div class="truncate">
-                <p class="text-xs font-bold text-white truncate">PHẠM THANH HÙNG</p>
-                <p class="text-[10px] text-slate-400">KSNK - PC03</p>
+                <p class="text-xs font-bold text-slate-200 truncate">PHẠM THANH HÙNG</p>
+                <p class="text-[10px] text-slate-500">KSNK - PC03</p>
             </div>
         </div>
     </div>
 
-    <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full">
+    <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#0B1121]">
         
-        <header class="bg-white border-b border-slate-200 px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-sm flex-shrink-0 w-full box-border">
+        <header class="bg-[#0F172A] border-b border-[#1e293b] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-lg flex-shrink-0 w-full box-border">
             <div class="flex items-center space-x-2 truncate">
-                <h2 id="header-title" class="text-sm md:text-base font-bold text-slate-800 truncate">Vận hành Chu trình Vô khuẩn</h2>
-                <i class="fa-regular fa-star text-slate-400 text-xs cursor-pointer hover:text-yellow-500"></i>
+                <h2 id="header-title" class="text-sm md:text-base font-bold text-slate-100 truncate tracking-wide">Vận hành Chu trình Vô khuẩn</h2>
+                <i class="fa-regular fa-star text-slate-500 text-xs cursor-pointer hover:text-yellow-400 transition-colors"></i>
             </div>
-            <div class="text-[11px] md:text-xs text-slate-500 font-semibold bg-slate-100 border border-slate-200 px-3 py-1 rounded flex items-center space-x-1.5 whitespace-nowrap shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <div class="text-[11px] md:text-xs text-[#38bdf8] font-semibold bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 px-3 py-1 rounded flex items-center space-x-1.5 whitespace-nowrap shadow-[0_0_10px_rgba(14,165,233,0.1)]">
+                <span class="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]"></span>
                 <span>BV Đa Khoa Phương Nam</span>
             </div>
         </header>
@@ -87,69 +105,69 @@
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
-                <div class="bg-white p-3 rounded shadow-sm border border-slate-200 flex flex-wrap items-center gap-1.5 text-xs font-bold">
-                    <button class="px-3 py-1.5 bg-[#e2f0f3] text-[#0b6983] rounded">TẤT CẢ <span class="bg-[#0b6983] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
-                    <button class="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded">BẨN <span class="bg-red-500 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
-                    <button class="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded">ĐÃ ĐÓNG GÓI <span class="bg-orange-500 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
-                    <button class="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded">HẤP <span class="bg-blue-500 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
-                    <button class="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded">VÔ TRÙNG <span class="bg-emerald-600 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
+                <div class="bg-[#0F172A] p-3 rounded shadow-lg border border-[#1e293b] flex flex-wrap items-center gap-1.5 text-xs font-bold">
+                    <button class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
+                    <button class="px-3 py-1.5 text-slate-400 hover:bg-[#1e293b] rounded transition">BẨN <span class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
+                    <button class="px-3 py-1.5 text-slate-400 hover:bg-[#1e293b] rounded transition">ĐÃ ĐÓNG GÓI <span class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
+                    <button class="px-3 py-1.5 text-slate-400 hover:bg-[#1e293b] rounded transition">HẤP <span class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
+                    <button class="px-3 py-1.5 text-slate-400 hover:bg-[#1e293b] rounded transition">VÔ TRÙNG <span class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
                 </div>
 
-                <div class="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Bảng theo dõi trạng thái Real-time</span>
-                        <span class="text-[11px] text-slate-400 font-medium">Hạn dùng đóng gói: 30 ngày</span>
+                <div class="bg-[#0F172A] rounded border border-[#1e293b] shadow-[0_4px_20px_rgba(0,0,0,0.4)] overflow-hidden">
+                    <div class="p-3 bg-[#0B1121] border-b border-[#1e293b] flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Bảng theo dõi trạng thái Real-time</span>
+                        <span class="text-[11px] text-slate-500 font-medium bg-[#1e293b] px-2 py-0.5 rounded">Hạn dùng: 30 ngày</span>
                     </div>
-                    <div id="divDanhSachChuTrinh" class="divide-y divide-slate-100">
+                    <div id="divDanhSachChuTrinh" class="divide-y divide-[#1e293b]">
                         </div>
                 </div>
             </div>
 
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
-                <div class="bg-white p-4 rounded border border-slate-200 shadow-sm space-y-4">
-                    <div class="border-b border-slate-100 pb-2">
-                        <h3 class="text-sm md:text-base font-bold text-slate-800">⏱️ Kiểm Soát Chất Lượng Mẻ Hấp (Test Sinh Học BI)</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">Thời gian tiêu chuẩn đọc chỉ số trong vòng 30 phút.</p>
+                <div class="bg-[#0F172A] p-5 rounded border border-[#1e293b] shadow-lg space-y-5">
+                    <div class="border-b border-[#1e293b] pb-3">
+                        <h3 class="text-sm md:text-base font-bold text-slate-100 flex items-center"><i class="fa-solid fa-microscope text-[#38bdf8] mr-2"></i> Kiểm Soát Chất Lượng Mẻ Hấp (BI)</h3>
+                        <p class="text-xs text-slate-400 mt-1">Thời gian tiêu chuẩn phân tích chỉ số <span class="text-red-400 font-bold">≤ 30 phút</span>.</p>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Thời gian bỏ test vào máy:</label>
-                            <input type="time" id="startTime" class="w-full border border-slate-300 rounded px-3 py-2 text-sm bg-slate-50">
+                            <label class="block text-xs font-bold text-slate-400 mb-1.5">Thời gian bỏ test vào máy:</label>
+                            <input type="time" id="startTime" class="w-full rounded px-3 py-2.5 text-sm transition-all">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Thời gian có kết quả ống test:</label>
-                            <input type="time" id="endTime" class="w-full border border-slate-300 rounded px-3 py-2 text-sm bg-slate-50">
+                            <label class="block text-xs font-bold text-slate-400 mb-1.5">Thời gian có kết quả ống test:</label>
+                            <input type="time" id="endTime" class="w-full rounded px-3 py-2.5 text-sm transition-all">
                         </div>
                     </div>
-                    <div class="pt-1">
-                        <button onclick="checkBiStatus()" class="w-full bg-[#0b6983] hover:bg-[#095469] text-white font-bold py-2 rounded text-xs md:text-sm shadow-sm transition">Phân tích kết quả mẻ hấp</button>
+                    <div class="pt-2">
+                        <button onclick="checkBiStatus()" class="w-full bg-gradient-to-r from-[#0ea5e9] to-[#2563eb] hover:from-[#0284c7] hover:to-[#1d4ed8] text-white font-bold py-3 rounded text-xs md:text-sm shadow-[0_0_15px_rgba(14,165,233,0.4)] transition-all">PHÂN TÍCH KẾT QUẢ MẺ HẤP</button>
                     </div>
-                    <div id="resultBox" class="hidden p-4 rounded border flex flex-row items-center justify-between gap-2 text-sm">
+                    <div id="resultBox" class="hidden p-4 rounded border flex flex-row items-center justify-between gap-2 text-sm mt-2">
                         <div>
                             <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Tổng thời gian ủ đọc</p>
-                            <p id="durationText" class="text-xl font-black text-slate-800">-- phút</p>
+                            <p id="durationText" class="text-xl font-black text-slate-100">-- phút</p>
                         </div>
                         <div class="text-right">
-                            <span id="statusBadge" class="inline-block px-3 py-1 rounded text-xs font-black shadow-sm">--</span>
+                            <span id="statusBadge" class="inline-block px-4 py-1.5 rounded text-xs font-black shadow-lg">--</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
-                <div class="bg-white p-4 rounded border border-slate-200 shadow-sm space-y-4 w-full">
+                <div class="bg-[#0F172A] p-4 rounded border border-[#1e293b] shadow-lg space-y-4 w-full">
                     
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-1.5 gap-3 w-full">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#1e293b] pb-2 gap-3 w-full">
                         <div class="flex items-center space-x-1">
-                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all"><i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu</button>
-                            <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all"><i class="fa-solid fa-file-signature mr-1"></i> ĐD Kiểm Đếm</button>
+                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all bg-transparent"><i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu</button>
+                            <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-300 transition-all bg-transparent"><i class="fa-solid fa-file-signature mr-1"></i> ĐD Kiểm Đếm</button>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full pt-2">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">1. Lựa chọn Bộ Dụng Cụ cấu hình:</label>
-                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full border border-slate-300 rounded px-3 py-2 bg-slate-50 text-xs md:text-sm font-bold text-slate-800 focus:outline-none">
+                            <label class="block text-xs font-bold text-slate-400 mb-1.5">1. Lựa chọn Bộ Dụng Cụ cấu hình:</label>
+                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full rounded px-3 py-2 text-xs md:text-sm font-bold transition-all">
                                 <option value="">-- Chọn bộ dụng cụ khối phòng mổ --</option>
                                 <option value="SOSINH">BỘ SƠ SINH</option>
                                 <option value="MOBATCON">BỘ MỔ BẮT CON</option>
@@ -158,26 +176,26 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1">Tìm nhanh theo mã hoặc tên:</label>
+                            <label class="block text-xs font-bold text-slate-400 mb-1.5">Tìm nhanh theo mã hoặc tên:</label>
                             <div class="relative">
-                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ từ khóa tìm kiếm mã Aesculap..." class="w-full border border-slate-300 rounded px-3 py-2 pl-9 text-xs md:text-sm focus:outline-none bg-slate-50">
-                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                                <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ từ khóa tìm kiếm mã Aesculap..." class="w-full rounded px-3 py-2 pl-9 text-xs md:text-sm transition-all">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
                             </div>
                         </div>
                     </div>
 
-                    <div id="khuVucDanhSach" class="hidden space-y-2 w-full">
-                        <div class="flex justify-between items-center text-xs w-full px-1 pt-1">
-                            <h4 class="font-extrabold text-[#0b6983] uppercase tracking-wide truncate max-w-[70%]" id="lblTenBoHienTai">Chi tiết</h4>
-                            <span id="lblTongSoCay" class="bg-teal-50 text-[#0b6983] border border-teal-200 px-2.5 py-0.5 rounded font-black whitespace-nowrap">Tổng: -- dụng cụ</span>
+                    <div id="khuVucDanhSach" class="hidden space-y-3 w-full mt-4">
+                        <div class="flex justify-between items-center text-xs w-full px-1">
+                            <h4 class="font-extrabold text-[#38bdf8] uppercase tracking-wide truncate max-w-[70%] drop-shadow-[0_0_5px_rgba(56,189,248,0.5)]" id="lblTenBoHienTai">Chi tiết</h4>
+                            <span id="lblTongSoCay" class="bg-[#0ea5e9]/10 text-[#38bdf8] border border-[#0ea5e9]/30 px-3 py-1 rounded font-black whitespace-nowrap shadow-[0_0_10px_rgba(14,165,233,0.1)]">Tổng: -- dụng cụ</span>
                         </div>
                         
-                        <div class="w-full overflow-x-auto border border-slate-200 rounded shadow-sm bg-white">
+                        <div class="w-full overflow-x-auto border border-[#1e293b] rounded shadow-lg bg-[#0B1121]">
                             <table class="w-full text-left border-collapse min-w-[620px] table-auto text-xs md:text-sm">
-                                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 uppercase font-bold text-[11px] tracking-wider">
+                                <thead class="bg-[#1e293b] text-slate-300 border-b border-[#334155] uppercase font-bold text-[11px] tracking-wider">
                                     <tr id="tableHeaderRow"></tr>
                                 </thead>
-                                <tbody id="bodyChiTietDungCu" class="divide-y divide-slate-100 text-slate-700"></tbody>
+                                <tbody id="bodyChiTietDungCu" class="divide-y divide-[#1e293b] text-slate-300"></tbody>
                             </table>
                         </div>
                     </div>
@@ -185,21 +203,28 @@
             </div>
 
             <div id="tab-dovai" class="hidden space-y-4 w-full">
-                <div class="bg-white p-4 rounded border border-slate-200 shadow-sm">
-                    <h3 class="text-xs md:text-sm font-bold text-slate-800">🧺 Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
-                    <p class="text-slate-400 text-xs mt-1">Hệ thống đang tải đồng bộ danh sách biểu mẫu đồ vải...</p>
+                <div class="bg-[#0F172A] p-5 rounded border border-[#1e293b] shadow-lg flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-[#0ea5e9] shadow-[0_0_15px_rgba(14,165,233,0.2)]">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xs md:text-sm font-bold text-slate-200">Bàn Giao Đồ Vải Nhiễm Khuẩn</h3>
+                        <p class="text-slate-500 text-[11px] mt-0.5">Hệ thống đang tải đồng bộ dữ liệu đồ vải qua luồng mã hóa...</p>
+                    </div>
                 </div>
             </div>
 
         </main>
     </div>
 
-    <div id="imageModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded max-w-sm w-full overflow-hidden shadow-2xl relative p-5 flex flex-col items-center">
-            <button onclick="closeModal()" class="absolute top-2 right-2 bg-slate-800 text-white w-7 h-7 rounded-full flex items-center justify-center hover:bg-black transition"><i class="fa-solid fa-xmark text-xs"></i></button>
-            <img id="modalImg" src="" class="max-h-[45vh] w-auto object-contain rounded border">
-            <h3 id="modalTitle" class="text-xs md:text-sm font-bold text-slate-800 mt-4 text-center">Tên</h3>
-            <p id="modalCode" class="text-[11px] font-mono text-slate-400 mt-0.5">Mã</p>
+    <div id="imageModal" class="hidden fixed inset-0 bg-[#0B1121]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-[#0F172A] rounded-lg max-w-sm w-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.15)] relative p-5 flex flex-col items-center border border-[#1e293b]">
+            <button onclick="closeModal()" class="absolute top-2 right-2 bg-[#1e293b] text-slate-400 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 border border-transparent transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
+            <div class="bg-white/5 p-2 rounded border border-[#1e293b] w-full flex justify-center mb-4">
+                <img id="modalImg" src="" class="max-h-[40vh] w-auto object-contain drop-shadow-xl">
+            </div>
+            <h3 id="modalTitle" class="text-sm md:text-base font-bold text-slate-100 text-center tracking-wide">Tên</h3>
+            <p id="modalCode" class="text-xs font-mono text-[#38bdf8] mt-1.5 bg-[#0ea5e9]/10 px-3 py-1 rounded border border-[#0ea5e9]/20">Mã</p>
         </div>
     </div>
 
@@ -284,7 +309,7 @@
             const tabs = ['trangchu', 'chuTrinhTab', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
                 document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('menu-' + t).className = "whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#145d70] text-xs md:text-[13px] font-medium transition w-full";
+                document.getElementById('menu-' + t).className = "whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#1e293b] text-xs md:text-[13px] font-medium transition w-full text-slate-300";
             });
             document.getElementById('tab-' + tabName).classList.remove('hidden');
             document.getElementById('menu-' + tabName).className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-medium transition w-full";
@@ -299,37 +324,43 @@
             }
         }
 
+        // HÀM JS CHỈ THAY ĐỔI CÁC CLASS MÀU SẮC NEON, GIỮ NGUYÊN HOÀN TOÀN CẤU TRÚC
         function hienThiChuTrinhVôKhuan() {
             const container = document.getElementById("divDanhSachChuTrinh");
             container.innerHTML = "";
+
             trackingList.forEach(item => {
                 const row = document.createElement("div");
-                row.className = "p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:bg-slate-50 transition";
-                let badgeClass = "bg-slate-100 text-slate-600";
-                if(item.step === 1) badgeClass = "bg-red-100 text-red-700 border border-red-200";
-                if(item.step === 2) badgeClass = "bg-orange-100 text-orange-700 border border-orange-200";
-                if(item.step === 3) badgeClass = "bg-blue-100 text-blue-700 border border-blue-200";
-                if(item.step === 4) badgeClass = "bg-emerald-100 text-emerald-700 border border-emerald-200";
+                row.className = "p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:bg-[#1e293b]/50 transition border-b border-[#1e293b]/50";
+
+                // CHỈNH MÀU BADGE PHÁT SÁNG THEO THEME DARK
+                let badgeClass = "bg-[#1e293b] text-slate-400 border border-[#334155]";
+                if(item.step === 1) badgeClass = "bg-red-900/30 text-red-400 border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]";
+                if(item.step === 2) badgeClass = "bg-orange-900/30 text-orange-400 border border-orange-500/50 shadow-[0_0_10px_rgba(249,115,22,0.3)]";
+                if(item.step === 3) badgeClass = "bg-blue-900/30 text-[#38bdf8] border border-[#0ea5e9]/50 shadow-[0_0_10px_rgba(14,165,233,0.3)]";
+                if(item.step === 4) badgeClass = "bg-emerald-900/30 text-[#34d399] border border-[#10b981]/50 shadow-[0_0_10px_rgba(16,185,129,0.3)]";
 
                 row.innerHTML = `
-                    <div class="w-full lg:w-1/4 space-y-0.5">
+                    <div class="w-full lg:w-1/4 space-y-1">
                         <div class="flex items-center space-x-2">
-                            <span class="w-2 h-2 rounded-full ${item.step === 4 ? 'bg-emerald-500' : 'bg-amber-500'}"></span>
-                            <h4 class="font-bold text-slate-900 text-sm md:text-base">${item.tenBo}</h4>
+                            <span class="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor] ${item.step === 4 ? 'bg-[#10b981] text-[#10b981]' : 'bg-amber-400 text-amber-400'}"></span>
+                            <h4 class="font-bold text-slate-100 text-sm md:text-base">${item.tenBo}</h4>
                         </div>
                         <div class="flex items-center space-x-2 pt-0.5">
-                            <span class="px-2 py-0.5 text-[10px] font-extrabold rounded ${badgeClass}">${item.ghiChu}</span>
+                            <span class="px-2.5 py-0.5 text-[10px] font-extrabold rounded ${badgeClass}">${item.ghiChu}</span>
                         </div>
                     </div>
-                    <div class="w-full lg:w-2/4 grid grid-cols-4 gap-1 text-[11px] md:text-xs font-bold bg-slate-200 p-1 rounded">
-                        <button onclick="updateStep('${item.id}', 1)" class="py-1.5 rounded transition ${item.step === 1 ? 'bg-red-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">BẨN</button>
-                        <button onclick="updateStep('${item.id}', 2)" class="py-1.5 rounded transition ${item.step === 2 ? 'bg-orange-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">ĐÓNG GÓI</button>
-                        <button onclick="updateStep('${item.id}', 3)" class="py-1.5 rounded transition ${item.step === 3 ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">HẤP</button>
-                        <button onclick="updateStep('${item.id}', 4)" class="py-1.5 rounded transition ${item.step === 4 ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}">VÔ TRÙNG</button>
+                    
+                    <div class="w-full lg:w-2/4 grid grid-cols-4 gap-1 text-[11px] md:text-xs font-bold bg-[#0B1121] p-1.5 rounded border border-[#1e293b]">
+                        <button onclick="updateStep('${item.id}', 1)" class="py-1.5 rounded transition ${item.step === 1 ? 'bg-red-600 text-white shadow-[0_0_12px_rgba(220,38,38,0.6)]' : 'text-slate-500 hover:bg-[#1e293b] hover:text-slate-300'}">BẨN</button>
+                        <button onclick="updateStep('${item.id}', 2)" class="py-1.5 rounded transition ${item.step === 2 ? 'bg-orange-600 text-white shadow-[0_0_12px_rgba(234,88,12,0.6)]' : 'text-slate-500 hover:bg-[#1e293b] hover:text-slate-300'}">ĐÓNG GÓI</button>
+                        <button onclick="updateStep('${item.id}', 3)" class="py-1.5 rounded transition ${item.step === 3 ? 'bg-[#0ea5e9] text-white shadow-[0_0_12px_rgba(14,165,233,0.6)]' : 'text-slate-500 hover:bg-[#1e293b] hover:text-slate-300'}">HẤP</button>
+                        <button onclick="updateStep('${item.id}', 4)" class="py-1.5 rounded transition ${item.step === 4 ? 'bg-[#10b981] text-white shadow-[0_0_12px_rgba(16,185,129,0.6)]' : 'text-slate-500 hover:bg-[#1e293b] hover:text-slate-300'}">VÔ TRÙNG</button>
                     </div>
+
                     <div class="w-full lg:w-1/4 flex lg:justify-end text-left lg:text-right text-[11px] font-semibold text-slate-500 gap-4 lg:gap-6">
-                        <div><p class="text-[10px] text-slate-400">Ngày xử lý</p><p class="text-slate-800">${item.ngayHap}</p></div>
-                        <div><p class="text-[10px] text-slate-400">Hạn sử dụng</p><p class="text-emerald-700 font-bold">${item.hanDung}</p></div>
+                        <div><p class="text-[10px] text-slate-500">Ngày xử lý</p><p class="text-slate-300">${item.ngayHap}</p></div>
+                        <div><p class="text-[10px] text-slate-500">Hạn sử dụng</p><p class="text-[#34d399] font-bold drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]">${item.hanDung}</p></div>
                     </div>
                 `;
                 container.appendChild(row);
@@ -350,8 +381,8 @@
 
         function toggleInterfaceMode(mode) {
             currentInterfaceMode = mode;
-            document.getElementById("btnModeView").className = mode === 'VIEW' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all";
-            document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-800 transition-all";
+            document.getElementById("btnModeView").className = mode === 'VIEW' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-300 transition-all bg-transparent";
+            document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-500 hover:text-slate-300 transition-all bg-transparent";
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
@@ -377,22 +408,28 @@
             if(currentInterfaceMode === 'VIEW') {
                 headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-32">Mã Aesculap</th><th class="p-3">Tên Chi Tiết Dụng Cụ</th><th class="p-3 text-center w-32">SL Định Mức</th>`;
             } else {
-                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12">ĐM</th><th class="p-1 text-center w-12">Sạch</th><th class="p-1 text-center w-12">VK</th><th class="p-1 text-center w-12">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>`;
+                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12 text-[#38bdf8]">ĐM</th><th class="p-1 text-center w-12 text-slate-400">Sạch</th><th class="p-1 text-center w-12 text-slate-400">VK</th><th class="p-1 text-center w-12 text-red-400">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>`;
             }
 
             danhSach.forEach((item) => {
                 const urlAnh = layAnhTuIndex(item.ma);
+                // Ô chứa ảnh Dark Mode
                 const cellHinhAnh = urlAnh 
-                    ? `<div class="w-9 h-9 border border-slate-200 rounded bg-white flex items-center justify-center cursor-pointer mx-auto shadow-sm" onclick="openModal('${urlAnh}', '${item.ten}', '${item.ma}')"><img src="${urlAnh}" class="max-w-full max-h-full object-contain"></div>`
-                    : `<div class="w-9 h-9 bg-slate-100 border border-slate-200 rounded flex items-center justify-center text-slate-300 mx-auto"><i class="fa-solid fa-screwdriver-wrench text-xs"></i></div>`;
+                    ? `<div class="w-10 h-10 border border-[#334155] rounded bg-white/5 flex items-center justify-center cursor-pointer mx-auto shadow-[0_0_10px_rgba(0,0,0,0.3)] hover:border-[#0ea5e9] transition-all" onclick="openModal('${urlAnh}', '${item.ten}', '${item.ma}')"><img src="${urlAnh}" class="max-w-full max-h-full object-contain mix-blend-screen drop-shadow-md"></div>`
+                    : `<div class="w-10 h-10 bg-[#1e293b] border border-[#334155] rounded flex items-center justify-center text-slate-500 mx-auto"><i class="fa-solid fa-screwdriver-wrench text-xs"></i></div>`;
 
                 const row = document.createElement("tr");
-                row.className = "hover:bg-slate-50 transition-colors";
+                row.className = "hover:bg-[#1e293b]/70 transition-colors border-b border-[#1e293b]/50";
 
                 if(currentInterfaceMode === 'VIEW') {
-                    row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-slate-500 font-medium">${item.ma}</td><td class="p-3 font-bold text-slate-800 text-xs md:text-sm">${item.ten}</td><td class="p-3 text-center text-[#0b6983] font-black">${item.dinhMuc} cây</td>`;
+                    row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-bold text-slate-200 text-xs md:text-sm">${item.ten}</td><td class="p-3 text-center text-[#10b981] font-black">${item.dinhMuc} cây</td>`;
                 } else {
-                    row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-slate-500">${item.ma}</td><td class="p-3 font-semibold text-xs text-slate-800">${item.ten}</td><td class="p-3 text-center font-bold text-slate-600">${item.dinhMuc}</td><td class="p-1 text-center"><input type="checkbox" checked class="w-3.5 h-3.5 rounded text-[#0b6983] focus:ring-0"></td><td class="p-1 text-center"><input type="checkbox" class="w-3.5 h-3.5 rounded text-[#0b6983] focus:ring-0"></td><td class="p-1 text-center"><input type="checkbox" class="w-3.5 h-3.5 rounded text-red-600 focus:ring-0"></td><td class="p-1"><input type="text" placeholder="Nhập ghi chú..." class="border border-slate-200 rounded px-2 py-1 text-[11px] w-full focus:outline-none"></td>`;
+                    // Checkbox dark mode
+                    row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-semibold text-xs text-slate-200">${item.ten}</td><td class="p-3 text-center font-bold text-[#10b981]">${item.dinhMuc}</td>
+                    <td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded bg-[#1e293b] border-[#334155] text-[#0ea5e9] focus:ring-[#0ea5e9] focus:ring-offset-[#0B1121]"></td>
+                    <td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded bg-[#1e293b] border-[#334155] text-[#0ea5e9] focus:ring-[#0ea5e9] focus:ring-offset-[#0B1121]"></td>
+                    <td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded bg-[#1e293b] border-[#334155] text-red-500 focus:ring-red-500 focus:ring-offset-[#0B1121]"></td>
+                    <td class="p-1"><input type="text" placeholder="Ghi chú..." class="bg-[#1e293b] border border-[#334155] text-slate-300 placeholder-slate-600 rounded px-2 py-1 text-[11px] w-full focus:outline-none focus:border-[#0ea5e9] focus:shadow-[0_0_8px_rgba(14,165,233,0.3)]"></td>`;
                 }
                 tbody.appendChild(row);
             });
@@ -411,7 +448,7 @@
             if (!tuKhoa) { document.getElementById("selectBoDungCu").value = ""; document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
 
             document.getElementById("selectBoDungCu").value = "";
-            document.getElementById("lblTenBoHienTai").innerText = `Kết quả tìm kiếm cho cụm từ: "${tuKhoa}"`;
+            document.getElementById("lblTenBoHienTai").innerText = `Kết quả: "${tuKhoa}"`;
             
             currentActiveData = [];
             for (let bo in databaseExcel) {
@@ -444,12 +481,15 @@
             const statusBadge = document.getElementById('statusBadge');
             resultBox.classList.remove('hidden'); durationText.innerText = duration + " phút";
             
+            // Đổ màu Neon kết quả BI
             if (duration > 30) {
-                resultBox.className = "p-4 rounded border border-red-200 bg-red-50 flex flex-row items-center justify-between gap-2 text-xs md:text-sm";
-                statusBadge.className = "inline-block px-3 py-1 rounded text-xs font-black bg-red-600 text-white shadow-sm"; statusBadge.innerText = "❌ FAIL (>30p)";
+                resultBox.className = "p-4 rounded border border-red-500/50 bg-red-900/20 flex flex-row items-center justify-between gap-2 text-xs md:text-sm mt-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]";
+                statusBadge.className = "inline-block px-4 py-1.5 rounded text-xs font-black bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.6)]"; 
+                statusBadge.innerText = "❌ FAIL (>30p)";
             } else {
-                resultBox.className = "p-4 rounded border border-emerald-200 bg-emerald-50 flex flex-row items-center justify-between gap-2 text-xs md:text-sm";
-                statusBadge.className = "inline-block px-3 py-1 rounded text-xs font-black bg-emerald-600 text-white shadow-sm"; statusBadge.innerText = "✅ PASS (Đạt)";
+                resultBox.className = "p-4 rounded border border-[#10b981]/50 bg-[#10b981]/10 flex flex-row items-center justify-between gap-2 text-xs md:text-sm mt-3 shadow-[0_0_15px_rgba(16,185,129,0.2)]";
+                statusBadge.className = "inline-block px-4 py-1.5 rounded text-xs font-black bg-[#10b981] text-white shadow-[0_0_15px_rgba(16,185,129,0.6)]"; 
+                statusBadge.innerText = "✅ PASS (Đạt)";
                 
                 const boMatCon = trackingList.find(x => x.id === "MOBATCON");
                 if (boMatCon && boMatCon.step < 4) {
