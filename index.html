@@ -86,6 +86,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
@@ -102,12 +103,13 @@
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
+                <!-- Bộ nút lọc trạng thái -->
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
-                    <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(3)" id="btn-filter-3" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">HẤP <span id="count-step3" class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(4)" id="btn-filter-4" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4" class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
+                    <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
+                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
+                    <button onclick="locTrangThaiChuTrinh(3)" id="btn-filter-3" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">HẤP <span id="count-step3" class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
+                    <button onclick="locTrangThaiChuTrinh(4)" id="btn-filter-4" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4" class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">1</span></button>
                 </div>
 
                 <div class="bg-[#334155] rounded border border-[#475569] shadow-lg overflow-hidden">
@@ -228,7 +230,7 @@
     <script>
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
-        let boLocHienTai = 'ALL'; // Biến theo dõi bộ lọc trạng thái đang chọn
+        let boLocHienTai = 'ALL'; // Theo dõi bộ lọc trạng thái đang chọn
 
         const trackingList = [
             { id: "SOSINH", tenBo: "BỘ SƠ SINH", step: 4, ngayHap: "12-06-2026", hanDung: "12-07-2026", ghiChu: "Vô trùng (Trong kho)" },
@@ -271,13 +273,13 @@
                 { ma: "BD051R", ten: "Kẹp phẫu tích không mấu dài 22 cm", dinhMuc: 1 },
                 { ma: "BC575R", ten: "Kéo Mayo-Stille cong 17/19.5 cm", dinhMuc: 1 },
                 { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1 },
-                { ma: "BC606R", text: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
+                { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
                 { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2 },
                 { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4 },
                 { ma: "BH644R", text: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4 },
                 { ma: "BM237R", ten: "Kềm mang kim 20 cm", dinhMuc: 2 },
                 { ma: "BF122R", ten: "Kẹp hình tim, thẳng, có mấu, dài 245mm", dinhMuc: 2 },
-                { ma: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1 },
+                { ma: "BF120R", text: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1 },
                 { ma: "AF 144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1 },
                 { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2 },
                 { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1 },
@@ -322,20 +324,16 @@
             }
         }
 
-        // HÀM HIỂN THỊ VÀ TỰ ĐỘNG ĐẾM SỐ CHUẨN XÁC CHẠY NGẦM
+        // HÀM HIỂN THỊ DANH SÁCH VÀ LỌC TRỰC QUAN
         function hienThiChuTrinhVôKhuan() {
             const container = document.getElementById("divDanhSachChuTrinh");
             container.innerHTML = "";
 
-            // --- CẬP NHẬT CON SỐ REAL-TIME CHO CÁC KHỐI NÚT LỌC ---
-            document.getElementById("count-all").innerText = trackingList.length;
-            document.getElementById("count-step1").innerText = trackingList.filter(x => x.step === 1).length;
-            document.getElementById("count-step2").innerText = trackingList.filter(x => x.step === 2).length;
-            document.getElementById("count-step3").innerText = trackingList.filter(x => x.step === 3).length;
-            document.getElementById("count-step4").innerText = trackingList.filter(x => x.step === 4).length;
+            // Cập nhật số đếm lên các nút bộ lọc ở phía trên trước
+            capNhatSoLuongBoLoc();
 
             trackingList.forEach(item => {
-                // Kiểm tra bộ lọc trạng thái (Nếu chọn Lọc riêng lẻ thì ẩn các bộ không liên quan)
+                // Logic bộ lọc: Nếu lọc riêng lẻ thì bỏ qua các bộ không trùng khớp
                 if (boLocHienTai !== 'ALL' && item.step !== boLocHienTai) {
                     return; 
                 }
@@ -376,21 +374,35 @@
             });
         }
 
-        // HÀM MỚI: Xử lý đổi màu nút lọc và kích hoạt lọc dữ liệu trực quan
+        // HÀM RIÊNG BIỆT ĐỂ ĐẾM SỐ LƯỢNG TRÁNH LỖI XUNG ĐỘT KHỞI TẠO
+        function capNhatSoLuongBoLoc() {
+            if (document.getElementById("count-all")) {
+                document.getElementById("count-all").innerText = trackingList.length;
+                document.getElementById("count-step1").innerText = trackingList.filter(x => x.step === 1).length;
+                document.getElementById("count-step2").innerText = trackingList.filter(x => x.step === 2).length;
+                document.getElementById("count-step3").innerText = trackingList.filter(x => x.step === 3).length;
+                document.getElementById("count-step4").innerText = trackingList.filter(x => x.step === 4).length;
+            }
+        }
+
+        // HÀM KÍCH HOẠT LỌC VÀ ĐỔI STYLE NÚT LỌC
         function locTrangThaiChuTrinh(status) {
             boLocHienTai = status;
             
-            // Khôi phục tất cả các nút lọc về trạng thái nền mờ bình thường
             const filters = ['all', '1', '2', '3', '4'];
             filters.forEach(f => {
-                document.getElementById('btn-filter-' + f).className = "px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition";
+                const element = document.getElementById('btn-filter-' + f);
+                if (element) {
+                    element.className = "px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition";
+                }
             });
 
-            // Làm sáng rực nút lọc đang được chọn
             const activeId = status === 'ALL' ? 'all' : status;
-            document.getElementById('btn-filter-' + activeId).className = "px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]";
+            const activeElement = document.getElementById('btn-filter-' + activeId);
+            if (activeElement) {
+                activeElement.className = "px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]";
+            }
             
-            // Gọi hàm render lại danh sách ứng với bộ lọc mới
             hienThiChuTrinhVôKhuan();
         }
 
@@ -504,7 +516,7 @@
             const resultBox = document.getElementById('resultBox');
             const durationText = document.getElementById('durationText');
             const statusBadge = document.getElementById('statusBadge');
-            resultBox.classList.remove('hidden'); durationText.innerText = duration + " phút";
+            resultBox.classList.remove('hidden'); durationText.innerText = duration + " bandwidth";
             
             if (duration > 30) {
                 resultBox.className = "p-4 rounded border border-red-500/50 bg-red-900/30 flex flex-row items-center justify-between gap-2 text-xs md:text-sm mt-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]";
