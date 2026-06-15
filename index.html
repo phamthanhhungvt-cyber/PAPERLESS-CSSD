@@ -85,7 +85,6 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
@@ -101,7 +100,6 @@
 
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
-            <!-- TAB: CHU TRÌNH VÒNG ĐỜI -->
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
@@ -121,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- TAB: GIÁM SÁT TEST BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
                     <div class="border-b border-[#475569] pb-3">
@@ -153,7 +150,6 @@
                 </div>
             </div>
 
-            <!-- TAB: DANH MỤC BỘ DỤNG CỤ -->
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
                     
@@ -200,7 +196,6 @@
                         </div>
                     </div>
 
-                    <!-- Ô ĐỌC EXCEL (CSV) HÀNG LOẠT + KHÓA BẢO MẬT ADMIN -->
                     <div id="panelExcelImporter" class="hidden mt-6 pt-4 border-t border-[#475569]/60 space-y-3">
                         <div id="adminAuthLockBox" class="bg-[#1e293b] p-4 rounded border border-[#475569] flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div class="flex items-center space-x-3">
@@ -231,7 +226,6 @@
                 </div>
             </div>
 
-            <!-- TAB: QUẢN LÝ ĐỒ VẢI KSNK -->
             <div id="tab-dovai" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-[#0ea5e9] shadow-[0_0_15px_rgba(14,165,233,0.2)]">
@@ -247,7 +241,6 @@
         </main>
     </div>
 
-    <!-- MODAL HIỂN THỊ ẢNH PHÓNG TO -->
     <div id="imageModal" class="hidden fixed inset-0 bg-[#1e293b]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-[#334155] rounded-lg max-w-sm w-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.15)] relative p-5 flex flex-col items-center border border-[#475569]">
             <button onclick="closeModal()" class="absolute top-2 right-2 bg-[#1e293b] text-slate-300 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 border border-transparent transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
@@ -276,7 +269,7 @@
             "BD561R": "https://products.api.bbraun.io/api/image/BD561R?countryISOCode=01&watermark=true",
             "BD051R": "https://products.api.bbraun.io/api/image/BD051R?countryISOCode=01&watermark=true",
             "BC575R": "https://products.api.bbraun.io/api/image/BC575R?countryISOCode=01&watermark=true",
-            "AC 071/17": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/1010.jpg",
+            "AC071/17": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/1010.jpg",
             "BC606R": "https://products.api.bbraun.io/api/image/BC606R?countryISOCode=01&watermark=true",
             "BH167R": "https://products.api.bbraun.io/api/image/BH167R?countryISOCode=01&watermark=true",
             "BH166R": "https://products.api.bbraun.io/api/image/BH166R?countryISOCode=01&watermark=true",
@@ -284,47 +277,47 @@
             "BM237R": "https://products.api.bbraun.io/api/image/BM237R?countryISOCode=01&watermark=true",
             "BF122R": "https://products.api.bbraun.io/api/image/BF122R?countryISOCode=01&watermark=true",
             "BF120R": "https://products.api.bbraun.io/api/image/BF120R?countryISOCode=01&watermark=true",
-            "AF 144/24": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2245.jpg",
-            "AK 354/00": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2700.jpg",
+            "AF144/24": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2245.jpg",
+            "AK354/00": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2700.jpg",
             "BV617R": "https://products.api.bbraun.io/api/image/BV617R?countryISOCode=01&watermark=true",
             "BF123R": "https://products.api.bbraun.io/api/image/BF123R?countryISOCode=01&watermark=true",
-            "AA 800/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2809.jpg",
-            "AD 010/03": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AD/1603.jpg",
-            "AF 200/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2263.jpg",
-            "AA 751/11": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AA/431.jpg",
-            "AC 101/14 SC": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/SC/ac101_14_sc.jpg",
-            "AB 112/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AB/525.jpg",
-            "AB 102/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AB/521.jpg",
-            "AA 150/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AA/110.jpg",
-            "AK 090/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2391.jpg",
-            "AK 060/02": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2336.jpg",
-            "KD 050/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4283.jpg",
-            "AL 003/20": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AL/2815.gif",
-            "KD 240/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4357.jpg",    
+            "AA800/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2809.jpg",
+            "AD010/03": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AD/1603.jpg",
+            "AF200/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2263.jpg",
+            "AA751/11": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AA/431.jpg",
+            "AC101/14SC": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/SC/ac101_14_sc.jpg",
+            "AB112/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AB/525.jpg",
+            "AB102/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AB/521.jpg",
+            "AA150/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AA/110.jpg",
+            "AK090/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2391.jpg",
+            "AK060/02": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2336.jpg",
+            "KD050/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4283.jpg",
+            "AL003/20": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AL/2815.gif",
+            "KD240/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4357.jpg",    
             "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500",
-            "KYE 283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
+            "KYE283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
         };
 
         const GOC_DATABASE = {
             "SOSINH": [
-                { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
-                { ma: "AA 800/12", ten: "Malleable 200x12mm", dinhMuc: 1 },
-                { ma: "AA 800/17", ten: "Malleable 200x12mm", dinhMuc: 1 },
-                { ma: "KU 318/14", ten: "Kẹp giữ dụng cụ MAYO 14cm", dinhMuc: 1 },
-                { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 },
-                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
-                { ma: "AA 751/11", ten: "Kẹp săng Backhaus 11cm", dinhMuc: 4 },
-                { ma: "AC 101/14 SC", ten: "Kẹp săng Backhaus 11cm", dinhMuc: 1 },
-                { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1 },
-                { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1 },
-                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1 },
-                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 },
-                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2 },
-                { ma: "AK 090/12", ten: "Banh vết thương mạch máu Desmarres, dài 14 cm, kích thước 9x12mm", dinhMuc: 2 },
-                { ma: "AK 060/02", ten: "Banh vết thương và khí quản, loại nhỏ, cong, 2 răng, nhọn, dài 16.5 cm", dinhMuc: 2 },
-                { ma: "KD 050/12", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
-                { ma: "AL 003/20", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
-                { ma: "KD 240/18", ten: "Kẹp ruột không chấn thương Doyen, cong, lưỡi mềm và đàn hồi, dài 17 cm", dinhMuc: 1 },   
+                { ma: "AK354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
+                { ma: "AA800/12", ten: "Malleable 200x12mm", dinhMuc: 1 },
+                { ma: "AA800/17", ten: "Malleable 200x12mm", dinhMuc: 1 },
+                { ma: "KU318/14", ten: "Kẹp giữ dụng cụ MAYO 14cm", dinhMuc: 1 },
+                { ma: "AD010/03", ten: "Cán dao số 3", dinhMuc: 1 },
+                { ma: "AF200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
+                { ma: "AA751/11", ten: "Kẹp săng Backhaus 11cm", dinhMuc: 4 },
+                { ma: "AC101/14SC", ten: "Kẹp săng Backhaus 11cm", dinhMuc: 1 },
+                { ma: "AC070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1 },
+                { ma: "AB112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1 },
+                { ma: "AB102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1 },
+                { ma: "AA115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 },
+                { ma: "AA150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2 },
+                { ma: "AK090/12", ten: "Banh vết thương mạch máu Desmarres, dài 14 cm, kích thước 9x12mm", dinhMuc: 2 },
+                { ma: "AK060/02", ten: "Banh vết thương và khí quản, loại nhỏ, cong, 2 răng, nhọn, dài 16.5 cm", dinhMuc: 2 },
+                { ma: "KD050/12", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
+                { ma: "AL003/20", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
+                { ma: "KD240/18", ten: "Kẹp ruột không chấn thương Doyen, cong, lưỡi mềm và đàn hồi, dài 17 cm", dinhMuc: 1 },   
                 { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 }
             ],
             "MOBATCON": [
@@ -332,7 +325,7 @@
                 { ma: "BD561R", ten: "Kẹp phẫu tích có mẫu dài 20-22 cm", dinhMuc: 1 },
                 { ma: "BD051R", ten: "Kẹp phẫu tích không mấu dài 22 cm", dinhMuc: 1 },
                 { ma: "BC575R", ten: "Kéo Mayo-Stille cong 17/19.5 cm", dinhMuc: 1 },
-                { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1 },
+                { ma: "AC071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1 },
                 { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
                 { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2 },
                 { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4 },
@@ -340,13 +333,13 @@
                 { ma: "BM237R", ten: "Kềm mang kim 20 cm", dinhMuc: 2 },
                 { ma: "BF122R", ten: "Kẹp hình tim, thẳng, có mấu, dài 245mm", dinhMuc: 2 },
                 { ma: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1 },
-                { ma: "AF 144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1 },
-                { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2 },
+                { ma: "AF144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1 },
+                { ma: "AK354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2 },
                 { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1 },
                 { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 },
                 { ma: "SG-BHD400", ten: "Bồn hạt đậu 400ml", dinhMuc: 1 },
                 { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
-                { ma: "KYE 283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
+                { ma: "KYE283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
                 { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
                 { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
             ],
@@ -369,9 +362,17 @@
             if(savedImages) { imageIndex = JSON.parse(savedImages); }
         }
 
+        // THUẬT TOÁN ĐỌC ẢNH THÔNG MINH - KHỬ SẠCH KHOẢNG TRẮNG ĐỂ KHỚP ẢNH
         function layAnhTuIndex(maDungCu) {
             if(!maDungCu) return "";
-            return imageIndex[maDungCu.trim().toUpperCase()] || "";
+            let maChuan = maDungCu.replace(/\s+/g, "").toUpperCase();
+            
+            for(let key in imageIndex) {
+                if(key.replace(/\s+/g, "").toUpperCase() === maChuan) {
+                    return imageIndex[key];
+                }
+            }
+            return "";
         }
 
         function kichHoatMoKhoaAdmin() {
@@ -440,18 +441,51 @@
                 localStorage.removeItem("CSSD_DATABASE");
                 localStorage.removeItem("CSSD_IMAGES");
                 databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
+                imageIndex = {
+                    "BB084R": "https://products.api.bbraun.io/api/image/BB084R?countryISOCode=01&watermark=true",
+                    "BD561R": "https://products.api.bbraun.io/api/image/BD561R?countryISOCode=01&watermark=true",
+                    "BD051R": "https://products.api.bbraun.io/api/image/BD051R?countryISOCode=01&watermark=true",
+                    "BC575R": "https://products.api.bbraun.io/api/image/BC575R?countryISOCode=01&watermark=true",
+                    "AC071/17": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/1010.jpg",
+                    "BC606R": "https://products.api.bbraun.io/api/image/BC606R?countryISOCode=01&watermark=true",
+                    "BH167R": "https://products.api.bbraun.io/api/image/BH167R?countryISOCode=01&watermark=true",
+                    "BH166R": "https://products.api.bbraun.io/api/image/BH166R?countryISOCode=01&watermark=true",
+                    "BH644R": "https://products.api.bbraun.io/api/image/BH644R?countryISOCode=01&watermark=true",
+                    "BM237R": "https://products.api.bbraun.io/api/image/BM237R?countryISOCode=01&watermark=true",
+                    "BF122R": "https://products.api.bbraun.io/api/image/BF122R?countryISOCode=01&watermark=true",
+                    "BF120R": "https://products.api.bbraun.io/api/image/BF120R?countryISOCode=01&watermark=true",
+                    "AF144/24": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2245.jpg",
+                    "AK354/00": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2700.jpg",
+                    "BV617R": "https://products.api.bbraun.io/api/image/BV617R?countryISOCode=01&watermark=true",
+                    "BF123R": "https://products.api.bbraun.io/api/image/BF123R?countryISOCode=01&watermark=true",
+                    "AA800/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2809.jpg",
+                    "AD010/03": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AD/1603.jpg",
+                    "AF200/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AF/2263.jpg",
+                    "AA751/11": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AA/431.jpg",
+                    "AC101/14SC": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AC/SC/ac101_14_sc.jpg",
+                    "AB112/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AB/525.jpg",
+                    "AB102/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AB/521.jpg",
+                    "AA150/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AA/110.jpg",
+                    "AK090/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2391.jpg",
+                    "AK060/02": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2336.jpg",
+                    "KD050/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4283.jpg",
+                    "AL003/20": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AL/2815.gif",
+                    "KD240/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4357.jpg",    
+                    "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500",
+                    "KYE283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
+                };
                 capNhatDropdownBoDungCu();
                 document.getElementById("khuVucDanhSach").classList.add("hidden");
                 alert("🧹 Đã dọn sạch bộ nhớ và khôi phục dữ liệu mặc định!");
             }
         }
 
-        // HÀM XỬ LÝ NAP EXCEL - ĐÃ NÂNG CẤP THUẬT TOÁN TỰ ĐỘNG KHỬ LỖI CHỨA DẤU PHẨY TRONG KÍCH THƯỚC
+        // SỬA LỖI TÊN BIẾN DONGDU_LIEU GÂY SẬP TAB
         function xuLyNapCsvExcel() {
             const rawText = document.getElementById("txtExcelCsvInput").value.trim();
             if(!rawText) { alert("Vui lòng dán nội dung dữ liệu từ file Excel vào!"); return; }
 
-            const dongDu Lieu = rawText.split("\n");
+            const dongDuLieu = rawText.split("\n");
             let soDongDungCu = 0;
             let soDongAnh = 0;
 
@@ -471,14 +505,11 @@
                         }
                     } 
                     else {
-                        // Thuật toán bóc tách nâng cao bảo vệ cột định mức cuối cùng
                         let tenBoGoc = cacCot[0].trim().toUpperCase();
                         if(tenBoGoc.startsWith("BỘ ")) { tenBoGoc = tenBoGoc.replace("BỘ ", ""); }
                         tenBoGoc = tenBoGoc.replace(/\s+/g, "_");
 
                         const maDungCu = cacCot[1].trim().toUpperCase();
-                        
-                        // Lấy phần tử cuối cùng làm định mức, phần ở giữa gộp lại làm tên để tránh lỗi kích thước chứa dấu phẩy
                         const dinhMuc = parseInt(cacCot[cacCot.length - 1].trim()) || 1;
                         
                         let mangTenDungCu = [];
@@ -511,7 +542,7 @@
                 } else if(soDongAnh > 0 && currentActiveData.length > 0) {
                     hienThiBangDungCu(currentActiveData);
                 }
-                alert(`🎉 Đồng bộ thành công!\n• Khử lỗi kích thước và cập nhật ${soDongDungCu} dụng cụ.\n• Cập nhật ${soDongAnh} hình ảnh.`);
+                alert(`🎉 Đồng bộ thành công!\n• Đã đồng bộ ${soDongDungCu} dụng cụ.\n• Cập nhật ${soDongAnh} hình ảnh.`);
                 document.getElementById("txtExcelCsvInput").value = ""; 
             } else {
                 alert("❌ Lỗi định dạng! Vui lòng kiểm tra lại cấu trúc Excel.");
@@ -609,6 +640,7 @@
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
+        // HÀM VẼ KHUNG TIÊU ĐỀ
         function khoiTaoTieuDeBangHienTai() {
             const headerRow = document.getElementById("tableHeaderRow");
             if(!headerRow) return;
