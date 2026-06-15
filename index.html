@@ -200,9 +200,9 @@
                         <div class="bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30">
                             <div class="flex justify-between items-center mb-2">
                                 <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Nạp nhanh danh mục dụng cụ từ Excel (Định dạng CSV)</h4>
-                                <span class="text-[10px] text-slate-400 italic">Mẹo: Tiết kiệm thời gian gõ code mảng</span>
+                                <span class="text-[10px] text-slate-400 italic">Cơ chế: Gộp thông minh, không xóa mất bộ dụng cụ cũ của anh</span>
                             </div>
-                            <textarea id="txtExcelCsvInput" rows="4" placeholder="Dán nội dung file CSV vào đây... Ví dụ:&#10;SOSINH,AK 354/00,Banh tổ chức Farabeuf,1&#10;SOSINH,AA 800/12,Malleable 200x12mm,1" class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
+                            <textarea id="txtExcelCsvInput" rows="4" placeholder="Dán nội dung file CSV vào đây... Ví dụ:&#10;SOSINH,AK 354/00,Banh tổ chức Farabeuf,1&#10;NOISOI,BB084R,Cán dao phẫu thuật nội soi,2" class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
                             <div class="flex justify-end gap-2 mt-2">
                                 <button onclick="xuLyNapCsvExcel()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Đồng bộ cơ sở dữ liệu</button>
                             </div>
@@ -288,6 +288,21 @@
                 { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
                 { ma: "AA 800/12", ten: "Malleable 200x12mm", dinhMuc: 1 },
                 { ma: "AA 800/17", ten: "Malleable 200x12mm", dinhMuc: 1 },
+                { ma: "KU 318/14", ten: "Kẹp giữ dụng cụ MAYO 14cm", dinhMuc: 1 },
+                { ma: "AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 },
+                { ma: "AF 200/18", ten: "Kẹp hình tim nhỏ", dinhMuc: 1 },
+                { ma: "AA 751/11", ten: "Kẹp săng Backhaus 11cm", dinhMuc: 4 },
+                { ma: "AC 101/14 SC", ten: "Kẹp săng Backhaus 11cm", dinhMuc: 1 },
+                { ma: "AC 070/14", ten: "Kéo Mayo, thẳng, lưỡi vát, mũi tù/tù, dài 14 cm", dinhMuc: 1 },
+                { ma: "AB 112/12", ten: "Nhíp mô, mảnh, ngàm có răng 1x2, dài 12 cm", dinhMuc: 1 },
+                { ma: "AB 102/12", ten: "Kẹp phẫu tích Micro-Adson, mảnh, dài 12 cm", dinhMuc: 1 },
+                { ma: "AA 115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 },
+                { ma: "AA 150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2 },
+                { ma: "AK 090/12", ten: "Banh vết thương mạch máu Desmarres, dài 14 cm, kích thước 9x12mm", dinhMuc: 2 },
+                { ma: "AK 060/02", ten: "Banh vết thương và khí quản, loại nhỏ, cong, 2 răng, nhọn, dài 16.5 cm", dinhMuc: 2 },
+                { ma: "KD 050/12", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
+                { ma: "AL 003/20", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
+                { ma: "KD 240/18", ten: "Kẹp ruột không chấn thương Doyen, cong, lưỡi mềm và đàn hồi, dài 17 cm", dinhMuc: 1 },   
                 { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 }
             ],
             "MOBATCON": [
@@ -295,7 +310,23 @@
                 { ma: "BD561R", ten: "Kẹp phẫu tích có mẫu dài 20-22 cm", dinhMuc: 1 },
                 { ma: "BD051R", ten: "Kẹp phẫu tích không mấu dài 22 cm", dinhMuc: 1 },
                 { ma: "BC575R", ten: "Kéo Mayo-Stille cong 17/19.5 cm", dinhMuc: 1 },
-                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 }
+                { ma: "AC 071/17", ten: "Kéo Mayo cong 17cm", dinhMuc: 1 },
+                { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
+                { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2 },
+                { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4 },
+                { ma: "BH644R", text: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4 },
+                { ma: "BM237R", ten: "Kềm mang kim 20 cm", dinhMuc: 2 },
+                { ma: "BF122R", ten: "Kẹp hình tim, thẳng, có mấu, dài 245mm", dinhMuc: 2 },
+                { ma: "BF120R", text: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1 },
+                { ma: "AF 144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1 },
+                { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2 },
+                { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu 400ml", dinhMuc: 1 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
+                { ma: "KYE 283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
+                { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
+                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
@@ -306,11 +337,6 @@
                 { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 2 }
             ]
         };
-
-        function layAnhTuIndex(maDungCu) {
-            if(!maDungCu) return "";
-            return imageIndex[maDungCu.trim().toUpperCase()] || "";
-        }
 
         function switchTab(tabName) {
             const tabs = ['trangchu', 'chuTrinhTab', 'giaonhan', 'dovai'];
@@ -357,37 +383,55 @@
             }
         }
 
+        // ENGINE GỘP DỮ LIỆU THÔNG MINH (MERGE INSTEAD OF OVERWRITE)
         function xuLyNapCsvExcel() {
             const rawText = document.getElementById("txtExcelCsvInput").value.trim();
             if(!rawText) { alert("Vui lòng dán nội dung CSV từ file Excel vào ô văn bản!"); return; }
 
             const dongDuLieu = rawText.split("\n");
             let soDongThanhCong = 0;
-            let databaseTam = {}; 
 
             dongDuLieu.forEach((dong) => {
+                // Kiểm tra điều kiện dòng trống hoặc dòng tiêu đề Excel
                 if(dong.toLowerCase().includes("bodungcu") || dong.trim() === "") return;
+                
                 const cacCot = dong.split(",");
-                if(cacCot.length >= 3) {
+                // Đảm bảo dòng có tối thiểu 3 cột dữ liệu (BoDungCu, MaDungCu, TenDungCu)
+                if(cacCot.length >= 3 && cacCot[0].trim() !== "") {
                     const tenBoGoc = cacCot[0].trim().toUpperCase().replace(/\s+/g, "_"); 
                     const maDungCu = cacCot[1].trim().toUpperCase();
                     const tenDungCu = cacCot[2].trim();
                     const dinhMuc = parseInt(cacCot[3]) || 1;
 
-                    if(!databaseTam[tenBoGoc]) { databaseTam[tenBoGoc] = []; }
-                    databaseTam[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
+                    // Nếu bộ này CHƯA TỒN TẠI trong cơ sở dữ liệu gốc, khởi tạo mảng rỗng cho nó
+                    if(!databaseExcel[tenBoGoc]) { 
+                        databaseExcel[tenBoGoc] = []; 
+                    }
+
+                    // Kiểm tra xem cây dụng cụ này đã nằm trong bộ chưa để tránh trùng lặp đè dữ liệu
+                    const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
+                    if(indexTrung >= 0) {
+                        // Nếu trùng mã dụng cụ thì cập nhật lại thông tin mới nhất
+                        databaseExcel[tenBoGoc][indexTrung] = { ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc };
+                    } else {
+                        // Nếu là cây mới thì đẩy thêm vào mảng
+                        databaseExcel[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
+                    }
                     soDongThanhCong++;
                 }
             });
 
             if(soDongThanhCong > 0) {
-                databaseExcel = databaseTam;
-                capNhatDropdownBoDungCu(); 
-                document.getElementById("khuVucDanhSach").classList.add("hidden"); 
-                alert(`🎉 Đồng bộ thành công! Đã nạp thành công ${soDongThanhCong} dòng dụng cụ từ Excel của anh.`);
-                document.getElementById("txtExcelCsvInput").value = ""; 
+                capNhatDropdownBoDungCu(); // Cập nhật lại dropdown danh sách
+                // Nếu đang xem dở một bộ, kích hoạt render tải lại bảng để hiển thị dụng cụ mới lập tức
+                const selectBox = document.getElementById("selectBoDungCu");
+                if (selectBox && selectBox.value) {
+                    loadChiTietBo();
+                }
+                alert(`🎉 Gộp danh mục thành công! Đã nạp bổ sung ${soDongThanhCong} dòng dụng cụ từ Excel vào hệ thống.`);
+                document.getElementById("txtExcelCsvInput").value = ""; // Dọn sạch vùng dán text
             } else {
-                alert("❌ Lỗi định dạng dữ liệu! Vui lòng kiểm tra lại cấu trúc các cột trong file CSV.");
+                alert("❌ Lỗi định dạng dữ liệu CSV! Vui lòng kiểm tra lại cấu trúc file.");
             }
         }
 
