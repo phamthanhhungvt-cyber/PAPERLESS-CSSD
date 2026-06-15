@@ -155,8 +155,8 @@
                     
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#475569] pb-2 gap-3 w-full">
                         <div class="flex items-center space-x-1">
-                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="tab-active-custom px-4 py-2 text-xs md:text-sm font-bold transition-all bg-transparent"><i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu</button>
-                            <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 transition-all bg-transparent"><i class="fa-solid fa-file-signature mr-1"></i> ĐD Kiểm Đếm</button>
+                            <button id="btnModeView" onclick="toggleInterfaceMode('VIEW')" class="tab-active-custom px-4 py-2 text-xs md:text-sm font-bold bg-transparent"><i class="fa-solid fa-eye mr-1"></i> Bác sĩ Tra Cứu</button>
+                            <button id="btnModeEdit" onclick="toggleInterfaceMode('EDIT')" class="px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 bg-transparent"><i class="fa-solid fa-file-signature mr-1"></i> ĐD Kiểm Đếm</button>
                         </div>
                     </div>
 
@@ -283,7 +283,6 @@
             "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500"
         };
 
-        // Ruột Database gốc ban đầu
         let databaseExcel = {
             "SOSINH": [
                 { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
@@ -316,11 +315,16 @@
         function switchTab(tabName) {
             const tabs = ['trangchu', 'chuTrinhTab', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
-                document.getElementById('tab-' + t).classList.add('hidden');
-                document.getElementById('menu-' + t).className = "whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-300";
+                const element = document.getElementById('tab-' + t);
+                const menuElement = document.getElementById('menu-' + t);
+                if(element) element.classList.add('hidden');
+                if(menuElement) menuElement.className = "whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-300";
             });
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
-            document.getElementById('menu-' + tabName).className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-medium transition w-full";
+            
+            const activeTab = document.getElementById('tab-' + tabName);
+            const activeMenu = document.getElementById('menu-' + tabName);
+            if(activeTab) activeTab.classList.remove('hidden');
+            if(activeMenu) activeMenu.className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-medium transition w-full";
             
             if(tabName === 'chuTrinhTab') {
                 document.getElementById("header-title").innerText = "Vận hành Chu trình Vô khuẩn";
@@ -329,65 +333,59 @@
                 document.getElementById("header-title").innerText = "Giám sát & Ủ mẫu sinh học BI";
             } else if (tabName === 'giaonhan') {
                 document.getElementById("header-title").innerText = "Danh mục Tổng bộ Dụng cụ Bệnh viện";
-                capNhatDropdownBoDungCu(); // Làm mới Dropdown khi chuyển tab
+                capNhatDropdownBoDungCu(); 
                 if (document.getElementById("selectBoDungCu").value) { loadChiTietBo(); }
             }
         }
 
-        // Động hóa việc sinh danh sách trong Dropdown Select dựa trên các Key có trong Object databaseExcel
         function capNhatDropdownBoDungCu() {
-            const selectBox = document.getElementById("selectBoDungCu");
-            const valuesLuulại = selectBox.value;
-            selectBox.innerHTML = '<option value="">-- Chọn bộ dụng cụ khối phòng mổ --</option>';
-            
-            for (let key in databaseExcel) {
-                const opt = document.createElement("option");
-                opt.value = key;
-                opt.innerText = "BỘ " + key.replace(/_/g, " ").toUpperCase();
-                selectBox.appendChild(opt);
+            try {
+                const selectBox = document.getElementById("selectBoDungCu");
+                if(!selectBox) return;
+                const valueCu = selectBox.value;
+                selectBox.innerHTML = '<option value="">-- Chọn bộ dụng cụ khối phòng mổ --</option>';
+                
+                for (let key in databaseExcel) {
+                    const opt = document.createElement("option");
+                    opt.value = key;
+                    opt.innerText = "BỘ " + key.replace(/_/g, " ").toUpperCase();
+                    selectBox.appendChild(opt);
+                }
+                selectBox.value = valueCu;
+            } catch (err) {
+                console.log("Chờ nạp Dropdown...");
             }
-            selectBox.value = valuesLuulại;
         }
 
-        // HÀM ENGINE XỬ LÝ ĐỌC FILE EXCEL (CSV) COPY-PASTE HÀNG LOẠT
         function xuLyNapCsvExcel() {
             const rawText = document.getElementById("txtExcelCsvInput").value.trim();
             if(!rawText) { alert("Vui lòng dán nội dung CSV từ file Excel vào ô văn bản!"); return; }
 
             const dongDuLieu = rawText.split("\n");
             let soDongThanhCong = 0;
-            let databaseTam = {}; // Tạo vùng nhớ mới để cấu trúc lại
+            let databaseTam = {}; 
 
-            dongDuLieu.forEach((dong, index) => {
-                // Bỏ qua dòng tiêu đề nếu người dùng copy cả tiêu đề đầu bảng
+            dongDuLieu.forEach((dong) => {
                 if(dong.toLowerCase().includes("bodungcu") || dong.trim() === "") return;
-
-                // Tách cột bằng dấu phẩy
                 const cacCot = dong.split(",");
                 if(cacCot.length >= 3) {
-                    const tenBoGoc = cacCot[0].trim().toUpperCase().replace(/\s+/g, "_"); // Format key chuẩn viết liền
+                    const tenBoGoc = cacCot[0].trim().toUpperCase().replace(/\s+/g, "_"); 
                     const maDungCu = cacCot[1].trim().toUpperCase();
                     const tenDungCu = cacCot[2].trim();
                     const dinhMuc = parseInt(cacCot[3]) || 1;
 
                     if(!databaseTam[tenBoGoc]) { databaseTam[tenBoGoc] = []; }
-
-                    databaseTam[tenBoGoc].push({
-                        ma: maDungCu,
-                        ten: tenDungCu,
-                        dinhMuc: dinhMuc
-                    });
+                    databaseTam[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
                     soDongThanhCong++;
                 }
             });
 
             if(soDongThanhCong > 0) {
-                // Ghi đè cơ sở dữ liệu cũ bằng cơ sở dữ liệu mới nạp từ file Excel
                 databaseExcel = databaseTam;
-                capNhatDropdownBoDungCu(); // Cập nhật ngay dropdown hiển thị
-                document.getElementById("khuVucDanhSach").classList.add("hidden"); // Tạm ẩn bảng để chọn lại
+                capNhatDropdownBoDungCu(); 
+                document.getElementById("khuVucDanhSach").classList.add("hidden"); 
                 alert(`🎉 Đồng bộ thành công! Đã nạp thành công ${soDongThanhCong} dòng dụng cụ từ Excel của anh.`);
-                document.getElementById("txtExcelCsvInput").value = ""; // Clear sạch ô nhập liệu
+                document.getElementById("txtExcelCsvInput").value = ""; 
             } else {
                 alert("❌ Lỗi định dạng dữ liệu! Vui lòng kiểm tra lại cấu trúc các cột trong file CSV.");
             }
@@ -475,14 +473,17 @@
             document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 bg-transparent";
             
             const excelPanel = document.getElementById("panelExcelImporter");
-            if(mode === 'EDIT') excelPanel.classList.remove("hidden");
-            else excelPanel.classList.add("hidden");
+            if(excelPanel) {
+                if(mode === 'EDIT') excelPanel.classList.remove("hidden");
+                else excelPanel.classList.add("hidden");
+            }
 
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
         function loadChiTietBo() {
             const selectBox = document.getElementById("selectBoDungCu");
+            if(!selectBox) return;
             const boKey = selectBox.value;
             if (!boKey) { document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
             
