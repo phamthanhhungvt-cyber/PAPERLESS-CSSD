@@ -85,6 +85,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
@@ -100,6 +101,7 @@
 
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
+            <!-- TAB: CHU TRÌNH VÒNG ĐỜI -->
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
@@ -119,6 +121,7 @@
                 </div>
             </div>
 
+            <!-- TAB: GIÁM SÁT TEST BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
                     <div class="border-b border-[#475569] pb-3">
@@ -150,6 +153,7 @@
                 </div>
             </div>
 
+            <!-- TAB: DANH MỤC BỘ DỤNG CỤ -->
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
                     
@@ -201,6 +205,7 @@
                         </div>
                     </div>
 
+                    <!-- Ô ĐỌC EXCEL (CSV) HÀNG LOẠT + KHÓA BẢO MẬT ADMIN -->
                     <div id="panelExcelImporter" class="hidden mt-6 pt-4 border-t border-[#475569]/60 space-y-3">
                         <div id="adminAuthLockBox" class="bg-[#1e293b] p-4 rounded border border-[#475569] flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div class="flex items-center space-x-3">
@@ -231,6 +236,7 @@
                 </div>
             </div>
 
+            <!-- TAB: QUẢN LÝ ĐỒ VẢI KSNK -->
             <div id="tab-dovai" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-[#0ea5e9] shadow-[0_0_15px_rgba(14,165,233,0.2)]">
@@ -246,6 +252,7 @@
         </main>
     </div>
 
+    <!-- MODAL HIỂN THỊ ẢNH PHÓNG TO -->
     <div id="imageModal" class="hidden fixed inset-0 bg-[#1e293b]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-[#334155] rounded-lg max-w-sm w-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.15)] relative p-5 flex flex-col items-center border border-[#475569]">
             <button onclick="closeModal()" class="absolute top-2 right-2 bg-[#1e293b] text-slate-300 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 border border-transparent transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
@@ -303,7 +310,6 @@
             "KYE283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
         };
 
-        // ĐÃ CẬP NHẬT: TÍNH HỢP CÁC BỘ DỤNG CỤ MỚI VÀO CƠ SỞ DỮ LIỆU GỐC ĐỂ KHÔNG BỊ TRỐNG RỖNG LÀM ĐƠ TRANG KHẢO SÁT
         const GOC_DATABASE = {
             "SOSINH": [
                 { ma: "AK354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
@@ -320,7 +326,7 @@
                 { ma: "AA115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 },
                 { ma: "AA150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2 },
                 { ma: "AK090/12", ten: "Banh vết thương mạch máu Desmarres, dài 14 cm, kích thước 9x12mm", dinhMuc: 2 },
-                { ma: "AK060/02", ten: "Banh vết thương và khí quản, loại nhỏ, cong, 2 răng, nhọn, dài 16.5 cm", dinhMuc: 2 },
+                { ma: "AK060/02", clan: "Banh vết thương và khí quản, loại nhỏ, cong, 2 răng, nhọn, dài 16.5 cm", dinhMuc: 2 },
                 { ma: "KD050/12", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
                 { ma: "AL003/20", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
                 { ma: "KD240/18", ten: "Kẹp ruột không chấn thương Doyen, cong, lưỡi mềm và đàn hồi, dài 17 cm", dinhMuc: 1 },   
@@ -347,7 +353,7 @@
                 { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
                 { ma: "KYE283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
                 { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
-                { ma: "BF123R", clean: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
+                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
@@ -366,10 +372,20 @@
 
         let databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
 
+        // TỰ ĐỘNG DI TRÚ DỮ LIỆU ĐỆM (AUTO-MIGRATION)
         function taiDuLieuTuBoNho() {
             const savedDb = localStorage.getItem("CSSD_DATABASE");
             const savedImages = localStorage.getItem("CSSD_IMAGES");
-            if(savedDb) { databaseExcel = JSON.parse(savedDb); }
+            if(savedDb) { 
+                let parsedDb = JSON.parse(savedDb);
+                // Nếu phát hiện bộ nhớ trình duyệt thiếu các bộ thẩm mỹ mới, tự động chèn bổ sung vào luôn
+                for (let key in GOC_DATABASE) {
+                    if (!parsedDb[key]) {
+                        parsedDb[key] = [];
+                    }
+                }
+                databaseExcel = parsedDb;
+            }
             if(savedImages) { imageIndex = JSON.parse(savedImages); }
         }
 
@@ -436,7 +452,10 @@
                 for (let key in databaseExcel) {
                     const opt = document.createElement("option");
                     opt.value = key.trim().toUpperCase();
-                    opt.innerText = "BỘ " + key.replace(/_/g, " ").toUpperCase();
+                    // Hiển thị tên đẹp mắt lên giao diện
+                    let tenHienThi = key.replace(/_/g, " ").toUpperCase();
+                    if(!tenHienThi.startsWith("BỘ")) tenHienThi = "BỘ " + tenHienThi;
+                    opt.innerText = tenHienThi;
                     selectBox.appendChild(opt);
                 }
                 if(valueCu) selectBox.value = valueCu;
@@ -516,7 +535,6 @@
                         let tenBoGoc = cacCot[0].trim().toUpperCase();
                         if(tenBoGoc.startsWith("BỘ ")) { tenBoGoc = tenBoGoc.replace("BỘ ", ""); }
                         
-                        // Chuẩn hóa tên bộ gạch dưới giống như cấu trúc select-box (THÀNH BỤNG-TÚI NGỰC chuyển thành THANHBUNG_TUINGUC)
                         tenBoGoc = tenBoGoc.replace(/-/g, "_").replace(/\s+/g, "_");
 
                         const maDungCu = cacCot[1].trim().toUpperCase();
