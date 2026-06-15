@@ -189,6 +189,19 @@
                         </div>
                     </div>
 
+                    <!-- THÊM CHỨC NĂNG THÊM NHANH DỤNG CỤ BẰNG TAY -->
+                    <div id="khuVucNhapTay" class="hidden bg-[#1e293b] p-3 rounded border border-[#475569] space-y-2">
+                        <div class="text-xs font-bold text-slate-200"><i class="fa-solid fa-plus text-[#38bdf8] mr-1"></i> Thêm nhanh dụng cụ bằng tay vào bộ hiện tại</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <input type="text" id="txtMaMoi" placeholder="Mã (VD: BB084R)..." class="rounded px-2.5 py-1.5 text-xs">
+                            <input type="text" id="txtTenMoi" placeholder="Tên dụng cụ chi tiết..." class="rounded px-2.5 py-1.5 text-xs sm:col-span-1">
+                            <div class="flex gap-1">
+                                <input type="number" id="txtDMMoi" value="1" min="1" class="w-16 rounded px-2 py-1.5 text-xs text-center">
+                                <button onclick="themDungCuBangTay()" class="flex-1 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-bold rounded transition-all">Thêm Cây</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="khuVucDanhSach" class="hidden space-y-3 w-full mt-4">
                         <div class="flex justify-between items-center text-xs w-full px-1">
                             <h4 class="font-extrabold text-[#38bdf8] uppercase tracking-wide truncate max-w-[70%] drop-shadow-[0_0_5px_rgba(56,189,248,0.5)]" id="lblTenBoHienTai">Chi tiết</h4>
@@ -220,17 +233,17 @@
 
                         <div id="adminMainContentBox" class="hidden bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30 space-y-3">
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-1">
-                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Nạp danh mục hoặc Ảnh hàng loạt từ Excel</h4>
+                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Bộ công cụ Đồng bộ liên thông giữa các thiết bị</h4>
                                 <div class="flex flex-wrap gap-1.5">
-                                    <button onclick="xuatSaoLuuDatabase()" class="bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">💾 Xuất Sao Lưu</button>
-                                    <button onclick="nhapPhucHoiDatabase()" class="bg-teal-600/20 hover:bg-teal-600/40 text-teal-400 border border-teal-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">📂 Nhập Phục Hồi</button>
-                                    <button onclick="resetToGoc()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">🧹 Reset Mặc Định</button>
-                                    <button onclick="khoaLaiQuyenAdmin()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded transition-all"><i class="fa-solid fa-lock mr-1"></i> Khóa</button>
+                                    <button onclick="saoChepMaDongBo()" class="bg-violet-600/20 hover:bg-violet-600/40 text-violet-400 border border-violet-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">📋 Copy mã đồng bộ</button>
+                                    <button onclick="napMaDongBo()" class="bg-fuchsia-600/20 hover:bg-fuchsia-600/40 text-fuchsia-400 border border-fuchsia-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">📥 Dán mã đồng bộ</button>
+                                    <button onclick="resetToGoc()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">🧹 Reset</button>
+                                    <button onclick="khoaLaiQuyenAdmin()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded transition-all">Khóa</button>
                                 </div>
                             </div>
-                            <textarea id="txtExcelCsvInput" rows="4" placeholder="Dán CSV dụng cụ hoặc ảnh vào đây...&#10;Nạp dụng cụ: CATTUCUNG,BC606R,KÉO METZENBAUN,1&#10;Cập nhật ảnh: ANH,BC606R,https://link-anh-moi.jpg" class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
+                            <textarea id="txtExcelCsvInput" rows="3" placeholder="Dán mã đồng bộ hoặc CSV vào đây để liên thông dữ liệu..." class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
                             <div class="flex justify-end gap-2 mt-1">
-                                <button onclick="xuLyNapCsvExcel()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Đồng bộ cơ sở dữ liệu</button>
+                                <button onclick="xuLyNapCsvExcel()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Đồng bộ cơ sở dữ liệu CSV</button>
                             </div>
                         </div>
                     </div>
@@ -312,7 +325,6 @@
             "KYE283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
         };
 
-        // ĐÃ NẠP CỨNG: TÍCH HỢP DANH MỤC CÂY DỤNG CỤ GỐC CHO CÁC BỘ CHUYÊN KHOA THẨM MỸ MỚI
         const GOC_DATABASE = {
             "SOSINH": [
                 { ma: "AK354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
@@ -356,7 +368,7 @@
                 { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
                 { ma: "KYE283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
                 { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
-                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
+                { ma: "BF123R", net: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
@@ -366,40 +378,11 @@
                 { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1 },
                 { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 2 }
             ],
-            "THAMMYCOBAN": [
-                { ma: "AD010/03", ten: "Cán dao phẫu thuật số 3 thon", dinhMuc: 1 },
-                { ma: "AB102/12", ten: "Kẹp phẫu tích Adson thẩm mỹ có mấu mảnh", dinhMuc: 2 },
-                { ma: "AC101/14SC", ten: "Kéo cắt chỉ đính kim cương siêu mịn SuperCut", dinhMuc: 1 },
-                { ma: "AA115/10", ten: "Kẹp mạch máu Baby-Mosquito cong 10cm", dinhMuc: 4 },
-                { ma: "BM237R", ten: "Kềm mang kim vi phẫu chuyên dụng 14cm", dinhMuc: 1 }
-            ],
-            "THAMMYMAT": [
-                { ma: "AB102/12", ten: "Nhíp vi phẫu phẫu tích mắt kẹp kết mạc", dinhMuc: 2 },
-                { ma: "AC071/17", ten: "Kéo cắt cơ vòng mi mắt chuyên dụng cong nhẹ", dinhMuc: 1 },
-                { ma: "AA115/10", ten: "Kẹp Mosquito vi phẫu kẹp giữ vạt mi", dinhMuc: 2 },
-                { ma: "BM237R", ten: "Kềm kẹp kim vi phẫu nhãn khoa có khóa bấm", dinhMuc: 1 }
-            ],
-            "THAMMYMUI": [
-                { ma: "AD010/03", ten: "Cán dao mổ số 3 chuôi dài bóc tách sụn mũi", dinhMuc: 1 },
-                { ma: "AB112/12", ten: "Nhíp phẫu tích có răng mảnh giữ sụn Alar", dinhMuc: 1 },
-                { ma: "BC606R", ten: "Kéo Metzenbaum thẩm mỹ bóc tách khoang mũi", dinhMuc: 1 },
-                { ma: "AK090/12", ten: "Banh cánh mũi hai đầu Desmarres", dinhMuc: 2 },
-                { ma: "AA751/11", ten: "Kẹp khuy bấm Backhaus cố định săng lỗ", dinhMuc: 4 },
-                { ma: "SG-CHEN9", ten: "Chén chun đựng dung dịch sát khuẩn sụn", dinhMuc: 1 }
-            ],
-            "THANHBUNG_TUINGUC": [
-                { ma: "BB084R", ten: "Cán dao phẫu thuật lớn số 4 rạch da bụng", dinhMuc: 1 },
-                { ma: "BC606R", ten: "Kéo Metzenbaum đại cong bóc tách khoang ngực 20cm", dinhMuc: 1 },
-                { ma: "BH167R", ten: "Kẹp Kelly bóc tách mạch khoang ngực lớn", dinhMuc: 4 },
-                { ma: "BH644R", ten: "Kẹp Kocher có răng kẹp giữ vạt cân cơ", dinhMuc: 4 },
-                { ma: "AK354/00", ten: "Banh lá sâu Farabeuf lớn kéo thành bụng", dinhMuc: 2 }
-            ],
-            "TIEUPHAUMAT": [
-                { ma: "AB102/12", ten: "Kẹp phẫu tích Adson liên kết mạc mắt", dinhMuc: 1 },
-                { ma: "AA115/10", ten: "Kẹp Baby-Mosquito kẹp cầm máu vi phẫu", dinhMuc: 2 },
-                { ma: "AC101/14SC", ten: "Kéo cắt chỉ vi phẫu đầu nhọn hoắt", dinhMuc: 1 },
-                { ma: "SG-CHEN9", ten: "Chén chun nhỏ", dinhMuc: 1 }
-            ]
+            "THAMMYCOBAN": [],
+            "THAMMYMAT": [],
+            "THAMMYMUI": [],
+            "THANHBUNG_TUINGUC": [],
+            "TIEUPHAUMAT": []
         };
 
         let databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
@@ -408,12 +391,11 @@
             const savedDb = localStorage.getItem("CSSD_DATABASE");
             const savedImages = localStorage.getItem("CSSD_IMAGES");
             
-            // ÉP BUỘC CẬP NHẬT: NẾU PHÁT HIỆN BỘ NÀO TRONG BỘ NHỚ TRÌNH DUYỆT ĐANG BỊ TRỐNG (0 DỤNG CỤ), ĐÈ DỮ LIỆU GỐC VÀO NGAY
             let templateDb = JSON.parse(JSON.stringify(GOC_DATABASE));
             if(savedDb) { 
                 let parsedDb = JSON.parse(savedDb);
                 for (let key in templateDb) {
-                    if (parsedDb[key] && parsedDb[key].length > 0) {
+                    if (parsedDb[key]) {
                         templateDb[key] = parsedDb[key]; 
                     }
                 }
@@ -422,45 +404,71 @@
             if(savedImages) { imageIndex = JSON.parse(savedImages); }
         }
 
-        function xuatSaoLuuDatabase() {
-            const dataBackup = { db: databaseExcel, img: imageIndex };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataBackup));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "CSSD_Backup_Database.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+        // TÍNH NĂNG MỚI: COPPY MÃ ĐỒNG BỘ VĂN BẢN
+        function saoChepMaDongBo() {
+            const packageData = { db: databaseExcel, img: imageIndex };
+            const base64Str = btoa(unescape(encodeURIComponent(JSON.stringify(packageData))));
+            navigator.clipboard.writeText(base64Str).then(() => {
+                alert("🎉 Đã sao chép mã đồng bộ vào khay nhớ tạm! Anh gửi chuỗi này qua Zalo/Email rồi sang Laptop dán vào nhé.");
+            }).catch(() => {
+                document.getElementById("txtExcelCsvInput").value = base64Str;
+                alert("Mã đồng bộ đã hiển thị trong ô văn bản phía dưới, anh bôi đen copy nhé!");
+            });
         }
 
-        function nhapPhucHoiDatabase() {
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = '.json';
-            fileInput.onchange = e => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.readAsText(file, 'UTF-8');
-                reader.onload = readerEvent => {
-                    try {
-                        const content = JSON.parse(readerEvent.target.result);
-                        if(content.db && content.img) {
-                            databaseExcel = content.db;
-                            imageIndex = content.img;
-                            localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
-                            localStorage.setItem("CSSD_IMAGES", JSON.stringify(imageIndex));
-                            capNhatDropdownBoDungCu();
-                            document.getElementById("khuVucDanhSach").classList.add("hidden");
-                            alert("🎉 Phục hồi dữ liệu mẻ cấu hình cũ thành công!");
-                        } else {
-                            alert("❌ File sao lưu không tương thích!");
-                        }
-                    } catch(err) {
-                        alert("❌ Thao tác đọc file thất bại!");
-                    }
+        // TÍNH NĂNG MỚI: NẠP MÃ ĐỒNG BỘ TỪ THIẾT BỊ KHÁC VÀO LAPTOP
+        function napMaDongBo() {
+            const inputData = document.getElementById("txtExcelCsvInput").value.trim();
+            if(!inputData) { alert("Vui lòng dán chuỗi mã đồng bộ vào ô trống!"); return; }
+            try {
+                const decryptedStr = decodeURIComponent(escape(atob(inputData)));
+                const obj = JSON.parse(decryptedStr);
+                if(obj.db && obj.img) {
+                    databaseExcel = obj.db;
+                    imageIndex = obj.img;
+                    localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
+                    localStorage.setItem("CSSD_IMAGES", JSON.stringify(imageIndex));
+                    capNhatDropdownBoDungCu();
+                    document.getElementById("khuVucDanhSach").classList.add("hidden");
+                    document.getElementById("txtExcelCsvInput").value = "";
+                    alert("🎉 Khớp nối dữ liệu liên thông thiết bị thành công!");
+                } else {
+                    alert("❌ Mã đồng bộ sai cấu trúc phần mềm!");
                 }
+            } catch(e) {
+                alert("❌ Chuỗi mã nhập vào không hợp lệ hoặc bị thiếu ký tự!");
             }
-            fileInput.click();
+        }
+
+        // TÍNH NĂNG MỚI: THÊM DỤNG CỤ TRỰC TIẾP BẰNG TAY TRÊN GIAO DIỆN
+        function themDungCuBangTay() {
+            const selectBox = document.getElementById("selectBoDungCu");
+            const boKey = selectBox.value;
+            if(!boKey) { alert("Vui lòng chọn 1 bộ dụng cụ ở dropdown phía trên trước!"); return; }
+
+            const ma = document.getElementById("txtMaMoi").value.trim().toUpperCase();
+            const ten = document.getElementById("txtTenMoi").value.trim();
+            const dm = parseInt(document.getElementById("txtDMMoi").value) || 1;
+
+            if(!ma || !ten) { alert("Vui lòng điền đủ Mã và Tên dụng cụ mổ!"); return; }
+
+            if(!databaseExcel[boKey]) { databaseExcel[boKey] = []; }
+            
+            const indexTrung = databaseExcel[boKey].findIndex(x => x.ma === ma);
+            if(indexTrung >= 0) {
+                databaseExcel[boKey][indexTrung].ten = ten;
+                databaseExcel[boKey][indexTrung].dinhMuc = dm;
+            } else {
+                databaseExcel[boKey].push({ ma: ma, ten: ten, dinhMuc: dm });
+            }
+
+            localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
+            
+            document.getElementById("txtMaMoi").value = "";
+            document.getElementById("txtTenMoi").value = "";
+            document.getElementById("txtDMMoi").value = "1";
+
+            loadChiTietBo();
         }
 
         function layAnhTuIndex(maDungCu) {
@@ -538,13 +546,13 @@
         }
 
         function resetToGoc() {
-            if(confirm("Anh Hùng có chắc chắn muốn xóa dữ liệu tùy chỉnh để quay về danh mục gốc?")) {
+            if(confirm("Anh Hùng có chắc chắn muốn xóa toàn bộ dữ liệu lưu trên máy để khôi phục lại mặc định?")) {
                 localStorage.removeItem("CSSD_DATABASE");
                 localStorage.removeItem("CSSD_IMAGES");
                 databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
                 capNhatDropdownBoDungCu();
                 document.getElementById("khuVucDanhSach").classList.add("hidden");
-                alert("🧹 Đã phục hồi dữ liệu danh mục gốc ban đầu!");
+                alert("🧹 Đã dọn sạch bộ nhớ và khôi phục dữ liệu mặc định!");
             }
         }
 
@@ -699,9 +707,13 @@
             document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 bg-transparent";
             
             const excelPanel = document.getElementById("panelExcelImporter");
-            if(excelPanel) {
-                if(mode === 'EDIT') excelPanel.classList.remove("hidden");
-                else excelPanel.classList.add("hidden");
+            const manualPanel = document.getElementById("khuVucNhapTay");
+            if(mode === 'EDIT') {
+                if(excelPanel) excelPanel.classList.remove("hidden");
+                if(manualPanel) manualPanel.classList.remove("hidden");
+            } else {
+                if(excelPanel) excelPanel.classList.add("hidden");
+                if(manualPanel) manualPanel.classList.add("hidden");
             }
 
             khoiTaoTieuDeBangHienTai();
@@ -787,7 +799,7 @@
             if(!tbody) return; tbody.innerHTML = "";
 
             if(danhSach.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 8}" class="p-4 text-center text-slate-400 italic">Bộ dụng cụ này chưa được phân rã thiết bị cấu hình.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 8}" class="p-4 text-center text-slate-400 italic">Bộ dụng cụ này chưa được cấu hình. Chọn ĐD Kiểm Đếm để nhập tay thêm cây mổ.</td></tr>`;
                 return;
             }
 
