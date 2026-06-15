@@ -441,6 +441,9 @@
         }
 
         function loadChiTietBo() {
+            // Dọn sạch ô tìm kiếm text khi người dùng chủ động chọn Dropdown
+            document.getElementById("txtTimKiem").value = "";
+
             const selectBox = document.getElementById("selectBoDungCu");
             const boKey = selectBox.value;
             if (!boKey) { document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
@@ -497,8 +500,17 @@
 
         function timKiemNhanh() {
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
-            if (!tuKhoa) { document.getElementById("selectBoDungCu").value = ""; document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
+            
+            // Nếu ô tìm kiếm trống, chỉ ẩn danh sách nếu Dropdown cũng đang trống
+            if (!tuKhoa) { 
+                const selectBox = document.getElementById("selectBoDungCu");
+                if (!selectBox.value) {
+                    document.getElementById("khuVucDanhSach").classList.add("hidden"); 
+                }
+                return; 
+            }
 
+            // Chỉ dọn dẹp giá trị Dropdown khi người dùng thực sự nhập từ khóa tìm kiếm
             document.getElementById("selectBoDungCu").value = "";
             document.getElementById("lblTenBoHienTai").innerText = `Kết quả: "${tuKhoa}"`;
             
