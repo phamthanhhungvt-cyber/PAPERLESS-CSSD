@@ -85,6 +85,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
@@ -100,6 +101,7 @@
 
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
+            <!-- TAB: CHU TRÌNH VÒNG ĐỜI -->
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
@@ -119,6 +121,7 @@
                 </div>
             </div>
 
+            <!-- TAB: GIÁM SÁT TEST BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
                     <div class="border-b border-[#475569] pb-3">
@@ -150,6 +153,7 @@
                 </div>
             </div>
 
+            <!-- TAB: DANH MỤC BỘ DỤNG CỤ -->
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
                     
@@ -196,6 +200,7 @@
                         </div>
                     </div>
 
+                    <!-- Ô ĐỌC EXCEL (CSV) HÀNG LOẠT + KHÓA BẢO MẬT ADMIN -->
                     <div id="panelExcelImporter" class="hidden mt-6 pt-4 border-t border-[#475569]/60 space-y-3">
                         <div id="adminAuthLockBox" class="bg-[#1e293b] p-4 rounded border border-[#475569] flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div class="flex items-center space-x-3">
@@ -226,6 +231,7 @@
                 </div>
             </div>
 
+            <!-- TAB: QUẢN LÝ ĐỒ VẢI KSNK -->
             <div id="tab-dovai" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-[#0ea5e9] shadow-[0_0_15px_rgba(14,165,233,0.2)]">
@@ -241,6 +247,7 @@
         </main>
     </div>
 
+    <!-- MODAL HIỂN THỊ ẢNH PHÓNG TO -->
     <div id="imageModal" class="hidden fixed inset-0 bg-[#1e293b]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-[#334155] rounded-lg max-w-sm w-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.15)] relative p-5 flex flex-col items-center border border-[#475569]">
             <button onclick="closeModal()" class="absolute top-2 right-2 bg-[#1e293b] text-slate-300 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 border border-transparent transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
@@ -362,11 +369,9 @@
             if(savedImages) { imageIndex = JSON.parse(savedImages); }
         }
 
-        // THUẬT TOÁN ĐỌC ẢNH THÔNG MINH - KHỬ SẠCH KHOẢNG TRẮNG ĐỂ KHỚP ẢNH
         function layAnhTuIndex(maDungCu) {
             if(!maDungCu) return "";
             let maChuan = maDungCu.replace(/\s+/g, "").toUpperCase();
-            
             for(let key in imageIndex) {
                 if(key.replace(/\s+/g, "").toUpperCase() === maChuan) {
                     return imageIndex[key];
@@ -480,7 +485,6 @@
             }
         }
 
-        // SỬA LỖI TÊN BIẾN DONGDU_LIEU GÂY SẬP TAB
         function xuLyNapCsvExcel() {
             const rawText = document.getElementById("txtExcelCsvInput").value.trim();
             if(!rawText) { alert("Vui lòng dán nội dung dữ liệu từ file Excel vào!"); return; }
@@ -640,7 +644,7 @@
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
-        // HÀM VẼ KHUNG TIÊU ĐỀ
+        // ĐÃ CHỈNH SỬA: ĐỔI "MÃ AESCULAP" THÀNH CHỮ "MÃ" TRÊN TIÊU ĐỀ KHUNG TRA CỨU
         function khoiTaoTieuDeBangHienTai() {
             const headerRow = document.getElementById("tableHeaderRow");
             if(!headerRow) return;
@@ -746,10 +750,11 @@
             });
         }
 
+        // ĐÃ CHỈNH SỬA: ĐỔI TIÊU ĐỀ TRONG MODAL PHÓNG TO ẢNH THÀNH CHỮ "MÃ"
         function openModal(imgUrl, name, code) {
             document.getElementById("modalImg").src = imgUrl;
             document.getElementById("modalTitle").innerText = name;
-            document.getElementById("modalCode").innerText = "Mã": " + code;
+            document.getElementById("modalCode").innerText = "Mã: " + code;
             document.getElementById("imageModal").classList.remove("hidden");
         }
         function closeModal() { document.getElementById("imageModal").classList.add("hidden"); }
