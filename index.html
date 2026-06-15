@@ -85,6 +85,7 @@
         </div>
     </div>
 
+    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
@@ -100,6 +101,7 @@
 
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
+            <!-- TAB: CHU TRÌNH VÒNG ĐỜI -->
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
@@ -119,6 +121,7 @@
                 </div>
             </div>
 
+            <!-- TAB: GIÁM SÁT TEST BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
                     <div class="border-b border-[#475569] pb-3">
@@ -150,6 +153,7 @@
                 </div>
             </div>
 
+            <!-- TAB: DANH MỤC BỘ DỤNG CỤ -->
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
                     
@@ -196,6 +200,7 @@
                         </div>
                     </div>
 
+                    <!-- Ô ĐỌC EXCEL (CSV) HÀNG LOẠT -->
                     <div id="panelExcelImporter" class="hidden mt-6 pt-4 border-t border-[#475569]/60 space-y-3">
                         <div class="bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30">
                             <div class="flex justify-between items-center mb-2">
@@ -212,6 +217,7 @@
                 </div>
             </div>
 
+            <!-- TAB: QUẢN LÝ ĐỒ VẢI KSNK -->
             <div id="tab-dovai" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-[#0ea5e9] shadow-[0_0_15px_rgba(14,165,233,0.2)]">
@@ -227,6 +233,7 @@
         </main>
     </div>
 
+    <!-- MODAL HIỂN THỊ ẢNH PHÓNG TO -->
     <div id="imageModal" class="hidden fixed inset-0 bg-[#1e293b]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-[#334155] rounded-lg max-w-sm w-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.15)] relative p-5 flex flex-col items-center border border-[#475569]">
             <button onclick="closeModal()" class="absolute top-2 right-2 bg-[#1e293b] text-slate-300 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 border border-transparent transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
@@ -314,10 +321,10 @@
                 { ma: "BC606R", ten: "Kéo Metzenbaun cong, đầu tù, 18-20cm", dinhMuc: 1 },
                 { ma: "BH167R", ten: "Kelly cong 16.5/18.5 cm", dinhMuc: 2 },
                 { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 4 },
-                { ma: "BH644R", text: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4 },
+                { ma: "BH644R", ten: "Kẹp mạch máu Kocher", dinhMuc: 4 },
                 { ma: "BM237R", ten: "Kềm mang kim 20 cm", dinhMuc: 2 },
                 { ma: "BF122R", ten: "Kẹp hình tim, thẳng, có mấu, dài 245mm", dinhMuc: 2 },
-                { ma: "BF120R", text: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1 },
+                { ma: "BF120R", ten: "Kẹp hình tim, thẳng, KHÔNG mấu, dài 245mm", dinhMuc: 1 },
                 { ma: "AF 144/24", ten: "Kềm sát khuẩn Collin 24.5 cm", dinhMuc: 1 },
                 { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2 },
                 { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1 },
@@ -365,6 +372,8 @@
             } else if (tabName === 'giaonhan') {
                 document.getElementById("header-title").innerText = "Danh mục Tổng bộ Dụng cụ Bệnh viện";
                 capNhatDropdownBoDungCu(); 
+                // Kích hoạt vẽ khung tiêu đề trống trước để tránh crash layout
+                khoiTaoTieuDeBangHienTai();
                 if (document.getElementById("selectBoDungCu").value) { loadChiTietBo(); }
             }
         }
@@ -382,9 +391,9 @@
                     opt.innerText = "BỘ " + key.replace(/_/g, " ").toUpperCase();
                     selectBox.appendChild(opt);
                 }
-                selectBox.value = valueCu;
+                if(valueCu) selectBox.value = valueCu;
             } catch (err) {
-                console.log("Lỗi đồng bộ Dropdown");
+                console.log("Đang tải dropdown dữ liệu...");
             }
         }
 
@@ -519,21 +528,30 @@
                 else excelPanel.classList.add("hidden");
             }
 
+            khoiTaoTieuDeBangHienTai();
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
-        // HÀM ENGINE TRA CỨU BIẾN ĐÃ ĐƯỢC ÉP KIỂU AN TOÀN TUYỆT ĐỐI
+        function khoiTaoTieuDeBangHienTai() {
+            const headerRow = document.getElementById("tableHeaderRow");
+            if(!headerRow) return;
+            if(currentInterfaceMode === 'VIEW') {
+                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-32">Mã Aesculap</th><th class="p-3">Tên Chi Tiết Dụng Cụ</th><th class="p-3 text-center w-32">SL Định Mức</th>`;
+            } else {
+                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12 text-[#38bdf8]">ĐM</th><th class="p-1 text-center w-12 text-slate-400">Sạch</th><th class="p-1 text-center w-12 text-slate-400">VK</th><th class="p-1 text-center w-12 text-red-400">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>`;
+            }
+        }
+
         function loadChiTietBo() {
             const selectBox = document.getElementById("selectBoDungCu");
-            if(!selectBox) return;
+            const vungDanhSach = document.getElementById("khuVucDanhSach");
+            if(!selectBox || !vungDanhSach) return;
             
-            // Ép từ khóa về dạng viết hoa sạch sẽ để loại trừ lỗi so khớp chuỗi
             const boKey = selectBox.value.trim().toUpperCase();
-            if (!boKey) { document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
+            if (!boKey) { vungDanhSach.classList.add("hidden"); return; }
             
             document.getElementById("txtTimKiem").value = "";
             
-            // Tìm kiếm thông minh: quét qua toàn bộ Object để lấy mảng đúng bất chấp dấu nháy
             currentActiveData = [];
             for (let key in databaseExcel) {
                 if (key.trim().toUpperCase() === boKey) {
@@ -548,19 +566,21 @@
             currentActiveData.forEach(item => { tongSoCay += (item.dinhMuc || 0); });
             document.getElementById("lblTongSoCay").innerText = "Tổng số cây định mức: " + tongSoCay + " dụng cụ";
             
+            // Ép buộc khởi tạo tiêu đề trước khi vẽ thân bảng để chống lỗi render ẩn layout
+            khoiTaoTieuDeBangHienTai();
             hienThiBangDungCu(currentActiveData);
-            document.getElementById("khuVucDanhSach").classList.remove("hidden");
+            
+            // Ép hiển thị bảng ra giao diện ngay lập tức
+            vungDanhSach.classList.remove("hidden");
         }
 
         function hienThiBangDungCu(danhSach) {
-            const headerRow = document.getElementById("tableHeaderRow");
             const tbody = document.getElementById("bodyChiTietDungCu");
-            if(!tbody || !headerRow) return; tbody.innerHTML = "";
+            if(!tbody) return; tbody.innerHTML = "";
 
-            if(currentInterfaceMode === 'VIEW') {
-                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-32">Mã Aesculap</th><th class="p-3">Tên Chi Tiết Dụng Cụ</th><th class="p-3 text-center w-32">SL Định Mức</th>`;
-            } else {
-                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12 text-[#38bdf8]">ĐM</th><th class="p-1 text-center w-12 text-slate-400">Sạch</th><th class="p-1 text-center w-12 text-slate-400">VK</th><th class="p-1 text-center w-12 text-red-400">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>`;
+            if(danhSach.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 8}" class="p-4 text-center text-slate-400 italic">Không có dụng cụ nào trong danh mục này</td></tr>`;
+                return;
             }
 
             danhSach.forEach((item) => {
@@ -615,6 +635,8 @@
             let tongSoCayTimKiem = 0;
             currentActiveData.forEach(item => { tongSoCayTimKiem += (item.dinhMuc || 0); });
             document.getElementById("lblTongSoCay").innerText = "Tổng số cây tìm thấy: " + tongSoCayTimKiem;
+            
+            khoiTaoTieuDeBangHienTai();
             hienThiBangDungCu(currentActiveData);
             document.getElementById("khuVucDanhSach").classList.remove("hidden");
         }
@@ -653,7 +675,11 @@
             }
         }
 
-        window.onload = function() { capNhatDropdownBoDungCu(); hienThiChuTrinhVôKhuan(); };
+        window.onload = function() { 
+            capNhatDropdownBoDungCu(); 
+            hienThiChuTrinhVôKhuan(); 
+            khoiTaoTieuDeBangHienTai(); // Đảm bảo tiêu đề bảng được vẽ sẵn ngay khi tải trang
+        };
     </script>
 </body>
 </html>
