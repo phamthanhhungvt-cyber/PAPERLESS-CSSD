@@ -326,7 +326,7 @@
                 { ma: "AA115/10", ten: "Kẹp phẫu tích Baby-Mosquito, mảnh, cong, dài 10 cm", dinhMuc: 2 },
                 { ma: "AA150/12", ten: "Kẹp phẫu tích Mosquito, thẳng, mảnh, dài 12.5 cm", dinhMuc: 2 },
                 { ma: "AK090/12", ten: "Banh vết thương mạch máu Desmarres, dài 14 cm, kích thước 9x12mm", dinhMuc: 2 },
-                { ma: "AK060/02", clan: "Banh vết thương và khí quản, loại nhỏ, cong, 2 răng, nhọn, dài 16.5 cm", dinhMuc: 2 },
+                { ma: "AK060/02", ten: "Banh vết thương và khí quản, loại nhỏ, cong, 2 răng, nhọn, dài 16.5 cm", dinhMuc: 2 },
                 { ma: "KD050/12", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
                 { ma: "AL003/20", ten: "Allis (Baby), thẳng, ngàm có răng 4x5, dài 13 cm", dinhMuc: 2 },
                 { ma: "KD240/18", ten: "Kẹp ruột không chấn thương Doyen, cong, lưỡi mềm và đàn hồi, dài 17 cm", dinhMuc: 1 },   
@@ -366,24 +366,37 @@
             "THAMMYCOBAN": [],
             "THAMMYMAT": [],
             "THAMMYMUI": [],
-            "THAMMYBUNG_TUINGUC": [],
+            "THANHBUNG_TUINGUC": [], 
             "TIEUPHAUMAT": []
         };
 
         let databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
 
-        // TỰ ĐỘNG DI TRÚ DỮ LIỆU ĐỆM (AUTO-MIGRATION)
         function taiDuLieuTuBoNho() {
             const savedDb = localStorage.getItem("CSSD_DATABASE");
             const savedImages = localStorage.getItem("CSSD_IMAGES");
             if(savedDb) { 
                 let parsedDb = JSON.parse(savedDb);
-                // Nếu phát hiện bộ nhớ trình duyệt thiếu các bộ thẩm mỹ mới, tự động chèn bổ sung vào luôn
+                
+                // Đồng bộ cấu trúc danh mục mới
                 for (let key in GOC_DATABASE) {
                     if (!parsedDb[key]) {
                         parsedDb[key] = [];
                     }
                 }
+                
+                // CỨU DỮ LIỆU: Tự động gom toàn bộ dữ liệu anh đã nhập ở các bản lỗi sang khóa chuẩn "THANHBUNG_TUINGUC"
+                if(parsedDb["THAMMYBUNG_TUINGUC"] && parsedDb["THAMMYBUNG_TUINGUC"].length > 0) {
+                    if(!parsedDb["THANHBUNG_TUINGUC"] || parsedDb["THANHBUNG_TUINGUC"].length === 0) {
+                        parsedDb["THANHBUNG_TUINGUC"] = parsedDb["THAMMYBUNG_TUINGUC"];
+                    }
+                }
+                if(parsedDb["THANHBUNG-TUINGUC"] && parsedDb["THANHBUNG-TUINGUC"].length > 0) {
+                    if(!parsedDb["THANHBUNG_TUINGUC"] || parsedDb["THANHBUNG_TUINGUC"].length === 0) {
+                        parsedDb["THANHBUNG_TUINGUC"] = parsedDb["THANHBUNG-TUINGUC"];
+                    }
+                }
+                
                 databaseExcel = parsedDb;
             }
             if(savedImages) { imageIndex = JSON.parse(savedImages); }
@@ -449,11 +462,15 @@
                 const valueCu = selectBox.value;
                 selectBox.innerHTML = '<option value="">-- Chọn bộ dụng cụ khối phòng mổ --</option>';
                 
+                // Dọn dẹp các khóa rác bị ghi đè sai ký tự cũ
+                if(databaseExcel["THAMMYBUNG_TUINGUC"]) { delete databaseExcel["THAMMYBUNG_TUINGUC"]; }
+                if(databaseExcel["THANHBUNG-TUINGUC"]) { delete databaseExcel["THANHBUNG-TUINGUC"]; }
+
                 for (let key in databaseExcel) {
                     const opt = document.createElement("option");
                     opt.value = key.trim().toUpperCase();
-                    // Hiển thị tên đẹp mắt lên giao diện
-                    let tenHienThi = key.replace(/_/g, " ").toUpperCase();
+                    
+                    let tenHienThi = key.replace(/_/g, "-").toUpperCase();
                     if(!tenHienThi.startsWith("BỘ")) tenHienThi = "BỘ " + tenHienThi;
                     opt.innerText = tenHienThi;
                     selectBox.appendChild(opt);
@@ -794,7 +811,7 @@
             const resultBox = document.getElementById('resultBox');
             const durationText = document.getElementById('durationText');
             const statusBadge = document.getElementById('statusBadge');
-            resultBox.classList.remove('hidden'); durationText.innerText = duration + " phút";
+            resultBox.classList.remove('hidden'); durationText.innerText = duration + " minutes";
             
             if (duration > 30) {
                 resultBox.className = "p-4 rounded border border-red-500/50 bg-red-900/30 flex flex-row items-center justify-between gap-2 text-xs md:text-sm mt-3";
