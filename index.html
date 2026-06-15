@@ -85,7 +85,6 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
@@ -101,7 +100,6 @@
 
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
-            <!-- TAB: CHU TRÌNH VÒNG ĐỜI -->
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
@@ -121,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- TAB: GIÁM SÁT TEST BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
                     <div class="border-b border-[#475569] pb-3">
@@ -153,7 +150,6 @@
                 </div>
             </div>
 
-            <!-- TAB: DANH MỤC BỘ DỤNG CỤ -->
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
                     
@@ -176,7 +172,7 @@
                                 <option value="THAMMYCOBAN">BỘ THẨM MỸ CƠ BẢN</option>
                                 <option value="THAMMYMAT">BỘ THẨM MỸ MẮT</option>
                                 <option value="THAMMYMUI">BỘ THẨM MỸ MŨI</option>
-                                <option value="THANHBUNG-TUINGUC">BỘ THÀNH BỤNG-TÚI NGỰC</option>
+                                <option value="THANHBUNG_TUINGUC">BỘ THÀNH BỤNG-TÚI NGỰC</option>
                                 <option value="TIEUPHAUMAT">BỘ TIỂU PHẪU MẮT</option>
                             </select>
                         </div>
@@ -205,7 +201,6 @@
                         </div>
                     </div>
 
-                    <!-- Ô ĐỌC EXCEL (CSV) HÀNG LOẠT + KHÓA BẢO MẬT ADMIN -->
                     <div id="panelExcelImporter" class="hidden mt-6 pt-4 border-t border-[#475569]/60 space-y-3">
                         <div id="adminAuthLockBox" class="bg-[#1e293b] p-4 rounded border border-[#475569] flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div class="flex items-center space-x-3">
@@ -236,7 +231,6 @@
                 </div>
             </div>
 
-            <!-- TAB: QUẢN LÝ ĐỒ VẢI KSNK -->
             <div id="tab-dovai" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-[#0ea5e9] shadow-[0_0_15px_rgba(14,165,233,0.2)]">
@@ -252,7 +246,6 @@
         </main>
     </div>
 
-    <!-- MODAL HIỂN THỊ ẢNH PHÓNG TO -->
     <div id="imageModal" class="hidden fixed inset-0 bg-[#1e293b]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-[#334155] rounded-lg max-w-sm w-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.15)] relative p-5 flex flex-col items-center border border-[#475569]">
             <button onclick="closeModal()" class="absolute top-2 right-2 bg-[#1e293b] text-slate-300 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 border border-transparent transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
@@ -310,6 +303,7 @@
             "KYE283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
         };
 
+        // ĐÃ CẬP NHẬT: TÍNH HỢP CÁC BỘ DỤNG CỤ MỚI VÀO CƠ SỞ DỮ LIỆU GỐC ĐỂ KHÔNG BỊ TRỐNG RỖNG LÀM ĐƠ TRANG KHẢO SÁT
         const GOC_DATABASE = {
             "SOSINH": [
                 { ma: "AK354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
@@ -353,7 +347,7 @@
                 { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
                 { ma: "KYE283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
                 { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
-                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
+                { ma: "BF123R", clean: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
@@ -362,7 +356,12 @@
             "TONGQUATNHI": [
                 { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1 },
                 { ma: "BH166R", ten: "Kelly thẳng 16.5/18.5cm", dinhMuc: 2 }
-            ]
+            ],
+            "THAMMYCOBAN": [],
+            "THAMMYMAT": [],
+            "THAMMYMUI": [],
+            "THAMMYBUNG_TUINGUC": [],
+            "TIEUPHAUMAT": []
         };
 
         let databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
@@ -477,333 +476,4 @@
                     "AB102/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AB/521.jpg",
                     "AA150/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AA/110.jpg",
                     "AK090/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2391.jpg",
-                    "AK060/02": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AK/2336.jpg",
-                    "KD050/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4283.jpg",
-                    "AL003/20": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AL/2815.gif",
-                    "KD240/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4357.jpg",    
-                    "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500",
-                    "KYE283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
-                };
-                capNhatDropdownBoDungCu();
-                document.getElementById("khuVucDanhSach").classList.add("hidden");
-                alert("🧹 Đã dọn sạch bộ nhớ và khôi phục dữ liệu mặc định!");
-            }
-        }
-
-        function xuLyNapCsvExcel() {
-            const rawText = document.getElementById("txtExcelCsvInput").value.trim();
-            if(!rawText) { alert("Vui lòng dán nội dung dữ liệu từ file Excel vào!"); return; }
-
-            const dongDuLieu = rawText.split("\n");
-            let soDongDungCu = 0;
-            let soDongAnh = 0;
-
-            dongDuLieu.forEach((dong) => {
-                if(dong.toLowerCase().includes("bodungcu") || dong.trim() === "") return;
-                
-                const cacCot = dong.split(",");
-                if(cacCot.length >= 3 && cacCot[0].trim() !== "") {
-                    const checkLoai = cacCot[0].trim().toUpperCase();
-
-                    if(checkLoai === "ANH" || checkLoai === "IMAGE") {
-                        const maDungCuTarget = cacCot[1].trim().toUpperCase();
-                        const linkAnhMoi = cacCot[2].trim();
-                        if(maDungCuTarget && linkAnhMoi) {
-                            imageIndex[maDungCuTarget] = linkAnhMoi;
-                            soDongAnh++;
-                        }
-                    } 
-                    else {
-                        let tenBoGoc = cacCot[0].trim().toUpperCase();
-                        if(tenBoGoc.startsWith("BỘ ")) { tenBoGoc = tenBoGoc.replace("BỘ ", ""); }
-                        tenBoGoc = tenBoGoc.replace(/\s+/g, "_");
-
-                        const maDungCu = cacCot[1].trim().toUpperCase();
-                        const dinhMuc = parseInt(cacCot[cacCot.length - 1].trim()) || 1;
-                        
-                        let mangTenDungCu = [];
-                        for(let i = 2; i < cacCot.length - 1; i++) {
-                            mangTenDungCu.push(cacCot[i]);
-                        }
-                        const tenDungCu = mangTenDungCu.join(",").trim();
-
-                        if(!databaseExcel[tenBoGoc]) { databaseExcel[tenBoGoc] = []; }
-
-                        const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
-                        if(indexTrung >= 0) {
-                            databaseExcel[tenBoGoc][indexTrung] = { ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc };
-                        } else {
-                            databaseExcel[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
-                        }
-                        soDongDungCu++;
-                    }
-                }
-            });
-
-            if(soDongDungCu > 0 || soDongAnh > 0) {
-                localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
-                localStorage.setItem("CSSD_IMAGES", JSON.stringify(imageIndex));
-
-                capNhatDropdownBoDungCu(); 
-                const selectBox = document.getElementById("selectBoDungCu");
-                if (selectBox && selectBox.value) {
-                    loadChiTietBo();
-                } else if(soDongAnh > 0 && currentActiveData.length > 0) {
-                    hienThiBangDungCu(currentActiveData);
-                }
-                alert(`🎉 Đồng bộ thành công!\n• Đã đồng bộ ${soDongDungCu} dụng cụ.\n• Cập nhật ${soDongAnh} hình ảnh.`);
-                document.getElementById("txtExcelCsvInput").value = ""; 
-            } else {
-                alert("❌ Lỗi định dạng! Vui lòng kiểm tra lại cấu trúc Excel.");
-            }
-        }
-
-        function hienThiChuTrinhVôKhuan() {
-            const container = document.getElementById("divDanhSachChuTrinh");
-            if(!container) return; container.innerHTML = "";
-            capNhatSoLuongBoLoc();
-
-            trackingList.forEach(item => {
-                if (boLocHienTai !== 'ALL' && item.step !== boLocHienTai) return; 
-                const row = document.createElement("div");
-                row.className = "p-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 hover:bg-[#475569]/50 transition border-b border-[#475569]/50";
-
-                let badgeClass = "bg-[#1e293b] text-slate-300 border border-[#475569]";
-                if(item.step === 1) badgeClass = "bg-red-900/30 text-red-400 border border-red-500/50";
-                if(item.step === 2) badgeClass = "bg-orange-900/30 text-orange-400 border border-orange-500/50";
-                if(item.step === 3) badgeClass = "bg-blue-900/30 text-[#38bdf8] border border-[#0ea5e9]/50";
-                if(item.step === 4) badgeClass = "bg-emerald-900/30 text-[#34d399] border border-[#10b981]/50";
-
-                row.innerHTML = `
-                    <div class="w-full lg:w-1/4 space-y-1">
-                        <div class="flex items-center space-x-2">
-                            <span class="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor] ${item.step === 4 ? 'bg-[#10b981]' : 'bg-amber-400'}"></span>
-                            <h4 class="font-bold text-white text-sm md:text-base">${item.tenBo}</h4>
-                        </div>
-                        <div class="flex items-center space-x-2 pt-0.5">
-                            <span class="px-2.5 py-0.5 text-[10px] font-extrabold rounded ${badgeClass}">${item.ghiChu}</span>
-                        </div>
-                    </div>
-                    <div class="w-full lg:w-2/4 grid grid-cols-4 gap-1 text-[11px] md:text-xs font-bold bg-[#1e293b] p-1.5 rounded border border-[#475569]">
-                        <button onclick="updateStep('${item.id}', 1)" class="py-1.5 rounded transition ${item.step === 1 ? 'bg-red-600 text-white shadow-[0_0_12px_rgba(220,38,38,0.6)]' : 'text-slate-400 hover:bg-[#475569]'}\">BẨN</button>
-                        <button onclick="updateStep('${item.id}', 2)" class="py-1.5 rounded transition ${item.step === 2 ? 'bg-orange-600 text-white shadow-[0_0_12px_rgba(234,88,12,0.6)]' : 'text-slate-400 hover:bg-[#475569]'}\">ĐÓNG GÓI</button>
-                        <button onclick="updateStep('${item.id}', 3)" class="py-1.5 rounded transition ${item.step === 3 ? 'bg-[#0ea5e9] text-white shadow-[0_0_12px_rgba(14,165,233,0.6)]' : 'text-slate-400 hover:bg-[#475569]'}\">HẤP</button>
-                        <button onclick="updateStep('${item.id}', 4)" class="py-1.5 rounded transition ${item.step === 4 ? 'bg-[#10b981] text-white shadow-[0_0_12px_rgba(16,185,129,0.6)]' : 'text-slate-400 hover:bg-[#475569]'}\">VÔ TRÙNG</button>
-                    </div>
-                    <div class="w-full lg:w-1/4 flex lg:justify-end text-left lg:text-right text-[11px] font-semibold text-slate-400 gap-4 lg:gap-6">
-                        <div><p class="text-[10px] text-slate-500">Ngày xử lý</p><p class="text-slate-300">${item.ngayHap}</p></div>
-                        <div><p class="text-[10px] text-slate-500">Hạn sử dụng</p><p class="text-[#34d399] font-bold">${item.hanDung}</p></div>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        function capNhatSoLuongBoLoc() {
-            if (document.getElementById("count-all")) {
-                document.getElementById("count-all").innerText = trackingList.length;
-                document.getElementById("count-step1").innerText = trackingList.filter(x => x.step === 1).length;
-                document.getElementById("count-step2").innerText = trackingList.filter(x => x.step === 2).length;
-                document.getElementById("count-step3").innerText = trackingList.filter(x => x.step === 3).length;
-                document.getElementById("count-step4").innerText = trackingList.filter(x => x.step === 4).length;
-            }
-        }
-
-        function locTrangThaiChuTrinh(status) {
-            boLocHienTai = status;
-            const filters = ['all', '1', '2', '3', '4'];
-            filters.forEach(f => {
-                const element = document.getElementById('btn-filter-' + f);
-                if (element) element.className = "px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition";
-            });
-            const activeId = status === 'ALL' ? 'all' : status;
-            const activeElement = document.getElementById('btn-filter-' + activeId);
-            if (activeElement) activeElement.className = "px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition";
-            hienThiChuTrinhVôKhuan();
-        }
-
-        function updateStep(id, newStep) {
-            const item = trackingList.find(x => x.id === id);
-            if(item) {
-                item.step = newStep;
-                if(newStep === 1) { item.ghiChu = "Bẩn (Phòng mổ trả về)"; item.ngayHap = "--"; item.hanDung = "--"; }
-                if(newStep === 2) { item.ghiChu = "Đang kiểm đếm & đóng gói"; item.ngayHap = "--"; item.hanDung = "--"; }
-                if(newStep === 3) { item.ghiChu = "Đang tiệt trùng trong buồng hấp"; item.ngayHap = "12-06-2026"; item.hanDung = "--"; }
-                if(newStep === 4) { item.ghiChu = "Vô trùng (Trong kho)"; item.ngayHap = "12-06-2026"; item.hanDung = "12-07-2026"; }
-                hienThiChuTrinhVôKhuan();
-            }
-        }
-
-        function toggleInterfaceMode(mode) {
-            currentInterfaceMode = mode;
-            document.getElementById("btnModeView").className = mode === 'VIEW' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 bg-transparent";
-            document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 bg-transparent";
-            
-            const excelPanel = document.getElementById("panelExcelImporter");
-            if(excelPanel) {
-                if(mode === 'EDIT') excelPanel.classList.remove("hidden");
-                else excelPanel.classList.add("hidden");
-            }
-
-            khoiTaoTieuDeBangHienTai();
-            if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
-        }
-
-        // ĐÃ CHỈNH SỬA: ĐỔI "MÃ AESCULAP" THÀNH CHỮ "MÃ" TRÊN TIÊU ĐỀ KHUNG TRA CỨU
-        function khoiTaoTieuDeBangHienTai() {
-            const headerRow = document.getElementById("tableHeaderRow");
-            if(!headerRow) return;
-            if(currentInterfaceMode === 'VIEW') {
-                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-32">Mã</th><th class="p-3">Tên Chi Tiết Dụng Cụ</th><th class="p-3 text-center w-32">SL Định Mức</th>`;
-            } else {
-                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12 text-[#38bdf8]">ĐM</th><th class="p-1 text-center w-12 text-slate-400">Sạch</th><th class="p-1 text-center w-12 text-slate-400">VK</th><th class="p-1 text-center w-12 text-red-400">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>`;
-            }
-        }
-
-        function loadChiTietBo() {
-            const selectBox = document.getElementById("selectBoDungCu");
-            const vungDanhSach = document.getElementById("khuVucDanhSach");
-            if(!selectBox || !vungDanhSach) return;
-            
-            const boKey = selectBox.value.trim().toUpperCase();
-            if (!boKey) { vungDanhSach.classList.add("hidden"); return; }
-            
-            document.getElementById("txtTimKiem").value = "";
-            
-            currentActiveData = []; 
-            for (let key in databaseExcel) {
-                if (key.trim().toUpperCase() === boKey) {
-                    currentActiveData = JSON.parse(JSON.stringify(databaseExcel[key]));
-                    break;
-                }
-            }
-            
-            document.getElementById("lblTenBoHienTai").innerText = "Danh mục thành phần: " + selectBox.options[selectBox.selectedIndex].text;
-            
-            let tongSoCay = 0;
-            currentActiveData.forEach(item => { 
-                tongSoCay += (parseInt(item.dinhMuc) || 0); 
-            });
-            document.getElementById("lblTongSoCay").innerText = "Tổng số cây định mức: " + tongSoCay + " dụng cụ";
-            
-            khoiTaoTieuDeBangHienTai();
-            hienThiBangDungCu(currentActiveData);
-            vungDanhSach.classList.remove("hidden");
-        }
-
-        function timKiemNhanh() {
-            const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
-            if (!tuKhoa) { 
-                const selectBox = document.getElementById("selectBoDungCu");
-                if (selectBox && selectBox.value) loadChiTietBo();
-                else document.getElementById("khuVucDanhSach").classList.add("hidden"); 
-                return; 
-            }
-            document.getElementById("selectBoDungCu").value = "";
-            document.getElementById("lblTenBoHienTai").innerText = `Kết quả tra cứu: "${tuKhoa}"`;
-            
-            currentActiveData = [];
-            for (let bo in databaseExcel) {
-                databaseExcel[bo].forEach(item => {
-                    if (item.ten.toLowerCase().includes(tuKhoa) || item.ma.toLowerCase().includes(tuKhoa)) {
-                        if(!currentActiveData.some(x => x.ma === item.ma)) {
-                            currentActiveData.push(JSON.parse(JSON.stringify(item)));
-                        }
-                    }
-                });
-            }
-            
-            let tongSoCayTimKiem = 0;
-            currentActiveData.forEach(item => { 
-                tongSoCayTimKiem += (parseInt(item.dinhMuc) || 0); 
-            });
-            document.getElementById("lblTongSoCay").innerText = "Tổng số cây tìm thấy: " + tongSoCayTimKiem + " dụng cụ";
-            
-            khoiTaoTieuDeBangHienTai();
-            hienThiBangDungCu(currentActiveData);
-            document.getElementById("khuVucDanhSach").classList.remove("hidden");
-        }
-
-        function hienThiBangDungCu(danhSach) {
-            const tbody = document.getElementById("bodyChiTietDungCu");
-            if(!tbody) return; tbody.innerHTML = "";
-
-            if(danhSach.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 8}" class="p-4 text-center text-slate-400 italic">Không có dụng cụ nào trong danh mục này</td></tr>`;
-                return;
-            }
-
-            danhSach.forEach((item) => {
-                const urlAnh = layAnhTuIndex(item.ma);
-                const cellHinhAnh = urlAnh 
-                    ? `<div class="w-10 h-10 border border-[#475569] rounded bg-white/5 flex items-center justify-center cursor-pointer mx-auto shadow-[0_0_10px_rgba(0,0,0,0.3)] hover:border-[#0ea5e9]" onclick="openModal('${urlAnh}', '${item.ten}', '${item.ma}')"><img src="${urlAnh}" class="max-w-full max-h-full object-contain mix-blend-screen"></div>`
-                    : `<div class="w-10 h-10 bg-[#1e293b] border border-[#475569] rounded flex items-center justify-center text-slate-400 mx-auto"><i class="fa-solid fa-screwdriver-wrench text-xs"></i></div>`;
-
-                const row = document.createElement("tr");
-                row.className = "hover:bg-[#475569]/70 transition-colors border-b border-[#475569]/50";
-
-                if(currentInterfaceMode === 'VIEW') {
-                    row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-bold text-slate-200 text-xs md:text-sm">${item.ten}</td><td class="p-3 text-center text-[#10b981] font-black">${item.dinhMuc} cây</td>`;
-                } else {
-                    row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-semibold text-xs text-slate-200">${item.ten}</td><td class="p-3 text-center font-bold text-[#10b981]">${item.dinhMuc}</td>
-                    <td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-[#0ea5e9]"></td>
-                    <td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-[#0ea5e9]"></td>
-                    <td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-red-500"></td>
-                    <td class="p-1"><input type="text" placeholder="Ghi chú..." class="bg-[#1e293b] border border-[#475569] text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-[11px] w-full"></td>`;
-                }
-                tbody.appendChild(row);
-            });
-        }
-
-        // ĐÃ CHỈNH SỬA: ĐỔI TIÊU ĐỀ TRONG MODAL PHÓNG TO ẢNH THÀNH CHỮ "MÃ"
-        function openModal(imgUrl, name, code) {
-            document.getElementById("modalImg").src = imgUrl;
-            document.getElementById("modalTitle").innerText = name;
-            document.getElementById("modalCode").innerText = "Mã: " + code;
-            document.getElementById("imageModal").classList.remove("hidden");
-        }
-        function closeModal() { document.getElementById("imageModal").classList.add("hidden"); }
-
-        function checkBiStatus() {
-            const startVal = document.getElementById('startTime').value;
-            const endVal = document.getElementById('endTime').value;
-            if (!startVal || !endVal) { alert("Vui lòng nhập đầy đủ mốc thời gian!"); return; }
-            const [startH, startM] = startVal.split(':').map(Number);
-            const [endH, endM] = endVal.split(':').map(Number);
-            let startTotal = startH * 60 + startM; let endTotal = endH * 60 + endM;
-            if (endTotal < startTotal) endTotal += 24 * 60;
-            const duration = endTotal - startTotal;
-            
-            const resultBox = document.getElementById('resultBox');
-            const durationText = document.getElementById('durationText');
-            const statusBadge = document.getElementById('statusBadge');
-            resultBox.classList.remove('hidden'); durationText.innerText = duration + " phút";
-            
-            if (duration > 30) {
-                resultBox.className = "p-4 rounded border border-red-500/50 bg-red-900/30 flex flex-row items-center justify-between gap-2 text-xs md:text-sm mt-3";
-                statusBadge.className = "inline-block px-4 py-1.5 rounded text-xs font-black bg-red-600 text-white"; 
-                statusBadge.innerText = "❌ FAIL (>30p)";
-            } else {
-                resultBox.className = "p-4 rounded border border-[#10b981]/50 bg-[#10b981]/20 flex flex-row items-center justify-between gap-2 text-xs md:text-sm mt-3";
-                statusBadge.className = "inline-block px-4 py-1.5 rounded text-xs font-black bg-[#10b981] text-white"; 
-                statusBadge.innerText = "✅ PASS (Đạt)";
-                
-                const boMatCon = trackingList.find(x => x.id === "MOBATCON");
-                if (boMatCon && boMatCon.step < 4) {
-                    setTimeout(() => {
-                        alert("Mẻ chỉ thị sinh học BI hoàn tất đạt tiêu chuẩn vô khuẩn trong vòng 30 phút. Bộ MỔ BẮT CON đã được hệ thống tự động duyệt liên thông sang trạng thái VÔ TRÙNG.");
-                        updateStep("MOBATCON", 4);
-                    }, 500);
-                }
-            }
-        }
-
-        window.onload = function() { 
-            taiDuLieuTuBoNho(); 
-            capNhatDropdownBoDungCu(); 
-            hienThiChuTrinhVôKhuan(); 
-            khoiTaoTieuDeBangHienTai(); 
-        };
-    </script>
-</body>
-</html>
+                    "AK060/02": "https://www.
