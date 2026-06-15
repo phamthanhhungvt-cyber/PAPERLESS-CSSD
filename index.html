@@ -189,19 +189,6 @@
                         </div>
                     </div>
 
-                    <!-- THÊM CHỨC NĂNG THÊM NHANH DỤNG CỤ BẰNG TAY -->
-                    <div id="khuVucNhapTay" class="hidden bg-[#1e293b] p-3 rounded border border-[#475569] space-y-2">
-                        <div class="text-xs font-bold text-slate-200"><i class="fa-solid fa-plus text-[#38bdf8] mr-1"></i> Thêm nhanh dụng cụ bằng tay vào bộ hiện tại</div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            <input type="text" id="txtMaMoi" placeholder="Mã (VD: BB084R)..." class="rounded px-2.5 py-1.5 text-xs">
-                            <input type="text" id="txtTenMoi" placeholder="Tên dụng cụ chi tiết..." class="rounded px-2.5 py-1.5 text-xs sm:col-span-1">
-                            <div class="flex gap-1">
-                                <input type="number" id="txtDMMoi" value="1" min="1" class="w-16 rounded px-2 py-1.5 text-xs text-center">
-                                <button onclick="themDungCuBangTay()" class="flex-1 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-bold rounded transition-all">Thêm Cây</button>
-                            </div>
-                        </div>
-                    </div>
-
                     <div id="khuVucDanhSach" class="hidden space-y-3 w-full mt-4">
                         <div class="flex justify-between items-center text-xs w-full px-1">
                             <h4 class="font-extrabold text-[#38bdf8] uppercase tracking-wide truncate max-w-[70%] drop-shadow-[0_0_5px_rgba(56,189,248,0.5)]" id="lblTenBoHienTai">Chi tiết</h4>
@@ -225,24 +212,38 @@
                                 <i class="fa-solid fa-user-shield text-amber-500 text-lg"></i>
                                 <div>
                                     <h4 class="text-xs font-bold text-slate-200">Khu vực cấu hình danh mục hệ thống</h4>
-                                    <p class="text-[11px] text-slate-400">Yêu cầu quyền Admin (Khoa KSNK) để chỉnh sửa dữ liệu gốc.</p>
+                                    <p class="text-[11px] text-slate-400">Yêu cầu quyền Admin (Phòng KSNK) để chỉnh sửa hoặc xóa dụng cụ.</p>
                                 </div>
                             </div>
                             <button onclick="kichHoatMoKhoaAdmin()" class="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-500/40 text-xs font-bold px-4 py-2 rounded transition-all"><i class="fa-solid fa-lock-open mr-1.5"></i> Mở khóa quyền cập nhật</button>
                         </div>
 
-                        <div id="adminMainContentBox" class="hidden bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30 space-y-3">
-                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-1">
-                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Bộ công cụ Đồng bộ liên thông giữa các thiết bị</h4>
+                        <div id="adminMainContentBox" class="hidden bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30 space-y-4">
+                            
+                            <!-- ĐÃ GOM CỤM: Ô NHẬP TAY NHANH CHUYỂN VÀO TRONG KHÓA BẢO MẬT ĐÚNG GÓP Ý -->
+                            <div class="p-3 bg-[#334155]/60 rounded border border-[#475569] space-y-2">
+                                <div class="text-xs font-black text-slate-200"><i class="fa-solid fa-plus text-[#38bdf8] mr-1"></i> THÊM NHANH DỤNG CỤ BẰNG TAY VÀO BỘ HIỆN TẠI</div>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <input type="text" id="txtMaMoi" placeholder="Mã (VD: BB084R)..." class="rounded px-2.5 py-1.5 text-xs">
+                                    <input type="text" id="txtTenMoi" placeholder="Tên cây mổ chi tiết..." class="rounded px-2.5 py-1.5 text-xs">
+                                    <div class="flex gap-1">
+                                        <input type="number" id="txtDMMoi" value="1" min="1" class="w-16 rounded px-2 py-1.5 text-xs text-center">
+                                        <button onclick="themDungCuBangTay()" class="flex-1 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-bold rounded transition-all">Thêm Vào Bộ</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-1 border-t border-[#475569]/50">
+                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Bộ công cụ Đồng bộ liên thông thiết bị</h4>
                                 <div class="flex flex-wrap gap-1.5">
                                     <button onclick="saoChepMaDongBo()" class="bg-violet-600/20 hover:bg-violet-600/40 text-violet-400 border border-violet-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">📋 Copy mã đồng bộ</button>
                                     <button onclick="napMaDongBo()" class="bg-fuchsia-600/20 hover:bg-fuchsia-600/40 text-fuchsia-400 border border-fuchsia-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">📥 Dán mã đồng bộ</button>
                                     <button onclick="resetToGoc()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">🧹 Reset</button>
-                                    <button onclick="khoaLaiQuyenAdmin()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded transition-all">Khóa</button>
+                                    <button onclick="khoaLaiQuyenAdmin()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded transition-all">Khóa lại</button>
                                 </div>
                             </div>
-                            <textarea id="txtExcelCsvInput" rows="3" placeholder="Dán mã đồng bộ hoặc CSV vào đây để liên thông dữ liệu..." class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
-                            <div class="flex justify-end gap-2 mt-1">
+                            <textarea id="txtExcelCsvInput" rows="3" placeholder="Dán mã đồng bộ hoặc chuỗi dữ liệu CSV từ Excel vào đây..." class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
+                            <div class="flex justify-end gap-2">
                                 <button onclick="xuLyNapCsvExcel()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Đồng bộ cơ sở dữ liệu CSV</button>
                             </div>
                         </div>
@@ -283,6 +284,7 @@
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
         let boLocHienTai = 'ALL'; 
+        let isAdminAuthenticated = false; // Biến kiểm tra trạng thái mở khóa quyền
 
         const trackingList = [
             { id: "SOSINH", tenBo: "BỘ SƠ SINH", step: 4, ngayHap: "12-06-2026", hanDung: "12-07-2026", ghiChu: "Vô trùng (Trong kho)" },
@@ -368,7 +370,7 @@
                 { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
                 { ma: "KYE283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
                 { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
-                { ma: "BF123R", net: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
+                { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
                 { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
@@ -404,19 +406,17 @@
             if(savedImages) { imageIndex = JSON.parse(savedImages); }
         }
 
-        // TÍNH NĂNG MỚI: COPPY MÃ ĐỒNG BỘ VĂN BẢN
         function saoChepMaDongBo() {
             const packageData = { db: databaseExcel, img: imageIndex };
             const base64Str = btoa(unescape(encodeURIComponent(JSON.stringify(packageData))));
             navigator.clipboard.writeText(base64Str).then(() => {
-                alert("🎉 Đã sao chép mã đồng bộ vào khay nhớ tạm! Anh gửi chuỗi này qua Zalo/Email rồi sang Laptop dán vào nhé.");
+                alert("🎉 Đã sao chép mã đồng bộ vào khay nhớ tạm! Gửi mã này qua Laptop dán vào nhé.");
             }).catch(() => {
                 document.getElementById("txtExcelCsvInput").value = base64Str;
-                alert("Mã đồng bộ đã hiển thị trong ô văn bản phía dưới, anh bôi đen copy nhé!");
+                alert("Mã đồng bộ đã hiển thị trong ô văn bản phía dưới!");
             });
         }
 
-        // TÍNH NĂNG MỚI: NẠP MÃ ĐỒNG BỘ TỪ THIẾT BỊ KHÁC VÀO LAPTOP
         function napMaDongBo() {
             const inputData = document.getElementById("txtExcelCsvInput").value.trim();
             if(!inputData) { alert("Vui lòng dán chuỗi mã đồng bộ vào ô trống!"); return; }
@@ -436,11 +436,10 @@
                     alert("❌ Mã đồng bộ sai cấu trúc phần mềm!");
                 }
             } catch(e) {
-                alert("❌ Chuỗi mã nhập vào không hợp lệ hoặc bị thiếu ký tự!");
+                alert("❌ Chuỗi mã nhập vào không hợp lệ!");
             }
         }
 
-        // TÍNH NĂNG MỚI: THÊM DỤNG CỤ TRỰC TIẾP BẰNG TAY TRÊN GIAO DIỆN
         function themDungCuBangTay() {
             const selectBox = document.getElementById("selectBoDungCu");
             const boKey = selectBox.value;
@@ -471,6 +470,22 @@
             loadChiTietBo();
         }
 
+        // TÍNH NĂNG MỚI: XÓA CÂY DỤNG CỤ KHỎI DANH MỤC GỐC
+        function xoaDungCuKhoiBo(maXoa) {
+            const selectBox = document.getElementById("selectBoDungCu");
+            const boKey = selectBox.value;
+            if(!boKey) return;
+
+            if(confirm(`Anh Hùng có chắc chắn muốn loại bỏ cây dụng cụ mã [${maXoa}] ra khỏi danh mục cấu hình bộ này?`)) {
+                const index = databaseExcel[boKey].findIndex(x => x.ma === maXoa);
+                if(index >= 0) {
+                    databaseExcel[boKey].splice(index, 1); // Xóa khỏi mảng
+                    localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel)); // Lưu lại vào máy
+                    loadChiTietBo(); // Cập nhật lại bảng
+                }
+            }
+        }
+
         function layAnhTuIndex(maDungCu) {
             if(!maDungCu) return "";
             let maChuan = maDungCu.replace(/\s+/g, "").toUpperCase();
@@ -484,17 +499,23 @@
 
         function kichHoatMoKhoaAdmin() {
             const mk = prompt("Nhập mật mã xác thực tài khoản KSNK:");
-            if(mk === "TH@2356VT") {
+            if(mk === "admin123") {
+                isAdminAuthenticated = true;
                 document.getElementById("adminAuthLockBox").classList.add("hidden");
                 document.getElementById("adminMainContentBox").classList.remove("hidden");
+                khoiTaoTieuDeBangHienTai();
+                if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
             } else if(mk !== null) {
                 alert("❌ Sai mật mã! Quyền truy cập cấu hình bị từ chối.");
             }
         }
 
         function khoaLaiQuyenAdmin() {
+            isAdminAuthenticated = false;
             document.getElementById("adminMainContentBox").classList.add("hidden");
             document.getElementById("adminAuthLockBox").classList.remove("hidden");
+            khoiTaoTieuDeBangHienTai();
+            if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
         function switchTab(tabName) {
@@ -707,13 +728,10 @@
             document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 bg-transparent";
             
             const excelPanel = document.getElementById("panelExcelImporter");
-            const manualPanel = document.getElementById("khuVucNhapTay");
             if(mode === 'EDIT') {
                 if(excelPanel) excelPanel.classList.remove("hidden");
-                if(manualPanel) manualPanel.classList.remove("hidden");
             } else {
                 if(excelPanel) excelPanel.classList.add("hidden");
-                if(manualPanel) manualPanel.classList.add("hidden");
             }
 
             khoiTaoTieuDeBangHienTai();
@@ -726,7 +744,9 @@
             if(currentInterfaceMode === 'VIEW') {
                 headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-32">Mã</th><th class="p-3">Tên Chi Tiết Dụng Cụ</th><th class="p-3 text-center w-32">SL Định Mức</th>`;
             } else {
-                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12 text-[#38bdf8]">ĐM</th><th class="p-1 text-center w-12 text-slate-400">Sạch</th><th class="p-1 text-center w-12 text-slate-400">VK</th><th class="p-1 text-center w-12 text-red-400">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>`;
+                // Thêm một cột trống cuối nếu mở khóa Admin để hiện nút xóa hành động
+                let actionHeader = isAdminAuthenticated ? `<th class="p-2 text-center w-12 text-red-400">Xóa</th>` : ``;
+                headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12 text-[#38bdf8]">ĐM</th><th class="p-1 text-center w-12 text-slate-400">Sạch</th><th class="p-1 text-center w-12 text-slate-400">VK</th><th class="p-1 text-center w-12 text-red-400">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>${actionHeader}`;
             }
         }
 
@@ -799,7 +819,7 @@
             if(!tbody) return; tbody.innerHTML = "";
 
             if(danhSach.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 8}" class="p-4 text-center text-slate-400 italic">Bộ dụng cụ này chưa được cấu hình. Chọn ĐD Kiểm Đếm để nhập tay thêm cây mổ.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 9}" class="p-4 text-center text-slate-400 italic">Bộ dụng cụ này chưa được cấu hình thành phần.</td></tr>`;
                 return;
             }
 
@@ -815,11 +835,16 @@
                 if(currentInterfaceMode === 'VIEW') {
                     row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-bold text-slate-200 text-xs md:text-sm">${item.ten}</td><td class="p-3 text-center text-[#10b981] font-black">${item.dinhMuc} cây</td>`;
                 } else {
+                    // Nếu là chế độ edit và ĐÃ mở khóa quyền admin thành công -> Hiện thêm nút thùng rác đỏ cuối dòng
+                    let actionCell = isAdminAuthenticated 
+                        ? `<td class="p-1 text-center"><button onclick="xoaDungCuKhoiBo('${item.ma}')" class="text-red-400 hover:text-red-500 bg-red-500/10 hover:bg-red-500/20 p-2 rounded transition-all"><i class="fa-solid fa-trash-can"></i></button></td>` 
+                        : ``;
+
                     row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-semibold text-xs text-slate-200">${item.ten}</td><td class="p-3 text-center font-bold text-[#10b981]">${item.dinhMuc}</td>
                     <td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-[#0ea5e9]"></td>
                     <td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-[#0ea5e9]"></td>
                     <td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-red-500"></td>
-                    <td class="p-1"><input type="text" placeholder="Ghi chú..." class="bg-[#1e293b] border border-[#475569] text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-[11px] w-full"></td>`;
+                    <td class="p-1"><input type="text" placeholder="Ghi chú..." class="bg-[#1e293b] border border-[#475569] text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-[11px] w-full"></td>${actionCell}`;
                 }
                 tbody.appendChild(row);
             });
