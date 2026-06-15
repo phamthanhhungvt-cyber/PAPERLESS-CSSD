@@ -226,6 +226,12 @@
     </div>
 
     <script>
+        <!-- Gọi file cơ sở dữ liệu dụng cụ độc lập -->
+    <script src="data.js"></script>
+
+    <script>
+        let currentInterfaceMode = 'VIEW';
+        // XÓA BỎ hai mảng 'const imageIndex = {...}' và 'const databaseExcel = {...}' cũ trong file này đi vì đã được gọi từ file data.js
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
         let boLocHienTai = 'ALL'; 
