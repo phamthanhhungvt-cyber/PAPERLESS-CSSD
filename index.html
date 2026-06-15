@@ -204,10 +204,12 @@
                     <div id="panelExcelImporter" class="hidden mt-6 pt-4 border-t border-[#475569]/60 space-y-3">
                         <div class="bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30">
                             <div class="flex justify-between items-center mb-2">
-                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Nạp nhanh danh mục dụng cụ từ Excel (Định dạng CSV)</h4>
-                                <span class="text-[10px] text-slate-400 italic">Cơ chế: Gộp thông minh, giữ nguyên bộ cũ</span>
+                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Nạp danh mục hoặc Cập nhật Ảnh hàng loạt từ Excel</h4>
+                                <div class="flex gap-1.5">
+                                    <button onclick="resetToGoc()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all"><i class="fa-solid fa-trash-can mr-1"></i> 🧹 Reset Danh Mục Lỗi</button>
+                                </div>
                             </div>
-                            <textarea id="txtExcelCsvInput" rows="4" placeholder="Dán nội dung file CSV vào đây... Ví dụ:&#10;SOSINH,AK 354/00,Banh tổ chức Farabeuf,1&#10;NOISOI,BB084R,Cán dao phẫu thuật nội soi,2" class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
+                            <textarea id="txtExcelCsvInput" rows="4" placeholder="Dán CSV dụng cụ hoặc ảnh vào đây...&#10;Nạp dụng cụ: CATTUCUNG,BC606R,KÉO METZENBAUN,1&#10;Cập nhật ảnh: ANH,BC606R,https://link-anh-moi.jpg" class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
                             <div class="flex justify-end gap-2 mt-2">
                                 <button onclick="xuLyNapCsvExcel()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Đồng bộ cơ sở dữ liệu</button>
                             </div>
@@ -257,7 +259,8 @@
             { id: "TONGQUATNHI", tenBo: "BỘ TỔNG QUÁT NHI", step: 3, ngayHap: "12-06-2026", hanDung: "--", ghiChu: "Đang tiệt trùng trong buồng hấp" }
         ];
 
-        const imageIndex = {
+        // MẢNG CHỨA INDEX LINK ẢNH HÌNH HỌC DỰ PHÒNG
+        let imageIndex = {
             "BB084R": "https://products.api.bbraun.io/api/image/BB084R?countryISOCode=01&watermark=true",
             "BD561R": "https://products.api.bbraun.io/api/image/BD561R?countryISOCode=01&watermark=true",
             "BD051R": "https://products.api.bbraun.io/api/image/BD051R?countryISOCode=01&watermark=true",
@@ -290,7 +293,7 @@
             "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500"
         };
 
-        let databaseExcel = {
+        const GOC_DATABASE = {
             "SOSINH": [
                 { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 1 },
                 { ma: "AA 800/12", ten: "Malleable 200x12mm", dinhMuc: 1 },
@@ -345,6 +348,8 @@
             ]
         };
 
+        let databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
+
         function layAnhTuIndex(maDungCu) {
             if(!maDungCu) return "";
             return imageIndex[maDungCu.trim().toUpperCase()] || "";
@@ -372,7 +377,6 @@
             } else if (tabName === 'giaonhan') {
                 document.getElementById("header-title").innerText = "Danh mục Tổng bộ Dụng cụ Bệnh viện";
                 capNhatDropdownBoDungCu(); 
-                // Kích hoạt vẽ khung tiêu đề trống trước để tránh crash layout
                 khoiTaoTieuDeBangHienTai();
                 if (document.getElementById("selectBoDungCu").value) { loadChiTietBo(); }
             }
@@ -393,51 +397,88 @@
                 }
                 if(valueCu) selectBox.value = valueCu;
             } catch (err) {
-                console.log("Đang tải dropdown dữ liệu...");
+                console.log("Đang tải dữ liệu...");
             }
         }
 
+        function resetToGoc() {
+            if(confirm("Anh Hùng có chắc chắn muốn xóa toàn bộ các danh mục lỗi để làm sạch dropdown không?")) {
+                databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
+                capNhatDropdownBoDungCu();
+                document.getElementById("khuVucDanhSach").classList.add("hidden");
+                alert("🧹 Đã dọn sạch các bộ lỗi thành công!");
+            }
+        }
+
+        // ENGINE ĐA LỒNG: NHẬN DIỆN CẢ DÂN MỤC DỤNG CỤ LẪN CẬP NHẬT ẢNH HÀNG LOẠT
         function xuLyNapCsvExcel() {
             const rawText = document.getElementById("txtExcelCsvInput").value.trim();
-            if(!rawText) { alert("Vui lòng dán nội dung CSV từ file Excel vào ô văn bản!"); return; }
+            if(!rawText) { alert("Vui lòng dán nội dung dữ liệu từ file Excel vào!"); return; }
 
             const dongDuLieu = rawText.split("\n");
-            let soDongThanhCong = 0;
+            let soDongDungCu = 0;
+            let soDongAnh = 0;
 
             dongDuLieu.forEach((dong) => {
                 if(dong.toLowerCase().includes("bodungcu") || dong.trim() === "") return;
                 
                 const cacCot = dong.split(",");
                 if(cacCot.length >= 3 && cacCot[0].trim() !== "") {
-                    const tenBoGoc = cacCot[0].trim().toUpperCase().replace(/\s+/g, "_"); 
-                    const maDungCu = cacCot[1].trim().toUpperCase();
-                    const tenDungCu = cacCot[2].trim();
-                    const dinhMuc = parseInt(cacCot[3]) || 1;
+                    const checkLoai = cacCot[0].trim().toUpperCase();
 
-                    if(!databaseExcel[tenBoGoc]) { 
-                        databaseExcel[tenBoGoc] = []; 
-                    }
+                    // LUỒNG 1: NẾU DÒNG BẮT ĐẦU BẰNG TỪ KHÓA "ANH" -> CẬP NHẬT HÌNH ẢNH HÀNG LOẠT
+                    if(checkLoai === "ANH" || checkLoai === "IMAGE") {
+                        const maDungCuTarget = cacCot[1].trim().toUpperCase();
+                        const linkAnhMoi = cacCot[2].trim();
+                        if(maDungCuTarget && linkAnhMoi) {
+                            imageIndex[maDungCuTarget] = linkAnhMoi;
+                            soDongAnh++;
+                        }
+                    } 
+                    // LUỒNG 2: NẠP VÀ GỘP BỘ DỤNG CỤ NHƯ CŨ
+                    else {
+                        let tenBoGoc = cacCot[0].trim().toUpperCase();
+                        if(tenBoGoc.startsWith("BỘ ")) {
+                            tenBoGoc = tenBoGoc.replace("BỘ ", "");
+                        }
+                        tenBoGoc = tenBoGoc.replace(/\s+/g, "_");
 
-                    const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
-                    if(indexTrung >= 0) {
-                        databaseExcel[tenBoGoc][indexTrung] = { ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc };
-                    } else {
-                        databaseExcel[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
+                        const maDungCu = cacCot[1].trim().toUpperCase();
+                        const tenDungCu = cacCot[2].trim();
+                        const dinhMuc = parseInt(cacCot[3]) || 1;
+
+                        if(!databaseExcel[tenBoGoc]) { 
+                            databaseExcel[tenBoGoc] = []; 
+                        }
+
+                        const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
+                        if(indexTrung >= 0) {
+                            databaseExcel[tenBoGoc][indexTrung] = { ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc };
+                        } else {
+                            databaseExcel[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
+                        }
+                        soDongDungCu++;
                     }
-                    soDongThanhCong++;
                 }
             });
 
-            if(soDongThanhCong > 0) {
+            // Thống báo trực quan kết quả xử lý cho anh Hùng dễ nắm bắt
+            let thongBao = "🎉 Xử lý đồng bộ Excel thành công:\n";
+            if(soDongDungCu > 0) thongBao += `• Đã gộp thành công ${soDongDungCu} cây dụng cụ.\n`;
+            if(soDongAnh > 0) thongBao += `• Đã cập nhật ảnh mới cho ${soDongAnh} mã dụng cụ.\n`;
+
+            if(soDongDungCu > 0 || soDongAnh > 0) {
                 capNhatDropdownBoDungCu(); 
                 const selectBox = document.getElementById("selectBoDungCu");
                 if (selectBox && selectBox.value) {
                     loadChiTietBo();
+                } else if(soDongAnh > 0 && currentActiveData.length > 0) {
+                    hienThiBangDungCu(currentActiveData); // Tải lại bảng để lên hình ngay
                 }
-                alert(`🎉 Gộp danh mục thành công! Đã nạp bổ sung ${soDongThanhCong} dòng dụng cụ từ Excel vào hệ thống.`);
+                alert(thongBao);
                 document.getElementById("txtExcelCsvInput").value = ""; 
             } else {
-                alert("❌ Lỗi định dạng dữ liệu CSV! Vui lòng kiểm tra lại cấu trúc file.");
+                alert("❌ Lỗi định dạng! Vui lòng dán đúng cấu trúc Excel.");
             }
         }
 
@@ -532,6 +573,7 @@
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
+        // HÀM VẼ KHUNG TIÊU ĐỀ
         function khoiTaoTieuDeBangHienTai() {
             const headerRow = document.getElementById("tableHeaderRow");
             if(!headerRow) return;
@@ -566,11 +608,8 @@
             currentActiveData.forEach(item => { tongSoCay += (item.dinhMuc || 0); });
             document.getElementById("lblTongSoCay").innerText = "Tổng số cây định mức: " + tongSoCay + " dụng cụ";
             
-            // Ép buộc khởi tạo tiêu đề trước khi vẽ thân bảng để chống lỗi render ẩn layout
             khoiTaoTieuDeBangHienTai();
             hienThiBangDungCu(currentActiveData);
-            
-            // Ép hiển thị bảng ra giao diện ngay lập tức
             vungDanhSach.classList.remove("hidden");
         }
 
@@ -678,7 +717,7 @@
         window.onload = function() { 
             capNhatDropdownBoDungCu(); 
             hienThiChuTrinhVôKhuan(); 
-            khoiTaoTieuDeBangHienTai(); // Đảm bảo tiêu đề bảng được vẽ sẵn ngay khi tải trang
+            khoiTaoTieuDeBangHienTai(); 
         };
     </script>
 </body>
