@@ -225,7 +225,7 @@
                                 <i class="fa-solid fa-user-shield text-amber-500 text-lg"></i>
                                 <div>
                                     <h4 class="text-xs font-bold text-slate-200">Khu vực cấu hình danh mục hệ thống</h4>
-                                    <p class="text-[11px] text-slate-400">Yêu cầu quyền Admin (Phòng KSNK) để chỉnh sửa dữ liệu gốc.</p>
+                                    <p class="text-[11px] text-slate-400">Yêu cầu quyền Admin (Khoa KSNK) để chỉnh sửa dữ liệu gốc.</p>
                                 </div>
                             </div>
                             <button onclick="kichHoatMoKhoaAdmin()" class="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-500/40 text-xs font-bold px-4 py-2 rounded transition-all"><i class="fa-solid fa-lock-open mr-1.5"></i> Mở khóa quyền cập nhật</button>
@@ -484,7 +484,7 @@
 
         function kichHoatMoKhoaAdmin() {
             const mk = prompt("Nhập mật mã xác thực tài khoản KSNK:");
-            if(mk === "admin123") {
+            if(mk === "TH@2356VT") {
                 document.getElementById("adminAuthLockBox").classList.add("hidden");
                 document.getElementById("adminMainContentBox").classList.remove("hidden");
             } else if(mk !== null) {
