@@ -200,7 +200,7 @@
                         <div class="bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30">
                             <div class="flex justify-between items-center mb-2">
                                 <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Nạp nhanh danh mục dụng cụ từ Excel (Định dạng CSV)</h4>
-                                <span class="text-[10px] text-slate-400 italic">Cơ chế: Gộp thông minh, không xóa mất bộ dụng cụ cũ của anh</span>
+                                <span class="text-[10px] text-slate-400 italic">Cơ chế: Gộp thông minh, giữ nguyên bộ cũ</span>
                             </div>
                             <textarea id="txtExcelCsvInput" rows="4" placeholder="Dán nội dung file CSV vào đây... Ví dụ:&#10;SOSINH,AK 354/00,Banh tổ chức Farabeuf,1&#10;NOISOI,BB084R,Cán dao phẫu thuật nội soi,2" class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
                             <div class="flex justify-end gap-2 mt-2">
@@ -338,6 +338,11 @@
             ]
         };
 
+        function layAnhTuIndex(maDungCu) {
+            if(!maDungCu) return "";
+            return imageIndex[maDungCu.trim().toUpperCase()] || "";
+        }
+
         function switchTab(tabName) {
             const tabs = ['trangchu', 'chuTrinhTab', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
@@ -373,17 +378,16 @@
                 
                 for (let key in databaseExcel) {
                     const opt = document.createElement("option");
-                    opt.value = key;
+                    opt.value = key.trim().toUpperCase();
                     opt.innerText = "BỘ " + key.replace(/_/g, " ").toUpperCase();
                     selectBox.appendChild(opt);
                 }
                 selectBox.value = valueCu;
             } catch (err) {
-                console.log("Chờ nạp Dropdown...");
+                console.log("Lỗi đồng bộ Dropdown");
             }
         }
 
-        // ENGINE GỘP DỮ LIỆU THÔNG MINH (MERGE INSTEAD OF OVERWRITE)
         function xuLyNapCsvExcel() {
             const rawText = document.getElementById("txtExcelCsvInput").value.trim();
             if(!rawText) { alert("Vui lòng dán nội dung CSV từ file Excel vào ô văn bản!"); return; }
@@ -392,29 +396,23 @@
             let soDongThanhCong = 0;
 
             dongDuLieu.forEach((dong) => {
-                // Kiểm tra điều kiện dòng trống hoặc dòng tiêu đề Excel
                 if(dong.toLowerCase().includes("bodungcu") || dong.trim() === "") return;
                 
                 const cacCot = dong.split(",");
-                // Đảm bảo dòng có tối thiểu 3 cột dữ liệu (BoDungCu, MaDungCu, TenDungCu)
                 if(cacCot.length >= 3 && cacCot[0].trim() !== "") {
                     const tenBoGoc = cacCot[0].trim().toUpperCase().replace(/\s+/g, "_"); 
                     const maDungCu = cacCot[1].trim().toUpperCase();
                     const tenDungCu = cacCot[2].trim();
                     const dinhMuc = parseInt(cacCot[3]) || 1;
 
-                    // Nếu bộ này CHƯA TỒN TẠI trong cơ sở dữ liệu gốc, khởi tạo mảng rỗng cho nó
                     if(!databaseExcel[tenBoGoc]) { 
                         databaseExcel[tenBoGoc] = []; 
                     }
 
-                    // Kiểm tra xem cây dụng cụ này đã nằm trong bộ chưa để tránh trùng lặp đè dữ liệu
                     const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
                     if(indexTrung >= 0) {
-                        // Nếu trùng mã dụng cụ thì cập nhật lại thông tin mới nhất
                         databaseExcel[tenBoGoc][indexTrung] = { ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc };
                     } else {
-                        // Nếu là cây mới thì đẩy thêm vào mảng
                         databaseExcel[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
                     }
                     soDongThanhCong++;
@@ -422,14 +420,13 @@
             });
 
             if(soDongThanhCong > 0) {
-                capNhatDropdownBoDungCu(); // Cập nhật lại dropdown danh sách
-                // Nếu đang xem dở một bộ, kích hoạt render tải lại bảng để hiển thị dụng cụ mới lập tức
+                capNhatDropdownBoDungCu(); 
                 const selectBox = document.getElementById("selectBoDungCu");
                 if (selectBox && selectBox.value) {
                     loadChiTietBo();
                 }
                 alert(`🎉 Gộp danh mục thành công! Đã nạp bổ sung ${soDongThanhCong} dòng dụng cụ từ Excel vào hệ thống.`);
-                document.getElementById("txtExcelCsvInput").value = ""; // Dọn sạch vùng dán text
+                document.getElementById("txtExcelCsvInput").value = ""; 
             } else {
                 alert("❌ Lỗi định dạng dữ liệu CSV! Vui lòng kiểm tra lại cấu trúc file.");
             }
@@ -525,14 +522,26 @@
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
         }
 
+        // HÀM ENGINE TRA CỨU BIẾN ĐÃ ĐƯỢC ÉP KIỂU AN TOÀN TUYỆT ĐỐI
         function loadChiTietBo() {
             const selectBox = document.getElementById("selectBoDungCu");
             if(!selectBox) return;
-            const boKey = selectBox.value;
+            
+            // Ép từ khóa về dạng viết hoa sạch sẽ để loại trừ lỗi so khớp chuỗi
+            const boKey = selectBox.value.trim().toUpperCase();
             if (!boKey) { document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
             
             document.getElementById("txtTimKiem").value = "";
-            currentActiveData = databaseExcel[boKey] || [];
+            
+            // Tìm kiếm thông minh: quét qua toàn bộ Object để lấy mảng đúng bất chấp dấu nháy
+            currentActiveData = [];
+            for (let key in databaseExcel) {
+                if (key.trim().toUpperCase() === boKey) {
+                    currentActiveData = databaseExcel[key];
+                    break;
+                }
+            }
+            
             document.getElementById("lblTenBoHienTai").innerText = "Danh mục thành phần: " + selectBox.options[selectBox.selectedIndex].text;
             
             let tongSoCay = 0;
