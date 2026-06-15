@@ -325,6 +325,11 @@
             ]
         };
 
+        function layAnhTuIndex(maDungCu) {
+            if(!maDungCu) return "";
+            return imageIndex[maDungCu.trim().toUpperCase()] || "";
+        }
+
         function switchTab(tabName) {
             const tabs = ['trangchu', 'chuTrinhTab', 'giaonhan', 'dovai'];
             tabs.forEach(t => {
@@ -341,11 +346,16 @@
                 document.getElementById("header-title").innerText = "Giám sát & Ủ mẫu sinh học BI";
             } else if (tabName === 'giaonhan') {
                 document.getElementById("header-title").innerText = "Danh mục Tổng bộ Dụng cụ Bệnh viện";
+                // Khi chuyển qua tab danh mục, tự ép vẽ lại nếu đã có data cũ
+                if (document.getElementById("selectBoDungCu").value) {
+                    loadChiTietBo();
+                }
             }
         }
 
         function hienThiChuTrinhVôKhuan() {
             const container = document.getElementById("divDanhSachChuTrinh");
+            if(!container) return;
             container.innerHTML = "";
 
             capNhatSoLuongBoLoc();
@@ -441,18 +451,24 @@
         }
 
         function loadChiTietBo() {
-            // Dọn sạch ô tìm kiếm text khi người dùng chủ động chọn Dropdown
-            document.getElementById("txtTimKiem").value = "";
-
             const selectBox = document.getElementById("selectBoDungCu");
             const boKey = selectBox.value;
-            if (!boKey) { document.getElementById("khuVucDanhSach").classList.add("hidden"); return; }
+            
+            if (!boKey) { 
+                document.getElementById("khuVucDanhSach").classList.add("hidden"); 
+                return; 
+            }
+            
+            // Xóa rỗng text trong ô tìm kiếm khi chọn bằng Dropdown để tránh lệch logic dữ liệu
+            document.getElementById("txtTimKiem").value = "";
+
             currentActiveData = databaseExcel[boKey] || [];
             document.getElementById("lblTenBoHienTai").innerText = "Danh mục thành phần: " + selectBox.options[selectBox.selectedIndex].text;
             
             let tongSoCay = 0;
             currentActiveData.forEach(item => { tongSoCay += (item.dinhMuc || 0); });
             document.getElementById("lblTongSoCay").innerText = "Tổng số cây định mức: " + tongSoCay + " dụng cụ";
+            
             hienThiBangDungCu(currentActiveData);
             document.getElementById("khuVucDanhSach").classList.remove("hidden");
         }
@@ -460,6 +476,7 @@
         function hienThiBangDungCu(danhSach) {
             const headerRow = document.getElementById("tableHeaderRow");
             const tbody = document.getElementById("bodyChiTietDungCu");
+            if(!tbody || !headerRow) return;
             tbody.innerHTML = "";
 
             if(currentInterfaceMode === 'VIEW') {
@@ -501,18 +518,20 @@
         function timKiemNhanh() {
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
             
-            // Nếu ô tìm kiếm trống, chỉ ẩn danh sách nếu Dropdown cũng đang trống
+            // Nếu ô tìm kiếm trống, khôi phục hiển thị theo giá trị của Dropdown (nếu có)
             if (!tuKhoa) { 
                 const selectBox = document.getElementById("selectBoDungCu");
-                if (!selectBox.value) {
+                if (selectBox && selectBox.value) {
+                    loadChiTietBo();
+                } else {
                     document.getElementById("khuVucDanhSach").classList.add("hidden"); 
                 }
                 return; 
             }
 
-            // Chỉ dọn dẹp giá trị Dropdown khi người dùng thực sự nhập từ khóa tìm kiếm
+            // Reset trạng thái của thẻ Select về rỗng để hiển thị đúng tiêu đề kết quả tìm kiếm
             document.getElementById("selectBoDungCu").value = "";
-            document.getElementById("lblTenBoHienTai").innerText = `Kết quả: "${tuKhoa}"`;
+            document.getElementById("lblTenBoHienTai").innerText = `Kết quả tra cứu: "${tuKhoa}"`;
             
             currentActiveData = [];
             for (let bo in databaseExcel) {
