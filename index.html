@@ -301,7 +301,8 @@
             "KD 050/12": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4283.jpg",
             "AL 003/20": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/A/AL/2815.gif",
             "KD 240/18": "https://www.nopa-instruments.eu/fileadmin/user_upload/produkte/import/gross/K/KD/4357.jpg",    
-            "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500"
+            "SG-CHEN9": "https://images.unsplash.com/photo-1532187863486-abf9d39d6618?w=500",
+            "KYE 283/15": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500"
         };
 
         const GOC_DATABASE = {
@@ -343,14 +344,15 @@
                 { ma: "AK 354/00", ten: "Banh tổ chức Farabeuf dài 8.3/4 in 43x15 mm", dinhMuc: 2 },
                 { ma: "BV617R", ten: "Lưỡi banh giữa cho bộ banh bụng Balfour, kích thước 54x80 mm", dinhMuc: 1 },
                 { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 },
-                { ma: "SG-BHD400", warm: "Bồn hạt đậu 400ml", dinhMuc: 1 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu 400ml", dinhMuc: 1 },
                 { ma: "SG-BHD800", ten: "Bồn hạt đậu 800ml", dinhMuc: 1 },
                 { ma: "KYE 283/15", ten: "Hộp đựng dụng cụ, 465x280x150 mm", dinhMuc: 1 },
                 { ma: "BF494R", ten: "Vòng giữ dụng cụ chữ U", dinhMuc: 1 },
                 { ma: "BF123R", ten: "Kẹp hình tim, cong, ngàm có răng, dài 245mm", dinhMuc: 1 }
             ],
             "CATTUCUNG": [
-               
+                { ma: "BB084R", ten: "Cán dao mổ, số 4, dài 135mm", dinhMuc: 1 },
+                { ma: "BT476R", ten: "Van âm đạo kích thước 36 x 110 mm", dinhMuc: 1 }
             ],
             "TONGQUATNHI": [
                 { ma: "BB073R", ten: "Cán dao mổ, số 3, dài 125mm", dinhMuc: 1 },
@@ -444,11 +446,12 @@
             }
         }
 
+        // HÀM XỬ LÝ NAP EXCEL - ĐÃ NÂNG CẤP THUẬT TOÁN TỰ ĐỘNG KHỬ LỖI CHỨA DẤU PHẨY TRONG KÍCH THƯỚC
         function xuLyNapCsvExcel() {
             const rawText = document.getElementById("txtExcelCsvInput").value.trim();
             if(!rawText) { alert("Vui lòng dán nội dung dữ liệu từ file Excel vào!"); return; }
 
-            const dongDuLieu = rawText.split("\n");
+            const dongDu Lieu = rawText.split("\n");
             let soDongDungCu = 0;
             let soDongAnh = 0;
 
@@ -468,19 +471,23 @@
                         }
                     } 
                     else {
+                        // Thuật toán bóc tách nâng cao bảo vệ cột định mức cuối cùng
                         let tenBoGoc = cacCot[0].trim().toUpperCase();
-                        if(tenBoGoc.startsWith("BỘ ")) {
-                            tenBoGoc = tenBoGoc.replace("BỘ ", "");
-                        }
+                        if(tenBoGoc.startsWith("BỘ ")) { tenBoGoc = tenBoGoc.replace("BỘ ", ""); }
                         tenBoGoc = tenBoGoc.replace(/\s+/g, "_");
 
                         const maDungCu = cacCot[1].trim().toUpperCase();
-                        const tenDungCu = cacCot[2].trim();
-                        const dinhMuc = parseInt(cacCot[3]) || 1;
-
-                        if(!databaseExcel[tenBoGoc]) { 
-                            databaseExcel[tenBoGoc] = []; 
+                        
+                        // Lấy phần tử cuối cùng làm định mức, phần ở giữa gộp lại làm tên để tránh lỗi kích thước chứa dấu phẩy
+                        const dinhMuc = parseInt(cacCot[cacCot.length - 1].trim()) || 1;
+                        
+                        let mangTenDungCu = [];
+                        for(let i = 2; i < cacCot.length - 1; i++) {
+                            mangTenDungCu.push(cacCot[i]);
                         }
+                        const tenDungCu = mangTenDungCu.join(",").trim();
+
+                        if(!databaseExcel[tenBoGoc]) { databaseExcel[tenBoGoc] = []; }
 
                         const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
                         if(indexTrung >= 0) {
@@ -504,7 +511,7 @@
                 } else if(soDongAnh > 0 && currentActiveData.length > 0) {
                     hienThiBangDungCu(currentActiveData);
                 }
-                alert(`🎉 Đồng bộ thành công!\n• Cập nhật ${soDongDungCu} dụng cụ.\n• Cập nhật ${soDongAnh} hình ảnh.\nDữ liệu đã được lưu an toàn vào trình duyệt.`);
+                alert(`🎉 Đồng bộ thành công!\n• Khử lỗi kích thước và cập nhật ${soDongDungCu} dụng cụ.\n• Cập nhật ${soDongAnh} hình ảnh.`);
                 document.getElementById("txtExcelCsvInput").value = ""; 
             } else {
                 alert("❌ Lỗi định dạng! Vui lòng kiểm tra lại cấu trúc Excel.");
@@ -612,7 +619,6 @@
             }
         }
 
-        // HÀM TẢI CHI TIẾT BỘ ĐÃ ĐƯỢC FIX LỖI TÍNH TỔNG ĐỊNH MỨC CHUẨN XÁC 100%
         function loadChiTietBo() {
             const selectBox = document.getElementById("selectBoDungCu");
             const vungDanhSach = document.getElementById("khuVucDanhSach");
@@ -644,7 +650,6 @@
             vungDanhSach.classList.remove("hidden");
         }
 
-        // HÀM TÌM KIẾM NHANH ĐÃ ĐƯỢC FIX SỬA LỖI ĐẾM SAI CON SỐ
         function timKiemNhanh() {
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
             if (!tuKhoa) { 
@@ -701,7 +706,7 @@
                 } else {
                     row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-semibold text-xs text-slate-200">${item.ten}</td><td class="p-3 text-center font-bold text-[#10b981]">${item.dinhMuc}</td>
                     <td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-[#0ea5e9]"></td>
-                    <td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-[#0ea5e9]"></td>
+                    <td class="p-1 text-center"><input type="checkbox" checked class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-[#0ea5e9]"></td>
                     <td class="p-1 text-center"><input type="checkbox" class="w-4 h-4 rounded bg-[#1e293b] border-[#475569] text-red-500"></td>
                     <td class="p-1"><input type="text" placeholder="Ghi chú..." class="bg-[#1e293b] border border-[#475569] text-slate-200 placeholder-slate-500 rounded px-2 py-1 text-[11px] w-full"></td>`;
                 }
