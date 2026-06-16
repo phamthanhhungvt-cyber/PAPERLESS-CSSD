@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - Dashboard</title>
+    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - Dashboard V17</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -85,13 +85,14 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
         
         <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
             <div class="flex items-center space-x-2 truncate">
                 <h2 id="header-title" class="text-sm md:text-base font-bold text-white truncate tracking-wide">Vận hành Chu trình Vô khuẩn</h2>
-                <i class="fa-regular fa-star text-slate-400 text-xs cursor-pointer hover:text-yellow-400 transition-colors"></i>
+                <div id="syncStatusBadge" class="text-[11px] text-slate-400 font-medium ml-2 bg-slate-700 px-2 py-0.5 rounded flex items-center gap-1">
+                    <i class="fa-solid fa-cloud-arrow-down animate-pulse text-[#38bdf8]"></i> <span id="syncText">Đang quét Cloud...</span>
+                </div>
             </div>
             <div class="text-[11px] md:text-xs text-[#38bdf8] font-semibold bg-[#0ea5e9]/10 border border-[#0ea5e9]/30 px-3 py-1 rounded flex items-center space-x-1.5 whitespace-nowrap shadow-[0_0_10px_rgba(14,165,233,0.1)]">
                 <span class="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]"></span>
@@ -101,7 +102,6 @@
 
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
             
-            <!-- TAB: CHU TRÌNH VÒNG ĐỜI -->
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">4</span></button>
@@ -121,7 +121,6 @@
                 </div>
             </div>
 
-            <!-- TAB: GIÁM SÁT TEST BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
                     <div class="border-b border-[#475569] pb-3">
@@ -153,7 +152,6 @@
                 </div>
             </div>
 
-            <!-- TAB: DANH MỤC BỘ DỤNG CỤ -->
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
                     
@@ -171,8 +169,8 @@
                                 <option value="">-- Chọn bộ dụng cụ khối phòng mổ --</option>
                                 <option value="SOSINH">BỘ SƠ SINH</option>
                                 <option value="MOBATCON">BỘ MỔ BẮT CON</option>
-                                <option value="TONGQUATNHI">BỘ TỔNG QUÁT NHI</option>
                                 <option value="CATTUCUNG">BỘ CẮT TỬ CUNG</option>
+                                <option value="TONGQUATNHI">BỘ TỔNG QUÁT NHI</option>
                                 <option value="THAMMYCOBAN">BỘ THẨM MỸ CƠ BẢN</option>
                                 <option value="THAMMYMAT">BỘ THẨM MỸ MẮT</option>
                                 <option value="THAMMYMUI">BỘ THẨM MỸ MŨI</option>
@@ -205,14 +203,13 @@
                         </div>
                     </div>
 
-                    <!-- Ô ĐỌC EXCEL (CSV) HÀNG LOẠT + KHÓA BẢO MẬT ADMIN -->
                     <div id="panelExcelImporter" class="hidden mt-6 pt-4 border-t border-[#475569]/60 space-y-3">
                         <div id="adminAuthLockBox" class="bg-[#1e293b] p-4 rounded border border-[#475569] flex flex-col sm:flex-row items-center justify-between gap-3">
                             <div class="flex items-center space-x-3">
                                 <i class="fa-solid fa-user-shield text-amber-500 text-lg"></i>
                                 <div>
-                                    <h4 class="text-xs font-bold text-slate-200">Khu vực cấu hình danh mục hệ thống</h4>
-                                    <p class="text-[11px] text-slate-400">Yêu cầu quyền Admin (Phòng KSNK) để chỉnh sửa hoặc xóa dụng cụ.</p>
+                                    <h4 class="text-xs font-bold text-slate-200">Khu vực cấu hình danh mục liên thông Cloud</h4>
+                                    <p class="text-[11px] text-slate-400">Yêu cầu quyền Admin để chỉnh sửa. Dữ liệu sẽ tự động đẩy lên Google Sheets.</p>
                                 </div>
                             </div>
                             <button onclick="kichHoatMoKhoaAdmin()" class="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 border border-amber-500/40 text-xs font-bold px-4 py-2 rounded transition-all"><i class="fa-solid fa-lock-open mr-1.5"></i> Mở khóa quyền cập nhật</button>
@@ -220,7 +217,6 @@
 
                         <div id="adminMainContentBox" class="hidden bg-[#1e293b] p-4 rounded border border-[#38bdf8]/30 space-y-4">
                             
-                            <!-- ĐÃ GOM CỤM: Ô NHẬP TAY NHANH CHUYỂN VÀO TRONG KHÓA BẢO MẬT ĐÚNG GÓP Ý -->
                             <div class="p-3 bg-[#334155]/60 rounded border border-[#475569] space-y-2">
                                 <div class="text-xs font-black text-slate-200"><i class="fa-solid fa-plus text-[#38bdf8] mr-1"></i> THÊM NHANH DỤNG CỤ BẰNG TAY VÀO BỘ HIỆN TẠI</div>
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -228,23 +224,23 @@
                                     <input type="text" id="txtTenMoi" placeholder="Tên cây mổ chi tiết..." class="rounded px-2.5 py-1.5 text-xs">
                                     <div class="flex gap-1">
                                         <input type="number" id="txtDMMoi" value="1" min="1" class="w-16 rounded px-2 py-1.5 text-xs text-center">
-                                        <button onclick="themDungCuBangTay()" class="flex-1 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-bold rounded transition-all">Thêm Vào Bộ</button>
+                                        <button onclick="themDungCuBangTay()" class="flex-1 bg-[#0ea5e9] hover:bg-[#0284c7] text-white text-xs font-bold rounded transition-all">Thêm & Lên Mây</button>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 pt-1 border-t border-[#475569]/50">
-                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Bộ công cụ Đồng bộ liên thông thiết bị</h4>
+                                <h4 class="text-xs font-black text-[#38bdf8] uppercase tracking-wider"><i class="fa-solid fa-file-excel mr-1.5"></i> Nạp hàng loạt từ Excel / Buộc đồng bộ</h4>
                                 <div class="flex flex-wrap gap-1.5">
-                                    <button onclick="saoChepMaDongBo()" class="bg-violet-600/20 hover:bg-violet-600/40 text-violet-400 border border-violet-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">📋 Copy mã đồng bộ</button>
-                                    <button onclick="napMaDongBo()" class="bg-fuchsia-600/20 hover:bg-fuchsia-600/40 text-fuchsia-400 border border-fuchsia-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">📥 Dán mã đồng bộ</button>
-                                    <button onclick="resetToGoc()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">🧹 Reset</button>
+                                    <button onclick="docDuLieuTuGoogleSheets()" class="bg-sky-600/20 hover:bg-sky-600/40 text-sky-400 border border-sky-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">🔄 Tải từ Cloud về</button>
+                                    <button onclick="dayDuLieuLenGoogleSheets()" class="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">☁️ Đẩy lên Cloud</button>
+                                    <button onclick="resetToGoc()" class="bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 text-[10px] font-bold px-2.5 py-1 rounded transition-all">🧹 Reset App</button>
                                     <button onclick="khoaLaiQuyenAdmin()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-[10px] font-bold px-2.5 py-1 rounded transition-all">Khóa lại</button>
                                 </div>
                             </div>
-                            <textarea id="txtExcelCsvInput" rows="3" placeholder="Dán mã đồng bộ hoặc chuỗi dữ liệu CSV từ Excel vào đây..." class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
+                            <textarea id="txtExcelCsvInput" rows="3" placeholder="Dán nội dung CSV từ Excel vào đây... Cấu trúc: Mã Bộ,Mã Dụng Cụ,Tên Dụng Cụ,Định Mức" class="w-full font-mono text-xs p-3 bg-[#111827] border border-[#475569] rounded text-slate-200 placeholder-slate-500 outline-none resize-none"></textarea>
                             <div class="flex justify-end gap-2">
-                                <button onclick="xuLyNapCsvExcel()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Đồng bộ cơ sở dữ liệu CSV</button>
+                                <button onclick="xuLyNapCsvExcel()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold px-4 py-2 rounded shadow transition-all"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Nạp Excel & Đồng bộ lên Sheets</button>
                             </div>
                         </div>
                     </div>
@@ -252,7 +248,6 @@
                 </div>
             </div>
 
-            <!-- TAB: QUẢN LÝ ĐỒ VẢI KSNK -->
             <div id="tab-dovai" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center text-[#0ea5e9] shadow-[0_0_15px_rgba(14,165,233,0.2)]">
@@ -268,7 +263,6 @@
         </main>
     </div>
 
-    <!-- MODAL HIỂN THỊ ẢNH PHÓNG TO -->
     <div id="imageModal" class="hidden fixed inset-0 bg-[#1e293b]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
         <div class="bg-[#334155] rounded-lg max-w-sm w-full overflow-hidden shadow-[0_0_30px_rgba(14,165,233,0.15)] relative p-5 flex flex-col items-center border border-[#475569]">
             <button onclick="closeModal()" class="absolute top-2 right-2 bg-[#1e293b] text-slate-300 w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/50 border border-transparent transition-all"><i class="fa-solid fa-xmark text-sm"></i></button>
@@ -281,10 +275,13 @@
     </div>
 
     <script>
+        // ĐƯỜNG TRUYỀN API LIÊN THÔNG GOOGLE SHEETS CỦA ANH HÙNG
+        const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzOhp4i86qLdFufJHdYd96YR2T03MgOz1FNirgmisb8Onp02wU9EXnsS4fLaHZODx04yQ/exec";
+
         let currentInterfaceMode = 'VIEW';
         let currentActiveData = [];
         let boLocHienTai = 'ALL'; 
-        let isAdminAuthenticated = false; // Biến kiểm tra trạng thái mở khóa quyền
+        let isAdminAuthenticated = false;
 
         const trackingList = [
             { id: "SOSINH", tenBo: "BỘ SƠ SINH", step: 4, ngayHap: "12-06-2026", hanDung: "12-07-2026", ghiChu: "Vô trùng (Trong kho)" },
@@ -389,7 +386,57 @@
 
         let databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
 
-        function taiDuLieuTuBoNho() {
+        // LUỒNG 1: TỰ ĐỘNG ĐỌC DỮ LIỆU TỪ CLOUD GOOGLE SHEETS KHI KHỞI ĐỘNG APP
+        function docDuLieuTuGoogleSheets() {
+            setSyncBadge("Đang quét Cloud...", true);
+            fetch(`${GOOGLE_SHEETS_API_URL}?type=GET_ALL`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.db && Object.keys(data.db).length > 0) {
+                        databaseExcel = data.db;
+                        if(data.img) { imageIndex = {...imageIndex, ...data.img}; }
+                        
+                        localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
+                        localStorage.setItem("CSSD_IMAGES", JSON.stringify(imageIndex));
+                        
+                        capNhatDropdownBoDungCu();
+                        setSyncBadge("Đã đồng bộ Cloud", false);
+                        console.log("Liên thông Google Sheets hoàn tất thành công!");
+                    } else {
+                        // Nếu trang tính trống, lấy dữ liệu đệm máy cục bộ
+                        taiDuLieuTuBoNhoCucBo();
+                        setSyncBadge("Cloud Trống - Dùng Local", false);
+                    }
+                })
+                .catch(err => {
+                    console.error("Lỗi đồng bộ mây:", err);
+                    taiDuLieuTuBoNhoCucBo();
+                    setSyncBadge("Mất mạng - Dùng Local", false);
+                });
+        }
+
+        // LUỒNG 2: TỰ ĐỘNG ĐẨY TOÀN BỘ SỰ THAY ĐỔI LÊN MÂY REAL-TIME
+        function dayDuLieuLenGoogleSheets() {
+            setSyncBadge("Đang tải lên Cloud...", true);
+            
+            const payload = { db: databaseExcel, img: imageIndex };
+            
+            fetch(GOOGLE_SHEETS_API_URL, {
+                method: "POST",
+                mode: "no-cors", // Bật chế độ cross-origin nhận chuỗi script tự do
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                setSyncBadge("Đã đồng bộ Cloud", false);
+            })
+            .catch(err => {
+                console.error("Lỗi đẩy lên Sheets:", err);
+                setSyncBadge("Lỗi đồng bộ đẩy", false);
+            });
+        }
+
+        function taiDuLieuTuBoNhoCucBo() {
             const savedDb = localStorage.getItem("CSSD_DATABASE");
             const savedImages = localStorage.getItem("CSSD_IMAGES");
             
@@ -397,46 +444,25 @@
             if(savedDb) { 
                 let parsedDb = JSON.parse(savedDb);
                 for (let key in templateDb) {
-                    if (parsedDb[key]) {
-                        templateDb[key] = parsedDb[key]; 
-                    }
+                    if (parsedDb[key]) { templateDb[key] = parsedDb[key]; }
                 }
             }
             databaseExcel = templateDb;
             if(savedImages) { imageIndex = JSON.parse(savedImages); }
+            capNhatDropdownBoDungCu();
         }
 
-        function saoChepMaDongBo() {
-            const packageData = { db: databaseExcel, img: imageIndex };
-            const base64Str = btoa(unescape(encodeURIComponent(JSON.stringify(packageData))));
-            navigator.clipboard.writeText(base64Str).then(() => {
-                alert("🎉 Đã sao chép mã đồng bộ vào khay nhớ tạm! Gửi mã này qua Laptop dán vào nhé.");
-            }).catch(() => {
-                document.getElementById("txtExcelCsvInput").value = base64Str;
-                alert("Mã đồng bộ đã hiển thị trong ô văn bản phía dưới!");
-            });
-        }
-
-        function napMaDongBo() {
-            const inputData = document.getElementById("txtExcelCsvInput").value.trim();
-            if(!inputData) { alert("Vui lòng dán chuỗi mã đồng bộ vào ô trống!"); return; }
-            try {
-                const decryptedStr = decodeURIComponent(escape(atob(inputData)));
-                const obj = JSON.parse(decryptedStr);
-                if(obj.db && obj.img) {
-                    databaseExcel = obj.db;
-                    imageIndex = obj.img;
-                    localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
-                    localStorage.setItem("CSSD_IMAGES", JSON.stringify(imageIndex));
-                    capNhatDropdownBoDungCu();
-                    document.getElementById("khuVucDanhSach").classList.add("hidden");
-                    document.getElementById("txtExcelCsvInput").value = "";
-                    alert("🎉 Khớp nối dữ liệu liên thông thiết bị thành công!");
-                } else {
-                    alert("❌ Mã đồng bộ sai cấu trúc phần mềm!");
-                }
-            } catch(e) {
-                alert("❌ Chuỗi mã nhập vào không hợp lệ!");
+        function setSyncBadge(text, isPulse) {
+            const badge = document.getElementById("syncStatusBadge");
+            const txt = document.getElementById("syncText");
+            if(!badge || !txt) return;
+            txt.innerText = text;
+            if(isPulse) {
+                badge.className = "text-[11px] text-slate-400 font-medium ml-2 bg-slate-700 px-2 py-0.5 rounded flex items-center gap-1";
+                badge.querySelector('i').className = "fa-solid fa-cloud-arrow-down animate-pulse text-[#38bdf8]";
+            } else {
+                badge.className = "text-[11px] text-emerald-400 font-bold ml-2 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded flex items-center gap-1 shadow-[0_0_8px_rgba(16,185,129,0.2)]";
+                badge.querySelector('i').className = "fa-solid fa-cloud";
             }
         }
 
@@ -468,21 +494,71 @@
             document.getElementById("txtDMMoi").value = "1";
 
             loadChiTietBo();
+            dayDuLieuLenGoogleSheets(); // Đóng gói liên thông bắn thẳng lên Sheets
         }
 
-        // TÍNH NĂNG MỚI: XÓA CÂY DỤNG CỤ KHỎI DANH MỤC GỐC
         function xoaDungCuKhoiBo(maXoa) {
             const selectBox = document.getElementById("selectBoDungCu");
             const boKey = selectBox.value;
             if(!boKey) return;
 
-            if(confirm(`Anh Hùng có chắc chắn muốn loại bỏ cây dụng cụ mã [${maXoa}] ra khỏi danh mục cấu hình bộ này?`)) {
+            if(confirm(`Anh Hùng có chắc chắn muốn loại bỏ cây dụng cụ mã [${maXoa}] ra khỏi danh mục?`)) {
                 const index = databaseExcel[boKey].findIndex(x => x.ma === maXoa);
                 if(index >= 0) {
-                    databaseExcel[boKey].splice(index, 1); // Xóa khỏi mảng
-                    localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel)); // Lưu lại vào máy
-                    loadChiTietBo(); // Cập nhật lại bảng
+                    databaseExcel[boKey].splice(index, 1);
+                    localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
+                    loadChiTietBo();
+                    dayDuLieuLenGoogleSheets(); // Đẩy mẻ xóa lên mây cập nhật Sheets
                 }
+            }
+        }
+
+        function xuLyNapCsvExcel() {
+            const rawText = document.getElementById("txtExcelCsvInput").value.trim();
+            if(!rawText) { alert("Vui lòng dán nội dung dữ liệu vào!"); return; }
+
+            const dongDuLieu = rawText.split("\n");
+            let soDongDungCu = 0;
+            let soDongAnh = 0;
+
+            dongDuLieu.forEach((dong) => {
+                if(dong.toLowerCase().includes("bodungcu") || dong.trim() === "") return;
+                const cacCot = dong.split(",");
+                if(cacCot.length >= 3 && cacCot[0].trim() !== "") {
+                    const checkLoai = cacCot[0].trim().toUpperCase();
+                    if(checkLoai === "ANH" || checkLoai === "IMAGE") {
+                        const maDungCuTarget = cacCot[1].trim().toUpperCase();
+                        const linkAnhMoi = cacCot[2].trim();
+                        if(maDungCuTarget && linkAnhMoi) { imageIndex[maDungCuTarget] = linkAnhMoi; soDongAnh++; }
+                    } else {
+                        let tenBoGoc = cacCot[0].trim().toUpperCase();
+                        if(tenBoGoc.startsWith("BỘ ")) { tenBoGoc = tenBoGoc.replace("BỘ ", ""); }
+                        tenBoGoc = tenBoGoc.replace(/-/g, "_").replace(/\s+/g, "_");
+                        const maDungCu = cacCot[1].trim().toUpperCase();
+                        const dinhMuc = parseInt(cacCot[cacCot.length - 1].trim()) || 1;
+                        let mangTenDungCu = [];
+                        for(let i = 2; i < cacCot.length - 1; i++) { mangTenDungCu.push(cacCot[i]); }
+                        const tenDungCu = mangTenDungCu.join(",").trim();
+
+                        if(!databaseExcel[tenBoGoc]) { databaseExcel[tenBoGoc] = []; }
+                        const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
+                        if(indexTrung >= 0) { databaseExcel[tenBoGoc][indexTrung] = { ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc }; } 
+                        else { databaseExcel[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc }); }
+                        soDongDungCu++;
+                    }
+                }
+            });
+
+            if(soDongDungCu > 0 || soDongAnh > 0) {
+                localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
+                localStorage.setItem("CSSD_IMAGES", JSON.stringify(imageIndex));
+                capNhatDropdownBoDungCu(); 
+                if (document.getElementById("selectBoDungCu").value) loadChiTietBo();
+                alert(`🎉 Nạp thành công ${soDongDungCu} dụng cụ vào App! Hệ thống đang tiến hành đẩy dữ liệu đồng bộ lên Google Sheets...`);
+                document.getElementById("txtExcelCsvInput").value = ""; 
+                dayDuLieuLenGoogleSheets(); // Kích hoạt đồng bộ hóa ghi đè trang tính
+            } else {
+                alert("❌ Định dạng nhập dữ liệu không hợp lệ!");
             }
         }
 
@@ -490,9 +566,7 @@
             if(!maDungCu) return "";
             let maChuan = maDungCu.replace(/\s+/g, "").toUpperCase();
             for(let key in imageIndex) {
-                if(key.replace(/\s+/g, "").toUpperCase() === maChuan) {
-                    return imageIndex[key];
-                }
+                if(key.replace(/\s+/g, "").toUpperCase() === maChuan) { return imageIndex[key]; }
             }
             return "";
         }
@@ -561,88 +635,17 @@
                     selectBox.appendChild(opt);
                 }
                 if(valueCu) selectBox.value = valueCu;
-            } catch (err) {
-                console.log("Đang tải dữ liệu...");
-            }
+            } catch (err) { console.log("Lỗi nạp danh mục menu."); }
         }
 
         function resetToGoc() {
-            if(confirm("Anh Hùng có chắc chắn muốn xóa toàn bộ dữ liệu lưu trên máy để khôi phục lại mặc định?")) {
+            if(confirm("Xóa bộ nhớ đệm App để khôi phục cấu trúc rỗng ban đầu?")) {
                 localStorage.removeItem("CSSD_DATABASE");
                 localStorage.removeItem("CSSD_IMAGES");
                 databaseExcel = JSON.parse(JSON.stringify(GOC_DATABASE));
                 capNhatDropdownBoDungCu();
                 document.getElementById("khuVucDanhSach").classList.add("hidden");
-                alert("🧹 Đã dọn sạch bộ nhớ và khôi phục dữ liệu mặc định!");
-            }
-        }
-
-        function xuLyNapCsvExcel() {
-            const rawText = document.getElementById("txtExcelCsvInput").value.trim();
-            if(!rawText) { alert("Vui lòng dán nội dung dữ liệu từ file Excel vào!"); return; }
-
-            const dongDuLieu = rawText.split("\n");
-            let soDongDungCu = 0;
-            let soDongAnh = 0;
-
-            dongDuLieu.forEach((dong) => {
-                if(dong.toLowerCase().includes("bodungcu") || dong.trim() === "") return;
-                
-                const cacCot = dong.split(",");
-                if(cacCot.length >= 3 && cacCot[0].trim() !== "") {
-                    const checkLoai = cacCot[0].trim().toUpperCase();
-
-                    if(checkLoai === "ANH" || checkLoai === "IMAGE") {
-                        const maDungCuTarget = cacCot[1].trim().toUpperCase();
-                        const linkAnhMoi = cacCot[2].trim();
-                        if(maDungCuTarget && linkAnhMoi) {
-                            imageIndex[maDungCuTarget] = linkAnhMoi;
-                            soDongAnh++;
-                        }
-                    } 
-                    else {
-                        let tenBoGoc = cacCot[0].trim().toUpperCase();
-                        if(tenBoGoc.startsWith("BỘ ")) { tenBoGoc = tenBoGoc.replace("BỘ ", ""); }
-                        
-                        tenBoGoc = tenBoGoc.replace(/-/g, "_").replace(/\s+/g, "_");
-
-                        const maDungCu = cacCot[1].trim().toUpperCase();
-                        const dinhMuc = parseInt(cacCot[cacCot.length - 1].trim()) || 1;
-                        
-                        let mangTenDungCu = [];
-                        for(let i = 2; i < cacCot.length - 1; i++) {
-                            mangTenDungCu.push(cacCot[i]);
-                        }
-                        const tenDungCu = mangTenDungCu.join(",").trim();
-
-                        if(!databaseExcel[tenBoGoc]) { databaseExcel[tenBoGoc] = []; }
-
-                        const indexTrung = databaseExcel[tenBoGoc].findIndex(x => x.ma === maDungCu);
-                        if(indexTrung >= 0) {
-                            databaseExcel[tenBoGoc][indexTrung] = { ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc };
-                        } else {
-                            databaseExcel[tenBoGoc].push({ ma: maDungCu, ten: tenDungCu, dinhMuc: dinhMuc });
-                        }
-                        soDongDungCu++;
-                    }
-                }
-            });
-
-            if(soDongDungCu > 0 || soDongAnh > 0) {
-                localStorage.setItem("CSSD_DATABASE", JSON.stringify(databaseExcel));
-                localStorage.setItem("CSSD_IMAGES", JSON.stringify(imageIndex));
-
-                capNhatDropdownBoDungCu(); 
-                const selectBox = document.getElementById("selectBoDungCu");
-                if (selectBox && selectBox.value) {
-                    loadChiTietBo();
-                } else if(soDongAnh > 0 && currentActiveData.length > 0) {
-                    hienThiBangDungCu(currentActiveData);
-                }
-                alert(`🎉 Đồng bộ thành công!\n• Đã đồng bộ ${soDongDungCu} dụng cụ.\n• Cập nhật ${soDongAnh} hình ảnh.`);
-                document.getElementById("txtExcelCsvInput").value = ""; 
-            } else {
-                alert("❌ Lỗi định dạng! Vui lòng kiểm tra lại cấu trúc Excel.");
+                dayDuLieuLenGoogleSheets();
             }
         }
 
@@ -728,11 +731,8 @@
             document.getElementById("btnModeEdit").className = mode === 'EDIT' ? "tab-active-custom px-4 py-2 text-xs md:text-sm font-bold bg-transparent" : "px-4 py-2 text-xs md:text-sm font-bold text-slate-400 hover:text-slate-200 bg-transparent";
             
             const excelPanel = document.getElementById("panelExcelImporter");
-            if(mode === 'EDIT') {
-                if(excelPanel) excelPanel.classList.remove("hidden");
-            } else {
-                if(excelPanel) excelPanel.classList.add("hidden");
-            }
+            if(mode === 'EDIT') { if(excelPanel) excelPanel.classList.remove("hidden"); } 
+            else { if(excelPanel) excelPanel.classList.add("hidden"); }
 
             khoiTaoTieuDeBangHienTai();
             if(currentActiveData.length > 0) { hienThiBangDungCu(currentActiveData); }
@@ -744,7 +744,6 @@
             if(currentInterfaceMode === 'VIEW') {
                 headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-32">Mã</th><th class="p-3">Tên Chi Tiết Dụng Cụ</th><th class="p-3 text-center w-32">SL Định Mức</th>`;
             } else {
-                // Thêm một cột trống cuối nếu mở khóa Admin để hiện nút xóa hành động
                 let actionHeader = isAdminAuthenticated ? `<th class="p-2 text-center w-12 text-red-400">Xóa</th>` : ``;
                 headerRow.innerHTML = `<th class="p-3 text-center w-16">Ảnh</th><th class="p-3 w-28">Mã</th><th class="p-3">Tên Dụng Cụ</th><th class="p-2 text-center w-12 text-[#38bdf8]">ĐM</th><th class="p-1 text-center w-12 text-slate-400">Sạch</th><th class="p-1 text-center w-12 text-slate-400">VK</th><th class="p-1 text-center w-12 text-red-400">Lỗi</th><th class="p-2 w-40">Ghi chú kiểm đếm</th>${actionHeader}`;
             }
@@ -757,7 +756,6 @@
             
             const boKey = selectBox.value.trim().toUpperCase();
             if (!boKey) { vungDanhSach.classList.add("hidden"); return; }
-            
             document.getElementById("txtTimKiem").value = "";
             
             currentActiveData = []; 
@@ -769,11 +767,8 @@
             }
             
             document.getElementById("lblTenBoHienTai").innerText = "Danh mục thành phần: " + selectBox.options[selectBox.selectedIndex].text;
-            
             let tongSoCay = 0;
-            currentActiveData.forEach(item => { 
-                tongSoCay += (parseInt(item.dinhMuc) || 0); 
-            });
+            currentActiveData.forEach(item => { tongSoCay += (parseInt(item.dinhMuc) || 0); });
             document.getElementById("lblTongSoCay").innerText = "Tổng số cây định mức: " + tongSoCay + " dụng cụ";
             
             khoiTaoTieuDeBangHienTai();
@@ -796,17 +791,13 @@
             for (let bo in databaseExcel) {
                 databaseExcel[bo].forEach(item => {
                     if (item.ten.toLowerCase().includes(tuKhoa) || item.ma.toLowerCase().includes(tuKhoa)) {
-                        if(!currentActiveData.some(x => x.ma === item.ma)) {
-                            currentActiveData.push(JSON.parse(JSON.stringify(item)));
-                        }
+                        if(!currentActiveData.some(x => x.ma === item.ma)) { currentActiveData.push(JSON.parse(JSON.stringify(item))); }
                     }
                 });
             }
             
             let tongSoCayTimKiem = 0;
-            currentActiveData.forEach(item => { 
-                tongSoCayTimKiem += (parseInt(item.dinhMuc) || 0); 
-            });
+            currentActiveData.forEach(item => { tongSoCayTimKiem += (parseInt(item.dinhMuc) || 0); });
             document.getElementById("lblTongSoCay").innerText = "Tổng số cây tìm thấy: " + tongSoCayTimKiem + " dụng cụ";
             
             khoiTaoTieuDeBangHienTai();
@@ -819,7 +810,7 @@
             if(!tbody) return; tbody.innerHTML = "";
 
             if(danhSach.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 9}" class="p-4 text-center text-slate-400 italic">Bộ dụng cụ này chưa được cấu hình thành phần.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${currentInterfaceMode === 'VIEW' ? 4 : 9}" class="p-4 text-center text-slate-400 italic">Bộ dụng cụ này chưa có thành phần nào. Mở khóa Admin để nạp dữ liệu liên thông.</td></tr>`;
                 return;
             }
 
@@ -835,7 +826,6 @@
                 if(currentInterfaceMode === 'VIEW') {
                     row.innerHTML = `<td class="p-2 text-center">${cellHinhAnh}</td><td class="p-3 font-mono text-xs text-[#38bdf8]">${item.ma}</td><td class="p-3 font-bold text-slate-200 text-xs md:text-sm">${item.ten}</td><td class="p-3 text-center text-[#10b981] font-black">${item.dinhMuc} cây</td>`;
                 } else {
-                    // Nếu là chế độ edit và ĐÃ mở khóa quyền admin thành công -> Hiện thêm nút thùng rác đỏ cuối dòng
                     let actionCell = isAdminAuthenticated 
                         ? `<td class="p-1 text-center"><button onclick="xoaDungCuKhoiBo('${item.ma}')" class="text-red-400 hover:text-red-500 bg-red-500/10 hover:bg-red-500/20 p-2 rounded transition-all"><i class="fa-solid fa-trash-can"></i></button></td>` 
                         : ``;
@@ -892,11 +882,10 @@
             }
         }
 
+        // TỰ ĐỘNG KÍCH HOẠT QUÉT DỮ LIỆU TỪ TRANG TÍNH TRÊN MÂY KHI MỞ APP
         window.onload = function() { 
-            taiDuLieuTuBoNho(); 
-            capNhatDropdownBoDungCu(); 
+            docDuLieuTuGoogleSheets();
             hienThiChuTrinhVôKhuan(); 
-            khoiTaoTieuDeBangHienTai(); 
         };
     </script>
 </body>
