@@ -63,11 +63,12 @@
         </header>
 
         <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
+            <!-- TAB: VÒNG ĐỜI -->
             <div id="tab-chuTrinhTab" class="space-y-4 w-full">
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                     <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                     <button onclick="locTrangThaiChuTrinh(3)" id="btn-filter-3" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">HẤP <span id="count-step3" class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                     <button onclick="locTrangThaiChuTrinh(4)" id="btn-filter-4" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4" class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                 </div>
@@ -77,6 +78,7 @@
                 </div>
             </div>
 
+            <!-- TAB: GIÁM SÁT BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
                     <div class="border-b border-[#475569] pb-3"><h3 class="text-sm md:text-base font-bold text-white flex items-center"><i class="fa-solid fa-microscope text-[#38bdf8] mr-2"></i> Kiểm Soát Chất Lượng Mẻ Hấp (BI)</h3><p class="text-xs text-slate-400 mt-1">Thời gian tiêu chuẩn phân tích chỉ số <span class="text-red-400 font-bold">≤ 30 phút</span>.</p></div>
@@ -92,6 +94,7 @@
                 </div>
             </div>
 
+            <!-- TAB: DANH MỤC DỤNG CỤ -->
             <div id="tab-giaonhan" class="hidden space-y-4 w-full">
                 <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#475569] pb-2 gap-3 w-full">
@@ -170,8 +173,10 @@
                 </div>
             </div>
 
+            <!-- MODULE PHIẾU GIAO NHẬN CHUYÊN SÂU (FULL CƠ SỐ FILE EXCEL) -->
             <div id="tab-phieugiao" class="hidden space-y-4 w-full h-full">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+                    <!-- BÊN TRÁI: FORM NHẬP LIỆU -->
                     <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-lg">
                         <h3 class="text-xs font-black text-[#38bdf8] uppercase border-b border-[#475569] pb-3 mb-4">
                             <i class="fa-solid fa-truck-fast mr-2"></i>Tạo phiếu giao nhận khoa phòng
@@ -181,7 +186,8 @@
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-300 mb-1">Khoa / Phòng yêu cầu:</label>
                                 <select id="selKhoaGiaoNhan" onchange="loadBoDungCuTheoKhoa()" class="w-full rounded px-3 py-2 text-xs font-bold bg-[#1e293b] border border-[#475569]">
-                                    </select>
+                                    <!-- Load tự động bằng JS -->
+                                </select>
                             </div>
 
                             <div>
@@ -215,6 +221,7 @@
                         </div>
                     </div>
 
+                    <!-- BÊN PHẢI: CHI TIẾT PHIẾU -->
                     <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-lg flex flex-col h-[500px] lg:h-auto overflow-hidden">
                         <div class="flex justify-between items-center border-b border-[#475569] pb-3 mb-3">
                             <h3 class="text-xs font-black text-white uppercase"><i class="fa-solid fa-box-open text-amber-400 mr-2"></i>Chi tiết phiếu giao</h3>
@@ -595,86 +602,408 @@
         // =======================================================
 
         const danhSachKhoa = [
-            { id: "PHONG_SANH", ten: "PHÒNG SANH - CẤP CỨU SẢN", lau: "LẦU 3" },
-            { id: "PK_SAN", ten: "PHÒNG KHÁM SẢN", lau: "LẦU G" },
+            { id: "PHONG_SANH_CAP_CUU_SAN", ten: "PHÒNG SANH - CẤP CỨU SẢN", lau: "LẦU 3" },
+            { id: "PHONG_KHAM_SAN", ten: "PHÒNG KHÁM SẢN", lau: "LẦU G" },
             { id: "NICU", ten: "NICU", lau: "LẦU 3" },
-            { id: "NSTH", ten: "NỘI SOI TIÊU HÓA", lau: "LẦU 2" },
-            { id: "RHM", ten: "RĂNG HÀM MẶT", lau: "LẦU 2" },
-            { id: "PK_DAKHOA", ten: "PHÒNG KHÁM ĐA KHOA", lau: "LẦU 2" },
+            { id: "NOI_SOI_TIEU_HOA", ten: "NỘI SOI TIÊU HÓA", lau: "LẦU 2" },
+            { id: "RANG_HAM_MAT", ten: "RĂNG HÀM MẶT", lau: "LẦU 2" },
+            { id: "PHONG_KHAM_A_KHOA", ten: "PHÒNG KHÁM ĐA KHOA", lau: "LẦU 2" },
             { id: "MAT", ten: "MẮT", lau: "LẦU 2" },
-            { id: "TMH", ten: "TAI MŨI HỌNG", lau: "LẦU 2" },
-            { id: "CC_DAKHOA", ten: "CẤP CỨU ĐA KHOA", lau: "LẦU G" },
-            { id: "GMHS_DC", ten: "GÂY MÊ HỒI SỨC-DỤNG CỤ", lau: "LẦU 3" },
-            { id: "PK_NHI", ten: "PHÒNG KHÁM NHI", lau: "LẦU 4" }
+            { id: "TAI_MUI_HONG", ten: "TAI MŨI HỌNG", lau: "LẦU 2" },
+            { id: "CAP_CUU_A_KHOA", ten: "CẤP CỨU ĐA KHOA", lau: "LẦU G" },
+            { id: "KHAM_BENH_VIP_SAN_PHU_KHOA", ten: "KHÁM BỆNH VIP-SẢN PHỤ KHOA", lau: "LẦU 8" },
+            { id: "GAY_ME_HOI_SUC_DUNG_CU", ten: "GÂY MÊ HỒI SỨC-DỤNG CỤ", lau: "LẦU 3" },
+            { id: "GAY_ME_HOI_SUC_GAY_ME", ten: "GÂY MÊ HỒI SỨC-GÂY MÊ", lau: "LẦU 3" },
+            { id: "GAY_ME_HOI_SUC_HOI_TINH", ten: "GÂY MÊ HỒI SỨC-HỒI TỈNH", lau: "LẦU 3" },
+            { id: "NOI_TRU_SAN_L1", ten: "NỘI TRÚ SẢN L1", lau: "LẦU 1" },
+            { id: "NOI_TRU_SAN_L8", ten: "NỘI TRÚ SẢN L8", lau: "LẦU 8" },
+            { id: "PHONG_KHAM_NHI", ten: "PHÒNG KHÁM NHI", lau: "LẦU 4" },
+            { id: "NOI_TRU_NHI_L4", ten: "NỘI TRÚ NHI L4", lau: "LẦU 4" },
+            { id: "NAM_KHOA", ten: "NAM KHOA", lau: "LẦU 7" },
+            { id: "IVF", ten: "IVF", lau: "LẦU 7" },
+            { id: "XET_NGHIEM", ten: "XÉT NGHIỆM", lau: "LẦU 2" },
+            { id: "NOI_TRU_SAN_L6", ten: "NỘI TRÚ SẢN L6", lau: "LẦU 6" },
+            { id: "CHUAN_OAN_HINH_ANH", ten: "CHUẨN ĐOÁN HÌNH ẢNH", lau: "LẦU G" }
         ];
 
         const danhMucTheoKhoa = {
-            "PHONG_SANH": [
+            "PHONG_SANH_CAP_CUU_SAN": [
                 { ma: "SG-SANH", ten: "Bộ sanh", dinhMuc: 8 },
                 { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 2 },
                 { ma: "SG-KIEMCOL", ten: "Bộ kiểm COL", dinhMuc: 3 },
                 { ma: "SG-MAYTANGSINHMON", ten: "Bộ may tầng sinh môn", dinhMuc: 5 },
                 { ma: "SG-MAYTHAMMY", ten: "Bộ may thẫm mỹ tầng sinh môn", dinhMuc: 4 },
                 { ma: "SG-VESINHAMDAO", ten: "Bộ vệ sinh âm đạo", dinhMuc: 2 },
-                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 }
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 7 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 2 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 5 },
+                { ma: "SG-KB 758/30", ten: "Forceps KB 758/30", dinhMuc: 1 },
+                { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 2 },
+                { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 },
+                { ma: "SG-AC 020/16", ten: "Kéo AC 020/16", dinhMuc: 1 },
+                { ma: "SG-BC606R", ten: "Kéo Metzenbaum", dinhMuc: 1 },
+                { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 2 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 2 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 },
+                { ma: "SG-AF 132/26", ten: "Kẹp BOZEMAN thẳng", dinhMuc: 5 },
+                { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 1 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 },
+                { ma: "SG-ER602R", ten: "Thìa nạo", dinhMuc: 1 },
+                { ma: "SG-GAPTHAITO", ten: "Gắp thai to", dinhMuc: 1 },
+                { ma: "SG-ER134R", ten: "Thìa nạo đầu tù", dinhMuc: 2 },
+                { ma: "SG-VAN 96/99", ten: "VAN ÂM ĐẠO 96/99", dinhMuc: 2 },
+                { ma: "SG-VAN", ten: "VAN ÂM ĐẠO 95/98", dinhMuc: 2 },
+                { ma: "SG-ER130R", ten: "Thìa nạo đầu tù, dài 280mm, rộng 10mm", dinhMuc: 1 },
+                { ma: "SG-ER132R", ten: "Thìa nạo đầu tù, dài 280mm", dinhMuc: 1 },
+                { ma: "SG-FORCEPS SIMSON", ten: "Forceps Simson", dinhMuc: 1 }
             ],
-            "PK_SAN": [
-                { ma: "SG-VESINHAMDAO", ten: "Bộ vệ sinh âm đạo", dinhMuc: 10 },
-                { ma: "SG-MAYTANGSINHMON", ten: "Bộ may tầng sinh môn", dinhMuc: 1 },
-                { ma: "SG-KIEMCOL", ten: "Bộ kiểm COL", dinhMuc: 2 },
-                { ma: "SG-CATCHI", ten: "Bộ cắt chỉ", dinhMuc: 2 }
+            "PHONG_KHAM_SAN": [
+                { ma: "SG-SOICTC", ten: "Bộ soi cổ tử cung", dinhMuc: 2 },
+                { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 55 },
+                { ma: "SG-TIEUPHAUKP2", ten: "Bộ tiểu phâu K/p2", dinhMuc: 1 },
+                { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 1 },
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 },
+                { ma: "SG-DATVALAYVONG", ten: "Đặt và lấy vòng", dinhMuc: 2 },
+                { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 6 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 3 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 3 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 6 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 35 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 10 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 },
+                { ma: "SG-AF 132/26", ten: "Kẹp BOZEMAN thẳng", dinhMuc: 2 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 3 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 },
+                { ma: "SG-600930.03", ten: "Nạo kênh - 600930.03", dinhMuc: 2 },
+                { ma: "SG-CAYQUE", ten: "Bộ cấy que", dinhMuc: 2 },
+                { ma: "SG-600930.04", ten: "Nạo kênh - 600930.04", dinhMuc: 2 }
             ],
             "NICU": [
-                { ma: "NC-CHOCON", ten: "Bộ chọc dò tủy sống", dinhMuc: 2 },
-                { ma: "NC-HATTIEU", ten: "Bộ tiểu phẫu", dinhMuc: 1 },
-                { ma: "NC-DATNOIKHIQUAN", ten: "Bộ đặt nội khí quản", dinhMuc: 3 }
+                { ma: "SG-PICC", ten: "Bộ PICC", dinhMuc: 2 },
+                { ma: "SG-LAMRON", ten: "Bộ làm rốn NICU", dinhMuc: 2 },
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 10 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 3 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 9 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 2 },
+                { ma: "SG-MAGILL15", ten: "Kềm Magill 15", dinhMuc: 1 },
+                { ma: "SG-AC 031/16", ten: "Kéo cắt chỉ", dinhMuc: 2 }
             ],
-            "NSTH": [
-                { ma: "NS-COP410", ten: "Ống nội soi dạ dày", dinhMuc: 4 },
-                { ma: "NS-COP520", ten: "Ống nội soi đại tràng", dinhMuc: 2 },
-                { ma: "NS-KIMSINHTHIET", ten: "Kìm sinh thiết dùng lại", dinhMuc: 5 }
+            "NOI_SOI_TIEU_HOA": [
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 4 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 4 }
             ],
-            "RHM": [
-                { ma: "RH-KHAYDC", ten: "Khay dụng cụ khám RHM", dinhMuc: 20 },
-                { ma: "RH-NHOBENH", ten: "Bộ kìm nhổ răng người lớn", dinhMuc: 2 },
-                { ma: "RH-NHONHI", ten: "Bộ kìm nhổ răng trẻ em", dinhMuc: 1 },
-                { ma: "RH-PHAUTHUAT", ten: "Bộ dụng cụ phẫu thuật hàm mặt", dinhMuc: 1 }
+            "RANG_HAM_MAT": [
+                { ma: "SG-HOPTRON(N)", ten: "Hộp gòn size trung", dinhMuc: 1 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 1 }
             ],
-            "PK_DAKHOA": [
-                { ma: "DK-KHAYKHAM", ten: "Khay khám tai mũi họng lẻ", dinhMuc: 15 },
-                { ma: "DK-CATCHI", ten: "Bộ cắt chỉ lẻ PK", dinhMuc: 3 },
-                { ma: "DK-THAYBANG", ten: "Bộ thay băng vết thương", dinhMuc: 5 }
+            "PHONG_KHAM_A_KHOA": [
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 5 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 1 },
+                { ma: "SG-TIEUPHAUKP2", ten: "Bộ tiểu phâu K/p2", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 16 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 9 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 2 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 4 },
+                { ma: "SG-AC 020/20", ten: "Kéo cắt chỉ dài 20", dinhMuc: 2 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 2 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 7 },
+                { ma: "SG-HOPTRON(N)", ten: "Hộp gòn size trung", dinhMuc: 1 },
+                { ma: "SG-BANHMUI", ten: "BANH MŨI", dinhMuc: 20 },
+                { ma: "SG-FX150", ten: "Kềm nhổ 150", dinhMuc: 1 },
+                { ma: "SG-FX300", ten: "Kềm nhổ 300", dinhMuc: 1 },
+                { ma: "SG-KP-CAOVOI", ten: "Cạo vôi răng", dinhMuc: 3 },
+                { ma: "SG-NAYTHANG", ten: "Nạy thẳng", dinhMuc: 2 },
+                { ma: "SG-NAYROOTIP", ten: "Nạy Rotip", dinhMuc: 1 },
+                { ma: "SG-CANDAO", ten: "Cán dao nha", dinhMuc: 1 },
+                { ma: "SG-KEONHA", ten: "Kéo nha", dinhMuc: 1 },
+                { ma: "SG-MS705/4", ten: "Nạy chân răng 705/4", dinhMuc: 1 },
+                { ma: "SG-MS705/6", ten: "Nạy chân răng 705/6", dinhMuc: 1 },
+                { ma: "SG-KHAMNHA2", ten: "Khám nha 2 món", dinhMuc: 20 },
+                { ma: "SG-MZB", ten: "Mũi MANI", dinhMuc: 2 },
+                { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 1 }
             ],
             "MAT": [
-                { ma: "M-LAYHAIDUONG", ten: "Bộ lấy dị vật giác mạc", dinhMuc: 2 },
-                { ma: "M-CHALEO", ten: "Bộ chắp lẹo", dinhMuc: 4 },
-                { ma: "M-THONGLEUDAO", ten: "Bộ thông lệ đạo", dinhMuc: 2 }
+                { ma: "SG-AB 710/10", ten: "Nhíp thắng không mấu", dinhMuc: 1 },
+                { ma: "SG-AB 715/10", ten: "Nhíp cong có mấu", dinhMuc: 1 },
+                { ma: "SG-AB 714/10", ten: "Nhíp thẳng có mấu", dinhMuc: 1 },
+                { ma: "SG-AB 840/02", ten: "Kẹp chắp", dinhMuc: 1 },
+                { ma: "SG-AC 450/10", ten: "Kéo thẳng", dinhMuc: 1 },
+                { ma: "SG-AC 451/10", ten: "Kéo cắt chỉ mũi cong/nhọn", dinhMuc: 1 },
+                { ma: "SG-AC 475/11", ten: "Kéo kết mạc", dinhMuc: 1 },
+                { ma: "SG-AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 },
+                { ma: "SG-AA 151/12", ten: "Mosquito cong dài 12cm", dinhMuc: 1 },
+                { ma: "SG-AA 150/12", ten: "Mosquito thẳng dài 12cm", dinhMuc: 1 },
+                { ma: "SG-AR 282/20", ten: "Compa đo", dinhMuc: 1 },
+                { ma: "SG-KP 248/11", ten: "Cây thanh đè", dinhMuc: 1 },
+                { ma: "SG-KP 123/14", ten: "Cây thông lệ đạo", dinhMuc: 1 },
+                { ma: "SG-KP 415/20", ten: "Que nạo chắp", dinhMuc: 1 },
+                { ma: "SG-HCNR(T)", ten: "Hộp chữ nhật nắp rời TRUNG", dinhMuc: 2 },
+                { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 1 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 },
+                { ma: "SG-HOPTRON(N)", ten: "Hộp gòn size trung", dinhMuc: 1 }
             ],
-            "TMH": [
-                { ma: "TMH-OP330", ten: "Optic TMH 3/30⁰", dinhMuc: 1 },
-                { ma: "TMH-OP430", ten: "Optic TMH 4/30⁰", dinhMuc: 2 },
-                { ma: "TMH-OP400", ten: "Optic TMH 4/0⁰", dinhMuc: 1 },
-                { ma: "TMH-DAY", ten: "Dây sáng nội soi", dinhMuc: 4 },
-                { ma: "TMH-KHAYKHAM", ten: "Bộ khay dụng cụ khám chuyên khoa", dinhMuc: 8 }
+            "TAI_MUI_HONG": [
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 1 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 1 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 1 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 },
+                { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 3 },
+                { ma: "SG-HOPTRON(N)", ten: "Hộp gòn size trung", dinhMuc: 1 }
             ],
-            "CC_DAKHOA": [
-                { ma: "CC-KHAUTHUONG", ten: "Bộ khâu vết thương", dinhMuc: 6 },
-                { ma: "CC-CATCHI", ten: "Bộ cắt chỉ", dinhMuc: 2 },
-                { ma: "CC-MOQUAN", ten: "Bộ mở khí quản cấp cứu", dinhMuc: 1 },
-                { ma: "CC-CHANDUONG", ten: "Bộ chọc dò màng phổi", dinhMuc: 1 }
+            "CAP_CUU_A_KHOA": [
+                { ma: "SG-SANH", ten: "Bộ sanh", dinhMuc: 1 },
+                { ma: "SG-TIEUPHAUKP", ten: "Bộ tiểu phẫu K/P", dinhMuc: 2 },
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 3 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 3 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 3 },
+                { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 6 },
+                { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 },
+                { ma: "SG-BISMED", ten: "Kềm Kocher kẹp dẫn lưu", dinhMuc: 2 },
+                { ma: "SG-MAGILL17", ten: "Kềm Magill 17", dinhMuc: 1 },
+                { ma: "SG-MAGILL20", ten: "Kềm Magill 20", dinhMuc: 1 },
+                { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 },
+                { ma: "SG-AC 031/16", ten: "Kéo cắt chỉ", dinhMuc: 2 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 2 },
+                { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 6 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 5 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 5 },
+                { ma: "SG-AC 020/20", ten: "Kéo cắt chỉ dài 20", dinhMuc: 2 }
             ],
-            "GMHS_DC": [
-                { ma: "GM-MBC", ten: "Bộ mổ bắt con", dinhMuc: 15 },
-                { ma: "GM-CTC", ten: "Bộ cắt tử cung", dinhMuc: 5 },
-                { ma: "GM-NSOB", ten: "Bộ PT Nội soi ổ bụng", dinhMuc: 5 },
-                { ma: "GM-PTTRONGNGAY", ten: "Bộ DC PT trong ngày", dinhMuc: 3 },
-                { ma: "GM-CATTUCUNGAMDAO", ten: "Bộ PTNS cắt tử cung ngã âm đạo", dinhMuc: 3 }
+            "KHAM_BENH_VIP_SAN_PHU_KHOA": [
+                { ma: "SG-SOICTC", ten: "Bộ soi cổ tử cung", dinhMuc: 1 },
+                { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 5 },
+                { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 1 },
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 1 },
+                { ma: "SG-DATVALAYVONG", ten: "Đặt và lấy vòng", dinhMuc: 2 },
+                { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 3 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 3 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 6 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 2 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 3 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 1 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 }
             ],
-            "PK_NHI": [
-                { ma: "NH-TONGQUAT", ten: "Bộ tổng quát nhi", dinhMuc: 3 },
-                { ma: "NH-CHANTHUONG", ten: "Bộ chấn thương chỉnh hình nhi", dinhMuc: 2 },
-                { ma: "NH-SOSINH", ten: "Bộ sơ sinh", dinhMuc: 2 },
-                { ma: "NH-LOTIEUTHAP", ten: "Bộ lỗ tiểu thấp", dinhMuc: 2 }
+            "GAY_ME_HOI_SUC_DUNG_CU": [
+                { ma: "SG-34310MA", ten: "KÉO - 34310MA", dinhMuc: 1 },
+                { ma: "SG-NOISOI", ten: "Bộ nội soi", dinhMuc: 3 },
+                { ma: "SG-MAYNOISOI", ten: "Bộ may nội soi", dinhMuc: 2 },
+                { ma: "SG-MOLAYTHAI", ten: "Bộ mổ lấy thai", dinhMuc: 9 },
+                { ma: "SG-UTPK", ten: "Phẫu thuật ung thư phụ khoa", dinhMuc: 1 },
+                { ma: "SG-TIEUPHAU(NS)", ten: "Tiểu phẫu nội soi", dinhMuc: 2 },
+                { ma: "SG-KHAIKHIQUAN", ten: "Bộ khai khí quản", dinhMuc: 1 },
+                { ma: "SG-MOCTC(HO)", ten: "Mổ hở cắt tử cung", dinhMuc: 1 },
+                { ma: "SG-CATDOT", ten: "Bộ cắt đốt", dinhMuc: 2 },
+                { ma: "SG-CTCNS(NB)", ten: "Cắt tử cung nội soi ngã bụng", dinhMuc: 1 },
+                { ma: "SG-CTC(AD)", ten: "Cắt tử cung ngã âm đạo", dinhMuc: 1 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 10 },
+                { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 4 },
+                { ma: "SG-BH167R", ten: "Kelly cong-BH167R", dinhMuc: 2 },
+                { ma: "SG-AB 050/15", ten: "Nhíp không mấu AB 050/15", dinhMuc: 2 },
+                { ma: "SG-AB 060/15", ten: "Nhíp có mấu AB 060/15", dinhMuc: 2 },
+                { ma: "SG-AC 020/16", ten: "Kéo AC 020/16", dinhMuc: 2 },
+                { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 2 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 16 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 3 },
+                { ma: "SG-KB 734/30", ten: "Forceps KB 734/30", dinhMuc: 2 },
+                { ma: "SG-26003BA", ten: "Optic 30 độ", dinhMuc: 1 },
+                { ma: "SG-THAU22", ten: "Thau 22", dinhMuc: 2 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 1 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 1 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 },
+                { ma: "SG-KB 201/32", ten: "Thước đo lòng tử cung", dinhMuc: 1 },
+                { ma: "SG-282208BA", ten: "Optic 30 độ (Buồng)", dinhMuc: 2 },
+                { ma: "SG-26003AA", ten: "Optic 0 độ", dinhMuc: 1 },
+                { ma: "SG-495NCS", ten: "Dây dẫn sáng lớn", dinhMuc: 3 },
+                { ma: "SG-495NA", ten: "Dây dẫn sáng nhỏ", dinhMuc: 2 },
+                { ma: "SG-279", ten: "Dây mono nội soi buồng 279", dinhMuc: 3 },
+                { ma: "SG-26005M", ten: "Dây mono NS Karl Storz", dinhMuc: 3 },
+                { ma: "SG-26176LE", ten: "Dây Bipolar 26176LE", dinhMuc: 3 },
+                { ma: "SG-26775UF", ten: "Cây móc đốt nội soi", dinhMuc: 2 },
+                { ma: "SG-26596D", ten: "Cây đẩy chỉ", dinhMuc: 2 },
+                { ma: "SG-38610ML", ten: "Robi nội soi", dinhMuc: 1 },
+                { ma: "SG-TROCARXOAN", ten: "Bộ trocar xoắn", dinhMuc: 1 },
+                { ma: "SG-TROCARTRON", ten: "Bộ trocar trơn", dinhMuc: 1 },
+                { ma: "SG-TROCARNHUAXOAN", ten: "Bộ trocar nhựa xoắn", dinhMuc: 2 },
+                { ma: "SG-DCGIAM1", ten: "Dụng cụ giảm 1", dinhMuc: 1 },
+                { ma: "SG-DCGIAM2", ten: "Dụng cụ giảm 2", dinhMuc: 1 },
+                { ma: "SG-27040G", ten: "Điện cực đốt", dinhMuc: 6 },
+                { ma: "SG-KEPRUOTNS", ten: "Kẹp Clamp ruột NS", dinhMuc: 1 },
+                { ma: "SG-AO 400/00", ten: "Ống hút dịch", dinhMuc: 2 },
+                { ma: "SG-26120JL", ten: "Kim veress", dinhMuc: 2 },
+                { ma: "SG-BOPZOZZI", ten: "Bộ kẹp Pozzi", dinhMuc: 1 },
+                { ma: "SG-AB 050/16", ten: "Kẹp phẫu tích, dài 16 cm", dinhMuc: 4 },
+                { ma: "SG-KB 594/04", ten: "Muỗng đặc size 4.25cm", dinhMuc: 2 },
+                { ma: "SG-BM236R", ten: "Kềm kẹp kim", dinhMuc: 2 },
+                { ma: "SG-BD801R", ten: "Ring Forceps-BD801R", dinhMuc: 1 },
+                { ma: "SG-AA 311/26", ten: "Kelly cong-AA 311/26", dinhMuc: 3 },
+                { ma: "SG-AE 420/26", ten: "Kẹp kim-AE 420/26", dinhMuc: 1 },
+                { ma: "SG-AK 620/20", ten: "Banh balfou", dinhMuc: 1 },
+                { ma: "SG-AF 200/20", ten: "Kẹp hình tim thẳng - AF 200/20", dinhMuc: 10 },
+                { ma: "SG-KD 253/13", ten: "Kẹp ruột - KD 253/13", dinhMuc: 1 },
+                { ma: "SG-KB 259/28", ten: "Pozzi 1 răng, cong", dinhMuc: 2 },
+                { ma: "SG-KB 250/25", ten: "Pozzi 1 răng", dinhMuc: 2 },
+                { ma: "SG-PL503R", ten: "Kẹp Clip XLC", dinhMuc: 1 },
+                { ma: "SG-PL504R", ten: "Kẹp Clip XDT", dinhMuc: 1 },
+                { ma: "SG-ER602R", ten: "Thìa nạo", dinhMuc: 1 },
+                { ma: "SG-ER134R", ten: "Thìa nạo đầu tù", dinhMuc: 2 },
+                { ma: "SG-TIEUPHAUNHI", ten: "Tiều phẫu nhi", dinhMuc: 1 },
+                { ma: "SG-KB 263/24", ten: "Pozzi 2 răng 2", dinhMuc: 2 },
+                { ma: "SG-ER132R", ten: "Thìa nạo đầu tù, dài 280mm", dinhMuc: 1 },
+                { ma: "SG-ER130R", ten: "Thìa nạo đầu tù, dài 280mm, rộng 10mm", dinhMuc: 1 },
+                { ma: "SG-CATTHANLUOI", ten: "Bộ cắt thắn lưỡi", dinhMuc: 1 },
+                { ma: "SG-KIMSINHTHIETNS", ten: "Kim sinh thiết NS", dinhMuc: 1 },
+                { ma: "SG-KD 111/18", ten: "Kẹp Babcock 18 cm", dinhMuc: 1 },
+                { ma: "SG-KD 111/16", ten: "Babcock, dài 15.5 cm", dinhMuc: 1 },
+                { ma: "SG-THONGVOITRUNG", ten: "Thông vòi trứng", dinhMuc: 1 },
+                { ma: "SG-FORCEPS SIMSON", ten: "Forceps Simson", dinhMuc: 2 },
+                { ma: "SG-MAYCOL", ten: "May COL", dinhMuc: 2 },
+                { ma: "SG-NONG", ten: "Bộ nong", dinhMuc: 2 },
+                { ma: "SG-NONGLON", ten: "Bộ nong lớn", dinhMuc: 1 },
+                { ma: "SG-AK 300/07", ten: "BANH DEAVER - AK 300/07", dinhMuc: 1 },
+                { ma: "SG-FORCEPS SIMSON", ten: "Forceps Simson", dinhMuc: 2 },
+                { ma: "SG-AK 300/04", ten: "BANH DEAVER - AK 300/04", dinhMuc: 1 },
+                { ma: "KEOCATBANG", ten: "Kéo cắt băng", dinhMuc: 2 },
+                { ma: "SG-MALLEABLE-AK 807/50", ten: "MALLEABLE-AK 807/50", dinhMuc: 2 },
+                { ma: "SG-BH644R", ten: "KOCHER", dinhMuc: 1 },
+                { ma: "SG-BONONGNHO", ten: "BỘ NONG NHỎ", dinhMuc: 1 }
+            ],
+            "GAY_ME_HOI_SUC_GAY_ME": [
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 10 }
+            ],
+            "GAY_ME_HOI_SUC_HOI_TINH": [
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 5 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 1 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 },
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 1 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 },
+                { ma: "SG-MAGILL15", ten: "Kềm Magill 15", dinhMuc: 1 },
+                { ma: "SG-MAGILL20", ten: "Kềm Magill 20", dinhMuc: 1 },
+                { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 }
+            ],
+            "NOI_TRU_SAN_L1": [
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 1 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 },
+                { ma: "SG-MAM41", ten: "Mâm inox lớn", dinhMuc: 2 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 5 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 5 },
+                { ma: "SG-AF 200/20", ten: "Kẹp hình tim thẳng - AF 200/20", dinhMuc: 20 },
+                { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 },
+                { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 2 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 3 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 2 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 1 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 }
+            ],
+            "NOI_TRU_SAN_L8": [
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 4 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 6 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 2 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 4 },
+                { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 10 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 4 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 2 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 1 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 },
+                { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 },
+                { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 2 }
+            ],
+            "PHONG_KHAM_NHI": [
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 1 },
+                { ma: "SG-CATTHANLUOI", ten: "Bộ cắt thắn lưỡi", dinhMuc: 10 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 3 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 5 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 },
+                { ma: "SG-AA 151/12", ten: "Mosquito cong dài 12cm", dinhMuc: 3 },
+                { ma: "SG-AC 030/16", ten: "Kéo cắt chỉ-AC 030/16", dinhMuc: 1 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 2 }
+            ],
+            "NOI_TRU_NHI_L4": [
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 1 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 },
+                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 },
+                { ma: "SG-MAGILL17", ten: "Kềm Magill 17", dinhMuc: 1 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 15 },
+                { ma: "SG-TIEUPHAUKP3", ten: "Tiểu phẫu khoa/phòng 3", dinhMuc: 1 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 2 },
+                { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 },
+                { ma: "SG-AC 071/17", ten: "Kéo Mayo cong 17cm AC 071/17", dinhMuc: 2 }
+            ],
+            "NAM_KHOA": [
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 2 }
+            ],
+            "IVF": [
+                { ma: "SG-CHOCHUTTRUNG", ten: "Bộ chọc hút trứng", dinhMuc: 10 },
+                { ma: "SG-CHUYENPHOI", ten: "Bộ chuyển phôi", dinhMuc: 10 },
+                { ma: "SG-TESE", ten: "Bộ Tese Microtese", dinhMuc: 4 },
+                { ma: "SG-BOMTINHTRUNG", ten: "Bơm tinh trùng", dinhMuc: 6 },
+                { ma: "SG-PESA", ten: "Bộ Pesa", dinhMuc: 6 },
+                { ma: "SG-HCNR(N)", ten: "Hộp Inox nắp rời Nhỏ", dinhMuc: 3 },
+                { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 3 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 18 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 4 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 3 },
+                { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 },
+                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 3 },
+                { ma: "SG-AA 132/26", ten: "Kelly cong-AA 132/26", dinhMuc: 8 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 10 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 5 },
+                { ma: "SG-KB 250/25", ten: "Pozzi 1 răng", dinhMuc: 4 },
+                { ma: "SG-AB 050/16", ten: "Kẹp phẫu tích, dài 16 cm", dinhMuc: 5 },
+                { ma: "SG-KU 315/10", ten: "Bình kiềm", dinhMuc: 5 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 5 },
+                { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 },
+                { ma: "SG-FB411R", ten: "De bakey atraumata", dinhMuc: 4 },
+                { ma: "SG-AC 020/20", ten: "Kéo cắt chỉ dài 20", dinhMuc: 2 },
+                { ma: "SG-NS BUỒNG", ten: "NS BUỒNG", dinhMuc: 2 },
+                { ma: "SG-KB 201/32", ten: "Thước đo lòng tử cung", dinhMuc: 2 }
+            ],
+            "XET_NGHIEM": [
+                { ma: "SG-MAM41", ten: "Mâm inox lớn", dinhMuc: 3 }
+            ],
+            "NOI_TRU_SAN_L6": [
+                { ma: "SG-AF 200/20", ten: "Kẹp hình tim thẳng - AF 200/20", dinhMuc: 5 },
+                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 5 },
+                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 },
+                { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 5 },
+                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 },
+                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 },
+                { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 },
+                { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 2 },
+                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 },
+                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 2 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 },
+                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 },
+                { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 },
+                { ma: "SG-MAGILL15", ten: "Kềm Magill 15", dinhMuc: 1 }
+            ],
+            "CHUAN_OAN_HINH_ANH": [
+                { ma: "SG-KB 259/28", ten: "Pozzi 1 răng, cong", dinhMuc: 2 },
+                { ma: "SG-KP-ONGHUT", ten: "Ống hút KP", dinhMuc: 1 },
+                { ma: "SG-KB 201/32", ten: "Thước đo lòng tử cung", dinhMuc: 1 },
+                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 3 },
+                { ma: "SG-CHUP(HSG)", ten: "Chụp HSG", dinhMuc: 3 }
             ]
         };
 
