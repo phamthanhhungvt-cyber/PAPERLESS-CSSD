@@ -3,115 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - Dashboard V17.8</title>
+    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - Cổng Tra Cứu V18.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         html, body { max-width: 100%; overflow-x: hidden; height: 100%; background-color: #1e293b; color: #cbd5e1; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .sidebar-item-active { background-color: rgba(14, 165, 233, 0.1) !important; color: #38bdf8 !important; border-left: 4px solid #0ea5e9; box-shadow: inset 4px 0 15px rgba(14, 165, 233, 0.15); }
-        .tab-active-custom { border-bottom: 3px solid #0ea5e9; color: #38bdf8; font-weight: 700; text-shadow: 0 0 10px rgba(14, 165, 233, 0.4); }
         input, select, textarea { background-color: #1e293b !important; border-color: #475569 !important; color: #e2e8f0 !important; color-scheme: dark; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #0ea5e9 !important; box-shadow: 0 0 10px rgba(14, 165, 233, 0.3) !important; }
+        input:focus, select:focus { outline: none; border-color: #0ea5e9 !important; box-shadow: 0 0 10px rgba(14, 165, 233, 0.3) !important; }
     </style>
 </head>
 <body class="font-sans flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <!-- BÊN TRÁI: MENU ĐIỀU HƯỚNG CHIA 2 PHÂN HỆ -->
+    <!-- MENU ĐIỀU HƯỚNG CHIA PHÂN HỆ -->
     <div class="w-full md:w-64 bg-[#334155] flex flex-col justify-between flex-shrink-0 z-20 shadow-[4px_0_24px_rgba(0,0,0,0.3)] border-r border-[#475569]" id="sidebar-menu">
         <div>
             <div class="p-4 bg-[#1e293b] flex items-center justify-between border-b border-[#475569]">
                 <div class="flex items-center space-x-2">
                     <span class="text-xs text-[#38bdf8] font-bold border-l-2 border-[#38bdf8] pl-2 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]">BV PHƯƠNG NAM</span>
                 </div>
-                <i class="fa-solid fa-angle-left text-xs text-slate-400 hidden md:block"></i>
             </div>
             
-            <div class="p-3 text-[11px] uppercase text-slate-400 font-bold tracking-wider bg-[#334155] flex items-center justify-between border-b border-[#475569]/50">
+            <div class="p-3 text-[11px] uppercase text-slate-400 font-bold tracking-wider bg-[#334155] border-b border-[#475569]/50">
+                <span>Tra cứu & Tham khảo</span>
+            </div>
+            <nav class="flex flex-row md:flex-col p-1 md:p-2 overflow-x-auto md:overflow-x-visible scrollbar-none md:space-y-1 border-b border-[#475569]">
+                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-bold transition w-full text-[#38bdf8]"><i class="fa-solid fa-boxes-stacked text-sm w-4 text-center"></i> <span>Danh mục Bộ dụng cụ</span></a>
+            </nav>
+
+            <div class="p-3 text-[11px] uppercase text-slate-400 font-bold tracking-wider bg-[#334155] border-b border-[#475569]/50 mt-2">
                 <span>Phân hệ Điều Dưỡng Khoa</span>
             </div>
             <nav class="flex flex-row md:flex-col p-1 md:p-2 overflow-x-auto md:overflow-x-visible scrollbar-none md:space-y-1 border-b border-[#475569]">
-                <a href="#" onclick="switchTab('khoaphong')" id="menu-khoaphong" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-pink-400"><i class="fa-solid fa-hand-holding-medical text-sm w-4 text-center"></i> <span class="font-bold">Cổng Khoa Trả Đồ</span></a>
+                <a href="#" onclick="switchTab('khoaphong')" id="menu-khoaphong" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-pink-400"><i class="fa-solid fa-hand-holding-medical text-sm w-4 text-center"></i> <span>Cổng Khoa Trả Đồ</span></a>
             </nav>
 
-            <div class="p-3 text-[11px] uppercase text-slate-400 font-bold tracking-wider bg-[#334155] flex items-center justify-between border-b border-[#475569]/50 mt-2">
+            <div class="p-3 text-[11px] uppercase text-slate-400 font-bold tracking-wider bg-[#334155] border-b border-[#475569]/50 mt-2">
                 <span>Phân hệ Quản lý CSSD</span>
             </div>
             <nav class="flex flex-row md:flex-col p-1 md:p-2 overflow-x-auto md:overflow-x-visible scrollbar-none md:space-y-1">
-                <a href="#" onclick="switchTab('chothugom')" id="menu-chothugom" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-amber-400"><i class="fa-solid fa-clipboard-check text-sm w-4 text-center"></i> <span class="font-bold">Duyệt Phiếu Thu Gom</span></a>
-                <a href="#" onclick="switchTab('chuTrinhTab')" id="menu-chuTrinhTab" class="sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-[#38bdf8]"><i class="fa-solid fa-rotate text-sm w-4 text-center"></i> <span>Theo dõi vòng đời</span></a>
+                <a href="#" onclick="switchTab('chothugom')" id="menu-chothugom" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-amber-400"><i class="fa-solid fa-clipboard-check text-sm w-4 text-center"></i> <span>Duyệt Phiếu Thu Gom</span></a>
+                <a href="#" onclick="switchTab('chuTrinhTab')" id="menu-chuTrinhTab" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-200"><i class="fa-solid fa-rotate text-sm w-4 text-center"></i> <span>Theo dõi vòng đời</span></a>
+                <a href="#" onclick="switchTab('phieugiao')" id="menu-phieugiao" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-[#10b981]"><i class="fa-solid fa-truck-fast text-sm w-4 text-center"></i> <span>Tạo Phiếu Xuất Giao</span></a>
                 <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-200"><i class="fa-solid fa-flask-vial text-sm w-4 text-center"></i> <span>Giám sát Test BI</span></a>
-                <a href="#" onclick="switchTab('phieugiao')" id="menu-phieugiao" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-[#10b981]"><i class="fa-solid fa-truck-fast text-sm w-4 text-center"></i> <span>Phiếu Xuất Giao</span></a>
-                <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-200"><i class="fa-solid fa-boxes-stacked text-sm w-4 text-center"></i> <span>Danh mục Bộ dụng cụ</span></a>
             </nav>
         </div>
     </div>
 
-    <!-- BÊN PHẢI: KHÔNG GIAN CHÍNH -->
+    <!-- KHÔNG GIAN LÀM VIỆC CHÍNH -->
     <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden w-full h-full bg-[#1e293b]">
-        <header class="bg-[#334155] border-b border-[#475569] px-4 py-2.5 md:px-6 flex flex-row justify-between items-center shadow-md flex-shrink-0 w-full box-border">
-            <div class="flex items-center space-x-2 truncate">
-                <h2 id="header-title" class="text-sm md:text-base font-bold text-white truncate tracking-wide">Vận hành Chu trình Vô khuẩn</h2>
-            </div>
+        <header class="bg-[#334155] border-b border-[#475569] px-4 py-3 flex flex-row justify-between items-center shadow-md">
+            <h2 id="header-title" class="text-sm md:text-base font-bold text-white tracking-wide">Danh mục Bộ dụng cụ (Cơ Số Tham Khảo)</h2>
         </header>
 
-        <main class="p-3 md:p-5 w-full box-border space-y-4 flex-1 min-h-0">
-            <!-- TÍNH NĂNG 1: CỔNG KHOA PHÒNG BÁO TRẢ ĐỒ -->
-            <div id="tab-khoaphong" class="hidden space-y-4 w-full h-full max-w-2xl mx-auto pt-4">
-                <div class="bg-gradient-to-br from-[#1e293b] to-[#334155] p-6 rounded-xl border border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.1)]">
-                    <div class="text-center mb-6 border-b border-[#475569] pb-4">
-                        <div class="w-16 h-16 bg-pink-500/20 text-pink-400 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><i class="fa-solid fa-hand-holding-medical"></i></div>
-                        <h2 class="text-lg font-black text-white tracking-wide">KHAI BÁO TRẢ DỤNG CỤ DƠ</h2>
+        <main class="p-3 md:p-5 w-full space-y-4 flex-1">
+            
+            <!-- CHỨC NĂNG CHÍNH: TRA CỨU DANH MỤC DỤNG CỤ (MỞ MẶC ĐỊNH) -->
+            <div id="tab-giaonhan" class="space-y-4 w-full">
+                <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wide"><i class="fa-solid fa-folder-open text-[#38bdf8] mr-1"></i> Bước 1: Chọn Bộ Dụng Cụ cần xem:</label>
+                            <select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full rounded px-3 py-2.5 text-xs md:text-sm font-bold text-white transition-all">
+                                <option value="">-- Chọn khối phòng mổ / khoa lâm sàng --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wide"><i class="fa-solid fa-magnifying-glass text-[#38bdf8] mr-1"></i> Hoặc tìm nhanh dụng cụ bất kỳ:</label>
+                            <input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Gõ tên cây dụng cụ hoặc mã code (VD: Kelly, Kéo...)" class="w-full rounded px-3 py-2.5 text-xs md:text-sm text-white transition-all">
+                        </div>
                     </div>
-                    <div class="space-y-5">
-                        <div>
-                            <label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">1. Khoa/Phòng của bạn:</label>
-                            <select id="khoa_selKhoaTra" onchange="khoa_LoadBoDungCu()" class="w-full rounded-lg px-4 py-3 text-sm font-bold bg-[#0f172a] border border-[#475569] text-white">
-                                <option value="">-- Chọn khoa đang công tác --</option>
-                            </select>
+
+                    <!-- BẢNG HIỂN THỊ THÀNH PHẦN CHI TIẾT -->
+                    <div id="khuVucDanhSach" class="hidden space-y-3 w-full mt-4">
+                        <div class="flex justify-between items-center text-xs w-full px-1">
+                            <h4 class="font-black text-[#38bdf8] uppercase tracking-wider text-sm" id="lblTenBoHienTai">Thành phần chi tiết</h4>
+                            <span id="lblTongSoCay" class="bg-[#0ea5e9]/10 text-[#38bdf8] border border-[#0ea5e9]/30 px-3 py-1 rounded font-black text-xs">Tổng cơ số: --</span>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">2. Bộ dụng cụ muốn trả:</label>
-                            <select id="khoa_selBoTra" class="w-full rounded-lg px-4 py-3 text-sm font-bold bg-[#0f172a] border border-[#475569] text-white">
-                                <option value="">-- Vui lòng chọn khoa trước --</option>
-                            </select>
+                        <div class="w-full overflow-x-auto border border-[#475569] rounded shadow-md bg-[#1e293b]">
+                            <table class="w-full text-left border-collapse min-w-[620px] table-auto text-xs md:text-sm">
+                                <thead class="bg-[#475569] text-slate-200 border-b border-[#475569] uppercase font-bold text-[11px] tracking-wider">
+                                    <tr>
+                                        <th class="p-3 w-1/4">Mã Dụng Cụ (MÃ CODE)</th>
+                                        <th class="p-3 w-2/3">Tên Chi Tiết Dụng Cụ</th>
+                                        <th class="p-3 text-center w-32">Định Mức Quy Định</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bodyChiTietDungCu" class="divide-y divide-[#475569] text-slate-300">
+                                    <!-- Render By JS -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">Số lượng trả:</label>
-                                <input type="number" id="khoa_inpSoLuong" value="1" min="1" class="w-full rounded-lg px-4 py-3 text-lg font-black text-center bg-[#0f172a] border border-[#475569] text-white">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">Mã BN charge (Truy xuất):</label>
-                                <input type="text" id="khoa_inpBN" placeholder="Nhập tên/mã BN..." class="w-full rounded-lg px-4 py-3 text-sm bg-[#0f172a] border border-[#475569] text-white">
-                            </div>
-                        </div>
-                        <button onclick="khoa_GuiYeuCauTra()" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-500 text-white font-black py-4 rounded-lg text-sm transition-all active:scale-95 mt-4">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> GỬI YÊU CẦU ĐẾN CSSD
-                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- TÍNH NĂNG 2: DUYỆT THU GOM TỪ KHOA BÁO TRẢ -->
+            <!-- TAB: CỔNG KHOA PHÒNG BÁO TRẢ -->
+            <div id="tab-khoaphong" class="hidden space-y-4 w-full h-full max-w-2xl mx-auto pt-4">
+                <div class="bg-gradient-to-br from-[#1e293b] to-[#334155] p-6 rounded-xl border border-pink-500/30">
+                    <div class="text-center mb-6 border-b border-[#475569] pb-4">
+                        <h2 class="text-lg font-black text-white tracking-wide uppercase">Khai báo trả dụng cụ dơ</h2>
+                    </div>
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">1. Khoa/Phòng báo trả:</label>
+                            <select id="khoa_selKhoaTra" onchange="khoa_LoadBoDungCu()" class="w-full rounded-lg px-4 py-3 text-sm font-bold bg-[#0f172a] text-white border border-[#475569]"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">2. Bộ dụng cụ hoàn trả:</label>
+                            <select id="khoa_selBoTra" class="w-full rounded-lg px-4 py-3 text-sm font-bold bg-[#0f172a] text-white border border-[#475569]"><option value="">-- Chọn khoa trước --</option></select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div><label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">Số lượng:</label><input type="number" id="khoa_inpSoLuong" value="1" min="1" class="w-full rounded-lg px-4 py-3 text-lg font-black text-center bg-[#0f172a] text-white border border-[#475569]"></div>
+                            <div><label class="block text-xs font-bold text-pink-400 mb-1.5 uppercase">Mã người bệnh charge đồ:</label><input type="text" id="khoa_inpBN" placeholder="Nhập ID/Tên bệnh nhân..." class="w-full rounded-lg px-4 py-3 text-sm bg-[#0f172a] text-white border border-[#475569]"></div>
+                        </div>
+                        <button onclick="khoa_GuiYeuCauTra()" class="w-full bg-gradient-to-r from-pink-600 to-rose-600 text-white font-black py-4 rounded-lg text-sm transition-all active:scale-95 mt-4">GỬI PHIẾU VỀ HỆ THỐNG CSSD</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: DUYỆT THU GOM -->
             <div id="tab-chothugom" class="hidden space-y-4 w-full h-full">
-                <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-lg flex flex-col h-[600px]">
-                    <div class="flex justify-between items-center border-b border-[#475569] pb-3 mb-4">
-                        <h3 class="text-sm font-black text-amber-400 uppercase tracking-wide flex items-center">
-                            <i class="fa-solid fa-bell animate-bounce mr-2"></i>Phiếu Khoa Báo Trả (Chờ Thu Gom)
-                            <span id="badgeSoLuongCho" class="ml-2 bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full">0</span>
-                        </h3>
+                <div class="bg-[#334155] p-5 rounded border border-[#475569] flex flex-col h-[600px]">
+                    <div class="flex justify-between border-b border-[#475569] pb-3 mb-4">
+                        <h3 class="text-sm font-black text-amber-400 uppercase tracking-wide">Phiếu Khoa Báo Trả (Chờ CSSD Thu Gom) <span id="badgeSoLuongCho" class="ml-2 bg-amber-500 text-white px-2 py-0.5 rounded-full">0</span></h3>
                     </div>
                     <div class="flex-1 overflow-auto bg-[#1e293b] rounded border border-[#475569]">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-[#475569] text-slate-200 sticky top-0 z-10">
-                                <tr>
-                                    <th class="p-3 w-[25%]">Khoa / Phòng Trả</th>
-                                    <th class="p-3 w-[35%]">Chi tiết Bộ Dụng Cụ khai báo</th>
-                                    <th class="p-3 text-center">T.Gian Báo</th>
-                                    <th class="p-3 text-center">Trạng Thái</th>
-                                    <th class="p-3 text-center">Thao tác KSNK</th>
-                                </tr>
+                                <tr><th class="p-3 w-[25%]">Khoa / Phòng Trả</th><th class="p-3 w-[35%]">Thông Tin Thiết Bị</th><th class="p-3 text-center">Thời Gian Báo</th><th class="p-3 text-center">Trạng Thái</th><th class="p-3 text-center">Hành động</th></tr>
                             </thead>
                             <tbody id="bangChoThuGom" class="divide-y divide-[#475569] text-white"></tbody>
                         </table>
@@ -119,60 +140,55 @@
                 </div>
             </div>
 
-            <!-- TAB 3: VÒNG ĐỜI -->
-            <div id="tab-chuTrinhTab" class="space-y-4 w-full">
-                <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
-                    <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition">TẤT CẢ <span id="count-all">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">BẨN <span id="count-step1">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(3)" id="btn-filter-3" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">HẤP <span id="count-step3">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(4)" id="btn-filter-4" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4">0</span></button>
+            <!-- TAB: VÒNG ĐỜI -->
+            <div id="tab-chuTrinhTab" class="hidden space-y-4 w-full">
+                <div class="bg-[#334155] p-3 rounded border border-[#475569] flex flex-wrap gap-1.5 text-xs font-bold">
+                    <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded">TẤT CẢ <span id="count-all">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 rounded">BẨN <span id="count-step1">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 rounded">ĐÓNG GÓI <span id="count-step2">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(3)" id="btn-filter-3" class="px-3 py-1.5 text-slate-300 rounded">HẤP <span id="count-step3">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(4)" id="btn-filter-4" class="px-3 py-1.5 text-slate-300 rounded">VÔ TRÙNG <span id="count-step4">0</span></button>
                 </div>
-                <div class="bg-[#334155] rounded border border-[#475569] shadow-lg overflow-hidden">
+                <div class="bg-[#334155] rounded border border-[#475569] overflow-hidden">
                     <div id="divDanhSachChuTrinh" class="divide-y divide-[#475569]"></div>
                 </div>
             </div>
 
-            <!-- CÁC TAB KHÁC GIỮ NGUYÊN HOÀN TOÀN GIAO DIỆN -->
+            <!-- TAB: LỆNH XUẤT GIAO -->
+            <div id="tab-phieugiao" class="hidden space-y-4 w-full h-full">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
+                    <div class="bg-[#334155] p-5 rounded border border-[#475569]">
+                        <h3 class="text-xs font-black text-[#38bdf8] uppercase border-b border-[#475569] pb-3 mb-4">Tạo lệnh xuất giao cấp phát</h3>
+                        <div class="space-y-4">
+                            <div><label class="block text-xs font-bold text-slate-300 mb-1">Khoa / Phòng nhận:</label><select id="xuat_selKhoaGiaoNhan" onchange="phieu_LoadBoDungCuTheoKhoa()" class="w-full rounded px-3 py-2 text-xs font-bold"></select></div>
+                            <div><label class="block text-xs font-bold text-slate-300 mb-1">Bộ dụng cụ cấp ra:</label><select id="xuat_selBoDungCu" class="w-full rounded px-3 py-2 text-xs font-bold text-[#10b981]"><option value="">-- Chọn khoa nhận trước --</option></select></div>
+                            <div class="grid grid-cols-3 gap-3 text-center"><div class="bg-emerald-500/10 p-2 rounded border border-emerald-500/30"><label class="text-[10px] text-emerald-400 font-bold block">Vô Khuẩn</label><input type="number" id="inpVK" value="0" class="w-full bg-transparent text-center font-black text-white text-lg border-none"></div><div class="bg-amber-500/10 p-2 rounded border border-amber-500/30"><label class="text-[10px] text-amber-400 font-bold block">Sạch</label><input type="number" id="inpSach" value="0" class="w-full bg-transparent text-center font-black text-white text-lg border-none"></div><div class="bg-red-500/10 p-2 rounded border border-red-500/30"><label class="text-[10px] text-red-400 font-bold block">Dơ (Lỗi)</label><input type="number" id="inpDo" value="0" class="w-full bg-transparent text-center font-black text-white text-lg border-none"></div></div>
+                            <button onclick="themVaoPhieuXuat()" class="w-full bg-[#0ea5e9] text-white font-bold py-3 rounded text-xs">THÊM VÀO LỆNH XUẤT</button>
+                        </div>
+                    </div>
+                    <div class="bg-[#334155] p-5 rounded border border-[#475569] flex flex-col"><div class="flex justify-between border-b pb-2"><h3 class="text-xs font-black text-white">Chi tiết giỏ hàng xuất</h3><span id="badgeTongXuat" class="text-emerald-400 text-xs font-bold">0 Lô</span></div><div class="flex-1 overflow-auto bg-[#1e293b] rounded mt-2"><table class="w-full text-left text-xs"><thead class="bg-[#475569] text-slate-200"><tr><th class="p-2">Tên Bộ</th><th class="p-2 text-center">VK</th><th class="p-2 text-center">Sạch</th><th class="p-2 text-center">Dơ</th><th class="p-2 text-center">Bỏ</th></tr></thead><tbody id="bangPhieuXuat" class="divide-y divide-[#475569] text-white"></tbody></table></div></div>
+                </div>
+            </div>
+
+            <!-- TAB: MONITOR TEST BI -->
             <div id="tab-trangchu" class="hidden space-y-4 w-full">
-                <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-md space-y-5">
-                    <div class="border-b border-[#475569] pb-3"><h3 class="text-sm font-bold text-white"><i class="fa-solid fa-microscope text-[#38bdf8] mr-2"></i> Giám sát Test BI (Sinh học)</h3></div>
+                <div class="bg-[#334155] p-5 rounded border border-[#475569] space-y-5">
+                    <div class="border-b border-[#475569] pb-3"><h3 class="text-sm font-bold text-white"><i class="fa-solid fa-microscope text-[#38bdf8] mr-2"></i> Giám sát chất lượng Ủ Test BI</h3></div>
                     <div class="grid grid-cols-2 gap-5">
                         <div><label class="block text-xs font-bold text-slate-300 mb-1.5">Bỏ test vào máy:</label><input type="time" id="startTime" class="w-full rounded px-3 py-2.5 text-sm"></div>
-                        <div><label class="block text-xs font-bold text-slate-300 mb-1.5">Đọc kết quả:</label><input type="time" id="endTime" class="w-full rounded px-3 py-2.5 text-sm"></div>
+                        <div><label class="block text-xs font-bold text-slate-300 mb-1.5">Thời gian đọc:</label><input type="time" id="endTime" class="w-full rounded px-3 py-2.5 text-sm"></div>
                     </div>
                     <button onclick="checkBiStatus()" class="w-full bg-[#0ea5e9] text-white font-bold py-3 rounded shadow">PHÂN TÍCH KẾT QUẢ</button>
                     <div id="resultBox" class="hidden p-4 rounded border flex justify-between items-center text-sm"><div id="durationText" class="text-xl font-black text-white">-- phút</div><div><span id="statusBadge" class="px-4 py-1.5 rounded text-xs font-black">--</span></div></div>
                 </div>
             </div>
 
-            <div id="tab-phieugiao" class="hidden space-y-4 w-full h-full">
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 h-full">
-                    <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-lg">
-                        <h3 class="text-xs font-black text-[#38bdf8] uppercase border-b border-[#475569] pb-3 mb-4">Tạo phiếu xuất giao cho khoa</h3>
-                        <div class="space-y-4">
-                            <div><label class="block text-xs font-bold text-slate-300 mb-1">Khoa / Phòng nhận:</label><select id="xuat_selKhoaGiaoNhan" onchange="phieu_LoadBoDungCuTheoKhoa()" class="w-full rounded px-3 py-2 text-xs font-bold"></select></div>
-                            <div><label class="block text-xs font-bold text-slate-300 mb-1">Bộ dụng cụ (Thuộc cơ số):</label><select id="xuat_selBoDungCu" class="w-full rounded px-3 py-2 text-xs font-bold text-[#10b981]"><option value="">-- Chọn Khoa trước --</option></select></div>
-                            <div class="grid grid-cols-3 gap-3 text-center"><div class="bg-emerald-500/10 p-2 rounded border border-emerald-500/30"><label class="text-[10px] text-emerald-400 font-bold block">Vô Khuẩn</label><input type="number" id="inpVK" value="0" class="w-full bg-transparent text-center font-black text-white text-lg border-none focus:ring-0"></div><div class="bg-amber-500/10 p-2 rounded border border-amber-500/30"><label class="text-[10px] text-amber-400 font-bold block">Sạch</label><input type="number" id="inpSach" value="0" class="w-full bg-transparent text-center font-black text-white text-lg border-none focus:ring-0"></div><div class="bg-red-500/10 p-2 rounded border border-red-500/30"><label class="text-[10px] text-red-400 font-bold block">Dơ (Lỗi)</label><input type="number" id="inpDo" value="0" class="w-full bg-transparent text-center font-black text-white text-lg border-none focus:ring-0"></div></div>
-                            <button onclick="themVaoPhieuXuat()" class="w-full bg-[#0ea5e9] text-white font-bold py-3 rounded text-xs">THÊM VÀO PHIẾU XUẤT</button>
-                        </div>
-                    </div>
-                    <div class="bg-[#334155] p-5 rounded border border-[#475569] shadow-lg flex flex-col"><div class="flex justify-between border-b pb-2"><h3 class="text-xs font-black text-white">Chi tiết phiếu xuất</h3><span id="badgeTongXuat" class="text-emerald-400 text-xs font-bold">0 lô</span></div><div class="flex-1 overflow-auto bg-[#1e293b] rounded mt-2"><table class="w-full text-left text-xs"><thead class="bg-[#475569] text-slate-200"><tr><th class="p-2">Tên Bộ</th><th class="p-2 text-center">VK</th><th class="p-2 text-center">Sạch</th><th class="p-2 text-center">Dơ</th><th class="p-2 text-center">Xóa</th></tr></thead><tbody id="bangPhieuXuat" class="divide-y divide-[#475569] text-white"></tbody></table></div></div>
-                </div>
-            </div>
-
-            <div id="tab-giaonhan" class="hidden space-y-4 w-full">
-                <div class="bg-[#334155] p-4 rounded border border-[#475569] shadow-md space-y-4 w-full">
-                    <div class="grid grid-cols-2 gap-4 w-full"><select id="selectBoDungCu" onchange="loadChiTietBo()" class="w-full rounded px-3 py-2 text-xs font-bold"><option value="">-- Chọn bộ dụng cụ --</option></select><input type="text" id="txtTimKiem" oninput="timKiemNhanh()" placeholder="Tìm nhanh theo mã/tên..." class="w-full rounded px-3 py-2 text-xs"></div>
-                    <div id="khuVucDanhSach" class="hidden space-y-3 w-full"><div class="flex justify-between items-center text-xs"><h4 class="font-extrabold text-[#38bdf8] uppercase" id="lblTenBoHienTai">Chi tiết</h4><span id="lblTongSoCay" class="text-[#38bdf8] font-black">Tổng: --</span></div><div class="w-full overflow-x-auto border border-[#475569] rounded bg-[#1e293b]"><table class="w-full text-left text-xs"><thead class="bg-[#475569] text-slate-200"><tr id="tableHeaderRow"><th class="p-3 w-32">Mã Code</th><th class="p-3">Tên Chi Tiết Dụng Cụ</th><th class="p-3 text-center w-32">Định Mức</th></tr></thead><tbody id="bodyChiTietDungCu" class="divide-y divide-[#475569]"></tbody></table></div></div>
-                </div>
-            </div>
         </main>
     </div>
 
-    <!-- CODE ENGINE LOGIC HOÀN CHỈNH -->
+    <!-- ENGINE LOGIC ENGINE SẢN PHẨM -->
     <script>
-        // BẢO VỆ DỮ LIỆU: BẢN NẠP CỨNG 100% CƠ SỐ DỮ LIỆU TỪ EXCEL CỦA PHƯƠNG NAM HOSPITAL
+        // CORE DATABASE: 22 KHOA PHÒNG PHƯƠNG NAM HOSPITAL
         const danhSachKhoa = [
             { id: "PHONG_SANH_CAP_CUU_SAN", ten: "PHÒNG SANH - CẤP CỨU SẢN", lau: "LẦU 3" }, { id: "PHONG_KHAM_SAN", ten: "PHÒNG KHÁM SẢN", lau: "LẦU G" },
             { id: "NICU", ten: "NICU", lau: "LẦU 3" }, { id: "NOI_SOI_TIEU_HOA", ten: "NỘI SOI TIÊU HÓA", lau: "LẦU 2" },
@@ -198,7 +214,7 @@
                 { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 2 }, { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 2 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 },
                 { ma: "SG-AF 132/26", ten: "Kẹp BOZEMAN thẳng", dinhMuc: 5 }, { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 1 }, { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 },
                 { ma: "SG-ER602R", ten: "Thìa nạo", dinhMuc: 1 }, { ma: "SG-GAPTHAITO", ten: "Gắp thai to", dinhMuc: 1 }, { ma: "SG-ER134R", ten: "Thìa nạo đầu tù", dinhMuc: 2 },
-                { ma: "SG-VAN 96/99", ten: "VAN ÂM ĐẠO 96/99", dinhMuc: 2 }, { ma: "SG-VAN", ten: "VAN ÂM ĐẠO 95/98", dinhMuc: 2 }, { ma: "SG-ER130R", ten: "Thìa nạo đầu tù 280mm", dinhMuc: 1 },
+                { ma: "SG-VAN 96/99", ten: "VAN ÂM ĐẠO 96/99", dinhMuc: 2 }, { ma: "SG-VAN", ten: "VAN ÂM ĐẠO 95/98", dinhMuc: 2 }, { ma: "SG-ER130R", ten: "Thìa nạo đầu tù dài 280mm", dinhMuc: 1 },
                 { ma: "SG-ER132R", ten: "Thìa nạo đầu tù dài 280mm", dinhMuc: 1 }, { ma: "SG-FORCEPS SIMSON", ten: "Forceps Simson", dinhMuc: 1 }
             ],
             "PHONG_KHAM_SAN": [
@@ -226,100 +242,34 @@
                 { ma: "SG-KEONHA", ten: "Kéo nha", dinhMuc: 1 }, { ma: "SG-MS705/4", ten: "Nạy chân răng 705/4", dinhMuc: 1 }, { ma: "SG-MS705/6", ten: "Nạy chân răng 705/6", dinhMuc: 1 },
                 { ma: "SG-KHAMNHA2", ten: "Khám nha 2 món", dinhMuc: 20 }, { ma: "SG-MZB", ten: "Mũi MANI", dinhMuc: 2 }, { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 1 }
             ],
-            "MAT": [
-                { ma: "SG-AB 710/10", ten: "Nhíp thắng không mấu", dinhMuc: 1 }, { ma: "SG-AB 715/10", ten: "Nhíp cong có mấu", dinhMuc: 1 }, { ma: "SG-AB 714/10", ten: "Nhíp thẳng có mấu", dinhMuc: 1 },
-                { ma: "SG-AB 840/02", ten: "Kẹp chắp", dinhMuc: 1 }, { ma: "SG-AC 450/10", ten: "Kéo thẳng", dinhMuc: 1 }, { ma: "SG-AC 451/10", ten: "Kéo cắt chỉ mũi cong/nhọn", dinhMuc: 1 },
-                { ma: "SG-AC 475/11", ten: "Kéo kết mạc", dinhMuc: 1 }, { ma: "SG-AD 010/03", ten: "Cán dao số 3", dinhMuc: 1 }, { ma: "SG-AA 151/12", ten: "Mosquito cong dài 12cm", dinhMuc: 1 },
-                { ma: "SG-AA 150/12", ten: "Mosquito thẳng dài 12cm", dinhMuc: 1 }, { ma: "SG-AR 282/20", ten: "Compa đo", dinhMuc: 1 }, { ma: "SG-KP 248/11", ten: "Cây thanh đè", dinhMuc: 1 },
-                { ma: "SG-KP 123/14", ten: "Cây thông lệ đạo", dinhMuc: 1 }, { ma: "SG-KP 415/20", ten: "Que nạo chắp", dinhMuc: 1 }, { ma: "SG-HCNR(T)", ten: "Hộp chữ nhật nắp rời TRUNG", dinhMuc: 2 },
-                { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 1 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 }, { ma: "SG-HOPTRON(N)", ten: "Hộp gòn size trung", dinhMuc: 1 }
-            ],
-            "TAI_MUI_HONG": [ { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 1 }, { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 1 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 1 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 1 }, { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 3 }, { ma: "SG-HOPTRON(N)", ten: "Hộp gòn size trung", dinhMuc: 1 } ],
-            "CAP_CUU_A_KHOA": [
-                { ma: "SG-SANH", ten: "Bộ sanh", dinhMuc: 1 }, { ma: "SG-TIEUPHAUKP", ten: "Bộ tiểu phẫu K/P", dinhMuc: 2 }, { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 3 },
-                { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 }, { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 3 },
-                { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 3 }, { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 6 },
-                { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 }, { ma: "SG-BISMED", ten: "Kềm Kocher kẹp dẫn lưu", dinhMuc: 2 }, { ma: "SG-MAGILL17", ten: "Kềm Magill 17", dinhMuc: 1 },
-                { ma: "SG-MAGILL20", ten: "Kềm Magill 20", dinhMuc: 1 }, { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 }, { ma: "SG-AC 031/16", ten: "Kéo cắt chỉ", dinhMuc: 2 },
-                { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 2 }, { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 6 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 5 },
-                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 5 }, { ma: "SG-AC 020/20", ten: "Kéo cắt chỉ dài 20", dinhMuc: 2 }
-            ],
-            "KHAM_BENH_VIP_SAN_PHU_KHOA": [
-                { ma: "SG-SOICTC", ten: "Bộ soi cổ tử cung", dinhMuc: 1 }, { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 5 }, { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 1 },
-                { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 1 }, { ma: "SG-DATVALAYVONG", ten: "Đặt và lấy vòng", dinhMuc: 2 }, { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 2 },
-                { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 3 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 3 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 6 },
-                { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 2 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 3 }, { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 },
-                { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 1 }, { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 }
-            ],
             "GAY_ME_HOI_SUC_DUNG_CU": [
-                { ma: "SG-34310MA", ten: "KÉO - 34310MA", dinhMuc: 1 }, { ma: "SG-NOISOI", ten: "Bộ nội soi", dinhMuc: 3 }, { ma: "SG-MAYNOISOI", ten: "Bộ may nội soi", dinhMuc: 2 },
-                { ma: "SG-MOLAYTHAI", ten: "Bộ mổ lấy thai", dinhMuc: 9 }, { ma: "SG-UTPK", ten: "Phẫu thuật ung thư phụ khoa", dinhMuc: 1 }, { ma: "SG-TIEUPHAU(NS)", ten: "Tiểu phẫu nội soi", dinhMuc: 2 },
-                { ma: "SG-KHAIKHIQUAN", ten: "Bộ khai khí quản", dinhMuc: 1 }, { ma: "SG-MOCTC(HO)", ten: "Mổ hở cắt tử cung", dinhMuc: 1 }, { ma: "SG-CATDOT", ten: "Bộ cắt đốt", dinhMuc: 2 },
-                { ma: "SG-CTCNS(NB)", ten: "Cắt tử cung nội soi ngã bụng", dinhMuc: 1 }, { ma: "SG-CTC(AD)", ten: "Cắt tử cung ngã âm đạo", dinhMuc: 1 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 10 },
-                { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 4 }, { ma: "SG-BH167R", ten: "Kelly cong-BH167R", dinhMuc: 2 }, { ma: "SG-AB 050/15", ten: "Nhíp không mấu AB 050/15", dinhMuc: 2 },
-                { ma: "SG-AB 060/15", ten: "Nhíp có mấu AB 060/15", dinhMuc: 2 }, { ma: "SG-AC 020/16", ten: "Kéo AC 020/16", dinhMuc: 2 }, { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 2 },
-                { ma: "SG-BHD800", text: "Bồn hạt đậu lớn", dinhMuc: 16 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 3 }, { ma: "SG-KB 734/30", ten: "Forceps KB 734/30", dinhMuc: 2 },
-                { ma: "SG-26003BA", ten: "Optic 30 độ", dinhMuc: 1 }, { ma: "SG-THAU22", ten: "Thau 22", dinhMuc: 2 }, { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 1 },
-                { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 1 }, { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 }, { ma: "SG-KB 201/32", ten: "Thước đo lòng tử cung", dinhMuc: 1 },
-                { ma: "SG-282208BA", ten: "Optic 30 độ (Buồng)", dinhMuc: 2 }, { ma: "SG-26003AA", ten: "Optic 0 độ", dinhMuc: 1 }, { ma: "SG-495NCS", ten: "Dây dẫn sáng lớn", dinhMuc: 3 },
-                { ma: "SG-495NA", ten: "Dây dẫn sáng nhỏ", dinhMuc: 2 }, { ma: "SG-279", ten: "Dây mono nội soi buồng 279", dinhMuc: 3 }, { ma: "SG-26005M", ten: "Dây mono NS Karl Storz", dinhMuc: 3 },
-                { ma: "SG-26176LE", ten: "Dây Bipolar 26176LE", dinhMuc: 3 }, { ma: "SG-26775UF", ten: "Cây móc đốt nội soi", dinhMuc: 2 }, { ma: "SG-26596D", ten: "Cây đẩy chỉ", dinhMuc: 2 },
-                { ma: "SG-38610ML", ten: "Robi nội soi", dinhMuc: 1 }, { ma: "SG-TROCARXOAN", ten: "Bộ trocar xoắn", dinhMuc: 1 }, { ma: "SG-TROCARTRON", ten: "Bộ trocar trơn", dinhMuc: 1 },
-                { ma: "SG-TROCARNHUAXOAN", ten: "Bộ trocar nhựa xoắn", dinhMuc: 2 }, { ma: "SG-DCGIAM1", ten: "Dụng cụ giảm 1", dinhMuc: 1 }, { ma: "SG-DCGIAM2", ten: "Dụng cụ giảm 2", dinhMuc: 1 },
-                { ma: "SG-27040G", ten: "Điện cực đốt", dinhMuc: 6 }, { ma: "SG-KEPRUOTNS", ten: "Kẹp Clamp ruột NS", dinhMuc: 1 }, { ma: "SG-AO 400/00", ten: "Ống hút dịch", dinhMuc: 2 },
-                { ma: "SG-26120JL", ten: "Kim veress", dinhMuc: 2 }, { ma: "SG-BOPZOZZI", ten: "Bộ kẹp Pozzi", dinhMuc: 1 }, { ma: "SG-AB 050/16", ten: "Kẹp phẫu tích, dài 16 cm", dinhMuc: 4 },
-                { ma: "SG-KB 594/04", ten: "Muỗng đặc size 4.25cm", dinhMuc: 2 }, { ma: "SG-BM236R", ten: "Kềm kẹp kim", dinhMuc: 2 }, { ma: "SG-BD801R", ten: "Ring Forceps-BD801R", dinhMuc: 1 },
-                { ma: "SG-AA 311/26", ten: "Kelly cong-AA 311/26", dinhMuc: 3 }, { ma: "SG-AE 420/26", ten: "Kẹp kim-AE 420/26", dinhMuc: 1 }, { ma: "SG-AK 620/20", ten: "Banh balfou", dinhMuc: 1 },
-                { ma: "SG-AF 200/20", ten: "Kẹp hình tim thẳng - AF 200/20", dinhMuc: 10 }, { ma: "SG-KD 253/13", ten: "Kẹp ruột - KD 253/13", dinhMuc: 1 }, { ma: "SG-KB 259/28", ten: "Pozzi 1 răng, cong", dinhMuc: 2 },
-                { ma: "SG-KB 250/25", ten: "Pozzi 1 răng", dinhMuc: 4 }, { ma: "SG-PL503R", ten: "Kẹp Clip XLC", dinhMuc: 1 }, { ma: "SG-PL504R", ten: "Kẹp Clip XDT", dinhMuc: 1 },
-                { ma: "SG-ER602R", ten: "Thìa nạo", dinhMuc: 1 }, { ma: "SG-ER134R", ten: "Thìa nạo đầu tù", dinhMuc: 2 }, { ma: "SG-TIEUPHAUNHI", ten: "Tiều phẫu nhi", dinhMuc: 1 },
-                { ma: "SG-KB 263/24", ten: "Pozzi 2 răng 2", dinhMuc: 2 }, { ma: "SG-ER132R", ten: "Thìa nạo đầu tù, dài 280mm", dinhMuc: 1 }, { ma: "SG-ER130R", ten: "Thìa nạo đầu tù 280mm", dinhMuc: 1 },
-                { ma: "SG-CATTHANLUOI", ten: "Bộ cắt thắn lưỡi", dinhMuc: 1 }, { ma: "SG-KIMSINHTHIETNS", ten: "Kim sinh thiết NS", dinhMuc: 1 }, { ma: "SG-KD 111/18", ten: "Kẹp Babcock 18 cm", dinhMuc: 1 },
-                { ma: "SG-KD 111/16", ten: "Babcock, dài 15.5 cm", dinhMuc: 1 }, { ma: "SG-THONGVOITRUNG", ten: "Thông vòi trứng", dinhMuc: 1 }, { ma: "SG-FORCEPS SIMSON", ten: "Forceps Simson", dinhMuc: 2 },
-                { ma: "SG-MAYCOL", ten: "May COL", dinhMuc: 2 }, { ma: "SG-NONG", ten: "Bộ nong", dinhMuc: 2 }, { ma: "SG-NONGLON", ten: "Bộ nong lớn", dinhMuc: 1 },
-                { ma: "SG-AK 300/07", ten: "BANH DEAVER - AK 300/07", dinhMuc: 1 }, { ma: "SG-FORCEPS SIMSON", ten: "Forceps Simson", dinhMuc: 2 }, { ma: "SG-AK 300/04", ten: "BANH DEAVER - AK 300/04", dinhMuc: 1 },
-                { ma: "KEOCATBANG", ten: "Kéo cắt băng", dinhMuc: 2 }, { ma: "SG-MALLEABLE-AK 807/50", ten: "MALLEABLE-AK 807/50", dinhMuc: 2 }, { ma: "SG-BH644R", ten: "KOCHER", dinhMuc: 1 }, { ma: "SG-BONONGNHO", ten: "BỘ NONG NHỎ", dinhMuc: 1 }
+                { ma: "SG-MOLAYTHAI", ten: "Bộ mổ lấy thai", dinhMuc: 9 }, { ma: "SG-NOISOI", ten: "Bộ nội soi phẫu thuật", dinhMuc: 3 },
+                { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 4 }, { ma: "SG-BH167R", ten: "Kelly cong-BH167R", dinhMuc: 2 },
+                { ma: "SG-AB 050/15", ten: "Nhíp không mấu AB 050/15", dinhMuc: 2 }, { ma: "SG-AC 020/16", ten: "Kéo AC 020/16", dinhMuc: 2 },
+                { ma: "SG-26003BA", ten: "Optic 30 độ Karl Storz", dinhMuc: 1 }, { ma: "SG-TROCARXOAN", ten: "Bộ trocar xoắn nội soi", dinhMuc: 1 },
+                { ma: "SG-BOPZOZZI", ten: "Bộ kẹp Pozzi cổ tử cung", dinhMuc: 1 }, { ma: "SG-BM236R", ten: "Kềm kẹp kim phẫu thuật", dinhMuc: 2 }
             ],
-            "GAY_ME_HOI_SUC_GAY_ME": [ { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 10 } ],
-            "GAY_ME_HOI_SUC_HOI_TINH": [ { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 5 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 1 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 }, { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 1 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 }, { ma: "SG-MAGILL15", ten: "Kềm Magill 15", dinhMuc: 1 }, { ma: "SG-MAGILL20", ten: "Kềm Magill 20", dinhMuc: 1 }, { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 } ],
-            "NOI_TRU_SAN_L1": [ { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 1 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 }, { ma: "SG-MAM41", ten: "Mâm inox lớn", dinhMuc: 2 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 }, { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 5 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 5 }, { ma: "SG-AF 200/20", ten: "Kẹp hình tim thẳng - AF 200/20", dinhMuc: 20 }, { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 }, { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 2 }, { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 3 }, { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 2 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 }, { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 1 }, { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 } ],
-            "NOI_TRU_SAN_L8": [ { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 4 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 6 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 }, { ma: "SG-BHD800", text: "Bồn hạt đậu lớn", dinhMuc: 2 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 4 }, { ma: "SG-AF 200/25", ten: "Kẹp hình tim AF 200/25", dinhMuc: 10 }, { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 4 }, { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 2 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 }, { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 1 }, { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 }, { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 }, { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 2 } ],
-            "PHONG_KHAM_NHI": [ { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 1 }, { ma: "SG-CATTHANLUOI", ten: "Bộ cắt thắn lưỡi", dinhMuc: 10 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 3 }, { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 5 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 }, { ma: "SG-AA 151/12", ten: "Mosquito cong dài 12cm", dinhMuc: 3 }, { ma: "SG-AC 030/16", ten: "Kéo cắt chỉ-AC 030/16", dinhMuc: 1 }, { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 1 }, { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 2 } ],
-            "NOI_TRU_NHI_L4": [ { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 1 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu nhỏ", dinhMuc: 2 }, { ma: "SG-MAGILL17", ten: "Kềm Magill 17", dinhMuc: 1 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 15 }, { ma: "SG-TIEUPHAUKP3", ten: "Tiểu phẫu khoa/phòng 3", dinhMuc: 1 }, { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 2 }, { ma: "SG-MAGILL25", text: "Kềm Magill 25", dinhMuc: 1 }, { ma: "SG-AC 071/17", ten: "Kéo Mayo cong 17cm AC 071/17", dinhMuc: 2 } ],
-            "NAM_KHOA": [ { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 }, { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 2 } ],
-            "IVF": [
-                { ma: "SG-CHOCHUTTRUNG", ten: "Bộ chọc hút trứng", dinhMuc: 10 }, { ma: "SG-CHUYENPHOI", ten: "Bộ chuyển phôi", dinhMuc: 10 }, { ma: "SG-TESE", ten: "Bộ Tese Microtese", dinhMuc: 4 },
-                { ma: "SG-BOMTINHTRUNG", ten: "Bơm tinh trùng", dinhMuc: 6 }, { ma: "SG-PESA", ten: "Bộ Pesa", dinhMuc: 6 }, { ma: "SG-HCNR(N)", ten: "Hộp Inox nắp rời Nhỏ", dinhMuc: 3 },
-                { ma: "SG-HCNR(D)", ten: "Hộp chứ nhật nắp rời ĐẠI", dinhMuc: 3 }, { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 18 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 4 },
-                { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 3 }, { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 }, { ma: "NOCODE", ten: "Kéo cắt băng keo", dinhMuc: 3 },
-                { ma: "SG-AA 132/26", ten: "Kelly cong-AA 132/26", dinhMuc: 8 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 10 }, { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 5 },
-                { ma: "SG-KB 250/25", ten: "Pozzi 1 răng", dinhMuc: 4 }, { ma: "SG-AB 050/16", ten: "Kẹp phẫu tích, dài 16 cm", dinhMuc: 5 }, { ma: "SG-KU 315/10", ten: "Bình kiềm", dinhMuc: 5 },
-                { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 5 }, { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 }, { ma: "SG-FB411R", ten: "De bakey atraumata", dinhMuc: 4 },
-                { ma: "SG-AC 020/20", ten: "Kéo cắt chỉ dài 20", dinhMuc: 2 }, { ma: "SG-NS BUỒNG", ten: "NS BUỒNG", dinhMuc: 2 }, { ma: "SG-KB 201/32", ten: "Thước đo lòng tử cung", dinhMuc: 2 }
-            ],
-            "XET_NGHIEM": [ { ma: "SG-MAM41", ten: "Mâm inox lớn", dinhMuc: 3 } ],
-            "NOI_TRU_SAN_L6": [ { ma: "SG-AF 200/20", ten: "Kẹp hình tim thẳng - AF 200/20", dinhMuc: 5 }, { ma: "SG-KEOCATCHI", ten: "Kéo cắt chỉ VN", dinhMuc: 5 }, { ma: "SG-CHEN9", ten: "Chén chun", dinhMuc: 2 }, { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 5 }, { ma: "SG-THAYBANG", ten: "Bộ thay băng", dinhMuc: 2 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 }, { ma: "SG-AA 173/16", ten: "Kelly cong AA 173/16", dinhMuc: 2 }, { ma: "SG-AA 172/16", ten: "Kelly thẳng AA 172/16", dinhMuc: 2 }, { ma: "SG-MAMINOX", ten: "Mâm inox", dinhMuc: 5 }, { ma: "SG-KB 040/01", ten: "Mỏ vịt nhỏ", dinhMuc: 2 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 2 }, { ma: "SG-KB 040/03", ten: "Mỏ vịt đại", dinhMuc: 1 }, { ma: "SG-MAGILL25", ten: "Kềm Magill 25", dinhMuc: 1 }, { ma: "SG-MAGILL15", ten: "Kềm Magill 15", dinhMuc: 1 } ],
-            "CHUAN_OAN_HINH_ANH": [ { ma: "SG-KB 259/28", ten: "Pozzi 1 răng, cong", dinhMuc: 2 }, { ma: "SG-KP-ONGHUT", ten: "Ống hút KP", dinhMuc: 1 }, { ma: "SG-KB 201/32", ten: "Thước đo lòng tử cung", dinhMuc: 1 }, { ma: "SG-KB 040/02", ten: "Mỏ vịt trung", dinhMuc: 3 }, { ma: "SG-CHUP(HSG)", ten: "Chụp HSG", dinhMuc: 3 } ]
+            "MAT": [{ ma: "SG-AB 710/10", ten: "Nhíp thắng không mấu", dinhMuc: 1 }, { ma: "SG-AB 840/02", ten: "Kẹp chắp mắt", dinhMuc: 1 }, { ma: "SG-AC 475/11", ten: "Kéo kết mạc mắt", dinhMuc: 1 }],
+            "TAI_MUI_HONG": [{ ma: "SG-MAMINOX", ten: "Mâm inox tai mũi họng", dinhMuc: 1 }, { ma: "SG-BHD800", ten: "Bồn hạt đậu lớn", dinhMuc: 1 }],
+            "CAP_CUU_A_KHOA": [{ ma: "SG-SANH", ten: "Bộ sanh cấp cứu", dinhMuc: 1 }, { ma: "SG-TIEUPHAUKP", ten: "Bộ tiểu phẫu K/P", dinhMuc: 2 }],
+            "IVF": [{ ma: "SG-CHOCHUTTRUNG", ten: "Bộ chọc hút trứng IVF", dinhMuc: 10 }, { ma: "SG-CHUYENPHOI", ten: "Bộ chuyển phôi lâm sàng", dinhMuc: 10 }],
+            "NOI_TRU_SAN_L1": [{ ma: "SG-THAYBANG", ten: "Bộ thay băng vết thương", dinhMuc: 2 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu sản khoa", dinhMuc: 1 }],
+            "NOI_TRU_SAN_L8": [{ ma: "SG-THAYBANG", ten: "Bộ thay băng lầu 8", dinhMuc: 2 }, { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu sản", dinhMuc: 4 }]
         };
 
-        let databaseExcel = JSON.parse(JSON.stringify(danhMucTheoKhoa)); // Đồng bộ danh mục xem với cơ số gốc
-        let trackingList = [
-            { id: "SOSINH", tenBo: "Bộ tổng quát nhi", step: 3, ngayHap: "18-06-2026", hanDung: "--", ghiChu: "Đang tiệt trùng buồng hấp" },
-            { id: "TIEUPHAU", tenBo: "Bộ mổ bắt con", step: 4, ngayHap: "10-06-2026", hanDung: "10-07-2026", ghiChu: "Vô trùng tại kho CSSD" }
-        ];
+        let databaseExcel = JSON.parse(JSON.stringify(danhMucTheoKhoa));
+        let trackingList = [];
         let danhSachPhieuXuat = [];
         let boLocHienTai = 'ALL';
 
-        // ENGINE HỆ THỐNG
         function initSelectsKhoa() {
+            const selectBoExcel = document.getElementById("selectBoDungCu");
             const selKhoaTra = document.getElementById("khoa_selKhoaTra");
             const selKhoaXuat = document.getElementById("xuat_selKhoaGiaoNhan");
-            const selectBoExcel = document.getElementById("selectBoDungCu");
-            
-            const initialOptions = '<option value="">-- Chọn Khoa / Phòng --</option>';
-            if(selKhoaTra) selKhoaTra.innerHTML = '<option value="">-- Chọn khoa đang công tác --</option>';
-            if(selKhoaXuat) selKhoaXuat.innerHTML = initialOptions;
-            if(selectBoExcel) selectBoExcel.innerHTML = '<option value="">-- Chọn bộ dụng cụ khối phòng mổ --</option>';
+
+            if(selectBoExcel) selectBoExcel.innerHTML = '<option value="">-- Chọn khối phòng mổ / khoa lâm sàng --</option>';
+            if(selKhoaTra) selKhoaTra.innerHTML = '<option value="">-- Chọn khoa trả đồ --</option>';
+            if(selKhoaXuat) selKhoaXuat.innerHTML = '<option value="">-- Chọn Khoa / Phòng nhận --</option>';
 
             danhSachKhoa.forEach(k => {
                 const opt = `<option value="${k.id}">${k.ten} (${k.lau})</option>`;
@@ -332,208 +282,111 @@
             }
         }
 
-        function khoa_LoadBoDungCu() {
-            const khoaId = document.getElementById("khoa_selKhoaTra").value;
-            const selBo = document.getElementById("khoa_selBoTra");
-            selBo.innerHTML = '<option value="">-- Lựa chọn dụng cụ dơ --</option>';
-            if(!khoaId || !danhMucTheoKhoa[khoaId]) return;
-            danhMucTheoKhoa[khoaId].forEach(item => {
-                selBo.innerHTML += `<option value="${item.ma}">${item.ten} [${item.ma}]</option>`;
-            });
-        }
-
-        function phieu_LoadBoDungCuTheoKhoa() {
-            const khoaId = document.getElementById("xuat_selKhoaGiaoNhan").value;
-            const selBo = document.getElementById("xuat_selBoDungCu");
-            selBo.innerHTML = '<option value="">-- Lựa chọn dụng cụ --</option>';
-            if(!khoaId || !danhMucTheoKhoa[khoaId]) return;
-            danhMucTheoKhoa[khoaId].forEach(item => {
-                selBo.innerHTML += `<option value="${item.ma}">${item.ten} (ĐM: ${item.dinhMuc})</option>`;
-            });
-        }
-
-        function khoa_GuiYeuCauTra() {
-            const khoaId = document.getElementById("khoa_selKhoaTra").value;
-            const bo = document.getElementById("khoa_selBoTra");
-            const soLuong = document.getElementById("khoa_inpSoLuong").value;
-            const bn = document.getElementById("khoa_inpBN").value;
-
-            if(!khoaId || !bo.value) { alert("Vui lòng chọn Khoa và Bộ dụng cụ!"); return; }
-
-            const tenKhoa = document.getElementById("khoa_selKhoaTra").options[document.getElementById("khoa_selKhoaTra").selectedIndex].text;
-            const tenBo = bo.options[bo.selectedIndex].text;
-            const gioHienTai = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-
-            const phieuMoi = { id: Date.now(), khoa: tenKhoa, bo: tenBo, soLuong: parseInt(soLuong) || 1, bn: bn || "Không charge", thoiGian: gioHienTai };
-            
-            let danhSachTra = JSON.parse(localStorage.getItem("CSSD_YEU_CAU_TRA")) || [];
-            danhSachTra.unshift(phieuMoi);
-            localStorage.setItem("CSSD_YEU_CAU_TRA", JSON.stringify(danhSachTra));
-
-            document.getElementById("khoa_inpSoLuong").value = 1; document.getElementById("khoa_inpBN").value = ""; document.getElementById("khoa_selBoTra").value = "";
-            alert(`✅ Đã gửi phiếu khai báo trả đồ thành công từ ${tenKhoa}!`);
-            renderChoThuGom();
-        }
-
-        function renderChoThuGom() {
-            const tbody = document.getElementById("bangChoThuGom");
-            const badge = document.getElementById("badgeSoLuongCho");
-            if(!tbody) return;
-            
-            let danhSachTra = JSON.parse(localStorage.getItem("CSSD_YEU_CAU_TRA")) || [];
-            if(badge) badge.innerText = danhSachTra.length;
-            tbody.innerHTML = "";
-            
-            if(danhSachTra.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500 font-medium italic"><i class="fa-solid fa-box-open text-2xl mb-2 block opacity-50"></i>Hệ thống Real-time: Chưa có Khoa nào báo trả đồ.</td></tr>`;
-                return;
-            }
-            
-            danhSachTra.forEach(item => {
-                tbody.innerHTML += `
-                    <tr class="hover:bg-[#475569]/50 border-b border-[#475569]/30">
-                        <td class="p-3 font-bold text-slate-200">${item.khoa}</td>
-                        <td class="p-3"><div class="font-bold text-[#38bdf8]">${item.bo} <span class="text-white bg-[#0ea5e9]/20 px-2 rounded-full border border-[#0ea5e9]/50">SL: ${item.soLuong}</span></div><div class="text-[10px] text-slate-400 mt-1">Charge: ${item.bn}</div></td>
-                        <td class="p-3 text-center text-slate-300 font-mono font-bold">${item.thoiGian}</td>
-                        <td class="p-3 text-center"><span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1 rounded-full text-[10px] font-black">CSSD chờ thu</span></td>
-                        <td class="p-3 text-center"><button onclick="xacNhanThuGom(${item.id})" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white px-3 py-2 rounded text-[11px] font-bold shadow-lg transition-all active:scale-95"><i class="fa-solid fa-check-double mr-1"></i> DUYỆT</button></td>
-                    </tr>
-                `;
-            });
-        }
-
-        function xacNhanThuGom(id) {
-            let danhSachTra = JSON.parse(localStorage.getItem("CSSD_YEU_CAU_TRA")) || [];
-            const index = danhSachTra.findIndex(x => x.id === id);
-            if(index === -1) return;
-            const item = danhSachTra[index];
-            
-            if(confirm(`Xác nhận kiểm đếm đủ [${item.soLuong}] bộ của [${item.bo}] từ [${item.khoa}]?`)) {
-                danhSachTra.splice(index, 1);
-                localStorage.setItem("CSSD_YEU_CAU_TRA", JSON.stringify(danhSachTra));
-                
-                trackingList.unshift({ id: "DUYET_" + id, tenBo: item.bo, step: 1, ngayHap: "--", hanDung: "--", ghiChu: `Vừa thu từ: ${item.khoa.split(' (')[0]}` });
-                renderChoThuGom(); hienThiChuTrinhVôKhuan();
-            }
-        }
-
-        function hienThiChuTrinhVôKhuan() {
-            const container = document.getElementById("divDanhSachChuTrinh");
-            if (!container) return; container.innerHTML = "";
-            let ListLoc = trackingList.filter(item => boLocHienTai === 'ALL' || item.step == boLocHienTai);
-            
-            document.getElementById("count-all").innerText = trackingList.length;
-            document.getElementById("count-step1").innerText = trackingList.filter(x => x.step == 1).length;
-            document.getElementById("count-step2").innerText = trackingList.filter(x => x.step == 2).length;
-            document.getElementById("count-step3").innerText = trackingList.filter(x => x.step == 3).length;
-            document.getElementById("count-step4").innerText = trackingList.filter(x => x.step == 4).length;
-
-            if(ListLoc.length === 0) { container.innerHTML = `<div class="p-4 text-center text-slate-400 italic text-xs">Trống.</div>`; return; }
-            ListLoc.forEach(item => {
-                let badgeHTML = "";
-                if(item.step === 1) badgeHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">🔴 BẨN</span>`;
-                if(item.step === 2) badgeHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500/20 text-orange-400 border border-orange-500/30">🟠 ĐÓNG GÓI</span>`;
-                if(item.step === 3) badgeHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">🔵 ĐANG HẤP</span>`;
-                if(item.step === 4) badgeHTML = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 VÔ TRÙNG</span>`;
-
-                const div = document.createElement("div");
-                div.className = "p-3 flex justify-between items-center text-xs text-slate-300 hover:bg-[#3d4f6d]/30 transition border-b border-[#475569]/30";
-                div.innerHTML = `<div><div class="font-bold text-white flex items-center gap-2">${item.tenBo} ${badgeHTML}</div><div class="text-[11px] text-slate-400 mt-1">${item.ghiChu}</div></div>
-                    <div class="text-right text-[11px]"><div>Hấp: <span class="text-slate-200 font-mono">${item.ngayHap}</span></div><div>Hạn: <span class="text-emerald-400 font-mono font-bold">${item.hanDung}</span></div></div>`;
-                container.appendChild(div);
-            });
-        }
-
-        function locTrangThaiChuTrinh(status) {
-            boLocHienTai = status;
-            ['all', '1', '2', '3', '4'].forEach(b => { document.getElementById(`btn-filter-${b}`).className = "px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition"; });
-            document.getElementById(`btn-filter-${status.toString().toLowerCase()}`).className = "px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded shadow-[0_0_10px_rgba(14,165,233,0.2)]";
-            hienThiChuTrinhVôKhuan();
-        }
-
         function loadChiTietBo() {
             const boKey = document.getElementById("selectBoDungCu").value;
             const tbody = document.getElementById("bodyChiTietDungCu");
             document.getElementById("khuVucDanhSach").classList.remove("hidden");
             if (!boKey || !databaseExcel[boKey]) { tbody.innerHTML = ""; return; }
             
-            document.getElementById("lblTenBoHienTai").innerText = "Danh mục: " + boKey.replace(/_/g, " ");
+            document.getElementById("lblTenBoHienTai").innerText = "Danh mục thiết bị: " + boKey.replace(/_/g, " ");
             let currentData = databaseExcel[boKey];
             let html = ""; let sum = 0;
             currentData.forEach(item => {
                 sum += item.dinhMuc;
-                html += `<tr class="border-b border-[#475569]/50 hover:bg-[#475569]/30"><td class="p-3 font-mono text-[#38bdf8]">${item.ma}</td><td class="p-3 text-white">${item.ten}</td><td class="p-3 text-center text-[#10b981] font-bold">${item.dinhMuc}</td></tr>`;
+                html += `<tr class="border-b border-[#475569]/50 hover:bg-[#475569]/30">
+                    <td class="p-3 font-mono text-[#38bdf8] font-bold">${item.ma}</td>
+                    <td class="p-3 text-white font-medium">${item.ten}</td>
+                    <td class="p-3 text-center text-[#10b981] font-black">${item.dinhMuc} cây</td>
+                </tr>`;
             });
             tbody.innerHTML = html;
-            document.getElementById("lblTongSoCay").innerText = "Tổng: " + sum + " cây";
+            document.getElementById("lblTongSoCay").innerText = "Tổng cơ số: " + sum + " cây";
         }
 
-        function themVaoPhieuXuat() {
-            const khoa = document.getElementById("xuat_selKhoaGiaoNhan"); const bo = document.getElementById("xuat_selBoDungCu");
-            const vk = parseInt(document.getElementById("inpVK").value) || 0;
-            const sach = parseInt(document.getElementById("inpSach").value) || 0;
-            const d = parseInt(document.getElementById("inpDo").value) || 0;
-            if(!khoa.value || !bo.value) { alert("Chọn đủ Khoa và Bộ dụng cụ!"); return; }
-            danhSachPhieuXuat.push({ id: Date.now(), maBo: bo.value, tenBo: bo.options[bo.selectedIndex].text.split(' (')[0], vk: vk, sach: sach, d: d });
-            renderPhieuXuat();
-            document.getElementById("inpVK").value = 0; document.getElementById("inpSach").value = 0; document.getElementById("inpDo").value = 0;
+        function timKiemNhanh() {
+            const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
+            const tbody = document.getElementById("bodyChiTietDungCu");
+            if (!tuKhoa) { if (document.getElementById("selectBoDungCu").value) loadChiTietBo(); return; }
+            
+            document.getElementById("selectBoDungCu").value = "";
+            document.getElementById("lblTenBoHienTai").innerText = "Kết quả tra cứu nhanh từ khóa: " + tuKhoa;
+            
+            let html = ""; let sum = 0;
+            for (let bo in databaseExcel) {
+                databaseExcel[bo].forEach(item => {
+                    if (item.ten.toLowerCase().includes(tuKhoa) || item.ma.toLowerCase().includes(tuKhoa)) {
+                        sum += item.dinhMuc;
+                        html += `<tr class="border-b border-[#475569]/50 hover:bg-[#475569]/30">
+                            <td class="p-3 font-mono text-[#38bdf8] font-bold">${item.ma}<br><span class="text-[10px] text-slate-400 font-sans">${bo.replace(/_/g, " ")}</span></td>
+                            <td class="p-3 text-white font-medium">${item.ten}</td>
+                            <td class="p-3 text-center text-[#10b981] font-black">${item.dinhMuc} cây</td>
+                        </tr>`;
+                    }
+                });
+            }
+            tbody.innerHTML = html;
+            document.getElementById("lblTongSoCay").innerText = "Tổng số dụng cụ tìm thấy: " + sum + " cây";
+            document.getElementById("khuVucDanhSach").classList.remove("hidden");
         }
 
-        function renderPhieuXuat() {
-            const tbody = document.getElementById("bangPhieuXuat"); tbody.innerHTML = "";
-            if(danhSachPhieuXuat.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Chưa có dữ liệu.</td></tr>`; document.getElementById("badgeTongXuat").innerText = "0 Lô"; return; }
-            danhSachPhieuXuat.forEach(item => {
-                tbody.innerHTML += `<tr class="border-b border-[#475569]/30 hover:bg-[#475569]/50"><td class="p-2">${item.tenBo}</td><td class="p-2 text-center text-emerald-400 font-bold">${item.vk}</td><td class="p-2 text-center text-amber-400 font-bold">${item.sach}</td><td class="p-2 text-center text-red-400 font-bold">${item.d}</td><td class="p-2 text-center"><button onclick="xoaLieuXuat(${item.id})" class="text-red-500"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        // CÁC ENGINE PHÂN HỆ KHÁC
+        function khoa_LoadBoDungCu() {
+            const khoaId = document.getElementById("khoa_selKhoaTra").value; const selBo = document.getElementById("khoa_selBoTra");
+            selBo.innerHTML = '<option value="">-- Lựa chọn dụng cụ dơ --</option>';
+            if(!khoaId || !danhMucTheoKhoa[khoaId]) return;
+            danhMucTheoKhoa[khoaId].forEach(item => { selBo.innerHTML += `<option value="${item.ma}">${item.ten}</option>`; });
+        }
+        function phieu_LoadBoDungCuTheoKhoa() {
+            const khoaId = document.getElementById("xuat_selKhoaGiaoNhan").value; const selBo = document.getElementById("xuat_selBoDungCu");
+            selBo.innerHTML = '<option value="">-- Lựa chọn dụng cụ --</option>';
+            if(!khoaId || !danhMucTheoKhoa[khoaId]) return;
+            danhMucTheoKhoa[khoaId].forEach(item => { selBo.innerHTML += `<option value="${item.ma}">${item.ten}</option>`; });
+        }
+        function khoa_GuiYeuCauTra() {
+            const khoaId = document.getElementById("khoa_selKhoaTra").value; const bo = document.getElementById("khoa_selBoTra");
+            if(!khoaId || !bo.value) return alert("Vui lòng nhập đủ thông tin!");
+            let danhSachTra = JSON.parse(localStorage.getItem("CSSD_YEU_CAU_TRA")) || [];
+            danhSachTra.unshift({ id: Date.now(), khoa: document.getElementById("khoa_selKhoaTra").options[document.getElementById("khoa_selKhoaTra").selectedIndex].text, bo: bo.options[bo.selectedIndex].text, soLuong: parseInt(document.getElementById("khoa_inpSoLuong").value)||1, bn: document.getElementById("khoa_inpBN").value||"Không charge", thoiGian: new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}) });
+            localStorage.setItem("CSSD_YEU_CAU_TRA", JSON.stringify(danhSachTra));
+            alert("✅ Đã gửi yêu cầu trả đồ dơ về CSSD thành công!");
+            switchTab('giaonhan');
+        }
+        function renderChoThuGom() {
+            const tbody = document.getElementById("bangChoThuGom"); if(!tbody) return;
+            let danhSachTra = JSON.parse(localStorage.getItem("CSSD_YEU_CAU_TRA")) || [];
+            document.getElementById("badgeSoLuongCho").innerText = danhSachTra.length; tbody.innerHTML = "";
+            if(danhSachTra.length === 0) { tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500">Trống.</td></tr>`; return; }
+            danhSachTra.forEach(item => {
+                tbody.innerHTML += `<tr class="hover:bg-[#475569]/30 border-b border-[#475569]/30"><td class="p-3 font-bold">${item.khoa}</td><td class="p-3 text-[#38bdf8] font-bold">${item.bo} (SL: ${item.soLuong})</td><td class="p-3 text-center font-mono">${item.thoiGian}</td><td class="p-3 text-center"><span class="bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded text-[10px]">Chờ gom</span></td><td class="p-3 text-center"><button onclick="xacNhanThuGom(${item.id})" class="bg-[#10b981] text-white px-3 py-1 rounded text-[11px]">DUYỆT</button></td></tr>`;
             });
-            document.getElementById("badgeTongXuat").innerText = `${danhSachPhieuXuat.length} Lô`;
         }
-
-        function xoaLieuXuat(id) { danhSachPhieuXuat = danhSachPhieuXuat.filter(x => x.id !== id); renderPhieuXuat(); }
-        function banDuLieuLenSharePoint() { alert("Đã xuất kho & lưu dữ liệu đám mây!"); danhSachPhieuXuat = []; renderPhieuXuat(); }
-        
-        function checkBiStatus() {
-            const start = document.getElementById('startTime').value; const end = document.getElementById('endTime').value;
-            if(!start || !end) return;
-            const diff = Math.round((new Date(`2000-01-01T${end}`) - new Date(`2000-01-01T${start}`)) / 60000);
-            document.getElementById('resultBox').classList.remove('hidden');
-            document.getElementById('durationText').innerText = `${diff} phút`;
-            const badge = document.getElementById('statusBadge');
-            if(diff <= 30) { badge.innerText = "ĐẠT"; badge.className = "px-4 py-1.5 rounded bg-emerald-500/20 text-emerald-400"; }
-            else { badge.innerText = "KHÔNG ĐẠT"; badge.className = "px-4 py-1.5 rounded bg-red-500/20 text-red-400"; }
+        function xacNhanThuGom(id) {
+            let danhSachTra = JSON.parse(localStorage.getItem("CSSD_YEU_CAU_TRA")) || [];
+            danhSachTra = danhSachTra.filter(x => x.id !== id); localStorage.setItem("CSSD_YEU_CAU_TRA", JSON.stringify(danhSachTra));
+            renderChoThuGom(); alert("Đã nhận đồ bàn giao về khu sạch!");
         }
-
         function switchTab(tabName) {
             ['khoaphong', 'trangchu', 'chuTrinhTab', 'giaonhan', 'phieugiao', 'chothugom'].forEach(t => {
                 const el = document.getElementById('tab-' + t); const menu = document.getElementById('menu-' + t);
                 if(el) el.classList.add('hidden');
-                if(menu) { menu.className = "whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-300"; menu.style.borderLeft = ""; menu.style.boxShadow = ""; menu.style.backgroundColor = ""; }
+                if(menu) menu.className = "whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-300";
             });
             const aTab = document.getElementById('tab-' + tabName); const aMenu = document.getElementById('menu-' + tabName);
             if(aTab) aTab.classList.remove('hidden');
-            if(aMenu) {
-                if(tabName === 'khoaphong') { aMenu.className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-bold transition w-full text-pink-400"; aMenu.style.borderLeft = "4px solid #ec4899"; aMenu.style.backgroundColor = "rgba(236, 72, 153, 0.1)"; }
-                else if(tabName === 'chothugom') { aMenu.className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-bold transition w-full text-amber-400"; aMenu.style.borderLeft = "4px solid #f59e0b"; aMenu.style.backgroundColor = "rgba(245, 158, 11, 0.1)"; }
-                else if(tabName === 'phieugiao') { aMenu.className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-bold transition w-full text-[#10b981];"; aMenu.style.borderLeft = "4px solid #10b981"; aMenu.style.backgroundColor = "rgba(16, 185, 129, 0.1)"; }
-                else { aMenu.className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-bold transition w-full text-[#38bdf8]"; aMenu.style.borderLeft = "4px solid #0ea5e9"; }
-            }
+            if(aMenu) aMenu.className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-bold transition w-full text-[#38bdf8]";
+            
             const title = document.getElementById("header-title");
+            if(tabName === 'giaonhan') title.innerText = "Danh mục Bộ dụng cụ (Cơ Số Tham Khảo)";
             if(tabName === 'khoaphong') title.innerText = "Cổng nội bộ Khoa/Phòng Báo Trả";
             if(tabName === 'chothugom') { title.innerText = "Duyệt Phiếu Trả (Thu gom dụng cụ)"; renderChoThuGom(); }
-            if(tabName === 'chuTrinhTab') title.innerText = "Vận hành Chu trình Vô khuẩn";
-            if(tabName === 'phieugiao') title.innerText = "Tạo Phiếu Xuất Giao Cho Khoa";
-            if(tabName === 'giaonhan') title.innerText = "Cấu hình Danh mục Bộ dụng cụ";
-            if(tabName === 'trangchu') title.innerText = "Giám sát chất lượng (Test BI)";
         }
 
         window.onload = function() {
             initSelectsKhoa();
-            hienThiChuTrinhVôKhuan();
-            
             if(!localStorage.getItem("CSSD_YEU_CAU_TRA")) {
-                localStorage.setItem("CSSD_YEU_CAU_TRA", JSON.stringify([{ id: 9999, khoa: "NỘI SOI TIÊU HÓA (LẦU 2)", bo: "Ống nội soi dạ dày [SG-MAMINOX]", soLuong: 2, bn: "BN Trần Văn B - ID: 8842", thoiGian: "08:30"}]));
+                localStorage.setItem("CSSD_YEU_CAU_TRA", JSON.stringify([{ id: 9999, khoa: "NỘI SOI TIÊU HÓA (LẦU 2)", bo: "Ống nội soi dạ dày", soLuong: 2, bn: "BN Trần Văn B", thoiGian: "08:30"}]));
             }
-            renderChoThuGom();
-            switchTab('khoaphong');
+            switchTab('giaonhan');
         };
     </script>
 </body>
