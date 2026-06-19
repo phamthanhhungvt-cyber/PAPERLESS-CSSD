@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V19.4</title>
+    <title>Hệ Thống Quản Lý CSSD - V19.5 (Vá lỗi hiển thị)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -13,6 +13,13 @@
         input, select, textarea { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; color-scheme: dark; }
         input:focus, select:focus, textarea:focus { outline: none; border-color: #0ea5e9 !important; box-shadow: 0 0 10px rgba(14, 165, 233, 0.3) !important; }
         .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(71, 85, 105, 0.5); }
+        
+        /* Hiệu ứng hiện Popup mượt mà */
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-popIn { animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     </style>
 </head>
 <body class="flex flex-col md:flex-row h-screen overflow-hidden">
@@ -63,7 +70,7 @@
                             <select id="khoa_selKhoa" onchange="loadBoDungCuTheoKhoa()" class="w-full rounded-xl px-4 py-3 text-sm font-bold shadow-inner"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-2">Bộ dụng cụ hoàn trả (Đã lọc bỏ sl=0):</label>
+                            <label class="block text-xs font-bold text-slate-300 mb-2">Bộ dụng cụ hoàn trả:</label>
                             <select id="khoa_selBo" class="w-full rounded-xl px-4 py-3 text-sm font-bold shadow-inner text-pink-400"><option value="">-- Vui lòng chọn khoa trước --</option></select>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -156,8 +163,8 @@
         </main>
     </div>
 
-    <div id="popupKiemDem" class="fixed inset-0 bg-black/80 backdrop-filter blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md rounded-2xl shadow-2xl p-6 border-t-4 border-t-amber-500 animate-fadeIn text-slate-200">
+    <div id="popupKiemDem" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl shadow-2xl p-6 border-t-4 border-t-amber-500 animate-popIn text-slate-200 bg-[#1e293b]">
             <h3 class="text-base font-black text-amber-400 uppercase border-b border-[#334155] pb-3 mb-4 flex items-center"><i class="fa-solid fa-clipboard-check mr-2"></i> Biên Bản Kiểm Đếm Giao Nhận</h3>
             <div class="space-y-4">
                 <p class="text-xs bg-slate-900/50 p-3 rounded-lg border border-[#334155] leading-relaxed">
@@ -166,22 +173,22 @@
                     📋 Điều dưỡng báo trả: <span id="popSLYeuCau" class="font-black text-amber-400">0</span> bộ
                 </p>
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-2">Số lượng thực nhận tại chỗ (bộ): <span class="text-rose-400 text-[10px] font-normal italic">(Nhập 0 để Hủy Phiếu Báo Ảo)</span></label>
+                    <label class="block text-xs font-bold text-slate-300 mb-2">Số lượng thực nhận tại chỗ (bộ): <span class="text-rose-400 text-[10px] font-normal italic">(Nhập 0 để Hủy Phiếu)</span></label>
                     <input type="number" id="popSLThucTe" min="0" class="w-full rounded-xl px-4 py-3 text-xl font-black text-center text-emerald-400 shadow-inner">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-2">Ghi chú sai lệch / Thiếu hụt dụng cụ (nếu có):</label>
-                    <textarea id="popGhiChu" rows="3" placeholder="Ví dụ: Thiếu 1 kéo cắt chỉ, hoặc Khoa chỉ giao 1 bộ..." class="w-full rounded-xl px-3 py-2 text-xs shadow-inner border border-[#334155] resize-none"></textarea>
+                    <textarea id="popGhiChu" rows="3" placeholder="Ví dụ: Thiếu 1 kéo cắt chỉ..." class="w-full rounded-xl px-3 py-2 text-xs shadow-inner border border-[#334155] resize-none"></textarea>
                     <div class="flex flex-wrap gap-1.5 mt-2">
                         <button onclick="quickNote('Đủ bộ')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-400">✓ Đủ bộ</button>
-                        <button onclick="quickNote('Không có đồ (Báo ảo)')" class="text-[10px] bg-rose-950/40 text-rose-400 border border-rose-900/50 px-2 py-1 rounded">🚫 Không có đồ (Báo ảo)</button>
+                        <button onclick="quickNote('Không có đồ (Báo ảo)')" class="text-[10px] bg-rose-950/40 text-rose-400 border border-rose-900/50 px-2 py-1 rounded">🚫 Không có đồ</button>
                         <button onclick="quickNote('Khoa đưa thiếu số bộ')" class="text-[10px] bg-amber-950/40 text-amber-400 border border-amber-900/50 px-2 py-1 rounded">⚠️ Lệch số bộ</button>
                     </div>
                 </div>
             </div>
             <div class="flex space-x-3 mt-6">
                 <button onclick="closePopup()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl text-xs transition">ĐÓNG</button>
-                <button onclick="saveKiemDem()" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 text-white font-black py-3 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">CHỐT BIÊN BẢN</button>
+                <button onclick="saveKiemDem()" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 text-white font-black py-3 rounded-xl text-xs transition shadow-[0_0_15px_rgba(245,158,11,0.3)]">CHỐT BIÊN BẢN</button>
             </div>
         </div>
     </div>
@@ -203,7 +210,6 @@
             { id: "NOI_TRU_SAN_L6", ten: "NỘI TRÚ SẢN L6" }, { id: "CHUAN_OAN_HINH_ANH", ten: "CHUẨN ĐOÁN HÌNH ẢNH" }
         ];
 
-        // Dữ liệu mô phỏng: Cố tình thêm một số món đồ có định mức 0 để test bộ lọc
         const danhMucTheoKhoa = {
             "PHONG_SANH_CAP_CUU_SAN": [{ ma: "SG-SANH", ten: "Bộ sanh", dinhMuc: 8 }, { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 2 }, { ma: "SG-MAYTANGSINHMON", ten: "Bộ may tầng sinh môn", dinhMuc: 5 }, { ma: "SG-KEOCHIT", ten: "Kéo cắt chỉ rốn", dinhMuc: 0 }],
             "PHONG_KHAM_SAN": [{ ma: "SG-SOICTC", ten: "Bộ soi cổ tử cung", dinhMuc: 2 }, { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 55 }, { ma: "SG-DATVALAYVONG", ten: "Đặt và lấy vòng", dinhMuc: 2 }],
@@ -237,13 +243,11 @@
             for(let key in databaseExcel) { if(selectBoExcel) selectBoExcel.innerHTML += `<option value="${key}">${key.replace(/_/g, " ")}</option>`; }
         }
 
-        // TÍNH NĂNG 1: LỌC ẨN CÁC DỤNG CỤ CÓ ĐỊNH MỨC = 0
         function loadBoDungCuTheoKhoa() {
             const k = document.getElementById("khoa_selKhoa").value; const sel = document.getElementById("khoa_selBo");
             sel.innerHTML = '<option value="">-- Chọn bộ dụng cụ --</option>';
             if(danhMucTheoKhoa[k]) {
                 danhMucTheoKhoa[k].forEach(i => {
-                    // Logic màng lọc chặn số lượng 0
                     if(i.dinhMuc > 0) {
                         sel.innerHTML += `<option value="${i.ma}">${i.ten}</option>`;
                     }
@@ -285,7 +289,6 @@
             const tx = document.getElementById("popGhiChu");
             if(tx.value) tx.value += ", " + text; else tx.value = text;
             
-            // Tự động nhảy số lượng về 0 nếu bấm nút báo ảo
             if(text === 'Không có đồ (Báo ảo)') {
                 document.getElementById("popSLThucTe").value = 0;
             }
@@ -293,7 +296,6 @@
 
         function closePopup() { document.getElementById("popupKiemDem").classList.add("hidden"); idDangKiemDem = null; }
 
-        // TÍNH NĂNG 2: XỬ LÝ HỦY PHIẾU NẾU SỐ LƯỢNG THỰC TẾ LÀ 0
         function saveKiemDem() {
             if(!idDangKiemDem) return;
             const item = listGiaoDich.find(x => x.id === idDangKiemDem);
@@ -305,14 +307,11 @@
             item.slThucTe = slThuc;
 
             if (slThuc === 0) {
-                // Hủy phiếu, chặn không đưa vào luồng đóng gói/rửa
                 item.status = "HUY_BO";
                 item.ghiChu = gc ? gc : "CSSD kiểm đếm không có đồ thực tế";
-                alert(`🚫 Đã hủy phiếu! CSSD xác nhận Khoa báo ảo (không có dụng cụ).`);
             } else {
                 item.status = "DANG_RUA";
                 item.ghiChu = gc ? gc : "Đủ bộ";
-                alert(`✅ Đã chốt thu gom ${item.slThucTe} bộ.\nDữ liệu chuyển sang khu Đóng gói & Kho vô khuẩn!`);
             }
             
             closePopup();
@@ -322,19 +321,17 @@
         function hoanThanhDongGoi(id) {
             const item = listGiaoDich.find(x => x.id === id);
             item.status = "CHO_XUAT";
-            alert("✅ Đã đóng gói xong! Lô hàng chuyển vào máy hấp tiệt trùng.");
             renderTatCaCacManHinh();
         }
 
         function xuatBuChoKhoa(id) {
             const item = listGiaoDich.find(x => x.id === id);
             item.status = "HOAN_TAT";
-            alert("✅ Đã xác nhận giao trả đồ sạch vô khuẩn hoàn tất cho Khoa!");
             renderTatCaCacManHinh();
         }
 
         function renderTatCaCacManHinh() {
-            // 1. MÀN HÌNH LỊCH SỬ KHOA
+            // 1. LỊCH SỬ KHOA
             const selKhoa = document.getElementById("khoa_selKhoa");
             const tenKhoaDangChon = selKhoa.options[selKhoa.selectedIndex]?.text || "";
             const tbodyKhoa = document.getElementById("bangLichSuKhoa"); tbodyKhoa.innerHTML = "";
@@ -351,7 +348,7 @@
                     
                     if (i.status === "CHO_THU") {
                         statusUI = `<span class="text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 text-[11px] font-medium"><i class="fa-solid fa-clock mr-1"></i> CSSD Đang lên lấy</span>`;
-                    } else if (i.status === "HUY_BO") { // Báo hiệu trạng thái hủy do nhập 0
+                    } else if (i.status === "HUY_BO") {
                         statusUI = `<span class="text-rose-500 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 text-[11px] font-black"><i class="fa-solid fa-ban mr-1"></i> Báo ảo (Thu 0 bộ)</span>`;
                     } else if (i.status === "DANG_RUA" || i.status === "CHO_XUAT") {
                         statusUI = `<span class="text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 text-[11px] font-medium"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý tại CSSD</span>`;
@@ -362,7 +359,7 @@
                 });
             }
 
-            // 2. MÀN HÌNH XE THU GOM
+            // 2. XE THU GOM
             const filterKhoa = document.getElementById("filterKhoaThuGom").value;
             let listThuGom = listGiaoDich.filter(x => x.status === "CHO_THU");
             if(filterKhoa) { listThuGom = listThuGom.filter(x => x.khoa === filterKhoa); }
@@ -379,7 +376,7 @@
                 </tr>`;
             });
 
-            // 3. MÀN HÌNH TRẠM ĐÓNG GÓI
+            // 3. TRẠM ĐÓNG GÓI
             const listDongGoi = listGiaoDich.filter(x => x.status === "DANG_RUA");
             document.getElementById("badgeDongGoi").innerText = `${listDongGoi.length} Lô`;
             const gridDG = document.getElementById("gridDongGoi"); gridDG.innerHTML = "";
@@ -388,27 +385,27 @@
                 let noteLabel = i.ghiChu && i.ghiChu !== "Đủ bộ" ? `<div class="text-[11px] text-rose-400 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 mt-2 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Biên bản: ${i.ghiChu}</div>` : "";
                 gridDG.innerHTML += `<div class="bg-[#1e293b] border border-[#334155] p-4 rounded-xl mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-md border-l-4 border-l-orange-500 gap-4">
                     <div><div class="text-[10px] text-slate-400 mb-1 uppercase font-bold tracking-widest"><i class="fa-solid fa-water text-blue-400 mr-1"></i> Đang xử lý làm sạch</div><div class="font-black text-orange-400 text-base">${i.bo} <span class="text-white bg-slate-700 px-2 py-0.5 rounded text-xs ml-2">Thực nhận: ${i.slThucTe} bộ</span></div><div class="text-[11px] text-slate-400 mt-1">Nguồn: ${i.khoa} | BN: ${i.bn}</div>${noteLabel}</div>
-                    <div class="text-right flex-shrink-0 w-full sm:w-auto"><button onclick="hoanThanhDongGoi(${i.id})" class="text-xs bg-orange-600 hover:bg-orange-500 text-white px-3 py-2 rounded-xl transition w-full sm:w-auto font-bold shadow"><i class="fa-solid fa-check mr-1"></i> Đã đóng gói xong</button></div>
+                    <div class="text-right flex-shrink-0 w-full sm:w-auto"><button onclick="hoanThanhDongGoi(${i.id})" class="text-xs bg-orange-600 hover:bg-orange-500 text-white px-4 py-2.5 rounded-xl transition w-full sm:w-auto font-bold shadow-lg shadow-orange-500/20 active:scale-95"><i class="fa-solid fa-check mr-1"></i> Đã đóng gói xong</button></div>
                 </div>`;
             });
 
-            // 4. MÀN HÌNH KHO VÔ KHUẨN
+            // 4. KHO VÔ KHUẨN
             const listChoXuat = listGiaoDich.filter(x => x.status === "CHO_XUAT");
             const tbodyKhoVK = document.getElementById("bangKhoVoKhuan"); tbodyKhoVK.innerHTML = "";
             document.getElementById("badgeKhoVoKhuan").innerText = `${listChoXuat.length} Lệnh`;
             if(listChoXuat.length === 0) tbodyKhoVK.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Không có lệnh xuất bù đổi đồ nào đang chờ.</td></tr>`;
             listChoXuat.forEach(i => {
-                let noteLabel = i.ghiChu && i.ghiChu !== "Đủ bộ" ? `<br><span class="text-[11px] text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Thu vào ghi nhận: ${i.ghiChu}</span>` : "";
+                let noteLabel = i.ghiChu && i.ghiChu !== "Đủ bộ" ? `<br><span class="text-[11px] text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20 mt-1 inline-block"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Thu vào ghi nhận: ${i.ghiChu}</span>` : "";
                 tbodyKhoVK.innerHTML += `<tr class="hover:bg-[#1e293b] transition">
                     <td class="p-4 font-bold text-pink-400">${i.khoa}</td>
                     <td class="p-4"><div class="font-bold text-emerald-400 text-sm">${i.bo}</div><div class="mt-1 text-slate-400">SL Cấp trả bù: <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black">${i.slThucTe} bộ</span></div>${noteLabel}</td>
-                    <td class="p-4 text-center"><span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/30"><i class="fa-solid fa-box-archive mr-1"></i> Chuẩn bị đủ đồ</span></td>
+                    <td class="p-4 text-center"><span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/30 font-medium"><i class="fa-solid fa-box-archive mr-1"></i> Chuẩn bị đủ đồ</span></td>
                     <td class="p-4 text-center"><button onclick="xuatBuChoKhoa(${i.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-emerald-500/20 active:scale-95"><i class="fa-solid fa-truck-ramp-box mr-1"></i> HOÀN TẤT XUẤT ĐỔI</button></td>
                 </tr>`;
             });
         }
 
-        // TÍNH NĂNG TRA CỨU DANH MỤC
+        // TRA CỨU DANH MỤC
         function loadChiTietBo() {
             const boKey = document.getElementById("selectBoDungCu").value;
             const tbody = document.getElementById("bodyChiTietDungCu");
@@ -465,7 +462,7 @@
             if(tabName === 'tracuu') title.innerText = "Danh mục Tham Khảo";
         }
 
-        window.onload = () => { initSelects(); renderTatCaCacManHinh(); switchTab('khoaphong'); };
+        window.onload = () => { initSelects(); renderTatCaCacManHinh(); switchTab('thugom'); };
     </script>
 </body>
 </html>
