@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - Dashboard V17.5</title>
+    <title>Hệ Thống Quản Lý Kho Vô Khuẩn - Dashboard V17.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -35,7 +35,9 @@
                 <a href="#" onclick="switchTab('chuTrinhTab')" id="menu-chuTrinhTab" class="sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-200"><i class="fa-solid fa-rotate text-sm w-4 text-center"></i> <span>Theo dõi vòng đời</span></a>
                 <a href="#" onclick="switchTab('trangchu')" id="menu-trangchu" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-200"><i class="fa-solid fa-flask-vial text-sm w-4 text-center"></i> <span>Giám sát Test BI</span></a>
                 <a href="#" onclick="switchTab('giaonhan')" id="menu-giaonhan" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-200"><i class="fa-solid fa-boxes-stacked text-sm w-4 text-center"></i> <span>Danh mục Bộ dụng cụ</span></a>
+                
                 <a href="#" onclick="switchTab('phieugiao')" id="menu-phieugiao" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-[#10b981]"><i class="fa-solid fa-truck-fast text-sm w-4 text-center"></i> <span class="font-bold">Phiếu Giao Nhận</span></a>
+                
                 <a href="#" onclick="switchTab('dovai')" id="menu-dovai" class="whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md hover:bg-[#475569] text-xs md:text-[13px] font-medium transition w-full text-slate-200"><i class="fa-solid fa-shirt text-sm w-4 text-center"></i> <span>Quản lý đồ vải KSNK</span></a>
             </nav>
         </div>
@@ -67,7 +69,7 @@
                 <div class="bg-[#334155] p-3 rounded shadow-md border border-[#475569] flex flex-wrap items-center gap-1.5 text-xs font-bold">
                     <button onclick="locTrangThaiChuTrinh('ALL')" id="btn-filter-all" class="px-3 py-1.5 bg-[#0ea5e9]/20 text-[#38bdf8] border border-[#0ea5e9]/50 rounded transition shadow-[0_0_10px_rgba(14,165,233,0.2)]">TẤT CẢ <span id="count-all" class="bg-[#0ea5e9] text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                     <button onclick="locTrangThaiChuTrinh(1)" id="btn-filter-1" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">BẨN <span id="count-step1" class="bg-red-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
-                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
+                    <button onclick="locTrangThaiChuTrinh(2)" id="btn-filter-2" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">ĐÃ ĐÓNG GÓI <span id="count-step2" class="bg-orange-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                     <button onclick="locTrangThaiChuTrinh(3)" id="btn-filter-3" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">HẤP <span id="count-step3" class="bg-blue-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                     <button onclick="locTrangThaiChuTrinh(4)" id="btn-filter-4" class="px-3 py-1.5 text-slate-300 border border-transparent hover:bg-[#475569] rounded transition">VÔ TRÙNG <span id="count-step4" class="bg-emerald-500/80 text-white px-1.5 py-0.2 rounded-full ml-1 text-[10px]">0</span></button>
                 </div>
@@ -185,7 +187,7 @@
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Bộ dụng cụ (Thuộc cơ số khoa phòng):</label>
+                                <label class="block text-[11px] font-bold text-slate-300 mb-1">Bộ dụng cụ (Thuộc cơ số khoa):</label>
                                 <select id="selBoDungCu" class="w-full rounded px-3 py-2 text-xs font-bold bg-[#1e293b] border border-[#475569] text-[#10b981]">
                                     <option value="">-- Vui lòng chọn Khoa trước --</option>
                                 </select>
@@ -481,6 +483,7 @@
         }
 
         function switchTab(tabName) {
+            // TÍNH NĂNG MỚI: Bổ sung thêm phieugiao vào mảng reset tab
             ['trangchu', 'chuTrinhTab', 'giaonhan', 'phieugiao', 'dovai'].forEach(t => {
                 const el = document.getElementById('tab-' + t); const menu = document.getElementById('menu-' + t);
                 if(el) el.classList.add('hidden');
@@ -489,6 +492,7 @@
             const aTab = document.getElementById('tab-' + tabName); const aMenu = document.getElementById('menu-' + tabName);
             if(aTab) aTab.classList.remove('hidden');
             
+            // Xử lý Active Menu đặc biệt cho Phiếu Giao
             if(aMenu) {
                 if(tabName === 'phieugiao') {
                     aMenu.className = "sidebar-item-active whitespace-nowrap flex items-center space-x-3 px-4 py-3 rounded-md text-xs md:text-[13px] font-bold transition w-full text-[#10b981] !border-[#10b981]";
@@ -503,6 +507,7 @@
             
             if(tabName === 'giaonhan') { capNhatDropdownBoDungCu(); khoiTaoTieuDeBangHienTai(); }
             
+            // Thay đổi tiêu đề Header
             const headerTitle = document.getElementById("header-title");
             if(tabName === 'chuTrinhTab') headerTitle.innerText = "Vận hành Chu trình Vô khuẩn";
             if(tabName === 'trangchu') headerTitle.innerText = "Kiểm Soát Test BI";
@@ -591,7 +596,7 @@
 
 
         // =======================================================
-        // ĐÃ TÍCH HỢP ĐẦY ĐỦ CƠ SỐ TẤT CẢ CÁC KHOA (FILE EXCEL)
+        // TÍNH NĂNG MỚI: DỮ LIỆU & LOGIC PHIẾU GIAO NHẬN (CƠ SỐ)
         // =======================================================
 
         const danhSachKhoa = [
@@ -618,57 +623,11 @@
                 { ma: "SG-VESINHAMDAO", ten: "Bộ vệ sinh âm đạo", dinhMuc: 2 },
                 { ma: "SG-THONGTIEU", ten: "Bộ thông tiểu", dinhMuc: 2 }
             ],
-            "PK_SAN": [
-                { ma: "SG-VESINHAMDAO", ten: "Bộ vệ sinh âm đạo", dinhMuc: 10 },
-                { ma: "SG-MAYTANGSINHMON", ten: "Bộ may tầng sinh môn", dinhMuc: 1 },
-                { ma: "SG-KIEMCOL", ten: "Bộ kiểm COL", dinhMuc: 2 },
-                { ma: "SG-CATCHI", ten: "Bộ cắt chỉ", dinhMuc: 2 }
-            ],
-            "NICU": [
-                { ma: "NC-CHOCON", ten: "Bộ chọc dò tủy sống", dinhMuc: 2 },
-                { ma: "NC-HATTIEU", ten: "Bộ tiểu phẫu", dinhMuc: 1 },
-                { ma: "NC-DATNOIKHIQUAN", ten: "Bộ đặt nội khí quản", dinhMuc: 3 }
-            ],
-            "NSTH": [
-                { ma: "NS-COP410", ten: "Ống nội soi dạ dày", dinhMuc: 4 },
-                { ma: "NS-COP520", ten: "Ống nội soi đại tràng", dinhMuc: 2 },
-                { ma: "NS-KIMSINHTHIET", ten: "Kìm sinh thiết dùng lại", dinhMuc: 5 }
-            ],
-            "RHM": [
-                { ma: "RH-KHAYDC", ten: "Khay dụng cụ khám RHM", dinhMuc: 20 },
-                { ma: "RH-NHOBENH", ten: "Bộ kìm nhổ răng người lớn", dinhMuc: 2 },
-                { ma: "RH-NHONHI", ten: "Bộ kìm nhổ răng trẻ em", dinhMuc: 1 },
-                { ma: "RH-PHAUTHUAT", ten: "Bộ dụng cụ phẫu thuật hàm mặt", dinhMuc: 1 }
-            ],
-            "PK_DAKHOA": [
-                { ma: "DK-KHAYKHAM", ten: "Khay khám tai mũi họng lẻ", dinhMuc: 15 },
-                { ma: "DK-CATCHI", ten: "Bộ cắt chỉ lẻ PK", dinhMuc: 3 },
-                { ma: "DK-THAYBANG", ten: "Bộ thay băng vết thương", dinhMuc: 5 }
-            ],
-            "MAT": [
-                { ma: "M-LAYHAIDUONG", ten: "Bộ lấy dị vật giác mạc", dinhMuc: 2 },
-                { ma: "M-CHALEO", ten: "Bộ chắp lẹo", dinhMuc: 4 },
-                { ma: "M-THONGLEUDAO", ten: "Bộ thông lệ đạo", dinhMuc: 2 }
-            ],
-            "TMH": [
-                { ma: "TMH-OP330", ten: "Optic TMH 3/30⁰", dinhMuc: 1 },
-                { ma: "TMH-OP430", ten: "Optic TMH 4/30⁰", dinhMuc: 2 },
-                { ma: "TMH-OP400", ten: "Optic TMH 4/0⁰", dinhMuc: 1 },
-                { ma: "TMH-DAY", ten: "Dây sáng nội soi", dinhMuc: 4 },
-                { ma: "TMH-KHAYKHAM", ten: "Bộ khay dụng cụ khám chuyên khoa", dinhMuc: 8 }
-            ],
-            "CC_DAKHOA": [
-                { ma: "CC-KHAUTHUONG", ten: "Bộ khâu vết thương", dinhMuc: 6 },
-                { ma: "CC-CATCHI", ten: "Bộ cắt chỉ", dinhMuc: 2 },
-                { ma: "CC-MOQUAN", ten: "Bộ mở khí quản cấp cứu", dinhMuc: 1 },
-                { ma: "CC-CHANDUONG", ten: "Bộ chọc dò màng phổi", dinhMuc: 1 }
-            ],
             "GMHS_DC": [
                 { ma: "GM-MBC", ten: "Bộ mổ bắt con", dinhMuc: 15 },
                 { ma: "GM-CTC", ten: "Bộ cắt tử cung", dinhMuc: 5 },
                 { ma: "GM-NSOB", ten: "Bộ PT Nội soi ổ bụng", dinhMuc: 5 },
-                { ma: "GM-PTTRONGNGAY", ten: "Bộ DC PT trong ngày", dinhMuc: 3 },
-                { ma: "GM-CATTUCUNGAMDAO", ten: "Bộ PTNS cắt tử cung ngã âm đạo", dinhMuc: 3 }
+                { ma: "GM-PTTRONGNGAY", ten: "Bộ DC PT trong ngày", dinhMuc: 3 }
             ],
             "PK_NHI": [
                 { ma: "NH-TONGQUAT", ten: "Bộ tổng quát nhi", dinhMuc: 3 },
@@ -753,9 +712,10 @@
 
         function banDuLieuLenSharePoint() {
             if(danhSachGiaoNhan.length === 0) { alert("Giỏ hàng đang trống, chưa có dữ liệu để đồng bộ!"); return; }
-            alert(`Sẵn sàng đẩy ${danhSachGiaoNhan.length} lô dụng cụ giao nhận lên SharePoint của bệnh viện Phương Nam thông qua Power Automate API.`);
+            alert(`Sẵn sàng đẩy ${danhSachGiaoNhan.length} lô dụng cụ giao nhận lên SharePoint của bệnh viện. (Chức năng gọi API Power Automate sẽ được ghép ở bước sau)`);
         }
 
+        // Tích hợp khởi chạy
         window.onload = function() { 
             docDuLieuTuGoogleSheets(); 
             hienThiChuTrinhVôKhuan(); 
