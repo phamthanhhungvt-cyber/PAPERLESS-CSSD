@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V19.1 (Just-In-Time)</title>
+    <title>Hệ Thống Quản Lý CSSD - V19.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -75,7 +75,7 @@
                 </div>
 
                 <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col h-[500px]">
-                    <h3 class="text-sm font-black text-slate-200 mb-4 uppercase flex justify-between items-center border-b border-[#334155] pb-3"><span><i class="fa-solid fa-clock-rotate-left mr-2"></i> Lịch sử báo trả của Khoa</span></h3>
+                    <h3 class="text-sm font-black text-slate-200 mb-4 uppercase flex justify-between items-center border-b border-[#334155] pb-3"><span><i class="fa-solid fa-clock-rotate-left mr-2"></i> Lịch sử báo trả & nhận đồ sạch</span></h3>
                     <div class="flex-1 overflow-auto rounded-xl bg-[#0f172a] border border-[#334155]">
                         <table class="w-full text-left text-xs"><tbody id="bangLichSuKhoa" class="divide-y divide-[#334155] text-slate-300"></tbody></table>
                     </div>
@@ -109,8 +109,7 @@
                         </div>
                         <span id="badgeDongGoi" class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-sm font-black px-4 py-2 rounded-xl">0 Lô sắp ra</span>
                     </div>
-                    <div class="flex-1 overflow-auto bg-[#0f172a] rounded-xl border border-[#334155] p-2" id="gridDongGoi">
-                        </div>
+                    <div class="flex-1 overflow-auto bg-[#0f172a] rounded-xl border border-[#334155] p-2" id="gridDongGoi"></div>
                 </div>
             </div>
 
@@ -177,33 +176,25 @@
 
         let databaseExcel = JSON.parse(JSON.stringify(danhMucTheoKhoa));
 
+        // Mock data ban đầu với các trạng thái khác nhau
         let listGiaoDich = [
             { id: 101, khoa: "NỘI SOI TIÊU HÓA", bo: "Mâm inox nội soi", slYeuCau: 2, slThucTe: 0, bn: "BN Trần Văn B", time: "08:30", status: "CHO_THU" },
-            { id: 102, khoa: "PHÒNG SANH - CẤP CỨU SẢN", bo: "Bộ sanh", slYeuCau: 1, slThucTe: 1, bn: "Nguyễn Thị C", time: "08:00", status: "DANG_RUA" }
+            { id: 102, khoa: "PHÒNG SANH - CẤP CỨU SẢN", bo: "Bộ sanh", slYeuCau: 1, slThucTe: 1, bn: "Nguyễn Thị C", time: "08:00", status: "HOAN_TAT" }
         ];
 
         function initSelects() {
             const selectBoExcel = document.getElementById("selectBoDungCu");
             const selKhoaTra = document.getElementById("khoa_selKhoa");
-
             if(selectBoExcel) selectBoExcel.innerHTML = '<option value="">-- Chọn khối phòng mổ / khoa lâm sàng --</option>';
             if(selKhoaTra) selKhoaTra.innerHTML = '<option value="">-- Chọn khoa đang công tác --</option>';
-
-            danhSachKhoa.forEach(k => {
-                if(selKhoaTra) selKhoaTra.innerHTML += `<option value="${k.id}">${k.ten}</option>`;
-            });
-
-            for(let key in databaseExcel) {
-                if(selectBoExcel) selectBoExcel.innerHTML += `<option value="${key}">${key.replace(/_/g, " ")}</option>`;
-            }
+            danhSachKhoa.forEach(k => { if(selKhoaTra) selKhoaTra.innerHTML += `<option value="${k.id}">${k.ten}</option>`; });
+            for(let key in databaseExcel) { if(selectBoExcel) selectBoExcel.innerHTML += `<option value="${key}">${key.replace(/_/g, " ")}</option>`; }
         }
 
         function loadBoDungCuTheoKhoa() {
             const k = document.getElementById("khoa_selKhoa").value; const sel = document.getElementById("khoa_selBo");
             sel.innerHTML = '<option value="">-- Chọn bộ dụng cụ --</option>';
             if(danhMucTheoKhoa[k]) danhMucTheoKhoa[k].forEach(i => sel.innerHTML += `<option value="${i.ma}">${i.ten}</option>`);
-            
-            // Re-render màn hình để cập nhật danh sách lịch sử khoa
             renderTatCaCacManHinh();
         }
         
@@ -225,36 +216,54 @@
         function xacNhanCSSDThuGom(id) {
             const item = listGiaoDich.find(x => x.id === id);
             let slThucTe = prompt(`XÁC NHẬN SỐ LƯỢNG THU HỒI\n\nBạn đang thu hồi [${item.bo}] từ [${item.khoa}].\nĐiều dưỡng báo trả: ${item.slYeuCau} bộ.\nNhập số lượng CSSD thực tế nhận về:`, item.slYeuCau);
-            
             if(slThucTe !== null) {
                 item.slThucTe = parseInt(slThucTe);
                 item.status = "DANG_RUA"; 
-                alert(`✅ Đã chốt thu gom ${item.slThucTe} bộ.\nDữ liệu đã được phân luồng sang khu Đóng gói & Kho vô khuẩn!`);
+                alert(`✅ Đã chốt thu gom ${item.slThucTe} bộ.\nDữ liệu chuyển sang khu Đóng gói & Kho vô khuẩn!`);
                 renderTatCaCacManHinh();
             }
         }
 
+        function hoanThanhDongGoi(id) {
+            const item = listGiaoDich.find(x => x.id === id);
+            item.status = "CHO_XUAT";
+            alert("✅ Đã đóng gói xong! Lô hàng chuyển vào máy hấp tiệt trùng.");
+            renderTatCaCacManHinh();
+        }
+
+        function xuatBuChoKhoa(id) {
+            const item = listGiaoDich.find(x => x.id === id);
+            item.status = "HOAN_TAT"; // Chuyển sang trạng thái hoàn tất, không delete nữa
+            alert("✅ Đã xác nhận giao trả đồ sạch vô khuẩn hoàn tất cho Khoa!");
+            renderTatCaCacManHinh();
+        }
+
         function renderTatCaCacManHinh() {
-            // 1. Render Màn hình Lịch sử Khoa (CHỈ HIỂN THỊ LỊCH SỬ CỦA KHOA ĐANG ĐƯỢC CHỌN)
+            // 1. RENDER MÀN HÌNH LỊCH SỬ KHOA (GIỮ LẠI ĐỂ ĐỐI SOÁT CHÉO)
             const selKhoa = document.getElementById("khoa_selKhoa");
             const tenKhoaDangChon = selKhoa.options[selKhoa.selectedIndex]?.text || "";
             const tbodyKhoa = document.getElementById("bangLichSuKhoa"); tbodyKhoa.innerHTML = "";
             
             let listLichSu = [];
-            if (selKhoa.value) {
-                listLichSu = listGiaoDich.filter(x => x.khoa === tenKhoaDangChon);
-            }
+            if (selKhoa.value) { listLichSu = listGiaoDich.filter(x => x.khoa === tenKhoaDangChon); }
 
             if(listLichSu.length === 0) {
                 tbodyKhoa.innerHTML = `<tr><td colspan="2" class="p-8 text-center text-slate-500 italic">Vui lòng chọn Khoa/Phòng để xem lịch sử, hoặc Khoa chưa có giao dịch nào.</td></tr>`;
             } else {
                 listLichSu.forEach(i => {
-                    let statusUI = i.status === "CHO_THU" ? `<span class="text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20"><i class="fa-solid fa-clock mr-1"></i> CSSD Đang lên lấy</span>` : `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20"><i class="fa-solid fa-check-double mr-1"></i> Đã nhận ${i.slThucTe} bộ</span>`;
-                    tbodyKhoa.innerHTML += `<tr><td class="p-4"><b>${i.bo}</b> (SL Báo: ${i.slYeuCau})<br><span class="text-[10px] text-slate-500">${i.time} - BN: ${i.bn}</span></td><td class="p-4 text-right">${statusUI}</td></tr>`;
+                    let statusUI = "";
+                    if (i.status === "CHO_THU") {
+                        statusUI = `<span class="text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 text-[11px] font-medium"><i class="fa-solid fa-clock mr-1"></i> CSSD Đang lên lấy</span>`;
+                    } else if (i.status === "DANG_RUA" || i.status === "CHO_XUAT") {
+                        statusUI = `<span class="text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 text-[11px] font-medium"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý tại CSSD</span>`;
+                    } else if (i.status === "HOAN_TAT") {
+                        statusUI = `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 text-[11px] font-bold"><i class="fa-solid fa-check-double mr-1"></i> Đã nhận đồ vô khuẩn (${i.slThucTe} bộ)</span>`;
+                    }
+                    tbodyKhoa.innerHTML += `<tr><td class="p-4"><b>${i.bo}</b> (SL: ${i.slYeuCau})<br><span class="text-[10px] text-slate-500">${i.time} - BN: ${i.bn}</span></td><td class="p-4 text-right">${statusUI}</td></tr>`;
                 });
             }
 
-            // 2. Render Màn hình Xe Thu Gom
+            // 2. Render Màn hình Xe Thu Gom (Chỉ hiện việc chưa thu)
             const listThuGom = listGiaoDich.filter(x => x.status === "CHO_THU");
             document.getElementById("badgeSoCho").innerText = `${listThuGom.length} Phiếu`;
             const tbodyThuGom = document.getElementById("bangChoThuGom"); tbodyThuGom.innerHTML = "";
@@ -268,48 +277,39 @@
                 </tr>`;
             });
 
-            // 3. Render Màn hình Trạm Đóng Gói
+            // 3. Render Màn hình Trạm Đóng Gói (Hiện việc đang rửa)
             const listDongGoi = listGiaoDich.filter(x => x.status === "DANG_RUA");
-            document.getElementById("badgeDongGoi").innerText = `${listDongGoi.length} Lô sắp ra`;
+            document.getElementById("badgeDongGoi").innerText = `${listDongGoi.length} Lô`;
             const gridDG = document.getElementById("gridDongGoi"); gridDG.innerHTML = "";
-            if(listDongGoi.length === 0) gridDG.innerHTML = `<div class="p-8 text-center text-slate-500 italic">Khu vực làm sạch hiện đang không có hàng.</div>`;
+            if(listDongGoi.length === 0) gridDG.innerHTML = `<div class="p-8 text-center text-slate-500 italic w-full col-span-2">Khu vực làm sạch hiện đang không có hàng.</div>`;
             listDongGoi.forEach(i => {
                 gridDG.innerHTML += `<div class="bg-[#1e293b] border border-[#334155] p-4 rounded-xl mb-3 flex justify-between items-center shadow-md border-l-4 border-l-orange-500">
                     <div><div class="text-[10px] text-slate-400 mb-1 uppercase font-bold tracking-widest"><i class="fa-solid fa-water text-blue-400 mr-1"></i> Đang xử lý làm sạch</div><div class="font-black text-orange-400 text-base">${i.bo} <span class="text-white bg-slate-700 px-2 py-0.5 rounded text-xs ml-2">SL: ${i.slThucTe} bộ</span></div><div class="text-[11px] text-slate-400 mt-1">Nguồn: ${i.khoa}</div></div>
-                    <div class="text-right"><div class="text-[10px] text-orange-300 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 mb-2"><i class="fa-solid fa-scissors mr-1"></i> Chuẩn bị sẵn túi / In tem</div><button onclick="hoanThanhDongGoi(${i.id})" class="text-xs bg-[#334155] hover:bg-emerald-600 text-white px-3 py-1.5 rounded transition"><i class="fa-solid fa-check mr-1"></i> Đã đóng gói xong</button></div>
+                    <div class="text-right"><div class="text-[10px] text-orange-300 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 mb-2"><i class="fa-solid fa-scissors mr-1"></i> Sẵn sàng túi/tem</div><button onclick="hoanThanhDongGoi(${i.id})" class="text-xs bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded transition font-bold"><i class="fa-solid fa-check mr-1"></i> Đã đóng gói xong</button></div>
                 </div>`;
             });
 
-            // 4. Render Màn hình Kho Vô Khuẩn
+            // 4. Render Màn hình Kho Vô Khuẩn (Hiện việc chờ xuất đổi)
+            const listChoXuat = listGiaoDich.filter(x => x.status === "CHO_XUAT");
             const tbodyKhoVK = document.getElementById("bangKhoVoKhuan"); tbodyKhoVK.innerHTML = "";
-            document.getElementById("badgeKhoVoKhuan").innerText = `${listDongGoi.length} Lệnh bù`;
-            if(listDongGoi.length === 0) tbodyKhoVK.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Không có lệnh xuất bù đổi đồ nào đang chờ.</td></tr>`;
-            listDongGoi.forEach(i => {
+            document.getElementById("badgeKhoVoKhuan").innerText = `${listChoXuat.length} Lệnh`;
+            if(listChoXuat.length === 0) tbodyKhoVK.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Không có lệnh xuất bù đổi đồ nào đang chờ.</td></tr>`;
+            listChoXuat.forEach(i => {
                 tbodyKhoVK.innerHTML += `<tr class="hover:bg-[#1e293b] transition">
                     <td class="p-4 font-bold text-pink-400">${i.khoa}</td>
-                    <td class="p-4"><div class="font-bold text-emerald-400 text-sm">${i.bo}</div><div class="mt-1 text-slate-400">SL Cấp bù lại: <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black">${i.slThucTe} bộ</span></div></td>
+                    <td class="p-4"><div class="font-bold text-emerald-400 text-sm">${i.bo}</div><div class="mt-1 text-slate-400">SL Cấp bù: <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black">${i.slThucTe} bộ</span></div></td>
                     <td class="p-4 text-center"><span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/30"><i class="fa-solid fa-box-archive mr-1"></i> Soạn sẵn lên xe</span></td>
                     <td class="p-4 text-center"><button onclick="xuatBuChoKhoa(${i.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-emerald-500/20 active:scale-95"><i class="fa-solid fa-truck-ramp-box mr-1"></i> HOÀN TẤT XUẤT ĐỔI</button></td>
                 </tr>`;
             });
         }
 
-        function hoanThanhDongGoi(id) {
-            alert("Đã đóng gói xong! Lô hàng chuyển vào máy hấp tiệt trùng.");
-            listGiaoDich = listGiaoDich.filter(x => x.id !== id); renderTatCaCacManHinh();
-        }
-        function xuatBuChoKhoa(id) {
-            alert("Đã xuất đồ vô khuẩn giao bù lại cho Khoa!");
-            listGiaoDich = listGiaoDich.filter(x => x.id !== id); renderTatCaCacManHinh();
-        }
-
-        // TÍNH NĂNG TRA CỨU
+        // TÍNH NĂNG TRA CỨU DANH MỤC
         function loadChiTietBo() {
             const boKey = document.getElementById("selectBoDungCu").value;
             const tbody = document.getElementById("bodyChiTietDungCu");
             document.getElementById("khuVucDanhSach").classList.remove("hidden");
             if (!boKey || !databaseExcel[boKey]) { tbody.innerHTML = ""; return; }
-            
             document.getElementById("lblTenBoHienTai").innerText = "Danh mục thiết bị: " + boKey.replace(/_/g, " ");
             let currentData = databaseExcel[boKey];
             let html = ""; let sum = 0;
@@ -325,10 +325,8 @@
             const tuKhoa = document.getElementById("txtTimKiem").value.toLowerCase().trim();
             const tbody = document.getElementById("bodyChiTietDungCu");
             if (!tuKhoa) { if (document.getElementById("selectBoDungCu").value) loadChiTietBo(); return; }
-            
             document.getElementById("selectBoDungCu").value = "";
             document.getElementById("lblTenBoHienTai").innerText = "Kết quả tra cứu nhanh từ khóa: " + tuKhoa;
-            
             let html = ""; let sum = 0;
             for (let bo in databaseExcel) {
                 databaseExcel[bo].forEach(item => {
@@ -355,7 +353,6 @@
                 let c = "#0ea5e9"; if(tabName==='khoaphong') c="#ec4899"; else if(tabName==='thugom') c="#f59e0b"; else if(tabName==='donggoi') c="#f97316"; else if(tabName==='khovokhuan') c="#10b981";
                 aMenu.classList.add('sidebar-item-active'); aMenu.style.borderLeft = `4px solid ${c}`; aMenu.style.backgroundColor = `${c}22`;
             }
-            
             const title = document.getElementById("header-title");
             if(tabName === 'khoaphong') title.innerText = "1. Cổng Khoa Báo Trả Đồ";
             if(tabName === 'thugom') title.innerText = "2. Trạm duyệt Xe Thu Gom";
