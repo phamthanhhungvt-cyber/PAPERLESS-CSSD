@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V19.2</title>
+    <title>Hệ Thống Quản Lý CSSD - V19.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,7 +11,7 @@
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .sidebar-item-active { background-color: rgba(14, 165, 233, 0.1) !important; color: #38bdf8 !important; border-left: 4px solid #0ea5e9; box-shadow: inset 4px 0 15px rgba(14, 165, 233, 0.15); }
         input, select, textarea { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; color-scheme: dark; }
-        input:focus, select:focus { outline: none; border-color: #0ea5e9 !important; box-shadow: 0 0 10px rgba(14, 165, 233, 0.3) !important; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #0ea5e9 !important; box-shadow: 0 0 10px rgba(14, 165, 233, 0.3) !important; }
         .glass-panel { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(71, 85, 105, 0.5); }
     </style>
 </head>
@@ -84,16 +84,23 @@
 
             <div id="tab-thugom" class="hidden h-full max-w-5xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-amber-500 flex flex-col h-[650px]">
-                    <div class="flex justify-between items-center border-b border-[#334155] pb-4 mb-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#334155] pb-4 mb-4 gap-4">
                         <div>
                             <h3 class="text-lg font-black text-amber-400 uppercase tracking-wide flex items-center"><i class="fa-solid fa-cart-flatbed mr-3"></i> Lệnh gọi thu gom từ các Khoa</h3>
-                            <p class="text-xs text-slate-400 mt-1">Nhân viên mang xe đến Khoa đối chiếu và xác nhận số lượng thực tế.</p>
+                            <p class="text-xs text-slate-400 mt-1">Nhân viên đối chiếu thực tế, nhập ghi chú nếu thiếu hụt dụng cụ.</p>
                         </div>
-                        <span id="badgeSoCho" class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-lg font-black px-4 py-2 rounded-xl shadow-[0_0_15px_rgba(245,158,11,0.2)]">0 Phiếu</span>
+                        <div class="flex items-center space-x-3 w-full md:w-auto">
+                            <div class="relative flex-1 md:w-64">
+                                <select id="filterKhoaThuGom" onchange="renderTatCaCacManHinh()" class="w-full rounded-xl px-3 py-2 text-xs font-bold shadow-inner border border-[#334155]">
+                                    <option value="">🔍 TẤT CẢ KHOA/PHÒNG</option>
+                                </select>
+                            </div>
+                            <span id="badgeSoCho" class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-base font-black px-3 py-1.5 rounded-xl whitespace-nowrap">0 Phiếu</span>
+                        </div>
                     </div>
                     <div class="flex-1 overflow-auto bg-[#0f172a] rounded-xl border border-[#334155]">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-[#1e293b] text-slate-300 sticky top-0 z-10 border-b border-[#334155]"><tr><th class="p-4 w-[25%]">Địa điểm (Khoa trả)</th><th class="p-4 w-[40%]">Khai báo của Điều Dưỡng</th><th class="p-4 text-center">T.Gian Kêu</th><th class="p-4 text-center">Xác nhận của CSSD</th></tr></thead>
+                            <thead class="bg-[#1e293b] text-slate-300 sticky top-0 z-10 border-b border-[#334155]"><tr><th class="p-4 w-[25%]">Địa điểm (Khoa trả)</th><th class="p-4 w-[45%]">Khai báo của Điều Dưỡng</th><th class="p-4 text-center">T.Gian Kêu</th><th class="p-4 text-center">Xác nhận của CSSD</th></tr></thead>
                             <tbody id="bangChoThuGom" class="divide-y divide-[#334155] text-white"></tbody>
                         </table>
                     </div>
@@ -105,7 +112,7 @@
                     <div class="flex justify-between items-center border-b border-[#334155] pb-4 mb-4">
                         <div>
                             <h3 class="text-lg font-black text-orange-400 uppercase tracking-wide flex items-center"><i class="fa-solid fa-box-open mr-3"></i> Bảng dự báo công việc Đóng Gói</h3>
-                            <p class="text-xs text-slate-400 mt-1">Danh sách đồ ĐANG RỬA. Hãy chuẩn bị cắt sẵn túi ép, in tem nhãn, lấy indicator.</p>
+                            <p class="text-xs text-slate-400 mt-1">Xem kỹ lưu ý/ghi chú thiếu hụt từ trạm xe thu gom để xử lý phù hợp.</p>
                         </div>
                         <span id="badgeDongGoi" class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-sm font-black px-4 py-2 rounded-xl">0 Lô sắp ra</span>
                     </div>
@@ -118,13 +125,13 @@
                     <div class="flex justify-between items-center border-b border-[#334155] pb-4 mb-4">
                         <div>
                             <h3 class="text-lg font-black text-emerald-400 uppercase tracking-wide flex items-center"><i class="fa-solid fa-truck-fast mr-3"></i> Lệnh chuẩn bị Cấp Bù / Đổi Đồ</h3>
-                            <p class="text-xs text-slate-400 mt-1">Hệ thống phân tích các khoa vừa trả đồ dơ, cần chuẩn bị sẵn đồ sạch để đổi lại.</p>
+                            <p class="text-xs text-slate-400 mt-1">Đối chiếu ghi chú để bàn giao đồ sạch chính xác cho các khoa.</p>
                         </div>
                         <span id="badgeKhoVoKhuan" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-sm font-black px-4 py-2 rounded-xl">0 Lệnh xuất</span>
                     </div>
                     <div class="flex-1 overflow-auto bg-[#0f172a] rounded-xl border border-[#334155]">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-[#1e293b] text-slate-300 sticky top-0 z-10 border-b border-[#334155]"><tr><th class="p-4 w-[25%]">Bàn giao cho Khoa</th><th class="p-4 w-[40%]">Bộ dụng cụ cần xuất bù</th><th class="p-4 text-center">Trạng thái kho</th><th class="p-4 text-center">Hoàn tất</th></tr></thead>
+                            <thead class="bg-[#1e293b] text-slate-300 sticky top-0 z-10 border-b border-[#334155]"><tr><th class="p-4 w-[25%]">Bàn giao cho Khoa</th><th class="p-4 w-[45%]">Bộ dụng cụ cần xuất bù</th><th class="p-4 text-center">Trạng thái kho</th><th class="p-4 text-center">Hoàn tất</th></tr></thead>
                             <tbody id="bangKhoVoKhuan" class="divide-y divide-[#334155] text-white"></tbody>
                         </table>
                     </div>
@@ -149,6 +156,37 @@
         </main>
     </div>
 
+    <div id="popupKiemDem" class="fixed inset-0 bg-black/80 backdrop-filter blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-md rounded-2xl shadow-2xl p-6 border-t-4 border-t-amber-500 animate-fadeIn text-slate-200">
+            <h3 class="text-base font-black text-amber-400 uppercase border-b border-[#334155] pb-3 mb-4 flex items-center"><i class="fa-solid fa-clipboard-check mr-2"></i> Biên Bản Kiểm Đếm Giao Nhận</h3>
+            <div class="space-y-4">
+                <p class="text-xs bg-slate-900/50 p-3 rounded-lg border border-[#334155] leading-relaxed">
+                    📍 Khoa: <span id="popKhoa" class="font-bold text-pink-400">--</span><br>
+                    📦 Bộ dụng cụ: <span id="popBo" class="font-bold text-[#38bdf8]">--</span><br>
+                    📋 Điều dưỡng báo trả: <span id="popSLYeuCau" class="font-black text-amber-400">0</span> bộ
+                </p>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-2">Số lượng thực nhận tại chỗ (bộ):</label>
+                    <input type="number" id="popSLThucTe" min="0" class="w-full rounded-xl px-4 py-3 text-xl font-black text-center text-emerald-400 shadow-inner">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-2">Ghi chú sai lệch / Thiếu hụt dụng cụ (nếu có):</label>
+                    <textarea id="popGhiChu" rows="3" placeholder="Ví dụ: Thiếu 1 kéo cắt chỉ, hoặc Khoa chỉ giao 1 bộ..." class="w-full rounded-xl px-3 py-2 text-xs shadow-inner border border-[#334155] resize-none"></textarea>
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                        <button onclick="quickNote('Đủ bộ')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-400">✓ Đủ bộ</button>
+                        <button onclick="quickNote('Thiếu kéo')" class="text-[10px] bg-red-950/40 text-red-400 border border-red-900/50 px-2 py-1 rounded">⚠️ Thiếu kéo</button>
+                        <button onclick="quickNote('Thiếu kẹp kelly')" class="text-[10px] bg-red-950/40 text-red-400 border border-red-900/50 px-2 py-1 rounded">⚠️ Thiếu Kelly</button>
+                        <button onclick="quickNote('Khoa đưa thiếu số bộ')" class="text-[10px] bg-amber-950/40 text-amber-400 border border-amber-900/50 px-2 py-1 rounded">⚠️ Lệch số bộ</button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3 mt-6">
+                <button onclick="closePopup()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl text-xs transition">HỦY BỎ</button>
+                <button onclick="saveKiemDem()" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 text-white font-black py-3 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">CHỐT BIÊN BẢN</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN'); }, 1000);
 
@@ -157,7 +195,7 @@
             { id: "NICU", ten: "NICU" }, { id: "NOI_SOI_TIEU_HOA", ten: "NỘI SOI TIÊU HÓA" },
             { id: "RANG_HAM_MAT", ten: "RĂNG HÀM MẶT" }, { id: "PHONG_KHAM_A_KHOA", ten: "PHÒNG KHÁM ĐA KHOA" },
             { id: "MAT", ten: "MẮT" }, { id: "TAI_MUI_HONG", ten: "TAI MŨI HỌNG" },
-            { id: "CAP_CUU_A_KHOA", ten: "CẤP CỨU ĐA KHOA" }, { id: "KHAM_BENH_VIP_SAN_PHU_KHOA", ten: "KHÁM BỆNH VIP-SẢN PHỤ KHOA" },
+            { id: "CAP_CUU_A_KHOA", ten: "CẤP CỨU ĐA KHOA" }, { id: "KHÁM BỆNH VIP-SẢN PHỤ KHOA", ten: "KHÁM BỆNH VIP-SẢN PHỤ KHOA" },
             { id: "GAY_ME_HOI_SUC_DUNG_CU", ten: "GÂY MÊ HỒI SỨC-DỤNG CỤ" }, { id: "GAY_ME_HOI_SUC_GAY_ME", ten: "GÂY MÊ HỒI SỨC-GÂY MÊ" },
             { id: "GAY_ME_HOI_SUC_HOI_TINH", ten: "GÂY MÊ HỒI SỨC-HỒI TỈNH" }, { id: "NOI_TRU_SAN_L1", ten: "NỘI TRÚ SẢN L1" },
             { id: "NOI_TRU_SAN_L8", ten: "NỘI TRÚ SẢN L8" }, { id: "PHONG_KHAM_NHI", ten: "PHÒNG KHÁM NHI" },
@@ -170,24 +208,32 @@
             "PHONG_SANH_CAP_CUU_SAN": [{ ma: "SG-SANH", ten: "Bộ sanh", dinhMuc: 8 }, { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 2 }, { ma: "SG-MAYTANGSINHMON", ten: "Bộ may tầng sinh môn", dinhMuc: 5 }, { ma: "SG-VESINHAMDAO", ten: "Bộ vệ sinh âm đạo", dinhMuc: 2 }],
             "PHONG_KHAM_SAN": [{ ma: "SG-SOICTC", ten: "Bộ soi cổ tử cung", dinhMuc: 2 }, { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 55 }, { ma: "SG-DATVALAYVONG", ten: "Đặt và lấy vòng", dinhMuc: 2 }],
             "NOI_SOI_TIEU_HOA": [{ ma: "SG-MAMINOX", ten: "Mâm inox nội soi", dinhMuc: 4 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu", dinhMuc: 4 }],
-            "GAY_ME_HOI_SUC_DUNG_CU": [{ ma: "SG-MOLAYTHAI", ten: "Bộ mổ lấy thai", dinhMuc: 9 }, { ma: "SG-NOISOI", ten: "Bộ nội soi phẫu thuật", dinhMuc: 3 }, { ma: "SG-TROCARXOAN", ten: "Bộ trocar xoắn nội soi", dinhMuc: 1 }],
+            "GAY_ME_HOI_SUC_DUNG_CU": [{ ma: "SG-MOLAYTHAI", dev: "Bộ mổ lấy thai", dinhMuc: 9 }, { ma: "SG-NOISOI", ten: "Bộ nội soi phẫu thuật", dinhMuc: 3 }],
             "IVF": [{ ma: "SG-CHOCHUTTRUNG", ten: "Bộ chọc hút trứng IVF", dinhMuc: 10 }, { ma: "SG-CHUYENPHOI", ten: "Bộ chuyển phôi lâm sàng", dinhMuc: 10 }]
         };
 
         let databaseExcel = JSON.parse(JSON.stringify(danhMucTheoKhoa));
 
-        // Mock data ban đầu với các trạng thái khác nhau
         let listGiaoDich = [
-            { id: 101, khoa: "NỘI SOI TIÊU HÓA", bo: "Mâm inox nội soi", slYeuCau: 2, slThucTe: 0, bn: "BN Trần Văn B", time: "08:30", status: "CHO_THU" },
-            { id: 102, khoa: "PHÒNG SANH - CẤP CỨU SẢN", bo: "Bộ sanh", slYeuCau: 1, slThucTe: 1, bn: "Nguyễn Thị C", time: "08:00", status: "HOAN_TAT" }
+            { id: 101, khoa: "NỘI SOI TIÊU HÓA", bo: "Mâm inox nội soi", slYeuCau: 2, slThucTe: 0, bn: "BN Trần Văn B", time: "08:30", status: "CHO_THU", ghiChu: "" },
+            { id: 102, khoa: "PHÒNG SANH - CẤP CỨU SẢN", bo: "Bộ sanh", slYeuCau: 1, slThucTe: 1, bn: "Nguyễn Thị C", time: "08:00", status: "HOAN_TAT", ghiChu: "Thiếu 1 Kelly thẳng bộ 1" }
         ];
+
+        let idDangKiemDem = null;
 
         function initSelects() {
             const selectBoExcel = document.getElementById("selectBoDungCu");
             const selKhoaTra = document.getElementById("khoa_selKhoa");
+            const filterKTG = document.getElementById("filterKhoaThuGom");
+            
             if(selectBoExcel) selectBoExcel.innerHTML = '<option value="">-- Chọn khối phòng mổ / khoa lâm sàng --</option>';
             if(selKhoaTra) selKhoaTra.innerHTML = '<option value="">-- Chọn khoa đang công tác --</option>';
-            danhSachKhoa.forEach(k => { if(selKhoaTra) selKhoaTra.innerHTML += `<option value="${k.id}">${k.ten}</option>`; });
+            if(filterKTG) filterKTG.innerHTML = '<option value="">🔍 TẤT CẢ KHOA/PHÒNG</option>';
+            
+            danhSachKhoa.forEach(k => { 
+                if(selKhoaTra) selKhoaTra.innerHTML += `<option value="${k.id}">${k.ten}</option>`; 
+                if(filterKTG) filterKTG.innerHTML += `<option value="${k.ten}">${k.ten}</option>`;
+            });
             for(let key in databaseExcel) { if(selectBoExcel) selectBoExcel.innerHTML += `<option value="${key}">${key.replace(/_/g, " ")}</option>`; }
         }
 
@@ -205,7 +251,9 @@
             const phieu = {
                 id: Date.now(), khoa: k.options[k.selectedIndex].text, bo: b.options[b.selectedIndex].text,
                 slYeuCau: parseInt(document.getElementById("khoa_inpSL").value), slThucTe: 0,
-                bn: document.getElementById("khoa_inpBN").value || "Không ghi nhận", time: new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}), status: "CHO_THU"
+                bn: document.getElementById("khoa_inpBN").value || "Không ghi nhận", 
+                time: new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}), 
+                status: "CHO_THU", ghiChu: ""
             };
             listGiaoDich.unshift(phieu);
             renderTatCaCacManHinh();
@@ -213,15 +261,41 @@
             alert("✅ Đã bắn thông báo gọi xe thu gom CSSD thành công!");
         }
 
-        function xacNhanCSSDThuGom(id) {
+        // MỞ POPUP KIỂM ĐẾM THÔNG MINH KHI CSSD BẤM KIỂM ĐẾM & CHỐT
+        function moPopupKiemDem(id) {
             const item = listGiaoDich.find(x => x.id === id);
-            let slThucTe = prompt(`XÁC NHẬN SỐ LƯỢNG THU HỒI\n\nBạn đang thu hồi [${item.bo}] từ [${item.khoa}].\nĐiều dưỡng báo trả: ${item.slYeuCau} bộ.\nNhập số lượng CSSD thực tế nhận về:`, item.slYeuCau);
-            if(slThucTe !== null) {
-                item.slThucTe = parseInt(slThucTe);
-                item.status = "DANG_RUA"; 
-                alert(`✅ Đã chốt thu gom ${item.slThucTe} bộ.\nDữ liệu chuyển sang khu Đóng gói & Kho vô khuẩn!`);
-                renderTatCaCacManHinh();
-            }
+            if(!item) return;
+            idDangKiemDem = id;
+            document.getElementById("popKhoa").innerText = item.khoa;
+            document.getElementById("popBo").innerText = item.bo;
+            document.getElementById("popSLYeuCau").innerText = item.slYeuCau;
+            document.getElementById("popSLThucTe").value = item.slYeuCau; // Default bằng số khoa khai báo
+            document.getElementById("popGhiChu").value = "";
+            document.getElementById("popupKiemDem").classList.remove("hidden");
+        }
+
+        function quickNote(text) {
+            const tx = document.getElementById("popGhiChu");
+            if(tx.value) tx.value += ", " + text; else tx.value = text;
+        }
+
+        function closePopup() { document.getElementById("popupKiemDem").classList.add("hidden"); idDangKiemDem = null; }
+
+        function saveKiemDem() {
+            if(!idDangKiemDem) return;
+            const item = listGiaoDich.find(x => x.id === idDangKiemDem);
+            const slThuc = parseInt(document.getElementById("popSLThucTe").value);
+            const gc = document.getElementById("popGhiChu").value.trim();
+            
+            if(isNaN(slThuc) || slThuc < 0) return alert("Số lượng thực tế không hợp lệ!");
+            
+            item.slThucTe = slThuc;
+            item.ghiChu = gc ? gc : "Đủ bộ";
+            item.status = "DANG_RUA";
+            
+            closePopup();
+            alert(`✅ Đã chốt kiểm đếm giao nhận! Trạng thái chuyển sang Đóng gói.`);
+            renderTatCaCacManHinh();
         }
 
         function hoanThanhDongGoi(id) {
@@ -233,13 +307,13 @@
 
         function xuatBuChoKhoa(id) {
             const item = listGiaoDich.find(x => x.id === id);
-            item.status = "HOAN_TAT"; // Chuyển sang trạng thái hoàn tất, không delete nữa
+            item.status = "HOAN_TAT";
             alert("✅ Đã xác nhận giao trả đồ sạch vô khuẩn hoàn tất cho Khoa!");
             renderTatCaCacManHinh();
         }
 
         function renderTatCaCacManHinh() {
-            // 1. RENDER MÀN HÌNH LỊCH SỬ KHOA (GIỮ LẠI ĐỂ ĐỐI SOÁT CHÉO)
+            // 1. MÀN HÌNH LỊCH SỬ KHOA
             const selKhoa = document.getElementById("khoa_selKhoa");
             const tenKhoaDangChon = selKhoa.options[selKhoa.selectedIndex]?.text || "";
             const tbodyKhoa = document.getElementById("bangLichSuKhoa"); tbodyKhoa.innerHTML = "";
@@ -252,53 +326,62 @@
             } else {
                 listLichSu.forEach(i => {
                     let statusUI = "";
+                    let noteUI = i.ghiChu && i.ghiChu !== "Đủ bộ" ? `<div class="text-[11px] text-rose-400 font-bold bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded mt-1 inline-block"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Lưu ý: ${i.ghiChu}</div>` : "";
+                    
                     if (i.status === "CHO_THU") {
                         statusUI = `<span class="text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 text-[11px] font-medium"><i class="fa-solid fa-clock mr-1"></i> CSSD Đang lên lấy</span>`;
                     } else if (i.status === "DANG_RUA" || i.status === "CHO_XUAT") {
                         statusUI = `<span class="text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 text-[11px] font-medium"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý tại CSSD</span>`;
                     } else if (i.status === "HOAN_TAT") {
-                        statusUI = `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 text-[11px] font-bold"><i class="fa-solid fa-check-double mr-1"></i> Đã nhận đồ vô khuẩn (${i.slThucTe} bộ)</span>`;
+                        statusUI = `<span class="text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 text-[11px] font-bold"><i class="fa-solid fa-check-double mr-1"></i> Đã trả đủ (${i.slThucTe} bộ)</span>`;
                     }
-                    tbodyKhoa.innerHTML += `<tr><td class="p-4"><b>${i.bo}</b> (SL: ${i.slYeuCau})<br><span class="text-[10px] text-slate-500">${i.time} - BN: ${i.bn}</span></td><td class="p-4 text-right">${statusUI}</td></tr>`;
+                    tbodyKhoa.innerHTML += `<tr><td class="p-4"><b>${i.bo}</b> (Báo: ${i.slYeuCau} | Nhận: ${i.slThucTe})<br><span class="text-[10px] text-slate-500">${i.time} - BN: ${i.bn}</span><br>${noteUI}</td><td class="p-4 text-right">${statusUI}</td></tr>`;
                 });
             }
 
-            // 2. Render Màn hình Xe Thu Gom (Chỉ hiện việc chưa thu)
-            const listThuGom = listGiaoDich.filter(x => x.status === "CHO_THU");
+            // 2. MÀN HÌNH XE THU GOM (KÈM BỘ LỌC THEO KHOA/PHÒNG)
+            const filterKhoa = document.getElementById("filterKhoaThuGom").value;
+            let listThuGom = listGiaoDich.filter(x => x.status === "CHO_THU");
+            
+            // Tiến hành lọc nếu nhân viên chọn một khoa cụ thể
+            if(filterKhoa) { listThuGom = listThuGom.filter(x => x.khoa === filterKhoa); }
+            
             document.getElementById("badgeSoCho").innerText = `${listThuGom.length} Phiếu`;
             const tbodyThuGom = document.getElementById("bangChoThuGom"); tbodyThuGom.innerHTML = "";
-            if(listThuGom.length === 0) tbodyThuGom.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Hiện tại không có lệnh gọi thu gom nào từ các Khoa.</td></tr>`;
+            if(listThuGom.length === 0) tbodyThuGom.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Hiện tại không có lệnh gọi thu gom nào phù hợp điều kiện lọc.</td></tr>`;
             listThuGom.forEach(i => {
                 tbodyThuGom.innerHTML += `<tr class="hover:bg-[#1e293b] transition">
                     <td class="p-4 font-bold text-pink-400">${i.khoa}</td>
-                    <td class="p-4"><div class="font-bold text-[#38bdf8] text-sm">${i.bo}</div><div class="mt-1 text-slate-400">Điều dưỡng báo: <span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-black">${i.slYeuCau}</span></div></td>
+                    <td class="p-4"><div class="font-bold text-[#38bdf8] text-sm">${i.bo}</div><div class="mt-1 text-slate-400">Điều dưỡng báo: <span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-black">${i.slYeuCau} bộ</span></div></td>
                     <td class="p-4 text-center font-mono">${i.time}</td>
-                    <td class="p-4 text-center"><button onclick="xacNhanCSSDThuGom(${i.id})" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-amber-500/20 active:scale-95"><i class="fa-solid fa-clipboard-check mr-1"></i> KIỂM ĐẾM & CHỐT</button></td>
+                    <td class="p-4 text-center"><button onclick="moPopupKiemDem(${i.id})" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-amber-500/20 active:scale-95"><i class="fa-solid fa-clipboard-check mr-1"></i> KIỂM ĐẾM & CHỐT</button></td>
                 </tr>`;
             });
 
-            // 3. Render Màn hình Trạm Đóng Gói (Hiện việc đang rửa)
+            // 3. MÀN HÌNH TRẠM ĐÓNG GÓI
             const listDongGoi = listGiaoDich.filter(x => x.status === "DANG_RUA");
             document.getElementById("badgeDongGoi").innerText = `${listDongGoi.length} Lô`;
             const gridDG = document.getElementById("gridDongGoi"); gridDG.innerHTML = "";
             if(listDongGoi.length === 0) gridDG.innerHTML = `<div class="p-8 text-center text-slate-500 italic w-full col-span-2">Khu vực làm sạch hiện đang không có hàng.</div>`;
             listDongGoi.forEach(i => {
-                gridDG.innerHTML += `<div class="bg-[#1e293b] border border-[#334155] p-4 rounded-xl mb-3 flex justify-between items-center shadow-md border-l-4 border-l-orange-500">
-                    <div><div class="text-[10px] text-slate-400 mb-1 uppercase font-bold tracking-widest"><i class="fa-solid fa-water text-blue-400 mr-1"></i> Đang xử lý làm sạch</div><div class="font-black text-orange-400 text-base">${i.bo} <span class="text-white bg-slate-700 px-2 py-0.5 rounded text-xs ml-2">SL: ${i.slThucTe} bộ</span></div><div class="text-[11px] text-slate-400 mt-1">Nguồn: ${i.khoa}</div></div>
-                    <div class="text-right"><div class="text-[10px] text-orange-300 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 mb-2"><i class="fa-solid fa-scissors mr-1"></i> Sẵn sàng túi/tem</div><button onclick="hoanThanhDongGoi(${i.id})" class="text-xs bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded transition font-bold"><i class="fa-solid fa-check mr-1"></i> Đã đóng gói xong</button></div>
+                let noteLabel = i.ghiChu && i.ghiChu !== "Đủ bộ" ? `<div class="text-[11px] text-rose-400 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 mt-2 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Biên bản: ${i.ghiChu}</div>` : "";
+                gridDG.innerHTML += `<div class="bg-[#1e293b] border border-[#334155] p-4 rounded-xl mb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center shadow-md border-l-4 border-l-orange-500 gap-4">
+                    <div><div class="text-[10px] text-slate-400 mb-1 uppercase font-bold tracking-widest"><i class="fa-solid fa-water text-blue-400 mr-1"></i> Đang xử lý làm sạch</div><div class="font-black text-orange-400 text-base">${i.bo} <span class="text-white bg-slate-700 px-2 py-0.5 rounded text-xs ml-2">Thực nhận: ${i.slThucTe} bộ</span></div><div class="text-[11px] text-slate-400 mt-1">Nguồn: ${i.khoa} | BN: ${i.bn}</div>${noteLabel}</div>
+                    <div class="text-right flex-shrink-0 w-full sm:w-auto"><button onclick="hoanThanhDongGoi(${i.id})" class="text-xs bg-orange-600 hover:bg-orange-500 text-white px-3 py-2 rounded-xl transition w-full sm:w-auto font-bold shadow"><i class="fa-solid fa-check mr-1"></i> Đã đóng gói xong</button></div>
                 </div>`;
             });
 
-            // 4. Render Màn hình Kho Vô Khuẩn (Hiện việc chờ xuất đổi)
+            // 4. MÀN HÌNH KHO VÔ KHUẨN
             const listChoXuat = listGiaoDich.filter(x => x.status === "CHO_XUAT");
             const tbodyKhoVK = document.getElementById("bangKhoVoKhuan"); tbodyKhoVK.innerHTML = "";
             document.getElementById("badgeKhoVoKhuan").innerText = `${listChoXuat.length} Lệnh`;
             if(listChoXuat.length === 0) tbodyKhoVK.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Không có lệnh xuất bù đổi đồ nào đang chờ.</td></tr>`;
             listChoXuat.forEach(i => {
+                let noteLabel = i.ghiChu && i.ghiChu !== "Đủ bộ" ? `<br><span class="text-[11px] text-rose-400 font-bold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Thu vào ghi nhận: ${i.ghiChu}</span>` : "";
                 tbodyKhoVK.innerHTML += `<tr class="hover:bg-[#1e293b] transition">
                     <td class="p-4 font-bold text-pink-400">${i.khoa}</td>
-                    <td class="p-4"><div class="font-bold text-emerald-400 text-sm">${i.bo}</div><div class="mt-1 text-slate-400">SL Cấp bù: <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black">${i.slThucTe} bộ</span></div></td>
-                    <td class="p-4 text-center"><span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/30"><i class="fa-solid fa-box-archive mr-1"></i> Soạn sẵn lên xe</span></td>
+                    <td class="p-4"><div class="font-bold text-emerald-400 text-sm">${i.bo}</div><div class="mt-1 text-slate-400">SL Cấp trả bù: <span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black">${i.slThucTe} bộ</span></div>${noteLabel}</td>
+                    <td class="p-4 text-center"><span class="text-xs text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/30"><i class="fa-solid fa-box-archive mr-1"></i> Chuẩn bị đủ đồ</span></td>
                     <td class="p-4 text-center"><button onclick="xuatBuChoKhoa(${i.id})" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg shadow-emerald-500/20 active:scale-95"><i class="fa-solid fa-truck-ramp-box mr-1"></i> HOÀN TẤT XUẤT ĐỔI</button></td>
                 </tr>`;
             });
