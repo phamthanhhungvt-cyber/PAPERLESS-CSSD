@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V19.3</title>
+    <title>Hệ Thống Quản Lý CSSD - V19.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -63,8 +63,8 @@
                             <select id="khoa_selKhoa" onchange="loadBoDungCuTheoKhoa()" class="w-full rounded-xl px-4 py-3 text-sm font-bold shadow-inner"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-2">Bộ dụng cụ hoàn trả:</label>
-                            <select id="khoa_selBo" class="w-full rounded-xl px-4 py-3 text-sm font-bold shadow-inner"><option value="">-- Vui lòng chọn khoa trước --</option></select>
+                            <label class="block text-xs font-bold text-slate-300 mb-2">Bộ dụng cụ hoàn trả (Đã lọc bỏ sl=0):</label>
+                            <select id="khoa_selBo" class="w-full rounded-xl px-4 py-3 text-sm font-bold shadow-inner text-pink-400"><option value="">-- Vui lòng chọn khoa trước --</option></select>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div><label class="block text-xs font-bold text-slate-300 mb-2">Số lượng trả:</label><input type="number" id="khoa_inpSL" value="1" min="1" class="w-full rounded-xl px-4 py-3 text-xl font-black text-center text-pink-400 shadow-inner"></div>
@@ -87,7 +87,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#334155] pb-4 mb-4 gap-4">
                         <div>
                             <h3 class="text-lg font-black text-amber-400 uppercase tracking-wide flex items-center"><i class="fa-solid fa-cart-flatbed mr-3"></i> Lệnh gọi thu gom từ các Khoa</h3>
-                            <p class="text-xs text-slate-400 mt-1">Nhân viên đối chiếu thực tế, nhập ghi chú nếu thiếu hụt dụng cụ.</p>
+                            <p class="text-xs text-slate-400 mt-1">Nhập SL=0 nếu Khoa báo ảo để hủy phiếu tự động.</p>
                         </div>
                         <div class="flex items-center space-x-3 w-full md:w-auto">
                             <div class="relative flex-1 md:w-64">
@@ -166,7 +166,7 @@
                     📋 Điều dưỡng báo trả: <span id="popSLYeuCau" class="font-black text-amber-400">0</span> bộ
                 </p>
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-2">Số lượng thực nhận tại chỗ (bộ):</label>
+                    <label class="block text-xs font-bold text-slate-300 mb-2">Số lượng thực nhận tại chỗ (bộ): <span class="text-rose-400 text-[10px] font-normal italic">(Nhập 0 để Hủy Phiếu Báo Ảo)</span></label>
                     <input type="number" id="popSLThucTe" min="0" class="w-full rounded-xl px-4 py-3 text-xl font-black text-center text-emerald-400 shadow-inner">
                 </div>
                 <div>
@@ -174,14 +174,13 @@
                     <textarea id="popGhiChu" rows="3" placeholder="Ví dụ: Thiếu 1 kéo cắt chỉ, hoặc Khoa chỉ giao 1 bộ..." class="w-full rounded-xl px-3 py-2 text-xs shadow-inner border border-[#334155] resize-none"></textarea>
                     <div class="flex flex-wrap gap-1.5 mt-2">
                         <button onclick="quickNote('Đủ bộ')" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-slate-400">✓ Đủ bộ</button>
-                        <button onclick="quickNote('Thiếu kéo')" class="text-[10px] bg-red-950/40 text-red-400 border border-red-900/50 px-2 py-1 rounded">⚠️ Thiếu kéo</button>
-                        <button onclick="quickNote('Thiếu kẹp kelly')" class="text-[10px] bg-red-950/40 text-red-400 border border-red-900/50 px-2 py-1 rounded">⚠️ Thiếu Kelly</button>
+                        <button onclick="quickNote('Không có đồ (Báo ảo)')" class="text-[10px] bg-rose-950/40 text-rose-400 border border-rose-900/50 px-2 py-1 rounded">🚫 Không có đồ (Báo ảo)</button>
                         <button onclick="quickNote('Khoa đưa thiếu số bộ')" class="text-[10px] bg-amber-950/40 text-amber-400 border border-amber-900/50 px-2 py-1 rounded">⚠️ Lệch số bộ</button>
                     </div>
                 </div>
             </div>
             <div class="flex space-x-3 mt-6">
-                <button onclick="closePopup()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl text-xs transition">HỦY BỎ</button>
+                <button onclick="closePopup()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold py-3 rounded-xl text-xs transition">ĐÓNG</button>
                 <button onclick="saveKiemDem()" class="flex-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 text-white font-black py-3 rounded-xl text-xs transition shadow-lg shadow-amber-500/20">CHỐT BIÊN BẢN</button>
             </div>
         </div>
@@ -204,11 +203,12 @@
             { id: "NOI_TRU_SAN_L6", ten: "NỘI TRÚ SẢN L6" }, { id: "CHUAN_OAN_HINH_ANH", ten: "CHUẨN ĐOÁN HÌNH ẢNH" }
         ];
 
+        // Dữ liệu mô phỏng: Cố tình thêm một số món đồ có định mức 0 để test bộ lọc
         const danhMucTheoKhoa = {
-            "PHONG_SANH_CAP_CUU_SAN": [{ ma: "SG-SANH", ten: "Bộ sanh", dinhMuc: 8 }, { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 2 }, { ma: "SG-MAYTANGSINHMON", ten: "Bộ may tầng sinh môn", dinhMuc: 5 }, { ma: "SG-VESINHAMDAO", ten: "Bộ vệ sinh âm đạo", dinhMuc: 2 }],
+            "PHONG_SANH_CAP_CUU_SAN": [{ ma: "SG-SANH", ten: "Bộ sanh", dinhMuc: 8 }, { ma: "SG-NAO", ten: "Bộ nạo", dinhMuc: 2 }, { ma: "SG-MAYTANGSINHMON", ten: "Bộ may tầng sinh môn", dinhMuc: 5 }, { ma: "SG-KEOCHIT", ten: "Kéo cắt chỉ rốn", dinhMuc: 0 }],
             "PHONG_KHAM_SAN": [{ ma: "SG-SOICTC", ten: "Bộ soi cổ tử cung", dinhMuc: 2 }, { ma: "SG-KHAMAMDAONHO", ten: "Bộ khám âm đạo nhỏ", dinhMuc: 55 }, { ma: "SG-DATVALAYVONG", ten: "Đặt và lấy vòng", dinhMuc: 2 }],
             "NOI_SOI_TIEU_HOA": [{ ma: "SG-MAMINOX", ten: "Mâm inox nội soi", dinhMuc: 4 }, { ma: "SG-BHD400", ten: "Bồn hạt đậu", dinhMuc: 4 }],
-            "GAY_ME_HOI_SUC_DUNG_CU": [{ ma: "SG-MOLAYTHAI", dev: "Bộ mổ lấy thai", dinhMuc: 9 }, { ma: "SG-NOISOI", ten: "Bộ nội soi phẫu thuật", dinhMuc: 3 }],
+            "GAY_ME_HOI_SUC_DUNG_CU": [{ ma: "SG-MOLAYTHAI", ten: "Bộ mổ lấy thai", dinhMuc: 9 }, { ma: "SG-NOISOI", ten: "Bộ nội soi phẫu thuật", dinhMuc: 3 }],
             "IVF": [{ ma: "SG-CHOCHUTTRUNG", ten: "Bộ chọc hút trứng IVF", dinhMuc: 10 }, { ma: "SG-CHUYENPHOI", ten: "Bộ chuyển phôi lâm sàng", dinhMuc: 10 }]
         };
 
@@ -237,10 +237,18 @@
             for(let key in databaseExcel) { if(selectBoExcel) selectBoExcel.innerHTML += `<option value="${key}">${key.replace(/_/g, " ")}</option>`; }
         }
 
+        // TÍNH NĂNG 1: LỌC ẨN CÁC DỤNG CỤ CÓ ĐỊNH MỨC = 0
         function loadBoDungCuTheoKhoa() {
             const k = document.getElementById("khoa_selKhoa").value; const sel = document.getElementById("khoa_selBo");
             sel.innerHTML = '<option value="">-- Chọn bộ dụng cụ --</option>';
-            if(danhMucTheoKhoa[k]) danhMucTheoKhoa[k].forEach(i => sel.innerHTML += `<option value="${i.ma}">${i.ten}</option>`);
+            if(danhMucTheoKhoa[k]) {
+                danhMucTheoKhoa[k].forEach(i => {
+                    // Logic màng lọc chặn số lượng 0
+                    if(i.dinhMuc > 0) {
+                        sel.innerHTML += `<option value="${i.ma}">${i.ten}</option>`;
+                    }
+                });
+            }
             renderTatCaCacManHinh();
         }
         
@@ -261,7 +269,6 @@
             alert("✅ Đã bắn thông báo gọi xe thu gom CSSD thành công!");
         }
 
-        // MỞ POPUP KIỂM ĐẾM THÔNG MINH KHI CSSD BẤM KIỂM ĐẾM & CHỐT
         function moPopupKiemDem(id) {
             const item = listGiaoDich.find(x => x.id === id);
             if(!item) return;
@@ -269,7 +276,7 @@
             document.getElementById("popKhoa").innerText = item.khoa;
             document.getElementById("popBo").innerText = item.bo;
             document.getElementById("popSLYeuCau").innerText = item.slYeuCau;
-            document.getElementById("popSLThucTe").value = item.slYeuCau; // Default bằng số khoa khai báo
+            document.getElementById("popSLThucTe").value = item.slYeuCau; 
             document.getElementById("popGhiChu").value = "";
             document.getElementById("popupKiemDem").classList.remove("hidden");
         }
@@ -277,10 +284,16 @@
         function quickNote(text) {
             const tx = document.getElementById("popGhiChu");
             if(tx.value) tx.value += ", " + text; else tx.value = text;
+            
+            // Tự động nhảy số lượng về 0 nếu bấm nút báo ảo
+            if(text === 'Không có đồ (Báo ảo)') {
+                document.getElementById("popSLThucTe").value = 0;
+            }
         }
 
         function closePopup() { document.getElementById("popupKiemDem").classList.add("hidden"); idDangKiemDem = null; }
 
+        // TÍNH NĂNG 2: XỬ LÝ HỦY PHIẾU NẾU SỐ LƯỢNG THỰC TẾ LÀ 0
         function saveKiemDem() {
             if(!idDangKiemDem) return;
             const item = listGiaoDich.find(x => x.id === idDangKiemDem);
@@ -290,11 +303,19 @@
             if(isNaN(slThuc) || slThuc < 0) return alert("Số lượng thực tế không hợp lệ!");
             
             item.slThucTe = slThuc;
-            item.ghiChu = gc ? gc : "Đủ bộ";
-            item.status = "DANG_RUA";
+
+            if (slThuc === 0) {
+                // Hủy phiếu, chặn không đưa vào luồng đóng gói/rửa
+                item.status = "HUY_BO";
+                item.ghiChu = gc ? gc : "CSSD kiểm đếm không có đồ thực tế";
+                alert(`🚫 Đã hủy phiếu! CSSD xác nhận Khoa báo ảo (không có dụng cụ).`);
+            } else {
+                item.status = "DANG_RUA";
+                item.ghiChu = gc ? gc : "Đủ bộ";
+                alert(`✅ Đã chốt thu gom ${item.slThucTe} bộ.\nDữ liệu chuyển sang khu Đóng gói & Kho vô khuẩn!`);
+            }
             
             closePopup();
-            alert(`✅ Đã chốt kiểm đếm giao nhận! Trạng thái chuyển sang Đóng gói.`);
             renderTatCaCacManHinh();
         }
 
@@ -330,6 +351,8 @@
                     
                     if (i.status === "CHO_THU") {
                         statusUI = `<span class="text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 text-[11px] font-medium"><i class="fa-solid fa-clock mr-1"></i> CSSD Đang lên lấy</span>`;
+                    } else if (i.status === "HUY_BO") { // Báo hiệu trạng thái hủy do nhập 0
+                        statusUI = `<span class="text-rose-500 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 text-[11px] font-black"><i class="fa-solid fa-ban mr-1"></i> Báo ảo (Thu 0 bộ)</span>`;
                     } else if (i.status === "DANG_RUA" || i.status === "CHO_XUAT") {
                         statusUI = `<span class="text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/20 text-[11px] font-medium"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý tại CSSD</span>`;
                     } else if (i.status === "HOAN_TAT") {
@@ -339,11 +362,9 @@
                 });
             }
 
-            // 2. MÀN HÌNH XE THU GOM (KÈM BỘ LỌC THEO KHOA/PHÒNG)
+            // 2. MÀN HÌNH XE THU GOM
             const filterKhoa = document.getElementById("filterKhoaThuGom").value;
             let listThuGom = listGiaoDich.filter(x => x.status === "CHO_THU");
-            
-            // Tiến hành lọc nếu nhân viên chọn một khoa cụ thể
             if(filterKhoa) { listThuGom = listThuGom.filter(x => x.khoa === filterKhoa); }
             
             document.getElementById("badgeSoCho").innerText = `${listThuGom.length} Phiếu`;
