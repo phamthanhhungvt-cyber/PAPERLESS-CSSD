@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V20.6 (Bộ Lọc Ngày Tháng)</title>
+    <title>Hệ Thống Quản Lý CSSD - V20.7 (Sửa Lỗi Render Xe Thu Gom)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -97,7 +97,6 @@
                 <div class="glass-panel p-6 rounded-2xl shadow-xl flex flex-col h-[550px]">
                     <div class="flex justify-between items-center border-b border-[#334155] pb-3 mb-4">
                         <h3 class="text-sm font-black text-slate-200 uppercase"><i class="fa-solid fa-clock-rotate-left mr-2"></i> Lịch sử đối chiếu</h3>
-                        <!-- BỘ LỌC NGÀY CHO KHOA -->
                         <input type="date" id="dateKhoa" onchange="renderTatCaCacManHinh()" class="bg-[#1e293b] text-[11px] px-2 py-1.5 rounded border border-[#334155] text-[#38bdf8] font-bold shadow-inner">
                     </div>
                     <div class="flex-1 overflow-auto rounded-xl bg-[#0f172a] border border-[#334155]">
@@ -115,9 +114,11 @@
                             <p class="text-[10px] text-slate-400 mt-1">Phiếu ĐANG CHỜ luôn hiển thị. Đổi ngày để đối chiếu phiếu ĐÃ XONG.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                            <!-- BỘ LỌC NGÀY CHO THU GOM -->
+                            <!-- BỘ LỌC NGÀY VÀ KHOA -->
                             <input type="date" id="dateThuGom" onchange="renderTatCaCacManHinh()" class="rounded-lg px-3 py-2 text-xs font-bold shadow-inner border border-[#334155] bg-[#1e293b] text-amber-400">
                             <select id="filterKhoaThuGom" onchange="renderTatCaCacManHinh()" class="rounded-lg px-3 py-2 text-xs font-bold shadow-inner border border-[#334155]"><option value="">🔍 TẤT CẢ KHOA</option></select>
+                            <!-- ĐÃ KHÔI PHỤC LẠI HUY HIỆU ĐẾM SỐ Ở ĐÂY -->
+                            <span id="badgeSoCho" class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-sm font-black px-3 py-2 rounded-lg whitespace-nowrap">0 Đang chờ</span>
                         </div>
                     </div>
                     <div class="flex-1 overflow-auto bg-[#0f172a] rounded-xl border border-[#334155]">
@@ -134,7 +135,6 @@
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-orange-500 flex flex-col h-[650px]">
                     <div class="flex justify-between items-center border-b border-[#334155] pb-4 mb-4">
                         <div><h3 class="text-lg font-black text-orange-400 uppercase tracking-wide flex items-center"><i class="fa-solid fa-box-open mr-3"></i> Trạm Làm Sạch & Đóng Gói</h3></div>
-                        <!-- BỘ LỌC NGÀY CHO ĐÓNG GÓI -->
                         <div class="flex items-center gap-3">
                             <input type="date" id="dateDongGoi" onchange="renderTatCaCacManHinh()" class="rounded-lg px-3 py-2 text-xs font-bold shadow-inner border border-[#334155] bg-[#1e293b] text-orange-400">
                             <span id="badgeDongGoi" class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-xs font-black px-3 py-1.5 rounded-lg">0 Lô đang chờ</span>
@@ -149,7 +149,6 @@
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-emerald-500 flex flex-col h-[650px]">
                     <div class="flex justify-between items-center border-b border-[#334155] pb-4 mb-4">
                         <div><h3 class="text-lg font-black text-emerald-400 uppercase tracking-wide flex items-center"><i class="fa-solid fa-truck-fast mr-3"></i> Lệnh Cấp Bù Kho Vô Khuẩn</h3></div>
-                        <!-- BỘ LỌC NGÀY CHO KHO -->
                         <div class="flex items-center gap-3">
                             <input type="date" id="dateKhoVK" onchange="renderTatCaCacManHinh()" class="rounded-lg px-3 py-2 text-xs font-bold shadow-inner border border-[#334155] bg-[#1e293b] text-emerald-400">
                             <span id="badgeKhoVoKhuan" class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-black px-3 py-1.5 rounded-lg">0 Lệnh chờ xuất</span>
@@ -180,7 +179,6 @@
                         </div>
                     </div>
 
-                    <!-- Khu vực Báo Cáo Thống Kê -->
                     <div class="border-t border-[#334155] pt-6 mt-6 bg-[#0f172a] p-5 rounded-xl border border-[#334155]/50">
                         <h4 class="text-emerald-400 font-black uppercase text-sm mb-2 flex items-center"><i class="fa-solid fa-file-export mr-2 text-xl"></i> Trích xuất Dữ liệu Giao Nhận</h4>
                         <p class="text-[11px] text-slate-400 mb-4">Chọn khoảng thời gian để tải file báo cáo Excel phục vụ lưu trữ và đối chiếu số liệu.</p>
@@ -230,7 +228,6 @@
 
     <!-- ENGINE JAVASCRIPT -->
     <script>
-        // CẤU HÌNH FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCxjdCTKHQlpm7SYbWCEws1HhcOaFp0LBA",
             authDomain: "cssd-system-2878c.firebaseapp.com",
@@ -244,7 +241,6 @@
 
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('vi-VN'); }, 1000);
 
-        // HÀM LẤY NGÀY CHUẨN HIỆN TẠI (YYYY-MM-DD) THEO MÚI GIỜ VIỆT NAM
         function getTodayDateStr() {
             const d = new Date();
             const year = d.getFullYear(); const month = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0');
@@ -273,10 +269,8 @@
             "IVF": [{ ma: "SG-CHOCHUTTRUNG", ten: "Bộ chọc hút trứng IVF", dinhMuc: 10 }, { ma: "SG-CHUYENPHOI", ten: "Bộ chuyển phôi lâm sàng", dinhMuc: 10 }]
         };
 
-        let listGiaoDich = [];
-        let gioHangTam = []; 
+        let listGiaoDich = []; let gioHangTam = []; 
 
-        // LẮNG NGHE DỮ LIỆU
         db.collection("phieuGiaoNhan").orderBy("id", "desc").onSnapshot((snapshot) => {
             listGiaoDich = [];
             snapshot.forEach((doc) => { let d = doc.data(); d.firestoreId = doc.id; listGiaoDich.push(d); });
@@ -284,28 +278,14 @@
         });
 
         function initSelects() {
-            // Khởi tạo List dropdown
-            const selKhoaTra = document.getElementById("khoa_selKhoa");
-            const filterKTG = document.getElementById("filterKhoaThuGom");
-            const selectBoExcel = document.getElementById("selectBoDungCu");
-            
-            selKhoaTra.innerHTML = '<option value="">-- Chọn khoa đang công tác --</option>';
-            filterKTG.innerHTML = '<option value="">🔍 TẤT CẢ KHOA/PHÒNG</option>';
+            const selKhoaTra = document.getElementById("khoa_selKhoa"); const filterKTG = document.getElementById("filterKhoaThuGom"); const selectBoExcel = document.getElementById("selectBoDungCu");
+            selKhoaTra.innerHTML = '<option value="">-- Chọn khoa đang công tác --</option>'; filterKTG.innerHTML = '<option value="">🔍 TẤT CẢ KHOA/PHÒNG</option>';
             if(selectBoExcel) selectBoExcel.innerHTML = '<option value="">-- Chọn khoa --</option>';
-
-            danhSachKhoa.forEach(k => { 
-                selKhoaTra.innerHTML += `<option value="${k.ten}">${k.ten}</option>`; filterKTG.innerHTML += `<option value="${k.ten}">${k.ten}</option>`;
-            });
+            danhSachKhoa.forEach(k => { selKhoaTra.innerHTML += `<option value="${k.ten}">${k.ten}</option>`; filterKTG.innerHTML += `<option value="${k.ten}">${k.ten}</option>`; });
             for(let key in databaseExcel) { if(selectBoExcel) selectBoExcel.innerHTML += `<option value="${key}">${key}</option>`; }
 
-            // Khởi tạo Giá trị mặc định cho các ô Ngày Tháng (Gán giá trị là Hôm nay)
             const today = getTodayDateStr();
-            document.getElementById("dateKhoa").value = today;
-            document.getElementById("dateThuGom").value = today;
-            document.getElementById("dateDongGoi").value = today;
-            document.getElementById("dateKhoVK").value = today;
-            document.getElementById("excelTuNgay").value = today;
-            document.getElementById("excelDenNgay").value = today;
+            document.getElementById("dateKhoa").value = today; document.getElementById("dateThuGom").value = today; document.getElementById("dateDongGoi").value = today; document.getElementById("dateKhoVK").value = today; document.getElementById("excelTuNgay").value = today; document.getElementById("excelDenNgay").value = today;
         }
 
         function loadBoDungCuTheoKhoa() {
@@ -337,25 +317,16 @@
             tbody.innerHTML = ""; gioHangTam.forEach((item, index) => { tbody.innerHTML += `<tr><td class="p-3"><div class="font-bold text-[#38bdf8]">${item.bo}</div><div class="text-[10px] text-slate-500 mt-1">BN: ${item.bn}</div></td><td class="p-3 text-center"><span class="bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-black">${item.slYeuCau}</span></td><td class="p-3 text-center"><button onclick="xoaKhoiGio(${index})" class="text-rose-500 hover:text-rose-400 bg-rose-500/10 px-2 py-1 rounded"><i class="fa-solid fa-trash-can"></i></button></td></tr>`; });
         }
 
-        // ĐẨY GIỎ HÀNG LÊN FIREBASE (CÓ ĐÓNG DẤU NGÀY THÁNG YYYY-MM-DD)
         function khoaGuiPhieuTraBatches() {
             if(gioHangTam.length === 0) return;
-            const k = document.getElementById("khoa_selKhoa").value;
-            const btn = document.getElementById("btnXacNhanGoi");
+            const k = document.getElementById("khoa_selKhoa").value; const btn = document.getElementById("btnXacNhanGoi");
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> ĐANG TẢI LÊN MÂY...'; btn.disabled = true;
 
-            const timeGui = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'});
-            const ngayGui = getTodayDateStr(); // Format chuẩn: 2026-06-21
+            const timeGui = new Date().toLocaleTimeString('vi-VN', {hour:'2-digit', minute:'2-digit'}); const ngayGui = getTodayDateStr(); 
             let arrayPromises = [];
 
             gioHangTam.forEach((item, idx) => {
-                let phieu = { 
-                    id: Date.now() + idx, 
-                    ngayTao: ngayGui, // Đóng dấu ngày tháng
-                    time: timeGui, 
-                    khoa: k, bo: item.bo, slYeuCau: item.slYeuCau, bn: item.bn, slThucTe: 0, 
-                    status: "CHO_THU", ghiChu: "", signature: null, nguoiNhan: "" 
-                };
+                let phieu = { id: Date.now() + idx, ngayTao: ngayGui, time: timeGui, khoa: k, bo: item.bo, slYeuCau: item.slYeuCau, bn: item.bn, slThucTe: 0, status: "CHO_THU", ghiChu: "", signature: null, nguoiNhan: "" };
                 arrayPromises.push(db.collection("phieuGiaoNhan").add(phieu));
             });
 
@@ -367,36 +338,22 @@
         }
 
         function xuatExcelLichSu() {
-            const tuNgay = document.getElementById("excelTuNgay").value;
-            const denNgay = document.getElementById("excelDenNgay").value;
-
+            const tuNgay = document.getElementById("excelTuNgay").value; const denNgay = document.getElementById("excelDenNgay").value;
             if(!tuNgay || !denNgay) return alert("Vui lòng chọn đầy đủ Từ ngày và Đến ngày!");
-
-            let dataLoc = listGiaoDich.filter(x => {
-                let d = x.ngayTao || getTodayDateStr(); // Xử lý dữ liệu cũ không có ngày
-                return d >= tuNgay && d <= denNgay;
-            });
-
+            let dataLoc = listGiaoDich.filter(x => { let d = x.ngayTao || getTodayDateStr(); return d >= tuNgay && d <= denNgay; });
             if (dataLoc.length === 0) return alert("⚠️ Không có giao dịch nào trong khoảng thời gian này để xuất!");
 
             const dataToExport = dataLoc.map((item, index) => {
                 let trangThaiVN = "";
-                if (item.status === "CHO_THU") trangThaiVN = "Chờ CSSD thu gom";
-                else if (item.status === "HUY_BO") trangThaiVN = "Đã hủy / Báo ảo";
-                else if (item.status === "DANG_RUA") trangThaiVN = "Đang làm sạch / Đóng gói";
-                else if (item.status === "CHO_XUAT") trangThaiVN = "Sẵn sàng xuất kho";
-                else if (item.status === "HOAN_TAT") trangThaiVN = "Đã bàn giao thành công";
-
+                if (item.status === "CHO_THU") trangThaiVN = "Chờ CSSD thu gom"; else if (item.status === "HUY_BO") trangThaiVN = "Đã hủy / Báo ảo"; else if (item.status === "DANG_RUA") trangThaiVN = "Đang làm sạch / Đóng gói"; else if (item.status === "CHO_XUAT") trangThaiVN = "Sẵn sàng xuất kho"; else if (item.status === "HOAN_TAT") trangThaiVN = "Đã bàn giao thành công";
                 return { "STT": index + 1, "Ngày Tạo": item.ngayTao || getTodayDateStr(), "Thời Gian": item.time, "Khoa / Phòng Giao": item.khoa, "Tên Bộ Dụng Cụ": item.bo, "SL Báo": item.slYeuCau, "SL Thực Nhận": item.slThucTe, "Mã Bệnh Nhân": item.bn, "Trạng Thái": trangThaiVN, "Người Ký Nhận": item.nguoiNhan || "", "Ghi Chú Sai Lệch": item.ghiChu || "" };
             });
 
-            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-            worksheet['!cols'] = [ {wch: 5}, {wch: 12}, {wch: 10}, {wch: 25}, {wch: 30}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 25}, {wch: 20}, {wch: 30} ];
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport); worksheet['!cols'] = [ {wch: 5}, {wch: 12}, {wch: 10}, {wch: 25}, {wch: 30}, {wch: 10}, {wch: 15}, {wch: 15}, {wch: 25}, {wch: 20}, {wch: 30} ];
             const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "Nhat_Ky_CSSD");
             XLSX.writeFile(workbook, `Bao_Cao_CSSD_${tuNgay}_den_${denNgay}.xlsx`);
         }
 
-        /* --- XỬ LÝ CSSD BẰNG FIREBASE --- */
         let idDangKiemDem = null; let idDangKyNhan = null;
         function moPopupKiemDem(firestoreId) {
             const item = listGiaoDich.find(x => x.firestoreId === firestoreId); if(!item) return; idDangKiemDem = firestoreId;
@@ -442,7 +399,7 @@
         function renderTatCaCacManHinh() {
             const today = getTodayDateStr();
 
-            // 1. LỊCH SỬ KHOA (Chỉ hiện theo ngày được chọn)
+            // 1. LỊCH SỬ KHOA
             const dKhoa = document.getElementById("dateKhoa").value || today;
             const selKhoa = document.getElementById("khoa_selKhoa").value; 
             const tbodyKhoa = document.getElementById("bangLichSuKhoa"); tbodyKhoa.innerHTML = "";
@@ -454,7 +411,7 @@
                 tbodyKhoa.innerHTML += `<tr><td class="p-4"><b>${i.bo}</b> (Báo: ${i.slYeuCau} | Nhận: ${i.slThucTe})<br><span class="text-[10px] text-slate-500">${i.time} - BN: ${i.bn}</span>${n}</td><td class="p-4 text-right">${getStatusBadgeUI(i.status)}${sig}</td></tr>`;
             });
 
-            // 2. XE THU GOM (Hiện CHO_THU (để làm việc) + Các phiếu trạng thái khác CỦA NGÀY ĐANG CHỌN (để đối chiếu))
+            // 2. XE THU GOM
             const filterKhoa = document.getElementById("filterKhoaThuGom").value;
             const dThuGom = document.getElementById("dateThuGom").value || today;
             let listThuGom = listGiaoDich.filter(x => {
@@ -462,7 +419,13 @@
                 let ngayPhieu = x.ngayTao || today;
                 return x.status === "CHO_THU" || ngayPhieu === dThuGom;
             });
-            document.getElementById("badgeSoCho").innerText = listThuGom.filter(x=>x.status==="CHO_THU").length + " Đang chờ";
+            
+            // Cập nhật số lượng huy hiệu cho Tab 2
+            const badgeSoCho = document.getElementById("badgeSoCho");
+            if (badgeSoCho) {
+                badgeSoCho.innerText = listThuGom.filter(x => x.status === "CHO_THU").length + " Đang chờ";
+            }
+
             const tbodyThuGom = document.getElementById("bangChoThuGom"); tbodyThuGom.innerHTML = "";
             if(listThuGom.length === 0) tbodyThuGom.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Trống.</td></tr>`;
             listThuGom.forEach(i => { 
@@ -474,7 +437,10 @@
             // 3. ĐÓNG GÓI
             const dDongGoi = document.getElementById("dateDongGoi").value || today;
             let listDongGoi = listGiaoDich.filter(x => x.status === "DANG_RUA" || (x.ngayTao || today) === dDongGoi);
-            document.getElementById("badgeDongGoi").innerText = listDongGoi.filter(x=>x.status==="DANG_RUA").length + " Đang chờ";
+            
+            const badgeDongGoi = document.getElementById("badgeDongGoi");
+            if(badgeDongGoi) badgeDongGoi.innerText = listDongGoi.filter(x=>x.status==="DANG_RUA").length + " Đang chờ";
+
             const gridDG = document.getElementById("gridDongGoi"); gridDG.innerHTML = "";
             if(listDongGoi.length === 0) gridDG.innerHTML = `<div class="p-8 text-center text-slate-500 italic col-span-2">Trống.</div>`;
             listDongGoi.forEach(i => { 
@@ -486,7 +452,10 @@
             // 4. KHO VÔ KHUẨN
             const dKhoVK = document.getElementById("dateKhoVK").value || today;
             let listChoXuat = listGiaoDich.filter(x => x.status === "CHO_XUAT" || (x.ngayTao || today) === dKhoVK); 
-            document.getElementById("badgeKhoVoKhuan").innerText = listChoXuat.filter(x=>x.status==="CHO_XUAT").length + " Đang chờ";
+            
+            const badgeKhoVoKhuan = document.getElementById("badgeKhoVoKhuan");
+            if(badgeKhoVoKhuan) badgeKhoVoKhuan.innerText = listChoXuat.filter(x=>x.status==="CHO_XUAT").length + " Đang chờ";
+
             const tbodyKhoVK = document.getElementById("bangKhoVoKhuan"); tbodyKhoVK.innerHTML = "";
             if(listChoXuat.length === 0) tbodyKhoVK.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500 italic">Trống.</td></tr>`;
             listChoXuat.forEach(i => { 
