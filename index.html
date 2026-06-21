@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V20.8 (Đồng Bộ Danh Mục Excel)</title>
+    <title>Hệ Thống Quản Lý CSSD - V21.0 (Bảo Vệ Danh Mục Tổng)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -27,7 +27,6 @@
 </head>
 <body class="flex flex-col md:flex-row h-screen overflow-hidden">
 
-    <!-- MENU BÊN TRÁI -->
     <div class="w-full md:w-64 bg-[#1e293b] flex flex-col justify-between flex-shrink-0 z-20 shadow-[4px_0_24px_rgba(0,0,0,0.5)] border-r border-[#334155]">
         <div>
             <div class="p-4 bg-[#0f172a] flex items-center justify-between border-b border-[#334155]">
@@ -57,7 +56,6 @@
         </div>
     </div>
 
-    <!-- KHÔNG GIAN LÀM VIỆC BÊN PHẢI -->
     <div class="flex-1 flex flex-col overflow-y-auto w-full h-full relative">
         <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -68,7 +66,6 @@
 
         <main class="p-4 md:p-6 w-full space-y-6 flex-1 z-10">
             
-            <!-- 1. MÀN HÌNH ĐIỀU DƯỠNG KHOA -->
             <div id="tab-khoaphong" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 h-full max-w-7xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-pink-500 flex flex-col h-full">
                     <h3 class="text-sm font-black text-pink-400 mb-4 uppercase flex items-center border-b border-[#334155] pb-3"><i class="fa-solid fa-paper-plane mr-2"></i> Khai báo dụng cụ trả dơ</h3>
@@ -103,7 +100,6 @@
                 </div>
             </div>
 
-            <!-- 2. MÀN HÌNH XE THU GOM CSSD -->
             <div id="tab-thugom" class="hidden h-full max-w-5xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-amber-500 flex flex-col h-[650px]">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#334155] pb-4 mb-4 gap-4">
@@ -126,7 +122,6 @@
                 </div>
             </div>
 
-            <!-- 3. MÀN HÌNH TRẠM ĐÓNG GÓI -->
             <div id="tab-donggoi" class="hidden h-full max-w-5xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-orange-500 flex flex-col h-[650px]">
                     <div class="flex justify-between items-center border-b border-[#334155] pb-4 mb-4">
@@ -140,7 +135,6 @@
                 </div>
             </div>
 
-            <!-- 4. MÀN HÌNH KHO VÔ KHUẨN -->
             <div id="tab-khovokhuan" class="hidden h-full max-w-5xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-emerald-500 flex flex-col h-[650px]">
                     <div class="flex justify-between items-center border-b border-[#334155] pb-4 mb-4">
@@ -159,7 +153,6 @@
                 </div>
             </div>
 
-            <!-- 5. MÀN HÌNH TRA CỨU & QUẢN TRỊ DANH MỤC EXCEL -->
             <div id="tab-tracuu" class="space-y-4 w-full max-w-6xl mx-auto">
                 <div class="glass-panel p-6 rounded-2xl shadow-xl border-t-4 border-t-[#0ea5e9]">
                     
@@ -175,10 +168,9 @@
                         </div>
                     </div>
 
-                    <!-- TRẠM CẬP NHẬT DANH MỤC QUA EXCEL (MỚI NÂNG CẤP ĐỒNG BỘ 100%) -->
                     <div class="border-t border-[#334155] pt-6 mt-6 bg-[#0f172a] p-5 rounded-xl border border-[#334155]/50">
                         <h4 class="text-[#38bdf8] font-black uppercase text-sm mb-2 flex items-center"><i class="fa-solid fa-file-excel mr-2 text-xl text-emerald-400"></i> Quản Trị Hệ Thống: Cập nhật danh mục chuẩn Phương Nam</h4>
-                        <p class="text-[11px] text-slate-400 mb-4">Nạp file Excel danh mục thiết bị của 22 Khoa/Phòng để phân bổ dữ liệu đầu mục chuẩn cho toàn bộ hệ thống.</p>
+                        <p class="text-[11px] text-slate-400 mb-4">Nạp file Excel danh mục tổng chứa dữ liệu thiết bị của tất cả 22 Khoa/Phòng (Hệ thống sẽ đồng bộ toàn diện và an toàn).</p>
                         
                         <div class="flex flex-col md:flex-row items-center gap-4">
                             <input type="file" id="fileImportExcel" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-black file:bg-emerald-500/20 file:text-emerald-400 hover:file:bg-emerald-500/30 cursor-pointer shadow-inner bg-[#1e293b] rounded-xl border border-[#334155]">
@@ -188,7 +180,6 @@
                         </div>
                     </div>
 
-                    <!-- Khu vực Báo Cáo Thống Kê -->
                     <div class="border-t border-[#334155] pt-6 mt-6 bg-[#0f172a] p-5 rounded-xl border border-[#334155]/50">
                         <h4 class="text-emerald-400 font-black uppercase text-sm mb-2 flex items-center"><i class="fa-solid fa-file-export mr-2 text-xl"></i> Trích xuất Dữ liệu Giao Nhận</h4>
                         <p class="text-[11px] text-slate-400 mb-4">Chọn khoảng thời gian để tải file báo cáo Excel phục vụ lưu trữ và đối chiếu số liệu.</p>
@@ -209,7 +200,6 @@
         </main>
     </div>
 
-    <!-- POPUPS -->
     <div id="popupKiemDem" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-md rounded-2xl shadow-2xl p-6 border-t-4 border-t-amber-500 animate-popIn text-slate-200 bg-[#1e293b]">
             <h3 class="text-base font-black text-amber-400 uppercase border-b border-[#334155] pb-3 mb-4 flex items-center"><i class="fa-solid fa-clipboard-check mr-2"></i> Biên Bản Kiểm Đếm</h3>
@@ -236,7 +226,6 @@
         </div>
     </div>
 
-    <!-- ENGINE JAVASCRIPT -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyCxjdCTKHQlpm7SYbWCEws1HhcOaFp0LBA",
@@ -257,7 +246,7 @@
             return `${year}-${month}-${day}`;
         }
 
-        // DANH MỤC CỨNG BAN ĐẦU ĐỂ CHẠY DEMO TẠM THỜI
+        // DANH MỤC CỨNG DỰ PHÒNG CHỈ CHẠY BAN ĐẦU
         let danhSachKhoa = [
             { id: "PHONG_SANH_CAP_CUU_SAN", ten: "PHÒNG SANH - CẤP CỨU SẢN" }, { id: "PHONG_KHAM_SAN", ten: "PHÒNG KHÁM SẢN" },
             { id: "NICU", ten: "NICU" }, { id: "NOI_SOI_TIEU_HOA", ten: "NỘI SOI TIÊU HÓA" },
@@ -272,7 +261,6 @@
             "IVF": [{ ma: "SG-CHOCHUTTRUNG", ten: "Bộ chọc hút trứng IVF", dinhMuc: 10 }]
         };
 
-        // HÀM TỰ ĐỘNG KHÔI PHỤC DANH MỤC NẾU CÓ DỮ LIỆU EXCEL ĐÃ LƯU TRÊN LOCALSTORAGE
         function docDanhMucTuBoNho() {
             const localDsKhoa = localStorage.getItem("CSSD_danhSachKhoa");
             const localDbExcel = localStorage.getItem("CSSD_databaseExcel");
@@ -292,11 +280,11 @@
             renderTatCaCacManHinh();
         });
 
-        // HÀM IMPORT EXCEL DANH MỤC THÔNG MINH
+        // HÀM IMPORT EXCEL AN TOÀN CHỐNG GHI ĐÈ SAI SÓT (V21.0)
         function xuLyImportExcelDanhMuc() {
             const fileInput = document.getElementById('fileImportExcel');
             const file = fileInput.files[0];
-            if (!file) return alert("⚠️ Vui lòng chọn file Excel danh mục thiết bị Phương Nam trước!");
+            if (!file) return alert("⚠️ Vui lòng chọn file Excel danh mục tổng trước!");
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -304,13 +292,13 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
                     const sheetName = workbook.SheetNames[0];
-                    const jsonArr = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1}); // Đọc dạng mảng hàng
+                    const jsonArr = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {header: 1}); 
                     
-                    if(jsonArr.length <= 1) return alert("File Excel trống hoặc không đủ dữ liệu dòng.");
+                    if(jsonArr.length <= 1) return alert("❌ Thao tác bị chặn: File Excel trống hoặc không đủ dữ liệu dòng.");
 
                     let dbMoi = {}; let dsKhoaMoiSet = new Set();
+                    let countItems = 0;
                     
-                    // Duyệt qua từng dòng (bỏ qua dòng tiêu đề index = 0)
                     for(let i = 1; i < jsonArr.length; i++) {
                         let row = jsonArr[i];
                         if (!row || row.length < 3) continue;
@@ -324,33 +312,34 @@
                             dsKhoaMoiSet.add(khoaStr);
                             if(!dbMoi[khoaStr]) dbMoi[khoaStr] = [];
                             dbMoi[khoaStr].push({ ma: maStr, ten: tenStr, dinhMuc: isNaN(dmInt) ? 0 : dmInt });
+                            countItems++;
                         }
                     }
 
-                    if(Object.keys(dbMoi).length > 0) {
+                    // CHỈ GHI ĐÈ KHI THỰC SỰ CÓ DỮ LIỆU ĐƯỢC TRÍCH XUẤT HỢP LỆ (HỘP KÍNH BẢO VỆ)
+                    if(Object.keys(dbMoi).length > 0 && countItems > 0) {
                         databaseExcel = dbMoi;
                         danhSachKhoa = Array.from(dsKhoaMoiSet).map(k => { 
                             return { id: k.toUpperCase().replace(/\s+/g, '_').replace(/[^\w]/gi, ''), ten: k }; 
                         });
 
-                        // Lưu vào bộ nhớ máy tính để F5 không bị mất dữ liệu danh mục
                         localStorage.setItem("CSSD_danhSachKhoa", JSON.stringify(danhSachKhoa));
                         localStorage.setItem("CSSD_databaseExcel", JSON.stringify(databaseExcel));
 
                         initSelects();
-                        alert(`✅ ĐỒNG BỘ THÀNH CÔNG!\nĐã nạp danh mục chuẩn cho ${danhSachKhoa.length} Khoa/Phòng vào hệ thống.`);
+                        alert(`✅ ĐỒNG BỘ DANH MỤC TỔNG THÀNH CÔNG!\n\nHệ thống đã tiếp nhận dữ liệu an toàn:\n- Số khoa/phòng: ${danhSachKhoa.length}\n- Tổng số loại dụng cụ: ${countItems} bộ.`);
                         fileInput.value = ""; 
                         renderTatCaCacManHinh();
                     } else {
-                        alert("Không trích xuất được dữ liệu hợp lệ. Vui lòng kiểm tra lại thứ tự các cột.");
+                        alert("❌ Thao tác thất bại: Định dạng cột không đúng (Yêu cầu: Cột 1: Khoa, Cột 2: Mã, Cột 3: Tên, Cột 4: Định mức). Danh mục cũ được giữ nguyên!");
                     }
-                } catch (error) { alert("Lỗi hệ thống khi đọc file Excel: " + error.message); }
+                } catch (error) { alert("❌ Lỗi hệ thống: " + error.message); }
             };
             reader.readAsArrayBuffer(file);
         }
 
         function initSelects() {
-            docDanhMucTuBoNho(); // Đọc dữ liệu mới nhất trước khi render dropdowns
+            docDanhMucTuBoNho(); 
             
             const selKhoaTra = document.getElementById("khoa_selKhoa"); 
             const filterKTG = document.getElementById("filterKhoaThuGom"); 
