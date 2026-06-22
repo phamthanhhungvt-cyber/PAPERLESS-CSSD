@@ -66,9 +66,9 @@
                 </button>
             </div>
             <div class="text-[10px] text-slate-500 mt-6 text-left space-y-1">
-                <p>Khoa Lâm Sàng: <b>123</b> (Nhớ chọn Khoa)</p>
-                <p>Nhân viên CSSD: <b>cssd2026</b></p>
-                <p class="text-amber-500">Quản trị Admin: <b>admin2026</b></p>
+                <p>Khoa Lâm Sàng: <b>abc@123</b> (Nhớ chọn Khoa)</p>
+                <p>Nhân viên CSSD: <b>cssd@2026</b></p>
+                <p class="text-amber-500">Quản trị Admin: <b>admin@2026</b></p>
             </div>
         </div>
     </div>
@@ -509,7 +509,7 @@
 
         let isAdminUnlocked = false; 
         function toggleAdminLock() {
-            if(!isAdminUnlocked) { if(prompt("🔑 Nhập mã PIN:")==="1234") { isAdminUnlocked=true; document.getElementById("wrapperImportExcel").classList.remove("opacity-30","pointer-events-none"); document.getElementById("btnLockAdmin").innerHTML='<i class="fa-solid fa-lock-open mr-1"></i> Admin Đã Mở Khóa'; document.getElementById("btnLockAdmin").classList.replace("text-amber-400","text-emerald-400"); } else alert("Sai PIN!"); }
+            if(!isAdminUnlocked) { if(prompt("🔑 Nhập mã PIN:")==="admin@2026") { isAdminUnlocked=true; document.getElementById("wrapperImportExcel").classList.remove("opacity-30","pointer-events-none"); document.getElementById("btnLockAdmin").innerHTML='<i class="fa-solid fa-lock-open mr-1"></i> Admin Đã Mở Khóa'; document.getElementById("btnLockAdmin").classList.replace("text-amber-400","text-emerald-400"); } else alert("Sai PIN!"); }
             else { isAdminUnlocked=false; document.getElementById("wrapperImportExcel").classList.add("opacity-30","pointer-events-none"); document.getElementById("btnLockAdmin").innerHTML='<i class="fa-solid fa-lock mr-1"></i> Mở khóa Admin'; document.getElementById("btnLockAdmin").classList.replace("text-emerald-400","text-amber-400"); }
         }
 
