@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD Phương Nam - V21.16 (Clinical UI & Lifecycle)</title>
+    <title>Hệ Thống Quản Lý CSSD Phương Nam - V21.17 (Ghi chú Actionable)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -142,7 +142,7 @@
                                 </div>
                                 <div class="mb-4">
                                     <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1.5">4. Ghi chú hư hỏng / Thiếu hụt:</label>
-                                    <input type="text" id="khoa_inpGhiChu" placeholder="Ví dụ: Thiếu 1 panh, dính máu nhiều..." class="w-full px-3 py-2 shadow-sm text-amber-600">
+                                    <input type="text" id="khoa_inpGhiChu" placeholder="Ví dụ: Thiếu 1 panh, dính máu nhiều..." class="w-full px-3 py-2 shadow-sm text-amber-600 font-bold">
                                 </div>
                                 <button onclick="themVaoGio()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-lg text-xs shadow-md transition"><i class="fa-solid fa-plus mr-1"></i> ĐƯA VÀO PHIẾU GỬI</button>
                             </div>
@@ -175,7 +175,7 @@
                             </div>
                         </div>
                         <div class="flex-1 overflow-auto bg-white rounded border border-slate-100">
-                            <table class="w-full text-left text-xs"><thead class="sticky top-0 shadow-sm"><tr><th class="p-3 w-[25%]">Từ Khoa</th><th class="p-3 w-[45%]">Thông Tin Tài Sản</th><th class="p-3 text-center">TG Phát lệnh</th><th class="p-3 text-center">Thao tác</th></tr></thead><tbody id="bangChoThuGom" class="divide-y divide-slate-50 text-slate-700"></tbody></table>
+                            <table class="w-full text-left text-xs"><thead class="sticky top-0 shadow-sm"><tr><th class="p-3 w-[25%]">Từ Khoa & Ghi chú</th><th class="p-3 w-[45%]">Thông Tin Tài Sản</th><th class="p-3 text-center">TG Phát lệnh</th><th class="p-3 text-center">Thao tác</th></tr></thead><tbody id="bangChoThuGom" class="divide-y divide-slate-50 text-slate-700"></tbody></table>
                         </div>
                     </div>
                 </div>
@@ -240,11 +240,11 @@
                     </div>
                 </div>
 
-                <!-- 6. GIÁM SÁT TUỔI THỌ (ASSET LIFECYCLE) -->
+                <!-- 6. GIÁM SÁT TUỔI THỌ -->
                 <div id="tab-danhmuc" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-4 mb-4 gap-4">
-                            <div><h3 class="text-base font-black text-slate-700 uppercase"><i class="fa-solid fa-microchip mr-2 text-sky-500"></i> Giám Sát Tuổi Thọ Dụng Cụ (Lifecycle)</h3><p class="text-[10px] text-slate-500 mt-0.5">Tự động đếm số chu kỳ hấp. Yêu cầu kiểm tra bảo trì khi vượt định mức 50 lần.</p></div>
+                            <div><h3 class="text-base font-black text-slate-700 uppercase"><i class="fa-solid fa-microchip mr-2 text-sky-500"></i> Giám Sát Tuổi Thọ Dụng Cụ</h3><p class="text-[10px] text-slate-500 mt-0.5">Tự động đếm số chu kỳ hấp. Yêu cầu kiểm tra bảo trì khi vượt định mức 50 lần.</p></div>
                             <select id="dm_filterKhoa" onchange="renderTabDanhMuc()" class="rounded px-3 py-1.5 text-xs font-bold border border-slate-200"><option value="">-- Tất cả các khoa --</option></select>
                         </div>
                         <div class="flex-1 overflow-auto bg-white rounded border border-slate-100">
@@ -288,7 +288,7 @@
     <!-- POPUPS -->
     <!-- 1. Kiem Dem -->
     <div id="popupKiemDem" class="fixed inset-0 popup-overlay z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-panel w-full max-w-md p-6 border-t-4 border-t-sky-500 animate-popIn"><h3 class="text-sm font-black text-slate-700 uppercase border-b border-slate-100 pb-3 mb-4">Xác nhận thu gom</h3><div class="space-y-4"><p class="text-[11px] bg-slate-50 p-3 rounded border border-slate-100 text-slate-600">Khoa: <span id="popKhoa" class="font-bold">--</span><br>Tài sản: <span id="popBo" class="font-bold text-sky-700">--</span></p><div><label class="block text-[11px] font-bold text-slate-500 mb-1.5">Tình trạng vật lý:</label><textarea id="popGhiChu" rows="4" class="w-full p-2 text-xs shadow-sm" placeholder="Ghi nhận..."></textarea><div class="flex gap-1 mt-2"><button onclick="quickNote('Đủ linh kiện')" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded">✓ Đủ bộ</button><button onclick="quickNote('Thiếu đồ')" class="text-[10px] bg-rose-50 text-rose-600 px-2 py-1 rounded">⚠️ Thiếu đồ</button></div></div></div><div class="flex space-x-2 mt-5"><button onclick="closePopup()" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-2.5 rounded text-xs">HỦY</button><button onclick="saveKiemDem()" class="w-2/3 btn-primary font-bold py-2.5 rounded text-xs">NHẬN RỬA</button></div></div>
+        <div class="glass-panel w-full max-w-md p-6 border-t-4 border-t-sky-500 animate-popIn"><h3 class="text-sm font-black text-slate-700 uppercase border-b border-slate-100 pb-3 mb-4">Xác nhận thu gom</h3><div class="space-y-4"><p class="text-[11px] bg-slate-50 p-3 rounded border border-slate-100 text-slate-600">Khoa: <span id="popKhoa" class="font-bold">--</span><br>Tài sản: <span id="popBo" class="font-bold text-sky-700">--</span><br><span id="popGhiChuKhoa" class="hidden"></span></p><div><label class="block text-[11px] font-bold text-slate-500 mb-1.5">Tình trạng vật lý ghi nhận:</label><textarea id="popGhiChu" rows="4" class="w-full p-2 text-xs shadow-sm" placeholder="Ghi nhận biên bản..."></textarea><div class="flex gap-1 mt-2"><button onclick="quickNote('Đủ linh kiện')" class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded">✓ Đủ bộ</button><button onclick="quickNote('Thiếu đồ')" class="text-[10px] bg-rose-50 text-rose-600 px-2 py-1 rounded">⚠️ Thiếu đồ</button></div></div></div><div class="flex space-x-2 mt-5"><button onclick="closePopup()" class="w-1/3 bg-slate-100 text-slate-600 font-bold py-2.5 rounded text-xs">HỦY</button><button onclick="saveKiemDem()" class="w-2/3 btn-primary font-bold py-2.5 rounded text-xs">NHẬN RỬA</button></div></div>
     </div>
     
     <!-- 2. Dong Goi -->
@@ -313,7 +313,7 @@
         function getDiffDays(dStr) { const today = new Date(getTodayDateStr()); const d = new Date(dStr); return Math.ceil((d - today) / (1000 * 60 * 60 * 24)); }
 
         let currentRole = "", currentKhoaName = "", danhSachKhoa = [], databaseExcel = {}, listGiaoDich = [], gioHangTam = [], listNhatKyHap = [], viTriThoiGianThuc = {}, thànhPhầnLinhKiệnCây = {};
-        let assetCycles = {}; // Cache lưu số chu kỳ
+        let assetCycles = {};
 
         function toggleMobileMenu() {
             const sb = document.getElementById("sidebar_menu"); const ov = document.getElementById("mobile-overlay");
@@ -355,23 +355,15 @@
             if(currentRole === "KHOA") { document.getElementById("khoa_selKhoa").value = currentKhoaName; loadBoDungCuTheoKhoa(); }
         }
 
-        // TÍNH TOÁN TUỔI THỌ (ASSET LIFECYCLE) & VỊ TRÍ
         function tinhToanVongDoiTaiSan() {
-            viTriThoiGianThuc = {}; assetCycles = {};
-            let danhSachXuLy = [...listGiaoDich].reverse(); // Từ cũ đến mới
+            viTriThoiGianThuc = {}; assetCycles = {}; let danhSachXuLy = [...listGiaoDich].reverse();
             danhSachXuLy.forEach(p => {
                 if(p.maMacDinh) {
-                    // Cập nhật vị trí mới nhất
                     let vt = "Tủ Khoa Lâm Sàng";
                     if(p.status === "CHO_THU") vt = "Đang thu gom"; else if(p.status === "DANG_RUA") vt = "Đang làm sạch"; else if(p.status === "CHO_HAP") vt = "Đang chờ hấp"; else if(p.status === "CHO_XUAT") vt = "Kho vô khuẩn"; else if(p.status === "HOAN_TAT") vt = "Sẵn sàng sử dụng";
                     viTriThoiGianThuc[p.maMacDinh] = vt;
-                    
-                    // Đếm số chu kỳ (Mỗi lần vào CHO_XUAT = 1 mẻ hấp hoàn tất)
                     if(!assetCycles[p.maMacDinh]) assetCycles[p.maMacDinh] = 0;
-                    if(p.status === "CHO_XUAT" || p.status === "HOAN_TAT") {
-                        // Tính theo số ID phiếu duy nhất để tránh đếm trùng nếu update
-                        assetCycles[p.maMacDinh]++;
-                    }
+                    if(p.status === "CHO_XUAT" || p.status === "HOAN_TAT") assetCycles[p.maMacDinh]++;
                 }
             });
         }
@@ -402,10 +394,31 @@
             Promise.all(promises).then(() => { clearGioHang(); btn.disabled = false; });
         }
 
+        // HÀM TẠO TAG GHI CHÚ THÔNG MINH
+        function taoTagGhiChuKhoa(gc) {
+            if(!gc) return "";
+            let isAlert = gc.toLowerCase().includes("thiếu") || gc.toLowerCase().includes("hỏng") || gc.toLowerCase().includes("máu") || gc.toLowerCase().includes("dơ");
+            let c = isAlert ? "text-rose-600 bg-rose-50 border-rose-200" : "text-amber-600 bg-amber-50 border-amber-200";
+            let icon = isAlert ? "fa-triangle-exclamation" : "fa-note-sticky";
+            return `<div class="text-[10px] mt-1.5 p-1.5 rounded border ${c} font-bold inline-block w-full shadow-sm"><i class="fa-solid ${icon} mr-1"></i>Khoa note: ${gc}</div>`;
+        }
+
         function toggleSelectAllHap() { let isChecked = document.getElementById("selectAllHap").checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = isChecked); }
         let idDangKiemDem=null, idDangDongGoi=null, idDangKyNhan=null;
         function closePopup() { document.getElementById("popupKiemDem").classList.add("hidden"); idDangKiemDem=null; }
-        function moPopupKiemDem(id) { const i = listGiaoDich.find(x=>x.firestoreId===id); if(!i)return; idDangKiemDem=id; document.getElementById("popKhoa").innerText=i.khoa; document.getElementById("popBo").innerText=`${i.bo} [ID: ${i.maMacDinh}]`; document.getElementById("popGhiChu").value=`LINH KIỆN:\n${i.chiTiet||'Không có chi tiết'}`; document.getElementById("popupKiemDem").classList.remove("hidden"); }
+        
+        function moPopupKiemDem(id) { 
+            const i = listGiaoDich.find(x=>x.firestoreId===id); if(!i)return; idDangKiemDem=id; 
+            document.getElementById("popKhoa").innerText=i.khoa; document.getElementById("popBo").innerText=`${i.bo} [ID: ${i.maMacDinh}]`; 
+            const popGCK = document.getElementById("popGhiChuKhoa");
+            if(i.ghiChuKhoa) { 
+                popGCK.innerHTML = `<div class="text-rose-600 font-bold mt-2 p-1.5 bg-rose-50 rounded border border-rose-200"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Khoa cảnh báo: ${i.ghiChuKhoa}</div>`; 
+                popGCK.classList.remove("hidden"); 
+            } else { popGCK.classList.add("hidden"); }
+            document.getElementById("popGhiChu").value=`LINH KIỆN HỆ THỐNG:\n${i.chiTiet||'Không có chi tiết'}`; 
+            document.getElementById("popupKiemDem").classList.remove("hidden"); 
+        }
+        
         function quickNote(t) { const tx = document.getElementById("popGhiChu"); tx.value = tx.value + "\n→ " + t; }
         function saveKiemDem() { if(!idDangKiemDem)return; const gc = document.getElementById("popGhiChu").value.trim(); db.collection("phieuGiaoNhan").doc(idDangKiemDem).update({ slThucTe: 1, status: "DANG_RUA", ghiChu: gc }).then(()=>closePopup()); }
         function closePopupDongGoi() { document.getElementById("popupDongGoi").classList.add("hidden"); idDangDongGoi=null; }
@@ -447,7 +460,6 @@
             const m = {"CHO_THU":`<span class="text-slate-500 font-bold text-[10px]">Báo dơ</span>`, "HUY_BO":`<span class="text-rose-500 font-bold text-[10px]">Báo ảo</span>`, "DANG_RUA":`<span class="text-amber-600 font-bold text-[10px]">Làm sạch</span>`, "CHO_HAP":`<span class="text-sky-600 font-bold text-[10px]">Đang gói</span>`, "CHO_XUAT":`<span class="text-teal-600 font-bold text-[10px]">Vô khuẩn</span>`, "HOAN_TAT":`<span class="text-emerald-600 font-bold text-[10px]">Sẵn sàng</span>`}; return m[s]||"";
         }
         
-        // DASHBOARD CẢNH BÁO HẾT HẠN (RADAR)
         function getHSDUI(hsd) {
             if(!hsd) return ""; const d = formatDateVN(hsd); let diff = getDiffDays(hsd);
             if(diff < 0) return `<span class="bg-rose-100 text-rose-700 px-2 py-0.5 rounded border border-rose-300 font-black text-[10px] uppercase shadow-sm">Hết Hạn (${d})</span>`;
@@ -455,7 +467,6 @@
             return `<span class="text-slate-500 font-medium text-[10px]">${d}</span>`;
         }
 
-        // TAB 6: GIÁM SÁT TUỔI THỌ TÀI SẢN
         function renderTabDanhMuc() {
             const fDM = document.getElementById("dm_filterKhoa").value; const tbDM = document.getElementById("bangDanhMucTong"); tbDM.innerHTML = ""; let html = "";
             for(let khoa in databaseExcel) {
@@ -463,11 +474,9 @@
                 html += `<tr><td colspan="4" class="p-2 font-black text-slate-600 uppercase text-[10px] bg-slate-50 border-y border-slate-100">${khoa}</td></tr>`;
                 databaseExcel[khoa].forEach(item => {
                     let viTriHienTai = viTriThoiGianThuc[item.ma] || "Sẵn sàng sử dụng";
-                    let chuKy = assetCycles[item.ma] ? Math.floor(assetCycles[item.ma]/2) : 0; // Chia 2 vì lưu lịch sử 2 lần status
-                    
+                    let chuKy = assetCycles[item.ma] ? Math.floor(assetCycles[item.ma]/2) : 0; 
                     let canhBaoBaoTri = "";
                     if(chuKy >= 50) canhBaoBaoTri = `<br><span class="text-[9px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded mt-1 inline-block font-bold">⚠️ Yêu cầu Bảo trì</span>`;
-
                     html += `<tr class="hover:bg-slate-50 transition border-b border-slate-50"><td class="p-3 text-[11px] text-slate-500">${khoa}</td><td class="p-3"><div class="font-mono text-sky-700 font-bold">${item.ma}</div><div class="text-[10px] font-bold text-slate-600 mt-0.5">${item.ten}</div></td><td class="p-3 text-center"><span class="text-[10px] font-medium text-slate-500">${viTriHienTai}</span></td><td class="p-3 text-center"><div class="font-mono text-xs ${chuKy>=50?'text-rose-600 font-black':'text-slate-600'}">${chuKy} / 50</div>${canhBaoBaoTri}</td></tr>`;
                 });
             }
@@ -479,17 +488,17 @@
             const today = getTodayDateStr(); const dKhoa = document.getElementById("dateKhoa").value || today; const selKhoa = document.getElementById("khoa_selKhoa").value; const tbKhoa = document.getElementById("bangLichSuKhoa"); tbKhoa.innerHTML="";
             let lsKhoa = []; if(currentRole === "ADMIN" && selKhoa === "") { lsKhoa = listGiaoDich.filter(x=> (x.ngayTao||today)===dKhoa); } else { lsKhoa = selKhoa ? listGiaoDich.filter(x=>x.khoa===selKhoa && (x.ngayTao||today)===dKhoa) : []; }
             if(lsKhoa.length===0) tbKhoa.innerHTML=`<tr><td colspan="2" class="p-8 text-center text-slate-400 italic text-xs">Trống.</td></tr>`;
-            else lsKhoa.forEach(i => { tbKhoa.innerHTML+=`<tr><td class="p-3"><div class="font-bold text-slate-700 text-xs">${i.bo} <span class="font-mono text-sky-600">[${i.maMacDinh}]</span></div><div class="text-[10px] text-slate-500 mt-0.5">${i.time} | BN: ${i.bn}</div></td><td class="p-3 text-right">${getStatusUI(i.status)}</td></tr>`; });
+            else lsKhoa.forEach(i => { tbKhoa.innerHTML+=`<tr><td class="p-3"><div class="font-bold text-slate-700 text-xs">${i.bo} <span class="font-mono text-sky-600">[${i.maMacDinh}]</span></div><div class="text-[10px] text-slate-500 mt-0.5">${i.time} | BN: ${i.bn}</div>${taoTagGhiChuKhoa(i.ghiChuKhoa)}</td><td class="p-3 text-right">${getStatusUI(i.status)}</td></tr>`; });
 
             let lsTG_All = listGiaoDich.filter(x => x.status === "CHO_THU"); let uKhoaThu = [...new Set(lsTG_All.map(x=>x.khoa))]; let flThu = document.getElementById("filterKhoaThuGom"); let cValThu = flThu.value;
             flThu.innerHTML = '<option value="">-- Lọc theo Khoa --</option>'; uKhoaThu.forEach(k => { flThu.innerHTML += `<option value="${k}" ${k===cValThu?'selected':''}>${k}</option>`; });
             let lsTG = cValThu ? lsTG_All.filter(x => x.khoa === cValThu) : lsTG_All; document.getElementById("badgeSoCho").innerText = lsTG.length; const tbTG = document.getElementById("bangChoThuGom"); tbTG.innerHTML="";
             if(lsTG.length===0) tbTG.innerHTML=`<tr><td colspan="4" class="p-8 text-center text-slate-400 italic text-xs">Trống.</td></tr>`;
-            lsTG.forEach(i => { tbTG.innerHTML+=`<tr class="hover:bg-slate-50 transition border-b border-slate-50"><td class="p-3"><div class="font-bold text-slate-600 text-xs">${i.khoa}</div>${i.ghiChuKhoa?`<div class="text-[9px] text-amber-600 mt-1 font-bold">Lưu ý: ${i.ghiChuKhoa}</div>`:""}</td><td class="p-3"><div class="font-bold text-sky-700 text-[11px]">${i.bo}</div><div class="text-[10px] font-mono text-slate-400 mt-0.5">${i.maMacDinh}</div></td><td class="p-3 text-center text-[10px] text-slate-500">${i.time}</td><td class="p-3 text-center"><button onclick="moPopupKiemDem('${i.firestoreId}')" class="bg-white border border-slate-200 hover:border-sky-500 text-sky-700 px-3 py-1.5 rounded text-[10px] font-bold shadow-sm transition">KIỂM</button></td></tr>`; });
+            lsTG.forEach(i => { tbTG.innerHTML+=`<tr class="hover:bg-slate-50 transition border-b border-slate-50"><td class="p-3"><div class="font-bold text-slate-600 text-xs">${i.khoa}</div>${taoTagGhiChuKhoa(i.ghiChuKhoa)}</td><td class="p-3"><div class="font-bold text-sky-700 text-[11px]">${i.bo}</div><div class="text-[10px] font-mono text-slate-400 mt-0.5">${i.maMacDinh}</div></td><td class="p-3 text-center text-[10px] text-slate-500">${i.time}</td><td class="p-3 text-center"><button onclick="moPopupKiemDem('${i.firestoreId}')" class="bg-white border border-slate-200 hover:border-sky-500 text-sky-700 px-3 py-1.5 rounded text-[10px] font-bold shadow-sm transition">KIỂM</button></td></tr>`; });
 
             let lsDG = listGiaoDich.filter(x=>x.status==="DANG_RUA"); document.getElementById("badgeDongGoi").innerText = lsDG.length; const gDG = document.getElementById("gridDongGoi"); gDG.innerHTML="";
             if(lsDG.length===0) gDG.innerHTML=`<div class="p-8 text-center text-slate-400 italic text-xs">Trống.</div>`;
-            lsDG.forEach(i => { gDG.innerHTML+=`<div class="bg-white p-3.5 rounded border border-slate-200 mb-2.5 flex justify-between items-center shadow-sm"><div><div class="font-bold text-sky-700 text-[13px]">${i.bo} <span class="text-[10px] text-slate-400 font-mono ml-1">[${i.maMacDinh}]</span></div><div class="text-[10px] text-slate-500 mt-0.5">${i.khoa}</div></div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-white border border-slate-200 hover:border-sky-500 text-sky-700 px-4 py-2 rounded text-[10px] font-bold shadow-sm transition">ĐÓNG GÓI</button></div>`; });
+            lsDG.forEach(i => { gDG.innerHTML+=`<div class="bg-white p-3.5 rounded border border-slate-200 mb-2.5 flex justify-between items-center shadow-sm w-full"><div class="flex-1 pr-4"><div class="font-bold text-sky-700 text-[13px]">${i.bo} <span class="text-[10px] text-slate-400 font-mono ml-1">[${i.maMacDinh}]</span></div><div class="text-[10px] text-slate-500 mt-0.5">${i.khoa}</div>${taoTagGhiChuKhoa(i.ghiChuKhoa)}</div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-white border border-slate-200 hover:border-sky-500 text-sky-700 px-4 py-2 rounded text-[10px] font-bold shadow-sm transition whitespace-nowrap h-fit">ĐÓNG GÓI</button></div>`; });
 
             let lsHap = listGiaoDich.filter(x=>x.status==="CHO_HAP"); document.getElementById("badgeChoHap").innerText = lsHap.length; const tbHap = document.getElementById("bangChoHap"); tbHap.innerHTML="";
             if(lsHap.length===0) tbHap.innerHTML=`<tr><td colspan="3" class="p-8 text-center text-slate-400 italic text-xs">Trống.</td></tr>`;
@@ -501,8 +510,6 @@
             let lsXuat_All = listGiaoDich.filter(x=>x.status==="CHO_XUAT"); let uKhoaXuat = [...new Set(lsXuat_All.map(x=>x.khoa))]; let flXuat = document.getElementById("filterKhoaXuat"); let cValX = flXuat.value;
             flXuat.innerHTML = '<option value="">-- Lọc theo Khoa --</option>'; uKhoaXuat.forEach(k => { flXuat.innerHTML += `<option value="${k}" ${k===cValX?'selected':''}>${k}</option>`; });
             let lsXuat = cValX ? lsXuat_All.filter(x => x.khoa === cValX) : lsXuat_All;
-            
-            // SẮP XẾP ƯU TIÊN CẬN DATE LÊN ĐẦU
             lsXuat.sort((a,b) => new Date(a.hsd) - new Date(b.hsd));
 
             document.getElementById("badgeKhoVoKhuan").innerText = lsXuat.length; const tbVK = document.getElementById("bangKhoVoKhuan"); tbVK.innerHTML="";
@@ -561,7 +568,7 @@
         function xuatExcelLichSu() {
             const tu = document.getElementById("excelTuNgay").value; const den = document.getElementById("excelDenNgay").value; if(!tu||!den) return alert("Chọn ngày!");
             let dataLoc = listGiaoDich.filter(x => { let d = x.ngayTao||getTodayDateStr(); return d>=tu && d<=den; }); if(dataLoc.length===0) return alert("⚠️ Trống!");
-            const xp = dataLoc.map((i, idx) => ({ "STT":idx+1, "Ngày":i.ngayTao, "Giờ":i.time, "Khoa phòng":i.khoa, "Tên mâm hộp con":i.bo, "Mã ID Định danh con": i.maMacDinh||"", "Mã mẻ hấp (Batch)": i.batchCode||"", "Bao bì":i.baoBi||"", "HSD":formatDateVN(i.hsd), "BN sử dụng":i.bn, "Trạng thái vị trí":i.status, "Ký xác nhận":i.nguoiNhan||"" }));
+            const xp = dataLoc.map((i, idx) => ({ "STT":idx+1, "Ngày":i.ngayTao, "Giờ":i.time, "Khoa phòng":i.khoa, "Tên mâm hộp con":i.bo, "Mã ID Định danh con": i.maMacDinh||"", "Mã mẻ hấp (Batch)": i.batchCode||"", "Bao bì":i.baoBi||"", "HSD":formatDateVN(i.hsd), "BN sử dụng":i.bn, "Trạng thái vị trí":i.status, "Ký xác nhận":i.nguoiNhan||"", "Ghi chú từ khoa": i.ghiChuKhoa||"", "Ghi chú xử lý KSNK": i.ghiChu||"" }));
             const ws = XLSX.utils.json_to_sheet(xp); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Traceability_CSSD"); XLSX.writeFile(wb, `Bao_Cao_Truy_Vet_KSON.xlsx`);
         }
 
