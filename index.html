@@ -393,7 +393,7 @@
         
         function checkLogin() {
             const role = document.getElementById("login_role").value; const pass = document.getElementById("login_pass").value; const khoaSelect = document.getElementById("login_khoa").value;
-            if (role === "ADMIN" && pass === "TH2026") {
+            if (role === "ADMIN" && pass === "ADMIN2026") {
                 currentRole = "ADMIN"; currentKhoaName = "SYSTEM ADMIN"; document.getElementById("nav_group_khoa").style.display = "block"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "ADMINISTRATOR"; document.getElementById("khoa_selKhoa").disabled = false; document.getElementById("khoa_selKhoa").classList.remove("opacity-60", "cursor-not-allowed"); isAdminUnlocked = true; document.getElementById("wrapperImportExcel").classList.remove("opacity-40","pointer-events-none"); document.getElementById("btnLockAdmin").innerHTML='<i class="fa-solid fa-unlock mr-1 text-emerald-500"></i> Đã Mở'; switchTab('tracuu');
             } else if (role === "CSSD" && pass === "cssd2026") {
                 currentRole = "CSSD"; currentKhoaName = "QUẢN TRỊ CSSD"; document.getElementById("nav_group_khoa").style.display = "none"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "VẬN HÀNH KSNK"; switchTab('thugom');
