@@ -862,7 +862,7 @@
             document.getElementById("popLB_ten").value = node.tenBo || "";
             document.getElementById("popLB_items").value = node.items.map(x => {
                 if(typeof x === 'object') return `${x.ma || ""}\t${x.ten}\t${x.sl}`;
-                return x;
+                return ;
             }).join('\n');
             document.getElementById("popAdminLoaiBo").classList.remove("hidden");
         }
