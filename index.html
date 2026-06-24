@@ -298,7 +298,32 @@
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
         let thongTinMatKhauAdmin = { adminPIN: "admin2026", cssdPIN: "cssd2026", guestPIN: "guest2026" };
-        let danhMucLoaiBoLinhKien = { "TM": { sl: 10, tenBo: "Thẩm Mỹ Cơ Bản", items: [{ ma: "BH111R", ten: "HALSTED (MOSQUITO)", sl: 2 }] } };
+       let danhMucLoaiBoLinhKien = {
+    "TM": { 
+        sl: 10, 
+        tenBo: "Bộ Thẩm Mỹ Cơ Bản",
+        items: [
+            { ma: "BH111R", ten: "HALSTED (MOSQUITO)", sl: 2 },
+            { ma: "BH167R", ten: "Kelly cong 16,5 / 18,5 cm", sl: 1 },
+            { ma: "BF493R", ten: "140mm", sl: 1 },
+            { ma: "BB074R", ten: "Cán dao số 3, dài 125mm (5\")", sl: 1 },
+            { ma: "BH111R", ten: "Mosquito, cong, dài 125 mm", sl: 2 },
+            { ma: "BH110R", ten: "Mosquito, thẳng, dài 125 mm", sl: 2 },
+            { ma: "BD510R", ten: "Kẹp mô ADSON (MICRO), thẳng, mảnh, có răng, dài 120 mm", sl: 1 }
+        ] 
+    },
+    "SG-SANH": { 
+        sl: 15, 
+        tenBo: "Bộ Sanh Thường", 
+        items: [ 
+            {ma: "", ten: "Kềm kẹp kim", sl: 2}, 
+            {ma: "", ten: "Kéo cắt chỉ rốn", sl: 2}, 
+            {ma: "", ten: "Kẹp mạch máu Kelly", sl: 4}, 
+            {ma: "", ten: "Panh hình tim", sl: 2}, 
+            {ma: "", ten: "Chén chun", sl: 5} 
+        ] 
+    }
+};
 
         function getLinhKienInfo(maMacDinh) {
             if(!maMacDinh || maMacDinh === "ĐỒ LẺ/NGOÀI") return { sl: 1, items: [{ma: "", ten: "Vật tư đơn lẻ", sl: 1}] };
