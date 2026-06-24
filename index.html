@@ -474,16 +474,17 @@
             infoLK.items.forEach(x => {
                 let m = x.ma || ""; let t = x.ten || x; let s = x.sl || 1;
                 html += `
-                    <tr class="hover:bg-slate-50">
-                        <td class="font-mono text-slate-400 font-bold">${m}</td>
-                        <td class="text-slate-700 font-medium">${t}</td>
-                        <td class="text-center font-black text-amber-600">${s}</td>
-                        <td class="text-center"><input type="checkbox" class="chk-box" checked></td>
-                        <td class="text-center"><input type="checkbox" class="chk-box" checked></td>
-                    </tr>`;
+                   html += `
+    <tr class="hover:bg-slate-50">
+        <td class="font-mono text-slate-400 font-bold">${m}</td>
+        <td class="text-slate-700 font-medium">${t}</td>
+        <td class="text-center font-black text-amber-600">${s}</td>
+        <td class="text-center"></td>
+        <td class="text-center"></td>
+    </tr>`;
             });
             html += `</tbody></table>`;
-            return html;
+            return x html;
         }
 
         setInterval(() => { let c = document.getElementById('clock'); if(c) c.innerText = new Date().toLocaleTimeString('vi-VN'); }, 1000);
