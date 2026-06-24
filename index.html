@@ -379,41 +379,74 @@
         function toggleKhoaField() { document.getElementById("field_khoa").style.display = (document.getElementById("login_role").value === "KHOA") ? "block" : "none"; }
         
         function checkLogin() {
-            const role = document.getElementById("login_role").value; const pass = document.getElementById("login_pass").value; const khoaSelect = document.getElementById("login_khoa").value;
-            
-            // XÓA CHẾ ĐỘ GUEST NẾU CÓ
-            document.body.classList.remove("guest-mode");
-            document.getElementById("nav_admin_btn").classList.remove("hidden");
+            function checkLogin() {
+    const role = document.getElementById("login_role").value; 
+    const pass = document.getElementById("login_pass").value; 
+    const khoaSelect = document.getElementById("login_khoa").value;
+    
+    // Xóa chế độ guest cũ nếu có
+    document.body.classList.remove("guest-mode");
+    if(document.getElementById("nav_admin_btn")) {
+        document.getElementById("nav_admin_btn").classList.remove("hidden");
+    }
 
-            if (role === "ADMIN" && pass === thongTinMatKhauAdmin.adminPIN) {
-                currentRole = "ADMIN"; currentKhoaName = "SYSTEM ADMIN"; document.getElementById("nav_group_khoa").style.display = "block"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "ADMINISTRATOR"; document.getElementById("khoa_selKhoa").disabled = false; switchTab('tracuu'); switchAdminSubtab('security');
-            } else if (role === "CSSD" && pass === thongTinMatKhauAdmin.cssdPIN) {
-                currentRole = "CSSD"; currentKhoaName = "QUẢN TRỊ CSSD"; document.getElementById("nav_group_khoa").style.display = "none"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "VẬN HÀNH KSNK"; switchTab('thugom');
-            } else if (role === "GUEST" && pass === (thongTinMatKhauAdmin.guestPIN || "guest2026")) {
-                // ÁP DỤNG CHẾ ĐỘ READ-ONLY GUEST MỚI THÊM
-                currentRole = "GUEST"; currentKhoaName = "GUEST VIEWER"; 
-                document.body.classList.add("guest-mode"); // Css sẽ tự ẩn hết nút thao tác
-                document.getElementById("nav_group_khoa").style.display = "none"; document.getElementById("nav_group_cssd").style.display = "block"; 
-                document.getElementById("nav_admin_btn").classList.add("hidden"); // Giấu tab Admin
-                document.getElementById("nav_user_info").innerText = "CHẾ ĐỘ THAM QUAN"; switchTab('thugom');
-                showToast("Đã vào chế độ chỉ xem!", "success");
-            } else if (role === "KHOA") {
-                let foundKhoa = danhSachKhoa.find(x => x.ten === khoaSelect); let checkPIN = foundKhoa ? (foundKhoa.pin || "123") : "123";
-                if(pass === checkPIN) { currentRole = "KHOA"; currentKhoaName = khoaSelect; document.getElementById("nav_group_khoa").style.display = "block"; document.getElementById("nav_group_cssd").style.display = "none"; document.getElementById("nav_user_info").innerText = currentKhoaName; document.getElementById("khoa_selKhoa").value = currentKhoaName; document.getElementById("khoa_selKhoa").disabled = true; loadBoDungCuTheoKhoa(); switchTab('khoaphong'); } else { showToast("Sai mã PIN!"); return; }
-            } else { showToast("Sai thông tin đăng nhập!"); return; }
-            document.getElementById("login-screen").classList.add("hidden"); document.getElementById("main-app").classList.remove("hidden");
+    // Lấy mã PIN từ bộ nhớ, nếu chưa có thì dùng mã mặc định
+    let pinAdmin = thongTinMatKhauAdmin ? (thongTinMatKhauAdmin.adminPIN || "admin2026") : "admin2026";
+    let pinCSSD = thongTinMatKhauAdmin ? (thongTinMatKhauAdmin.cssdPIN || "cssd2026") : "cssd2026";
+    let pinGuest = thongTinMatKhauAdmin ? (thongTinMatKhauAdmin.guestPIN || "guest2026") : "guest2026";
+
+    if (role === "ADMIN" && pass === pinAdmin) {
+        currentRole = "ADMIN"; 
+        currentKhoaName = "SYSTEM ADMIN"; 
+        document.getElementById("nav_group_khoa").style.display = "block"; 
+        document.getElementById("nav_group_cssd").style.display = "block"; 
+        document.getElementById("nav_user_info").innerText = "ADMINISTRATOR"; 
+        document.getElementById("khoa_selKhoa").disabled = false; 
+        switchTab('tracuu'); 
+        switchAdminSubtab('security');
+    } else if (role === "CSSD" && pass === pinCSSD) {
+        currentRole = "CSSD"; 
+        currentKhoaName = "QUẢN TRỊ CSSD"; 
+        document.getElementById("nav_group_khoa").style.display = "none"; 
+        document.getElementById("nav_group_cssd").style.display = "block"; 
+        document.getElementById("nav_user_info").innerText = "VẬN HÀNH KSNK"; 
+        switchTab('thugom');
+    } else if (role === "GUEST" && pass === pinGuest) {
+        currentRole = "GUEST"; 
+        currentKhoaName = "GUEST VIEWER"; 
+        document.body.classList.add("guest-mode"); 
+        document.getElementById("nav_group_khoa").style.display = "none"; 
+        document.getElementById("nav_group_cssd").style.display = "block"; 
+        if(document.getElementById("nav_admin_btn")) document.getElementById("nav_admin_btn").classList.add("hidden"); 
+        document.getElementById("nav_user_info").innerText = "CHẾ ĐỘ THAM QUAN"; 
+        switchTab('thugom');
+        showToast("Đã vào chế độ chỉ xem!", "success");
+    } else if (role === "KHOA") {
+        let foundKhoa = danhSachKhoa.find(x => x.ten === khoaSelect); 
+        let checkPIN = foundKhoa ? (foundKhoa.pin || "123") : "123";
+        if(pass === checkPIN) { 
+            currentRole = "KHOA"; 
+            currentKhoaName = khoaSelect; 
+            document.getElementById("nav_group_khoa").style.display = "block"; 
+            document.getElementById("nav_group_cssd").style.display = "none"; 
+            document.getElementById("nav_user_info").innerText = currentKhoaName; 
+            document.getElementById("khoa_selKhoa").value = currentKhoaName; 
+            document.getElementById("khoa_selKhoa").disabled = true; 
+            loadBoDungCuTheoKhoa(); 
+            switchTab('khoaphong'); 
+        } else { 
+            showToast("Sai mã PIN Khoa phòng!"); 
+            return; 
         }
-
-        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
-            if (doc.exists) { 
-                let res = doc.data(); danhSachKhoa = res.danhSachKhoa || []; databaseExcel = res.databaseExcel || {}; 
-                if(res.danhMucLoaiBoLinhKien) danhMucLoaiBoLinhKien = res.danhMucLoaiBoLinhKien;
-                if(res.thongTinMatKhauAdmin) {
-                    thongTinMatKhauAdmin = res.thongTinMatKhauAdmin;
-                    document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "admin2026";
-                    document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "cssd2026";
-                    document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "guest2026";
-                }
+    } else { 
+        showToast("Sai thông tin đăng nhập!"); 
+        return; 
+    }
+    
+    document.getElementById("login-screen").classList.add("hidden"); 
+    document.getElementById("main-app").classList.remove("hidden");
+    renderTatCaCacManHinh();
+}
                 initSelects(); renderAdminInterface();
             } 
         });
