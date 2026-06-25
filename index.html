@@ -350,9 +350,20 @@
             initSelects(); renderAdminInterface();
         });
 
-        db.collection("phieuGiaoNhan").orderBy("id", "desc").onSnapshot(snap => { listGiaoDich = []; snap.forEach(doc => { let d = doc.data(); d.firestoreId = doc.id; listGiaoDich.push(d); }); renderTatCaCacManHinh(); phanTichHieuSuatNhanVien(); });
-        db.collection("nhatKyMayHap").orderBy("ngayTao", "desc").onSnapshot(snap => { listNhatKyHap = []; snap.forEach(doc => { listNhatKyHap.push(doc.data()); }); tuDongGoiYSoMe(); phanTichHieuSuatNhanVien(); });
+        // TỐI ƯU LAG: Chỉ tải dữ liệu giao dịch của ngày hôm nay để web chạy siêu mượt
+        db.collection("phieuGiaoNhan").where("ngayTao", "==", getTodayDateStr()).onSnapshot(snap => { 
+            listGiaoDich = []; 
+            snap.forEach(doc => { let d = doc.data(); d.firestoreId = doc.id; listGiaoDich.push(d); }); 
+            renderTatCaCacManHinh(); 
+            phanTichHieuSuatNhanVien(); 
+        });
 
+        db.collection("nhatKyMayHap").where("ngayTao", "==", getTodayDateStr()).onSnapshot(snap => { 
+            listNhatKyHap = []; 
+            snap.forEach(doc => { listNhatKyHap.push(doc.data()); }); 
+            tuDongGoiYSoMe(); 
+            phanTichHieuSuatNhanVien(); 
+        });
         function initSelects() { 
             let htmlOptions = '<option value="">-- Chọn Khoa Phòng --</option>'; 
             if (danhSachKhoa.length === 0) { htmlOptions = '<option value="">-- Chưa có khoa nào (Vào ADMIN thêm khoa) --</option>'; } 
