@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V21.37 (Fixed Login)</title>
+    <title>Hệ Thống Quản Lý CSSD - V21.37 </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -38,6 +38,7 @@
 
     <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden" onclick="toggleMobileMenu()"></div>
 
+    <!-- MÀN HÌNH ĐĂNG NHẬP -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-100 bg-opacity-95 backdrop-blur-sm">
         <div class="glass-panel w-full max-w-sm p-8 text-center animate-popIn shadow-xl border-t-4 border-t-sky-600">
             <div class="mb-6">
@@ -68,7 +69,9 @@
         </div>
     </div>
 
+    <!-- MAIN APP WRAPPER -->
     <div id="main-app" class="hidden w-full h-full flex flex-row">
+        <!-- MENU BÊN TRÁI -->
         <div id="sidebar_menu" class="w-64 bg-white flex flex-col justify-between flex-shrink-0 z-50 shadow-lg border-r border-slate-200 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300">
             <div class="overflow-y-auto flex-1 scrollbar-none">
                 <div class="p-4 flex items-center justify-between border-b border-slate-100 bg-white sticky top-0 z-10"><div class="flex flex-col"><span class="text-sm text-sky-700 font-black tracking-widest">PN HOSPITAL</span><span id="nav_user_info" class="text-[10px] text-slate-500 font-bold mt-0.5">Role: Đang tải...</span></div><button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-slate-700 text-xl"><i class="fa-solid fa-bars"></i></button></div>
@@ -97,10 +100,12 @@
             <div class="p-4 border-t border-slate-100 bg-slate-50 shrink-0"><button onclick="location.reload()" class="w-full text-xs text-slate-500 hover:text-slate-800 bg-white border border-slate-200 py-2 rounded font-bold hover:shadow-sm transition"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Đăng xuất</button></div>
         </div>
 
+        <!-- KHÔNG GIAN LÀM VIỆC BÊN PHẢI -->
         <div class="flex-1 flex flex-col overflow-y-auto w-full h-full relative bg-slate-100 pb-10">
             <header class="bg-white px-6 py-3.5 flex justify-between items-center z-10 sticky top-0 border-b border-slate-200 shadow-sm"><div class="flex items-center"><button onclick="toggleMobileMenu()" class="md:hidden text-slate-500 hover:text-sky-600 text-xl mr-4"><i class="fa-solid fa-bars"></i></button><h2 id="header-title" class="text-sm font-black text-slate-700 uppercase tracking-widest">Hệ Thống</h2></div><div id="clock" class="text-[11px] font-mono text-slate-500 font-bold hidden sm:block"></div></header>
 
             <main class="p-4 md:p-6 w-full space-y-6 flex-1 z-10 max-w-7xl mx-auto">
+                <!-- 1. CỔNG KHOA -->
                 <div id="tab-khoaphong" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
                     <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-sky-500">
                         <h3 class="text-sm font-black text-slate-700 mb-4 uppercase border-b border-slate-100 pb-3"><i class="fa-solid fa-barcode mr-2 text-sky-500"></i> Trạm Quét Mã Trả Đồ</h3>
@@ -128,6 +133,7 @@
                     </div>
                 </div>
 
+                <!-- 2. THU GOM -->
                 <div id="tab-thugom" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-4 mb-4 gap-3">
@@ -138,6 +144,7 @@
                     </div>
                 </div>
 
+                <!-- 3. ĐÓNG GÓI -->
                 <div id="tab-donggoi" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
@@ -148,6 +155,7 @@
                     </div>
                 </div>
 
+                <!-- 4. MÁY HẤP -->
                 <div id="tab-mayhap" class="hidden flex flex-col gap-6 w-full">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[480px]">
                         <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-slate-400">
@@ -178,6 +186,7 @@
                     </div>
                 </div>
 
+                <!-- 5. KHO VÔ KHUẨN -->
                 <div id="tab-khovokhuan" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex justify-between items-start md:items-center border-b border-slate-100 pb-4 mb-4 flex-col md:flex-row gap-3">
@@ -188,6 +197,7 @@
                     </div>
                 </div>
 
+                <!-- 6. GIÁM SÁT TUỔI THỌ -->
                 <div id="tab-danhmuc" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4 gap-4">
@@ -198,6 +208,7 @@
                     </div>
                 </div>
 
+                <!-- 7. CẤU HÌNH QUẢN TRỊ & EXCEL -->
                 <div id="tab-tracuu" class="hidden flex flex-col gap-6 w-full">
                     <div class="flex space-x-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
                         <button onclick="switchAdminSubtab('security')" id="subbtn-security" class="admin-subtab-active px-4 py-2 text-xs font-black rounded transition-all">BẢO MẬT & RESET PIN</button>
@@ -259,6 +270,7 @@
                     </div>
                 </div>
 
+                <!-- 8. TAB PERFORMANCE - BẢO CÁO HIỆU SUẤT NHÂN VIÊN -->
                 <div id="tab-performance" class="hidden flex flex-col gap-6 w-full">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-gradient-to-br from-sky-500 to-sky-700 text-white p-5 rounded-xl shadow border border-sky-600 flex items-center justify-between">
@@ -303,6 +315,7 @@
         </div>
     </div>
 
+    <!-- POPUPS -->
     <div id="popupKiemDem" class="fixed inset-0 popup-overlay z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-lg p-6 border-t-4 border-t-sky-500 animate-popIn">
             <h3 class="text-sm font-black text-slate-700 uppercase border-b border-slate-100 pb-3 mb-2">Biên Bản Kiểm Đếm</h3>
@@ -324,6 +337,7 @@
         </div>
     </div>
 
+    <!-- SCRIPT ENGINE -->
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCxjdCTKHQlpm7SYbWCEws1HhcOaFp0LBA", authDomain: "cssd-system-2878c.firebaseapp.com", projectId: "cssd-system-2878c", storageBucket: "cssd-system-2878c.firebasestorage.app", messagingSenderId: "662377321937", appId: "1:662377321937:web:001c092e10319547623cf0" };
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
@@ -335,6 +349,8 @@
             "HANG": { sl: 1, tenBo: "Dụng cụ Hãng mượn", items: [{ma: "", ten: "Ghi chú/Kiểm đếm theo biên bản", sl: 1}] },
             "CN": { sl: 1, tenBo: "Dụng cụ Chi Nhánh", items: [{ma: "", ten: "Mâm dụng cụ từ chi nhánh khác", sl: 1}] }
         };
+
+        function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
         db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
             if (doc.exists) { 
@@ -350,7 +366,7 @@
             initSelects(); renderAdminInterface();
         });
 
-        // TỐI ƯU LAG: Chỉ tải dữ liệu giao dịch của ngày hôm nay để web chạy siêu mượt
+        // BẢN CẬP NHẬT 1: Tối ưu chống LAG - Chỉ tải dữ liệu của ngày hôm nay
         db.collection("phieuGiaoNhan").where("ngayTao", "==", getTodayDateStr()).onSnapshot(snap => { 
             listGiaoDich = []; 
             snap.forEach(doc => { let d = doc.data(); d.firestoreId = doc.id; listGiaoDich.push(d); }); 
@@ -364,6 +380,7 @@
             tuDongGoiYSoMe(); 
             phanTichHieuSuatNhanVien(); 
         });
+
         function initSelects() { 
             let htmlOptions = '<option value="">-- Chọn Khoa Phòng --</option>'; 
             if (danhSachKhoa.length === 0) { htmlOptions = '<option value="">-- Chưa có khoa nào (Vào ADMIN thêm khoa) --</option>'; } 
@@ -374,7 +391,6 @@
         }
 
         setInterval(() => { let c = document.getElementById('clock'); if(c) c.innerText = new Date().toLocaleTimeString('vi-VN'); }, 1000);
-        function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
         function addDays(dStr, days) { let d = new Date(dStr); d.setDate(d.getDate() + days); return d.toISOString().split('T')[0]; }
         function formatDateVN(dStr) { if(!dStr) return ""; let p = dStr.split('-'); return p[2]?`${p[2]}/${p[1]}/${p[0]}`:dStr; }
         
@@ -394,8 +410,6 @@
             const role = document.getElementById("login_role").value; const pass = document.getElementById("login_pass").value; const khoaSelect = document.getElementById("login_khoa").value;
             document.body.classList.remove("guest-mode"); 
             
-            // --- ĐÂY LÀ ĐOẠN ĐÃ ĐƯỢC SỬA ---
-            // Mặc định ẩn tab Cấu hình (Tab 7) đi để bảo mật
             if(document.getElementById("menu-tracuu")) document.getElementById("menu-tracuu").classList.add("hidden");
 
             let pinAdmin = thongTinMatKhauAdmin ? (thongTinMatKhauAdmin.adminPIN || "admin2026") : "admin2026";
@@ -404,10 +418,7 @@
 
             if (role === "ADMIN" && pass === pinAdmin) {
                 currentRole = "ADMIN"; currentKhoaName = "SYSTEM ADMIN"; document.getElementById("nav_group_khoa").style.display = "block"; document.getElementById("nav_group_cssd").style.display = "block"; 
-                
-                // Hiển thị lại Tab 7 nếu là ADMIN
                 if(document.getElementById("menu-tracuu")) document.getElementById("menu-tracuu").classList.remove("hidden"); 
-                
                 document.getElementById("nav_user_info").innerText = "ADMINISTRATOR"; document.getElementById("khoa_selKhoa").disabled = false; switchTab('tracuu'); switchAdminSubtab('security'); renderAdminInterface();
             } else if (role === "CSSD" && pass === pinCSSD) {
                 currentRole = "CSSD"; currentKhoaName = "QUẢN TRỊ CSSD"; document.getElementById("nav_group_khoa").style.display = "none"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "VẬN HÀNH KSNK"; switchTab('thugom');
@@ -504,14 +515,20 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // BẢN CẬP NHẬT 3: Fix xuất báo cáo Excel (Kéo dữ liệu cũ từ server)
         function xuatExcelLichSu() {
             const tuNgay = document.getElementById("excelTuNgay").value; const denNgay = document.getElementById("excelDenNgay").value;
             if(!tuNgay || !denNgay) return showToast("⚠️ Vui lòng chọn đầy đủ Từ ngày và Đến ngày!");
-            let filtered = listGiaoDich.filter(x => (x.ngayTao >= tuNgay && x.ngayTao <= denNgay));
-            if(filtered.length === 0) return showToast("Không có dữ liệu trong khoảng thời gian này!");
-            let excelRows = filtered.map(x => ({ "Ngày Tạo": x.ngayTao, "Giờ Gửi": x.time, "Khoa/Phòng": x.khoa, "Tên Bộ Dụng Cụ": x.bo, "Mã ID": x.maMacDinh, "Bệnh Nhân": x.bn || "", "Trạng Thái": x.status, "Mã Mẻ Hấp": x.batchCode || "", "KTV Kiểm": x.nvKiemDem || "", "KTV Gói": x.nvDongGoi || "", "KTV Vào Lò": x.nvVaoLo || "", "KTV Dỡ Lò": x.nvDoLo || "", "Hạn Sử Dụng": formatDateVN(x.hsd) }));
-            const worksheet = XLSX.utils.json_to_sheet(excelRows); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "CSSD Traceability"); XLSX.writeFile(workbook, `BaoCao_TruyVet_CSSD_${tuNgay}_Den_${denNgay}.xlsx`);
-            showToast("Đã xuất file Excel thành công!", "success");
+            
+            db.collection("phieuGiaoNhan").where("ngayTao", ">=", tuNgay).where("ngayTao", "<=", denNgay).get().then(snap => {
+                let filtered = [];
+                snap.forEach(doc => filtered.push(doc.data()));
+                
+                if(filtered.length === 0) return showToast("Không có dữ liệu trong khoảng thời gian này!");
+                let excelRows = filtered.map(x => ({ "Ngày Tạo": x.ngayTao, "Giờ Gửi": x.time, "Khoa/Phòng": x.khoa, "Tên Bộ Dụng Cụ": x.bo, "Mã ID": x.maMacDinh, "Bệnh Nhân": x.bn || "", "Trạng Thái": x.status, "Mã Mẻ Hấp": x.batchCode || "", "KTV Kiểm": x.nvKiemDem || "", "KTV Gói": x.nvDongGoi || "", "KTV Vào Lò": x.nvVaoLo || "", "KTV Dỡ Lò": x.nvDoLo || "", "Hạn Sử Dụng": formatDateVN(x.hsd) }));
+                const worksheet = XLSX.utils.json_to_sheet(excelRows); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "CSSD Traceability"); XLSX.writeFile(workbook, `BaoCao_TruyVet_CSSD_${tuNgay}_Den_${denNgay}.xlsx`);
+                showToast("Đã xuất file Excel thành công!", "success");
+            }).catch(err => { showToast("Lỗi tải dữ liệu: " + err.message); });
         }
 
         function truyVetBatch() {
@@ -536,14 +553,32 @@
             infoLK.items.forEach(x => { html += `<tr class="hover:bg-slate-50"><td class="font-mono text-slate-400 font-bold">${x.ma || ""}</td><td class="text-slate-700 font-medium">${x.ten || x}</td><td class="text-center font-black text-amber-600">${x.sl || 1}</td><td class="text-center"><input type="checkbox" class="chk-box"></td><td class="text-center"><input type="checkbox" class="chk-box"></td></tr>`; }); html += `</tbody></table>`; return html;
         }
 
-        function loadBoDungCuTheoKhoa() { const k = document.getElementById("khoa_selKhoa").value; const dl = document.getElementById("listBoDungCu"); if(!dl) return; dl.innerHTML = ''; if(databaseExcel[k]) { databaseExcel[k].forEach(i => { dl.innerHTML += `<option value="${i.ma}">[ID: ${i.ma}] - ${i.ten}</option>`; }); } }
+        // BẢN CẬP NHẬT 2.1: Chống trả mã ảo ở List gợi ý
+        function loadBoDungCuTheoKhoa() { 
+            const k = document.getElementById("khoa_selKhoa").value; const dl = document.getElementById("listBoDungCu"); if(!dl) return; dl.innerHTML = ''; 
+            if(databaseExcel[k]) { 
+                databaseExcel[k].forEach(i => { 
+                    let isDangXuLy = listGiaoDich.some(x => x.maMacDinh === i.ma && x.status !== "HOAN_TAT");
+                    if(!isDangXuLy) {
+                        dl.innerHTML += `<option value="${i.ma}">[ID: ${i.ma}] - ${i.ten}</option>`; 
+                    }
+                }); 
+            } 
+        }
+        
         function clearGioHang() { gioHangTam = []; renderGioHang(); }
+        
+        // BẢN CẬP NHẬT 2.2: Chặn tít mã ảo khi thêm vào giỏ
         function themVaoGio() {
             const k = document.getElementById("khoa_selKhoa").value; const inpBo = document.getElementById("khoa_inpMaBo"); const val = inpBo.value.trim().toUpperCase(); const slInput = document.getElementById("khoa_inpSL"); const sl = parseInt(slInput.value) || 1; const bn = document.getElementById("khoa_inpBN").value.trim() || "Không ghi nhận"; const gc = document.getElementById("khoa_inpGhiChu").value.trim();
             if(!k || !val) { showToast("Vui lòng quét mã ID!"); inpBo.focus(); return; }
             let matchedItem = null; for (const khoaKey in databaseExcel) { let found = databaseExcel[khoaKey].find(i => i.ma.toUpperCase() === val || `[ID: ${i.ma}] - ${i.ten}`.toUpperCase() === val); if(found) { matchedItem = found; break; } }
+            
             if(matchedItem) {
-                if(gioHangTam.find(x => x.maMacDinh === matchedItem.ma)) { showToast(`Mã khay [${matchedItem.ma}] đã được quét!`); inpBo.value = ""; inpBo.focus(); return; }
+                let isDangXuLy = listGiaoDich.some(x => x.maMacDinh === matchedItem.ma && x.status !== "HOAN_TAT");
+                if(isDangXuLy) { showToast(`⚠️ Mã khay [${matchedItem.ma}] đang được CSSD xử lý! Không thể trả đúp.`); inpBo.value = ""; inpBo.focus(); return; }
+                if(gioHangTam.find(x => x.maMacDinh === matchedItem.ma)) { showToast(`Mã khay [${matchedItem.ma}] đã có trong phiếu gửi!`); inpBo.value = ""; inpBo.focus(); return; }
+                
                 gioHangTam.push({ bo: matchedItem.ten, maMacDinh: matchedItem.ma, slYeuCau: 1, bn: bn, ghiChuKhoa: gc, chiTiet: "Định danh khay", viTriLuuKho: matchedItem.viTriLuuKho || "Kho vô khuẩn" }); showToast(`Đã quét khay: ${matchedItem.ma}`, "success");
             } else {
                 if(sl < 1) { showToast("Số lượng đồ lẻ > 0"); return; }
@@ -552,6 +587,7 @@
             }
             inpBo.value = ""; slInput.value = 1; document.getElementById("khoa_inpBN").value = ""; document.getElementById("khoa_inpGhiChu").value = ""; renderGioHang(); inpBo.focus(); 
         }
+
         function xoaKhoiGio(idx) { gioHangTam.splice(idx, 1); renderGioHang(); }
         function renderGioHang() {
             const khuVuc = document.getElementById("khuVucGioHang"); const tbody = document.getElementById("bangGioHang"); const btn = document.getElementById("btnXacNhanGoi");
