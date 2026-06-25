@@ -38,7 +38,6 @@
 
     <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden md:hidden" onclick="toggleMobileMenu()"></div>
 
-    <!-- MÀN HÌNH ĐĂNG NHẬP -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-100 bg-opacity-95 backdrop-blur-sm">
         <div class="glass-panel w-full max-w-sm p-8 text-center animate-popIn shadow-xl border-t-4 border-t-sky-600">
             <div class="mb-6">
@@ -69,9 +68,7 @@
         </div>
     </div>
 
-    <!-- MAIN APP WRAPPER -->
     <div id="main-app" class="hidden w-full h-full flex flex-row">
-        <!-- MENU BÊN TRÁI -->
         <div id="sidebar_menu" class="w-64 bg-white flex flex-col justify-between flex-shrink-0 z-50 shadow-lg border-r border-slate-200 fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300">
             <div class="overflow-y-auto flex-1 scrollbar-none">
                 <div class="p-4 flex items-center justify-between border-b border-slate-100 bg-white sticky top-0 z-10"><div class="flex flex-col"><span class="text-sm text-sky-700 font-black tracking-widest">PN HOSPITAL</span><span id="nav_user_info" class="text-[10px] text-slate-500 font-bold mt-0.5">Role: Đang tải...</span></div><button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-slate-700 text-xl"><i class="fa-solid fa-bars"></i></button></div>
@@ -100,12 +97,10 @@
             <div class="p-4 border-t border-slate-100 bg-slate-50 shrink-0"><button onclick="location.reload()" class="w-full text-xs text-slate-500 hover:text-slate-800 bg-white border border-slate-200 py-2 rounded font-bold hover:shadow-sm transition"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Đăng xuất</button></div>
         </div>
 
-        <!-- KHÔNG GIAN LÀM VIỆC BÊN PHẢI -->
         <div class="flex-1 flex flex-col overflow-y-auto w-full h-full relative bg-slate-100 pb-10">
             <header class="bg-white px-6 py-3.5 flex justify-between items-center z-10 sticky top-0 border-b border-slate-200 shadow-sm"><div class="flex items-center"><button onclick="toggleMobileMenu()" class="md:hidden text-slate-500 hover:text-sky-600 text-xl mr-4"><i class="fa-solid fa-bars"></i></button><h2 id="header-title" class="text-sm font-black text-slate-700 uppercase tracking-widest">Hệ Thống</h2></div><div id="clock" class="text-[11px] font-mono text-slate-500 font-bold hidden sm:block"></div></header>
 
             <main class="p-4 md:p-6 w-full space-y-6 flex-1 z-10 max-w-7xl mx-auto">
-                <!-- 1. CỔNG KHOA -->
                 <div id="tab-khoaphong" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
                     <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-sky-500">
                         <h3 class="text-sm font-black text-slate-700 mb-4 uppercase border-b border-slate-100 pb-3"><i class="fa-solid fa-barcode mr-2 text-sky-500"></i> Trạm Quét Mã Trả Đồ</h3>
@@ -133,7 +128,6 @@
                     </div>
                 </div>
 
-                <!-- 2. THU GOM -->
                 <div id="tab-thugom" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-4 mb-4 gap-3">
@@ -144,7 +138,6 @@
                     </div>
                 </div>
 
-                <!-- 3. ĐÓNG GÓI -->
                 <div id="tab-donggoi" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
@@ -155,7 +148,6 @@
                     </div>
                 </div>
 
-                <!-- 4. MÁY HẤP -->
                 <div id="tab-mayhap" class="hidden flex flex-col gap-6 w-full">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[480px]">
                         <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-slate-400">
@@ -186,7 +178,6 @@
                     </div>
                 </div>
 
-                <!-- 5. KHO VÔ KHUẨN -->
                 <div id="tab-khovokhuan" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex justify-between items-start md:items-center border-b border-slate-100 pb-4 mb-4 flex-col md:flex-row gap-3">
@@ -197,7 +188,6 @@
                     </div>
                 </div>
 
-                <!-- 6. GIÁM SÁT TUỔI THỌ -->
                 <div id="tab-danhmuc" class="hidden h-full">
                     <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4 gap-4">
@@ -208,7 +198,6 @@
                     </div>
                 </div>
 
-                <!-- 7. CẤU HÌNH QUẢN TRỊ & EXCEL -->
                 <div id="tab-tracuu" class="hidden flex flex-col gap-6 w-full">
                     <div class="flex space-x-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
                         <button onclick="switchAdminSubtab('security')" id="subbtn-security" class="admin-subtab-active px-4 py-2 text-xs font-black rounded transition-all">BẢO MẬT & RESET PIN</button>
@@ -270,7 +259,6 @@
                     </div>
                 </div>
 
-                <!-- 8. TAB PERFORMANCE - BẢO CÁO HIỆU SUẤT NHÂN VIÊN -->
                 <div id="tab-performance" class="hidden flex flex-col gap-6 w-full">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="bg-gradient-to-br from-sky-500 to-sky-700 text-white p-5 rounded-xl shadow border border-sky-600 flex items-center justify-between">
@@ -315,7 +303,6 @@
         </div>
     </div>
 
-    <!-- POPUPS -->
     <div id="popupKiemDem" class="fixed inset-0 popup-overlay z-50 hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-lg p-6 border-t-4 border-t-sky-500 animate-popIn">
             <h3 class="text-sm font-black text-slate-700 uppercase border-b border-slate-100 pb-3 mb-2">Biên Bản Kiểm Đếm</h3>
@@ -337,7 +324,6 @@
         </div>
     </div>
 
-    <!-- SCRIPT ENGINE -->
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCxjdCTKHQlpm7SYbWCEws1HhcOaFp0LBA", authDomain: "cssd-system-2878c.firebaseapp.com", projectId: "cssd-system-2878c", storageBucket: "cssd-system-2878c.firebasestorage.app", messagingSenderId: "662377321937", appId: "1:662377321937:web:001c092e10319547623cf0" };
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
@@ -395,17 +381,27 @@
 
         function checkLogin() {
             const role = document.getElementById("login_role").value; const pass = document.getElementById("login_pass").value; const khoaSelect = document.getElementById("login_khoa").value;
-            document.body.classList.remove("guest-mode"); if(document.getElementById("menu-tracuu")) document.getElementById("menu-tracuu").classList.add("hidden");
+            document.body.classList.remove("guest-mode"); 
+            
+            // --- ĐÂY LÀ ĐOẠN ĐÃ ĐƯỢC SỬA ---
+            // Mặc định ẩn tab Cấu hình (Tab 7) đi để bảo mật
+            if(document.getElementById("menu-tracuu")) document.getElementById("menu-tracuu").classList.add("hidden");
+
             let pinAdmin = thongTinMatKhauAdmin ? (thongTinMatKhauAdmin.adminPIN || "admin2026") : "admin2026";
             let pinCSSD = thongTinMatKhauAdmin ? (thongTinMatKhauAdmin.cssdPIN || "cssd2026") : "cssd2026";
             let pinGuest = thongTinMatKhauAdmin ? (thongTinMatKhauAdmin.guestPIN || "guest2026") : "guest2026";
 
             if (role === "ADMIN" && pass === pinAdmin) {
-                currentRole = "ADMIN"; currentKhoaName = "SYSTEM ADMIN"; document.getElementById("nav_group_khoa").style.display = "block"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "ADMINISTRATOR"; document.getElementById("khoa_selKhoa").disabled = false; switchTab('tracuu'); switchAdminSubtab('security'); renderAdminInterface();
+                currentRole = "ADMIN"; currentKhoaName = "SYSTEM ADMIN"; document.getElementById("nav_group_khoa").style.display = "block"; document.getElementById("nav_group_cssd").style.display = "block"; 
+                
+                // Hiển thị lại Tab 7 nếu là ADMIN
+                if(document.getElementById("menu-tracuu")) document.getElementById("menu-tracuu").classList.remove("hidden"); 
+                
+                document.getElementById("nav_user_info").innerText = "ADMINISTRATOR"; document.getElementById("khoa_selKhoa").disabled = false; switchTab('tracuu'); switchAdminSubtab('security'); renderAdminInterface();
             } else if (role === "CSSD" && pass === pinCSSD) {
                 currentRole = "CSSD"; currentKhoaName = "QUẢN TRỊ CSSD"; document.getElementById("nav_group_khoa").style.display = "none"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "VẬN HÀNH KSNK"; switchTab('thugom');
             } else if (role === "GUEST" && pass === pinGuest) {
-                currentRole = "GUEST"; currentKhoaName = "GUEST VIEWER"; document.body.classList.add("guest-mode"); document.getElementById("nav_group_khoa").style.display = "none"; document.getElementById("nav_group_cssd").style.display = "block"; if(document.getElementById("menu-tracuu")) document.getElementById("menu-tracuu").classList.add("hidden"); document.getElementById("nav_user_info").innerText = "CHẾ ĐỘ THAM QUAN"; switchTab('thugom'); showToast("Đã vào chế độ chỉ xem!", "success");
+                currentRole = "GUEST"; currentKhoaName = "GUEST VIEWER"; document.body.classList.add("guest-mode"); document.getElementById("nav_group_khoa").style.display = "none"; document.getElementById("nav_group_cssd").style.display = "block"; document.getElementById("nav_user_info").innerText = "CHẾ ĐỘ THAM QUAN"; switchTab('thugom'); showToast("Đã vào chế độ chỉ xem!", "success");
             } else if (role === "KHOA") {
                 let foundKhoa = danhSachKhoa.find(x => x.ten === khoaSelect); let checkPIN = foundKhoa ? (foundKhoa.pin || "123") : "123";
                 if(pass === checkPIN) { currentRole = "KHOA"; currentKhoaName = khoaSelect; document.getElementById("nav_group_khoa").style.display = "block"; document.getElementById("nav_group_cssd").style.display = "none"; document.getElementById("nav_user_info").innerText = currentKhoaName; document.getElementById("khoa_selKhoa").value = currentKhoaName; document.getElementById("khoa_selKhoa").disabled = true; loadBoDungCuTheoKhoa(); switchTab('khoaphong'); } else { showToast("Sai mã PIN!"); return; }
