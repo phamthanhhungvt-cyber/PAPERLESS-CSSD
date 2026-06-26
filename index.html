@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống CSSD - V28.0 (Đại Hợp Nhất)</title>
+    <title>Hệ Thống CSSD - V28.1 (Đồng Bộ Mã PIN)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -166,7 +166,7 @@
                     </div>
                 </div>
 
-                <!-- 4. MÁY HẤP (KẾT HỢP V27.1) -->
+                <!-- 4. MÁY HẤP -->
                 <div id="tab-mayhap" class="hidden flex flex-col gap-6 w-full">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[480px]">
                         <!-- Cột trái: Chờ hấp -->
@@ -175,7 +175,6 @@
                                 <h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-boxes-stacked mr-2 text-slate-400"></i> Danh sách chờ hấp</h3>
                                 <span id="badgeChoHap" class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">0 Mục</span>
                             </div>
-                            <!-- NÚT IN TEM TỔNG (V27.1) -->
                             <div class="mb-3 space-y-2">
                                 <button onclick="inTemTongHangLoat()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-black py-2.5 px-4 rounded-md text-xs shadow flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-print text-sm"></i> IN TEM TỔNG CÁC MỤC ĐÃ CHỌN
@@ -211,7 +210,6 @@
                                 <button onclick="nhapKhoHangLoat()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded text-xs shadow-md"><i class="fa-solid fa-check-double mr-1"></i> DUYỆT ĐẠT & CHO VÀO KHO LƯU TRỮ CHUNG</button>
                                 <div class="flex gap-2">
                                     <button onclick="inTemNghiemThuHangLoat()" class="w-1/2 bg-sky-600 hover:bg-sky-700 text-white font-black py-2 rounded text-xs shadow-md"><i class="fa-solid fa-print mr-1"></i> IN TEM TỔNG</button>
-                                    <!-- NÚT TỪ CHỐI ĐÃ ĐƯỢC KHÔI PHỤC (V27.1) -->
                                     <button onclick="tuChoiHapHangLoat()" class="w-1/2 bg-rose-600 hover:bg-rose-700 text-white font-black py-2 rounded text-xs shadow-md"><i class="fa-solid fa-ban mr-1"></i> KHÔNG ĐẠT (TRẢ LẠI)</button>
                                 </div>
                             </div>
@@ -226,7 +224,7 @@
                     </div>
                 </div>
 
-                <!-- 5. KHO VÔ KHUẨN (KẾT HỢP V27.0 - CÓ BẢNG DANH SÁCH MÂM ĐANG LƯU) -->
+                <!-- 5. KHO VÔ KHUẨN -->
                 <div id="tab-khovokhuan" class="hidden flex flex-col gap-6 h-full">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-auto">
                         <!-- Cột trái: Xuất kho -->
@@ -244,7 +242,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Cột phải: Bảng thông tin kho (V27.0) -->
+                        <!-- Cột phải: Bảng thông tin kho -->
                         <div class="glass-panel p-5 flex flex-col border-t-4 border-t-emerald-500 lg:col-span-2 h-[320px]">
                              <div class="border-b border-slate-100 pb-3 mb-4"><h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-warehouse mr-2 text-emerald-500"></i> Danh sách mâm đang lưu tại Kho Vô Khuẩn</h3></div>
                             <div class="flex-1 overflow-auto bg-white rounded border border-slate-100">
@@ -372,7 +370,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT ENGINE V28.0 - ĐẦY ĐỦ LOGIC MỌI TAB -->
+    <!-- SCRIPT ENGINE V28.1 - SỬA LỖI ĐỒNG BỘ HIỂN THỊ PIN -->
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCxjdCTKHQlpm7SYbWCEws1HhcOaFp0LBA", authDomain: "cssd-system-2878c.firebaseapp.com", projectId: "cssd-system-2878c", storageBucket: "cssd-system-2878c.firebasestorage.app", messagingSenderId: "662377321937", appId: "1:662377321937:web:001c092e10319547623cf0" };
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
@@ -386,6 +384,7 @@
 
         function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
+        // THE CHỐT: Sửa hàm lắng nghe Firebase để tự động render bảng PIN ngay khi có dữ liệu mới
         db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
             if (doc.exists) { 
                 let res = doc.data(); 
@@ -394,7 +393,8 @@
             } 
             initSelects();
             if(activeTab === 'khoaphong') loadBoDungCuTheoKhoa(); 
-            if(currentRole === "ADMIN") renderAdminInterface();
+            // Tự động vẽ bảng PIN khoa bất kể trạng thái đăng nhập để tránh lỗi bảng rỗng
+            renderAdminInterface(); 
         });
 
         db.collection("phieuGiaoNhan").orderBy("id", "desc").limit(1000).onSnapshot(snap => { 
@@ -475,7 +475,7 @@
         function tinhHanSuDung() { let val = document.getElementById("popDG_Loai").value.split("|"); let days = parseInt(val[1]); let dateHSD = new Date(); dateHSD.setDate(dateHSD.getDate() + days); let p = document.getElementById("popDG_Han"); p.innerText = dateHSD.toLocaleDateString('vi-VN'); p.dataset.dateDB = dateHSD.toISOString().split('T')[0]; }
         function chotDongGoi() { if(!idDangDongGoi) return; db.collection("phieuGiaoNhan").doc(idDangDongGoi).update({ status: "CHO_HAP", hsd: document.getElementById("popDG_Han").dataset.dateDB }).then(() => { showToast("Đã đóng gói, chuyển chờ hấp!", "success"); closePopupDongGoi(); callRender(); }); }
 
-        // --- TAB 4 LOGIC (V27.1) ---
+        // --- TAB 4 LOGIC ---
         function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
         function inTemTongHangLoat() {
             let checkboxes = document.querySelectorAll('.hap-checkbox:checked');
@@ -503,11 +503,7 @@
         function tuChoiHapHangLoat() {
             let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); 
             if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error");
-            let p = []; 
-            checkboxes.forEach(cb => { 
-                if(cb.id === 'selectAllNghiemThu') return; 
-                p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); 
-            });
+            let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); });
             Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); });
         }
 
@@ -520,7 +516,7 @@
             db.collection("phieuGiaoNhan").doc(khayThucTe.firestoreId).update({ status: "HOAN_TAT", khoa: k, ngayHoanTat: getTodayDateStr() }).then(() => { showToast(`Đã xuất cho Khoa ${k}!`, "success"); document.getElementById("xuat_inpMaBo").value = ""; callRender(); });
         }
 
-        // --- RENDER MỌI TAB THEO DỮ LIỆU THỰC TẾ ---
+        // --- RENDER MỌI TAB ---
         function renderTheoTabHienTai() {
             if(activeTab === 'khoaphong') {
                 const k = document.getElementById("khoa_selKhoa").value;
@@ -559,8 +555,7 @@
                     let currentTrans = allTrans.sort((a,b) => b.id - a.id)[0];
                     if(!currentTrans || !ma) return;
 
-                    let viTriCode = currentTrans.status;
-                    let khoaGiữ = currentTrans.khoa;
+                    let viTriCode = currentTrans.status; let khoaGiữ = currentTrans.khoa;
                     if (fK && khoaGiữ !== fK) return;
 
                     let viTriText = "Kho vô khuẩn"; let viTriColor = "bg-teal-100 text-teal-800";
@@ -574,15 +569,11 @@
             }
         }
 
-        // --- HỖ TRỢ DỌN DẸP LỖI KẸT (REFRESH) ---
+        // --- HỖ TRỢ DỌN DẸP LỖI KẸT ---
         function resetDuLieuKet() {
             if(confirm("CẢNH BÁO: Thao tác này sẽ đánh dấu HOÀN TẤT cho tất cả mâm đang bị kẹt trong Trạm Rửa, Gói, Hấp. Bạn có chắc chắn?")) {
                 let p = [];
-                listGiaoDich.forEach(doc => {
-                    if(doc.status !== "HOAN_TAT") {
-                        p.push(db.collection("phieuGiaoNhan").doc(doc.firestoreId).update({ status: "HOAN_TAT", ghiChu: "Admin dọn kẹt" }));
-                    }
-                });
+                listGiaoDich.forEach(doc => { if(doc.status !== "HOAN_TAT") { p.push(db.collection("phieuGiaoNhan").doc(doc.firestoreId).update({ status: "HOAN_TAT", ghiChu: "Admin dọn kẹt" })); } });
                 Promise.all(p).then(() => { showToast("Đã dọn dẹp thành công!", "success"); callRender(); });
             }
         }
@@ -606,7 +597,7 @@
         }
         function dongCamera() { if(html5QrCode) { html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => {}); } document.getElementById("popupScanner").classList.add("hidden"); }
 
-        // --- TAB 8: ADMIN ---
+        // --- TAB 8: ADMIN (ĐÃ FIX LỖI ĐỒNG BỘ HIỂN THỊ) ---
         function switchAdminSubtab(sub) { 
             document.getElementById('subtab-database').classList.add('hidden'); document.getElementById('subtab-security').classList.add('hidden');
             document.getElementById('subbtn-database').classList.replace('admin-subtab-active', 'text-slate-600'); document.getElementById('subbtn-security').classList.replace('admin-subtab-active', 'text-slate-600');
@@ -616,7 +607,7 @@
         function renderAdminInterface() {
             const tbKhoa = document.getElementById("bangPhanQuyenKhoa");
             if(tbKhoa) {
-                if(danhSachKhoa.length === 0) { tbKhoa.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa đang trống. Vui lòng nạp Excel.</td></tr>`; } 
+                if(danhSachKhoa.length === 0) { tbKhoa.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa đang trống hoặc đang đồng bộ từ Firebase...</td></tr>`; } 
                 else {
                     tbKhoa.innerHTML = danhSachKhoa.map((k, index) => `
                         <tr class="border-b hover:bg-slate-50">
