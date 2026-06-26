@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Hệ Thống Quản Lý CSSD - V22.2 (RBAC Security)</title>
+    <title>Hệ Thống Quản Lý CSSD - V22.3 (Full Admin Fixed)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -280,13 +280,71 @@
                     </div>
                 </div>
 
-                <!-- 8. QUẢN TRỊ & EXCEL -->
+                <!-- 8. QUẢN TRỊ & CONFIG (FIXED FULL GIAO DIỆN) -->
                 <div id="tab-tracuu" class="hidden flex flex-col gap-6 w-full">
                     <div class="flex space-x-2 bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
                         <button onclick="switchAdminSubtab('security')" id="subbtn-security" class="admin-subtab-active px-4 py-2 text-xs font-black rounded">MÃ PIN KHOA & USER CSSD</button>
                     </div>
+                    
                     <div id="subtab-security" class="glass-panel p-6 space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6"><div class="bg-slate-50 p-4 rounded border border-slate-200"><h4 class="text-xs font-black text-slate-600 uppercase">PIN HỆ THỐNG (ADMIN)</h4><input type="password" id="cfg_pinAdmin" class="w-full p-2 mt-1 font-mono text-center font-bold"></div></div>
+                        <!-- KHU VỰC 1: BỘ BA MÃ PIN HỆ THỐNG -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                                <h4 class="text-xs font-black text-slate-600 uppercase">PIN HỆ THỐNG (ADMIN)</h4>
+                                <input type="password" id="cfg_pinAdmin" class="w-full p-2 mt-1 font-mono text-center font-bold">
+                                <button onclick="saveAdminPIN('ADMIN')" class="bg-slate-800 text-white font-bold py-2 mt-2 rounded text-xs w-full">CẬP NHẬT</button>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded border border-slate-200">
+                                <h4 class="text-xs font-black text-slate-600 uppercase">PIN CHUNG CSSD (BACKUP)</h4>
+                                <input type="password" id="cfg_pinCSSD" class="w-full p-2 mt-1 font-mono text-center font-bold">
+                                <button onclick="saveAdminPIN('CSSD')" class="bg-sky-600 text-white font-bold py-2 mt-2 rounded text-xs w-full">CẬP NHẬT</button>
+                            </div>
+                            <div class="bg-emerald-50 p-4 rounded border border-emerald-200">
+                                <h4 class="text-xs font-black text-emerald-800 uppercase">PIN GUEST VIEWER</h4>
+                                <input type="password" id="cfg_pinGuest" class="w-full p-2 mt-1 font-mono text-center text-emerald-700 border-emerald-300 font-bold">
+                                <button onclick="saveAdminPIN('GUEST')" class="bg-emerald-600 text-white font-bold py-2 mt-2 rounded text-xs w-full">CẬP NHẬT</button>
+                            </div>
+                        </div>
+                        
+                        <!-- KHU VỰC 2: QUẢN LÝ TÀI KHOẢN NHÂN VIÊN CSSD -->
+                        <div class="pt-4 border-t border-slate-200">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-xs font-black text-sky-800 uppercase"><i class="fa-solid fa-users-gear mr-1"></i> Danh Sách Tài Khoản Nhân Viên CSSD</h4>
+                                <button onclick="moPopupThemKtvCssd()" class="bg-sky-600 text-white font-black py-1.5 px-3 rounded text-xs shadow"><i class="fa-solid fa-plus mr-1"></i> THÊM NHÂN VIÊN MỚI</button>
+                            </div>
+                            <div class="overflow-x-auto border border-slate-200 rounded">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50">
+                                        <tr>
+                                            <th class="p-3">Mã Nhân Viên (Username)</th>
+                                            <th class="p-3">Họ Và Tên</th>
+                                            <th class="p-3 text-center">Mã PIN Đăng Nhập</th>
+                                            <th class="p-3 text-center">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bangNhanVienCssdAdmin" class="bg-white"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- KHU VỰC 3: PHÂN QUYỀN MÃ PIN KHOA LÂM SÀNG -->
+                        <div class="pt-4 border-t border-slate-200">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="text-xs font-black text-slate-700 uppercase"><i class="fa-solid fa-hospital-user mr-1"></i> Danh Sách Phân Quyền Mã PIN Khoa Lâm Sàng</h4>
+                            </div>
+                            <div class="overflow-x-auto border border-slate-200 rounded">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="bg-slate-50">
+                                        <tr>
+                                            <th class="p-3">Tên Khoa Phòng</th>
+                                            <th class="p-3 text-center">Mã PIN Đăng Nhập</th>
+                                            <th class="p-3 text-center">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bangPhanQuyenKhoa" class="bg-white"></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -301,7 +359,7 @@
     <!-- KHU VỰC IN ẨN -->
     <div id="print-zone" class="hidden bg-white p-8 font-serif z-[9999]"></div>
 
-    <!-- POPUP CAMERA SCANNER -->
+    <!-- POPUPS -->
     <div id="popupScanner" class="fixed inset-0 popup-overlay z-[99999] hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-sm p-4 border-t-4 border-t-sky-500 animate-popIn">
             <h3 class="text-sm font-black text-slate-700 uppercase border-b border-slate-100 pb-3 mb-2 flex justify-between items-center">
@@ -309,11 +367,9 @@
                 <button onclick="dongCamera()" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark text-lg"></i></button>
             </h3>
             <div id="reader"></div>
-            <p class="text-[10px] text-center text-slate-400 mt-3 italic">Hãy đưa camera vào khung chứa Barcode hoặc QR Code trên mâm dụng cụ.</p>
         </div>
     </div>
 
-    <!-- POPUP KIỂM ĐẾM -->
     <div id="popupKiemDem" class="fixed inset-0 popup-overlay z-[9999] hidden flex items-center justify-center p-4">
         <div class="glass-panel w-full max-w-lg p-6 border-t-4 border-t-sky-500 animate-popIn">
             <h3 class="text-sm font-black text-slate-700 uppercase border-b border-slate-100 pb-3 mb-2">Biên Bản Kiểm Đếm</h3>
@@ -323,7 +379,7 @@
         </div>
     </div>
 
-    <!-- SCRIPT ENGINE V22.2 -->
+    <!-- SCRIPT ENGINE V22.3 -->
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCxjdCTKHQlpm7SYbWCEws1HhcOaFp0LBA", authDomain: "cssd-system-2878c.firebaseapp.com", projectId: "cssd-system-2878c", storageBucket: "cssd-system-2878c.firebasestorage.app", messagingSenderId: "662377321937", appId: "1:662377321937:web:001c092e10319547623cf0" };
         firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
@@ -335,18 +391,27 @@
         let html5QrCode = null;
         let targetInputIdForScan = "";
         let idDangKiemDem = null; 
-        
         let activeTab = 'thugom';
         let renderTimeout = null;
 
         function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
         function formatDateVN(dStr) { if(!dStr) return ""; let p = dStr.split('-'); return p[2]?`${p[2]}/${p[1]}/${p[0]}`:dStr; }
         
+        function tinhRadarHSD(hsdDateStr) {
+            if(!hsdDateStr) return { text: "Không rõ HSD", color: "text-slate-500", bg: "bg-slate-100" };
+            const now = new Date(); now.setHours(0,0,0,0);
+            const hsd = new Date(hsdDateStr); hsd.setHours(0,0,0,0);
+            const diffTime = hsd - now; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            if (diffDays < 0) return { text: "QUÁ HẠN (KHÓA)", color: "text-white font-black", bg: "bg-rose-600", lock: true };
+            if (diffDays <= 3) return { text: `Còn ${diffDays} ngày`, color: "text-amber-900 font-black", bg: "bg-amber-400 animate-pulse", lock: false };
+            return { text: `An toàn (${formatDateVN(hsdDateStr)})`, color: "text-emerald-700 font-bold", bg: "bg-emerald-100", lock: false };
+        }
+
         db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
             if (doc.exists) { 
                 let res = doc.data(); danhSachKhoa = res.danhSachKhoa || []; databaseExcel = res.databaseExcel || {}; 
                 danhSachKtvCssd = res.danhSachKtvCssd || []; if(res.thongTinMatKhauAdmin) thongTinMatKhauAdmin = res.thongTinMatKhauAdmin; 
-            } initSelects(); 
+            } initSelects(); renderAdminInterface();
         });
 
         db.collection("phieuGiaoNhan").orderBy("id", "desc").limit(1000).onSnapshot(snap => { 
@@ -356,89 +421,54 @@
 
         function callRender() { clearTimeout(renderTimeout); renderTimeout = setTimeout(() => { renderTheoTabHienTai(); }, 100); }
 
-        // --- RBAC: HÀM PHÂN QUYỀN HIỂN THỊ SIDEBAR THEO ROLE ---
         function applyRolePermissions() {
-            // 1. Ẩn tất cả các tab trước
             const tabs = ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance'];
             tabs.forEach(x => { let m = document.getElementById('menu-'+x); if(m) m.classList.add('hidden'); });
-            
-            // 2. Ẩn các tiêu đề Group
             document.getElementById('header-lamsang').classList.add('hidden');
             document.getElementById('header-vanhanh').classList.add('hidden');
             document.getElementById('header-dulieu').classList.add('hidden');
 
-            // 3. Phân quyền hiển thị
             if (currentRole === "KHOA") {
-                document.getElementById('header-lamsang').classList.remove('hidden');
-                document.getElementById('header-dulieu').classList.remove('hidden');
-                
-                document.getElementById('menu-khoaphong').classList.remove('hidden');
-                document.getElementById('menu-quanlykho').classList.remove('hidden');
-            } 
-            else if (currentRole === "CSSD" || currentRole === "GUEST") {
-                document.getElementById('header-vanhanh').classList.remove('hidden');
-                document.getElementById('header-dulieu').classList.remove('hidden');
-
+                document.getElementById('header-lamsang').classList.remove('hidden'); document.getElementById('header-dulieu').classList.remove('hidden');
+                document.getElementById('menu-khoaphong').classList.remove('hidden'); document.getElementById('menu-quanlykho').classList.remove('hidden');
+            } else if (currentRole === "CSSD" || currentRole === "GUEST") {
+                document.getElementById('header-vanhanh').classList.remove('hidden'); document.getElementById('header-dulieu').classList.remove('hidden');
                 ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','performance'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
-            } 
-            else if (currentRole === "ADMIN") {
-                document.getElementById('header-lamsang').classList.remove('hidden');
-                document.getElementById('header-vanhanh').classList.remove('hidden');
-                document.getElementById('header-dulieu').classList.remove('hidden');
-
+            } else if (currentRole === "ADMIN") {
+                document.getElementById('header-lamsang').classList.remove('hidden'); document.getElementById('header-vanhanh').classList.remove('hidden'); document.getElementById('header-dulieu').classList.remove('hidden');
                 tabs.forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
             }
         }
 
         function checkLogin() {
-            const role = document.getElementById("login_role").value; 
-            const pass = document.getElementById("login_pass").value; 
-            const khoaSelect = document.getElementById("login_khoa").value;
-            const nvSelectCode = document.getElementById("login_nv_cssd").value;
-            document.body.classList.remove("guest-mode"); 
-            
-            let pA = thongTinMatKhauAdmin.adminPIN || "admin2026";
-            let pG = thongTinMatKhauAdmin.guestPIN || "guest2026";
+            const role = document.getElementById("login_role").value; const pass = document.getElementById("login_pass").value; 
+            const khoaSelect = document.getElementById("login_khoa").value; const nvSelectCode = document.getElementById("login_nv_cssd").value;
+            let pA = thongTinMatKhauAdmin.adminPIN || "admin2026"; let pG = thongTinMatKhauAdmin.guestPIN || "guest2026";
             
             if (role === "ADMIN" && pass === pA) { 
                 currentRole = "ADMIN"; loginUserCode = "ADMIN"; loginUserName = "Quản Trị";
                 document.getElementById("nav_user_info").innerText = "ADMINISTRATOR";
-                document.getElementById("khoa_selKhoa").disabled = false;
-                applyRolePermissions();
-                switchTab('tracuu');
-            } 
-            else if (role === "CSSD") { 
+                document.getElementById("khoa_selKhoa").disabled = false; applyRolePermissions(); switchTab('tracuu');
+            } else if (role === "CSSD") { 
                 let targetKtv = danhSachKtvCssd.find(x => x.code === nvSelectCode);
                 if (!targetKtv) return showToast("Vui lòng chọn tên nhân viên!");
                 if (pass === targetKtv.pin) { 
                     currentRole = "CSSD"; loginUserCode = targetKtv.code; loginUserName = targetKtv.ten; 
                     document.getElementById("nav_user_info").innerText = `KTV: ${loginUserName} (${loginUserCode})`; 
-                    applyRolePermissions();
-                    switchTab('thugom'); 
+                    applyRolePermissions(); switchTab('thugom'); 
                 } else { return showToast("Sai mã PIN cá nhân!"); }
-            } 
-            else if (role === "GUEST" && pass === pG) {
+            } else if (role === "GUEST" && pass === pG) {
                 currentRole = "GUEST"; loginUserCode = "GUEST"; loginUserName = "Khách"; document.body.classList.add("guest-mode"); 
-                document.getElementById("nav_user_info").innerText = "CHẾ ĐỘ THAM QUAN"; 
-                applyRolePermissions();
-                switchTab('thugom');
-            }
-            else if (role === "KHOA") { 
+                document.getElementById("nav_user_info").innerText = "CHẾ ĐỘ THAM QUAN"; applyRolePermissions(); switchTab('thugom');
+            } else if (role === "KHOA") { 
                 let found = danhSachKhoa.find(x => x.ten === khoaSelect); 
                 if (pass === (found ? found.pin : "123")) { 
                     currentRole = "KHOA"; currentKhoaName = khoaSelect; loginUserCode = khoaSelect; loginUserName = khoaSelect; 
-                    document.getElementById("nav_user_info").innerText = currentKhoaName; 
-                    document.getElementById("khoa_selKhoa").value = currentKhoaName; 
-                    document.getElementById("khoa_selKhoa").disabled = true; 
-                    applyRolePermissions();
-                    switchTab('khoaphong'); 
+                    document.getElementById("nav_user_info").innerText = currentKhoaName; document.getElementById("khoa_selKhoa").value = currentKhoaName; 
+                    document.getElementById("khoa_selKhoa").disabled = true; applyRolePermissions(); switchTab('khoaphong'); 
                 } else { return showToast("Sai mã PIN Khoa!"); } 
-            } else {
-                return showToast("Sai thông tin đăng nhập!");
             }
-            
-            document.getElementById("login-screen").classList.add("hidden"); 
-            document.getElementById("main-app").classList.remove("hidden");
+            document.getElementById("login-screen").classList.add("hidden"); document.getElementById("main-app").classList.remove("hidden");
         }
 
         function switchTab(t) { 
@@ -449,10 +479,8 @@
         }
 
         function renderTheoTabHienTai() {
-            // Logic Render giao diện cho Khoa (Tab 1)
             if(activeTab === 'khoaphong') {
-                const today = getTodayDateStr();
-                const k = document.getElementById("khoa_selKhoa").value;
+                const today = getTodayDateStr(); const k = document.getElementById("khoa_selKhoa").value;
                 let lsTra = listGiaoDich.filter(x => x.khoa === k && x.ngayTao === today); 
                 let lsNhan = listGiaoDich.filter(x => x.khoa === k && x.ngayHoanTat === today && x.status === "HOAN_TAT");
                 let congNoKhoa = {};
@@ -460,37 +488,31 @@
                 lsNoThucTe.forEach(i => { let ten = i.bo.split(" [ID:")[0]; if(!congNoKhoa[ten]) congNoKhoa[ten] = { traBan: 0, nhanSach: 0, no: 0 }; congNoKhoa[ten].no += 1; });
                 lsTra.forEach(i => { let ten = i.bo.split(" [ID:")[0]; if(!congNoKhoa[ten]) congNoKhoa[ten] = { traBan: 0, nhanSach: 0, no: 0 }; congNoKhoa[ten].traBan += 1; });
                 lsNhan.forEach(i => { let ten = i.bo.split(" [ID:")[0]; if(!congNoKhoa[ten]) congNoKhoa[ten] = { traBan: 0, nhanSach: 0, no: 0 }; congNoKhoa[ten].nhanSach += 1; });
-
                 let arrHtml = [];
                 for (let key in congNoKhoa) {
-                    let d = congNoKhoa[key]; 
-                    let noHtml = d.no > 0 ? `<span class="font-black text-rose-600 bg-rose-100 px-2 py-1 rounded">${d.no} mâm</span>` : `<span class="font-bold text-emerald-600">Đủ</span>`;
+                    let d = congNoKhoa[key]; let noHtml = d.no > 0 ? `<span class="font-black text-rose-600 bg-rose-100 px-2 py-1 rounded">${d.no} mâm</span>` : `<span class="font-bold text-emerald-600">Đủ</span>`;
                     arrHtml.push(`<tr class="border-b border-slate-100"><td class="p-3 border-r border-slate-100 font-bold text-slate-800 text-[12px]">${key}</td><td class="p-3 text-center border-r border-slate-100 font-black text-rose-700 text-sm">${d.traBan}</td><td class="p-3 text-center border-r border-slate-100 font-black text-teal-700 text-sm">${d.nhanSach}</td><td class="p-3 text-center">${noHtml}</td></tr>`);
                 }
                 document.getElementById("bangHoaDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh nợ/trả.</td></tr>`;
             }
-            // Logic Tab 6 (Tồn Kho)
+            else if(activeTab === 'thugom') {
+                let lsTG_All = listGiaoDich.filter(x => x.status === "CHO_THU"); let uKhoaThu = [...new Set(lsTG_All.map(x=>x.khoa))];
+                let flThu = document.getElementById("filterKhoaThuGom"); let cValThu = flThu.value;
+                flThu.innerHTML = '<option value="">-- Lọc Khoa --</option>' + uKhoaThu.map(k => `<option value="${k}" ${k===cValThu?'selected':''}>${k}</option>`).join('');
+                let lsTG = cValThu ? lsTG_All.filter(x => x.khoa === cValThu) : lsTG_All; document.getElementById("badgeSoCho").innerText = lsTG.length;
+                let arrHtml = lsTG.map(i => `<tr class="border-b border-slate-50"><td class="p-3 font-bold text-slate-600 text-xs">${i.khoa}</td><td class="p-3"><div class="font-bold text-sky-700 text-[12px]">${i.bo}</div><div class="text-[10px] font-mono text-slate-400">ID: ${i.maMacDinh}</div></td><td class="p-3 text-center text-[10px] text-slate-500">${i.time}</td><td class="p-3 text-center action-col"><button onclick="moPopupKiemDem('${i.firestoreId}')" class="bg-sky-50 border border-sky-300 text-sky-700 px-3 py-1.5 rounded font-black text-[11px]">KIỂM ĐẾM</button></td></tr>`);
+                document.getElementById("bangChoThuGom").innerHTML = arrHtml.join('');
+            }
             else if(activeTab === 'quanlykho') {
-                let fK = document.getElementById("inv_filterKhoa").value; 
-                let uniqueKhoa = [...new Set(listGiaoDich.map(x=>x.khoa))].filter(Boolean);
+                let fK = document.getElementById("inv_filterKhoa").value; let uniqueKhoa = [...new Set(listGiaoDich.map(x=>x.khoa))].filter(Boolean);
                 document.getElementById("inv_filterKhoa").innerHTML = '<option value="">-- Tất cả Khoa --</option>' + uniqueKhoa.map(k=>`<option value="${k}" ${k===fK?'selected':''}>${k}</option>`).join('');
-                
-                let uniqueIDs = [...new Set(listGiaoDich.map(x=>x.maMacDinh))];
-                let arrHtml = [];
+                let uniqueIDs = [...new Set(listGiaoDich.map(x=>x.maMacDinh))]; let arrHtml = [];
                 uniqueIDs.forEach(ma => {
-                    let allTrans = listGiaoDich.filter(x => x.maMacDinh === ma);
-                    let currentTrans = allTrans.sort((a,b) => b.id - a.id)[0]; 
-                    if(!currentTrans) return;
-
-                    let viTriCode = currentTrans.status;
-                    let khoaGiữ = currentTrans.khoa;
-                    
-                    if (fK && khoaGiữ !== fK) return;
-
+                    let allTrans = listGiaoDich.filter(x => x.maMacDinh === ma); let currentTrans = allTrans.sort((a,b) => b.id - a.id)[0]; if(!currentTrans) return;
+                    let viTriCode = currentTrans.status; let khoaGiữ = currentTrans.khoa; if (fK && khoaGiữ !== fK) return;
                     let viTriText = "Kho vô khuẩn"; let viTriColor = "bg-teal-100 text-teal-800";
                     if(viTriCode === "HOAN_TAT") { viTriText = `Sẵn sàng tại Khoa`; viTriColor = "bg-emerald-100 text-emerald-800"; }
                     else if(viTriCode !== "CHO_XUAT") { viTriText = "Đang xử lý tại CSSD"; viTriColor = "bg-amber-100 text-amber-800"; }
-
                     let tenLoai = currentTrans.bo.split(" [ID:")[0];
                     arrHtml.push(`<tr class="border-b border-slate-100 hover:bg-slate-50 font-medium"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${tenLoai}</td><td class="p-3 text-slate-500 font-semibold text-[11px]">${khoaGiữ}</td><td class="p-3 text-center"><span class="px-2.5 py-1 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-mono font-bold text-slate-400 text-[10px]">${currentTrans.batchCode || 'N/A'}</td><td class="p-3 text-center">-</td></tr>`);
                 });
@@ -498,16 +520,73 @@
             }
         }
 
-        // --- CÁC TIỆN ÍCH KHÁC (UI, Toasts) ---
-        function toggleLoginFields() {
-            const r = document.getElementById("login_role").value;
-            document.getElementById("field_khoa").style.display = (r === "KHOA") ? "block" : "none";
-            document.getElementById("field_nhanvien_cssd").style.display = (r === "CSSD") ? "block" : "none";
+        // --- HÀM RENDER ĐẦY ĐỦ CỦA TAB 8 CONFIG CHUYÊN SÂU ---
+        function renderAdminInterface() {
+            if(currentRole !== "ADMIN") return;
+            
+            // Render cấu hình ô PIN hiện tại
+            if(document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
+            if(document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
+            if(document.getElementById("cfg_pinGuest")) document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "";
+
+            // Render bảng nhân viên KTV CSSD
+            const tbKtv = document.getElementById("bangNhanVienCssdAdmin");
+            if(tbKtv) {
+                tbKtv.innerHTML = danhSachKtvCssd.map(x=>`<tr class="border-b"><td class="p-3 font-mono font-bold text-sky-700">${x.code}</td><td class="p-3 font-bold text-slate-700">${x.ten}</td><td class="p-3 text-center font-mono font-bold">${x.pin}</td><td class="p-3 text-center"><button onclick="xoaKtvCssd('${x.code}')" class="text-rose-600 hover:text-rose-800 text-xs font-bold"><i class="fa-solid fa-trash-can"></i> XÓA USER</button></td></tr>`).join('');
+            }
+            
+            // Render bảng danh sách mã PIN Khoa Lâm Sàng
+            const tbKhoa = document.getElementById("bangPhanQuyenKhoa");
+            if(tbKhoa) {
+                tbKhoa.innerHTML = danhSachKhoa.map((k, index) => `<tr class="border-b"><td class="p-3 font-black text-slate-700 text-xs">${k.ten}</td><td class="p-3 text-center"><input type="text" id="pin-khoa-${index}" value="${k.pin||'123'}" class="w-24 p-1 text-center border font-mono font-bold"></td><td class="p-3 text-center"><button onclick="updatePINTrựcTiep(${index}, '${k.ten}')" class="bg-sky-50 text-sky-700 border border-sky-200 px-2 py-1 rounded text-[10px] font-black">LƯU PIN KHOA</button></td></tr>`).join('');
+            }
         }
-        function initSelects() { let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join(''); document.getElementById("login_khoa").innerHTML=opts; document.getElementById("khoa_selKhoa").innerHTML=opts; }
+
+        function saveAdminPIN(loai) {
+            if(loai === 'ADMIN') thongTinMatKhauAdmin.adminPIN = document.getElementById("cfg_pinAdmin").value.trim();
+            if(loai === 'CSSD') thongTinMatKhauAdmin.cssdPIN = document.getElementById("cfg_pinCSSD").value.trim();
+            if(loai === 'GUEST') thongTinMatKhauAdmin.guestPIN = document.getElementById("cfg_pinGuest").value.trim();
+            db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ thongTinMatKhauAdmin: thongTinMatKhauAdmin }).then(() => showToast(`Đã cập nhật PIN ${loai}!`, "success"));
+        }
+
+        function moPopupThemKtvCssd() {
+            let user = prompt("Nhập Mã nhân viên (viết liền, ví dụ NV03):");
+            let ten = prompt("Nhập Họ và Tên nhân viên:");
+            let pin = prompt("Đặt mã PIN đăng nhập (4 số):");
+            if(user && ten && pin) {
+                danhSachKtvCssd.push({code: user.trim().toUpperCase(), ten: ten.trim(), pin: pin.trim()});
+                db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({danhSachKtvCssd: danhSachKtvCssd}).then(()=>{ showToast("Đã thêm KTV mới!", "success"); renderAdminInterface(); });
+            }
+        }
+
+        function xoaKtvCssd(code) {
+            if(confirm(`Xóa nhân viên ${code}?`)) {
+                danhSachKtvCssd = danhSachKtvCssd.filter(x=>x.code !== code);
+                db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({danhSachKtvCssd: danhSachKtvCssd}).then(()=>{ showToast("Đã xóa KTV!", "success"); renderAdminInterface(); });
+            }
+        }
+
+        function updatePINTrựcTiep(idx, tenKhoa) {
+            let userInp = document.getElementById(`pin-khoa-${idx}`).value.trim();
+            let found = danhSachKhoa.find(x => x.ten === tenKhoa);
+            if(found) found.pin = userInp;
+            db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => showToast(`Đã đổi PIN khoa ${tenKhoa}!`, "success"));
+        }
+
+        function moPopupKiemDem(id) { idDangKiemDem = id; let item = listGiaoDich.find(x => x.firestoreId === id); if(item) { document.getElementById("popBo").innerText = item.bo; document.getElementById("popKhoa").innerText = item.khoa; document.getElementById("popGhiChu").value = ""; document.getElementById("popupKiemDem").classList.remove("hidden"); } }
+        function closePopupKiemDem() { document.getElementById("popupKiemDem").classList.add("hidden"); }
+        function saveKiemDem() { if(!idDangKiemDem) return; db.collection("phieuGiaoNhan").doc(idDangKiemDem).update({ status: "DANG_RUA", ghiChu: document.getElementById("popGhiChu").value, nvKiemDem: loginUserCode }).then(() => { showToast("Đã chuyển rửa!", "success"); closePopupKiemDem(); }); }
+        function toggleLoginFields() { const r = document.getElementById("login_role").value; document.getElementById("field_khoa").style.display = (r === "KHOA") ? "block" : "none"; document.getElementById("field_nhanvien_cssd").style.display = (r === "CSSD") ? "block" : "none"; }
+        function initSelects() { let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join(''); document.getElementById("login_khoa").innerHTML=opts; document.getElementById("khoa_selKhoa").innerHTML=opts; let optsKtv = '<option value="">-- Chọn Tên KTV --</option>' + danhSachKtvCssd.map(x=>`<option value="${x.code}">${x.code} - ${x.ten}</option>`).join(''); document.getElementById("login_nv_cssd").innerHTML = optsKtv; }
         function showToast(msg, type="error") { const t = document.createElement('div'); t.className = `fixed top-6 right-6 ${type==="error"?"bg-rose-600":"bg-emerald-600"} text-white px-5 py-3.5 rounded-lg shadow-2xl z-[100] font-bold text-sm`; t.innerHTML = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
         function toggleMobileMenu() { const sb = document.getElementById("sidebar_menu"), ov = document.getElementById("mobile-overlay"); sb.classList.toggle("-translate-x-full"); ov.classList.toggle("hidden"); }
-        function moCamera(inputId) { targetInputIdForScan = inputId; document.getElementById("popupScanner").classList.remove("hidden"); html5QrCode = new Html5Qrcode("reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => { document.getElementById(targetInputIdForScan).value = decodedText.trim(); dongCamera(); }).catch(err => { showToast("Lỗi mở camera!", "error"); dongCamera(); }); }
+        function switchAdminSubtab(sub) { }
+        function loadBoDungCuTheoKhoa() { }
+        function clearGioHang() { gioHangTam = []; renderGioHang(); }
+        function renderGioHang() { document.getElementById("khuVucGioHang").classList.toggle("hidden", gioHangTam.length===0); }
+        function themVaoGio() { const val = document.getElementById("khoa_inpMaBo").value.trim().toUpperCase(); if(!val) return; gioHangTam.push({maMacDinh: val}); document.getElementById("khoa_inpMaBo").value = ""; renderGioHang(); }
+        function khoaGuiPhieuTraBatches() { const k = document.getElementById("khoa_selKhoa").value; let p=[]; gioHangTam.forEach((i,idx)=>p.push(db.collection("phieuGiaoNhan").add({id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: `Mâm [ID: ${i.maMacDinh}]`, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU"}))); Promise.all(p).then(()=>{clearGioHang(); showToast("Đã gửi!", "success");}); }
+        function moCamera(inputId) { targetInputIdForScan = inputId; document.getElementById("popupScanner").classList.remove("hidden"); html5QrCode = new Html5Qrcode("reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => { document.getElementById(targetInputIdForScan).value = txt.trim(); dongCamera(); if(targetInputIdForScan==='khoa_inpMaBo') themVaoGio(); }).catch(err=>dongCamera()); }
         function dongCamera() { if(html5QrCode) html5QrCode.stop(); document.getElementById("popupScanner").classList.add("hidden"); }
     </script>
 </body>
