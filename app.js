@@ -169,8 +169,6 @@ function moPopupDongGoi(id) {
     idDangDongGoi = id; let item = listGiaoDich.find(x => x.firestoreId === id); 
     if(item) { 
         document.getElementById("popDG_Bo").innerText = item.bo; 
-        
-        // CẬP NHẬT CHUẨN: Đồng bộ chính xác danh mục vật liệu và số ngày HSD bệnh viện quy định
         const selectChatLieu = document.getElementById("popDG_Loai");
         if (selectChatLieu) {
             selectChatLieu.innerHTML = `
@@ -191,22 +189,28 @@ function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.g
 
 function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
 
+// --- TAB 4 : CHỨC NĂNG IN TEM MẺ HẤP ĐÔI CHUẨN ---
 function inTemTongHangLoat() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem mẻ hấp!", "error"); 
     
-    let batchCode = document.getElementById("hap_maySo").value;
+    let mayInp = document.getElementById("hap_maySo").value;
+    let soMe = document.getElementById("hap_meSo").value.padStart(2, '0');
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    let mayKyHieu = mayInp.includes("02") ? "2" : "1";
+    let batchCode = `A${mayKyHieu}${yy}${mm}${dd}_${soMe}`;
     
-    // Tạo vùng chứa Layout Flexbox hỗ trợ chia 2 tem trên một hàng
     let container = document.createElement('div');
     container.className = "print-label-container";
     container.style.display = "flex";
     container.style.flexWrap = "wrap";
     container.style.width = "100%";
     container.style.boxSizing = "border-box";
-    container.style.gap = "4px"; // Khoảng cách nhỏ giữa 2 tem cạnh nhau
+    container.style.gap = "4px";
 
-    // Thêm CSS ép style khi in (Ẩn toàn bộ giao diện phần mềm, chỉ hiện tem)
     let stylePrint = document.createElement('style');
     stylePrint.innerHTML = `
         @media print {
@@ -226,7 +230,6 @@ function inTemTongHangLoat() {
             let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
             let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr;
             
-            // Mỗi con tem đơn lẻ chiếm gần 50% bề ngang để đi vừa hàng đôi
             let temHtml = `
                 <div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial, sans-serif; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;">
                     <div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
@@ -257,15 +260,14 @@ function inTemTongHangLoat() {
     pZone.appendChild(container); 
     pZone.classList.remove("hidden");
 
-    // Vẽ Barcode
     checkboxes.forEach(cb => {
         let item = listGiaoDich.find(x => x.firestoreId === cb.value);
         if(item) {
             let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000";
             JsBarcode(`#barcode-lo-${item.firestoreId}`, cleanId, {
                 format: "CODE128",
-                width: 1.2, // Giảm độ rộng vạch một chút để vừa khít tem nhỏ
-                height: 30,  // Chiều cao vừa vặn
+                width: 1.2, 
+                height: 30,  
                 displayValue: true,
                 fontSize: 10,
                 margin: 2
@@ -273,21 +275,19 @@ function inTemTongHangLoat() {
         }
     });
 
-    // Thực thi lệnh in chuyên dụng
     setTimeout(() => {
         window.print(); 
         pZone.classList.add("hidden");
-    }, 300); // Trì hoãn 300ms để đảm bảo Barcode đã được vẽ xong hoàn toàn trước khi in
+    }, 300);
 }
 
 function xacNhanMeHap() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
     
-    let mayInp = document.getElementById("hap_maySo").value; // Lấy "Máy 01" hoặc "Máy 02"
-    let soMe = document.getElementById("hap_meSo").value.padStart(2, '0'); // Lấy số chu kỳ ví dụ "01"
+    let mayInp = document.getElementById("hap_maySo").value; 
+    let soMe = document.getElementById("hap_meSo").value.padStart(2, '0'); 
     
-    // Tự động sinh mã lô chuẩn y tế (Ví dụ: Máy 01 ngày 2026-06-27 mẻ 01 -> A1260627_01)
     const now = new Date();
     const yy = String(now.getFullYear()).slice(-2);
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -392,35 +392,6 @@ function inTemNghiemThuHangLoat() {
     }, 300);
 }
 
-    const pZone = document.getElementById("print-zone"); 
-    pZone.innerHTML = ""; 
-    pZone.appendChild(container); 
-    pZone.classList.remove("hidden");
-
-    checkboxes.forEach(cb => {
-        let item = listGiaoDich.find(x => x.firestoreId === cb.value);
-        if(item) {
-            let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000";
-            JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, {
-                format: "CODE128",
-                width: 1.5,
-                height: 35,
-                displayValue: true,
-                fontSize: 11,
-                margin: 2
-            });
-        }
-    });
-
-    window.print(); 
-    pZone.classList.add("hidden");
-    showToast("Đang kết xuất hàng loạt tem đôi nghiệm thu vô khuẩn...", "success"); 
-}
-    });
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = contentIn; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden");
-    showToast("Đang kết xuất tem nghiệm thu vô khuẩn...", "success"); 
-}
-
 function tuChoiHapHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); }
 function xuatKhoXoayVong() { const k = document.getElementById("xuat_selKhoa").value; const ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); if(!k || !ma) return showToast("Vui lòng Chọn Khoa và Quét Mã!", "error"); let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && x.status === "CHO_XUAT"); if(!khayThucTe) { document.getElementById("xuat_inpMaBo").value = ""; return showToast(`Mã ID ${ma} không có ở Kho Vô Khuẩn.`, "error"); } db.collection("phieuGiaoNhan").doc(khayThucTe.firestoreId).update({ status: "HOAN_TAT", khoa: k, ngayHoanTat: getTodayDateStr() }).then(() => { showToast(`Đã xuất cho Khoa ${k}!`, "success"); document.getElementById("xuat_inpMaBo").value = ""; callRender(); }); }
 
@@ -498,7 +469,6 @@ function renderTheoTabHienTai() {
         if(tbody) {
             let dataFiltered = listGiaoDich;
             if (searchInp) {
-                // Nếu điền mã lô, thực hiện bộ lọc tìm kiếm khẩn cấp để truy vết
                 dataFiltered = listGiaoDich.filter(x => x.batchCode && x.batchCode.toUpperCase() === searchInp.toUpperCase());
                 if(badge) badge.innerHTML = `<span class="text-rose-600">Tìm thấy ${dataFiltered.length} mâm đi chung lô lỗi</span>`;
             } else {
@@ -570,6 +540,7 @@ function themKtvCssd() {
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => { showToast("Đã thêm KTV thành công!", "success"); });
 }
 
+// ... các hàm phụ trợ giữ nguyên
 function xoaKtvCssd(code) {
     if(confirm(`Bạn có chắc chắn muốn xóa nhân viên ${code} không?`)) {
         danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code);
