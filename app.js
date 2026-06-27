@@ -496,6 +496,7 @@ function resetDuLieuKet() {
     }
 }
 
+// --- ĐIỀU HƯỚNG SUB-TAB TRONG KHU VỰC ADMIN ---
 function switchAdminSubtab(sub) { 
     document.getElementById('subtab-database').classList.add('hidden'); document.getElementById('subtab-security').classList.add('hidden');
     document.getElementById('subbtn-database').classList.replace('admin-subtab-active', 'text-slate-600'); document.getElementById('subbtn-security').classList.replace('admin-subtab-active', 'text-slate-600');
@@ -525,6 +526,168 @@ function saveAdminPIN(type) {
     if(type === 'CSSD') thongTinMatKhauAdmin.cssdPIN = newVal;
     if(type === 'GUEST') thongTinMatKhauAdmin.guestPIN = newVal;
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ thongTinMatKhauAdmin: thongTinMatKhauAdmin }).then(() => { showToast(`Đã cập nhật PIN cho ${type} thành công!`, "success"); });
+}
+
+function themKtvCssd() {
+    let code = prompt("Nhập Mã Nhân Viên (Ví dụ: NV01):"); if(!code) return;
+    let ten = prompt("Nhập Họ & Tên Nhân Viên:"); if(!ten) return;
+    let pin = prompt("Nhập mã PIN đăng nhập (Ví dụ: 1234):"); if(!pin) return;
+    code = code.trim().toUpperCase();
+    if(danhSachKtvCssd.find(x => x.code === code)) return showToast("Mã nhân viên này đã tồn tại!", "error");
+    danhSachKtvCssd.push({ code: code, ten: ten.trim(), pin: pin.trim() });
+    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => { showToast("Đã thêm KTV thành công!", "success"); });
+}
+
+function xoaKtvCssd(code) {
+    if(confirm(`Bạn có chắc chắn muốn xóa nhân viên ${code} không?`)) {
+        danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code);
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => { showToast("Đã xóa nhân viên!", "success"); });
+    }
+}
+
+function themKhoaThuCong() {
+    let tenKhoaMoi = prompt("Nhập Tên Khoa/Phòng mới:");
+    if(tenKhoaMoi && tenKhoaMoi.trim() !== "") {
+        tenKhoaMoi = tenKhoaMoi.trim().toUpperCase();
+        let checkExists = danhSachKhoa.find(x => x.ten === tenKhoaMoi);
+        if(checkExists) return showToast("Khoa này đã có trong danh sách!", "error");
+        danhSachKhoa.push({ ten: tenKhoaMoi, pin: "123", danhSachBo: [] });
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => showToast(`Đã thêm Khoa ${tenKhoaMoi}!`, "success"));
+    }
+}
+
+// --- CẬP NHẬT PIN KHOA TRỰC TIẾP ---
+function updatePINTrựcTiep(idx, tenKhoa) {
+    let userInp = document.getElementById(`pin-khoa-${idx}`).value.trim();
+    if(userInp === "") return showToast("Vui lòng nhập mã PIN mới vào ô trống!", "error");
+    let found = danhSachKhoa.find(x => x.ten === tenKhoa);
+    if(found) {
+        found.pin = userInp;
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => { document.getElementById(`pin-khoa-${idx}`).value = ""; showToast(`Đã đổi PIN cho Khoa ${tenKhoa}!`, "success"); });
+    }
+}
+
+// --- HÀM ĐỒNG BỘ ĐỌC TRỰC TIẾP FILE ITEM MASTER CỦA ARCUS AIR ---
+function processExcelUpload() {
+    let fileInput = document.getElementById('excelFileInput'); 
+    let file = fileInput.files[0];
+    if (!file) return showToast("Vui lòng chọn file Excel từ Arcus Air!", "error");
+    
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        let data = e.target.result; 
+        let workbook = XLSX.read(data, {type: 'binary'});
+        
+        let sheetName = workbook.SheetNames[0];
+        let excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        
+        let khoaMap = {};
+        let countCssdItems = 0;
+
+        excelData.forEach(row => {
+            let itemCode = row['CODE'] || row['code'];
+            let itemName = row['NAME'] || row['name'];
+            let isCssd = row['IS CSSD ITEM'] || row['is cssd item'];
+            
+            let khoaTen = "KHOA PHÒNG MỔ"; 
+
+            if (itemCode && itemName && (isCssd === true || String(isCssd).toLowerCase() === 'true')) {
+                let codeSach = String(itemCode).trim();
+                let tenSach = String(itemName).trim();
+                
+                if (!khoaMap[khoaTen]) {
+                    khoaMap[khoaTen] = [];
+                }
+                
+                let mâmDinhDanh = `${tenSach} [ID:${codeSach}]`;
+                if (!khoaMap[khoaTen].includes(mâmDinhDanh)) {
+                    khoaMap[khoaTen].push(mâmDinhDanh);
+                    countCssdItems++;
+                }
+            }
+        });
+
+        let newDanhSachKhoa = Object.keys(khoaMap).map(k => ({
+            ten: k,
+            pin: danhSachKhoa.find(old => old.ten === k)?.pin || "123",
+            danhSachBo: khoaMap[k]
+        }));
+
+        if (countCssdItems === 0) {
+            return showToast("Không tìm thấy dụng cụ nào có gắn mác 'IS CSSD ITEM = true'!", "error");
+        }
+
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
+            danhSachKhoa: newDanhSachKhoa,
+            databaseExcel: excelData 
+        }).then(() => {
+            showToast(`Đồng bộ thành công! Đã nạp ${countCssdItems} dụng cụ từ Arcus Air.`, "success");
+            fileInput.value = "";
+        }).catch(err => {
+            showToast("Lỗi đồng bộ Firebase: " + err, "error");
+        });
+    };
+    reader.readAsBinaryString(file);
+}
+
+function initSelects() { 
+    let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join(''); 
+    document.getElementById("login_khoa").innerHTML = opts; document.getElementById("khoa_selKhoa").innerHTML = opts; 
+    let optsKtv = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
+    if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = optsKtv;
+}
+
+function showToast(msg, type="error") { const t = document.createElement('div'); t.className = `fixed top-6 right-6 ${type==="error"?"bg-rose-600":"bg-emerald-600"} text-white px-5 py-3.5 rounded-lg shadow-2xl z-[100] font-bold text-sm`; t.innerHTML = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
+function toggleMobileMenu() { const sb = document.getElementById("sidebar_menu"), ov = document.getElementById("mobile-overlay"); sb.classList.toggle("-translate-x-full"); ov.classList.toggle("hidden"); }
+function toggleLoginFields() { const r = document.getElementById("login_role").value; document.getElementById("field_khoa").style.display = (r === "KHOA") ? "block" : "none"; document.getElementById("field_nhanvien_cssd").style.display = (r === "CSSD") ? "block" : "none"; }
+
+// --- TÍNH NĂNG XUẤT NHẬT KÝ ĐỒNG BỘ SANG ARCUS AIR ---
+function xuatLichSuHapRaExcel() {
+    if (listGiaoDich.length === 0) return showToast("Không có dữ liệu nhật ký luân chuyển để xuất!", "error");
+    
+    let dataToExport = listGiaoDich.map(x => ({
+        "MÃ ID KHAY": x.maMacDinh || 'N/A',
+        "TÊN MÂM DỤNG CỤ": x.bo || 'N/A',
+        "KHOA LÂM SÀNG": x.khoa || 'N/A',
+        "TRẠNG THÁI CUỐI": x.status || 'N/A',
+        "MÃ LÔ HẤP (BATCH)": x.batchCode || 'N/A',
+        "VẬT LIỆU BAO BÌ": x.chatLieu || 'N/A',
+        "HẠN SỬ DỤNG (HSD)": x.hsd ? new Date(x.hsd).toLocaleDateString('vi-VN') : 'N/A',
+        "NGÀY KHỞI TẠO": x.ngayTao || 'N/A',
+        "THỜI GIAN QUÉT": x.time || 'N/A'
+    }));
+
+    let worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKy_CSSD");
+
+    worksheet["!cols"] = [
+        { wch: 15 }, { wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }
+    ];
+
+    let tenFile = `NhatKy_TruyXuat_CSSD_PhuongNam_${getTodayDateStr()}.xlsx`;
+    XLSX.writeFile(workbook, tenFile);
+    showToast("Đã xuất file nhật ký đồng bộ thành công!", "success");
+}
+
+function taiExcelMauDongBo() {
+    let mauDuan = [
+        { "CODE": "PM-K01", "NAME": "Mâm Phẫu Thuật Đại Phẫu (Mở Bụng)", "IS CSSD ITEM": true },
+        { "CODE": "PM-K02", "NAME": "Bộ Dụng Cụ Nội Soi Ổ Bụng Chuẩn", "IS CSSD ITEM": true },
+        { "CODE": "S-K03", "NAME": "Bộ Khám Sản Khoa / Khám Âm Đạo", "IS CSSD ITEM": true },
+        { "CODE": "VT-001", "NAME": "Kéo Phẫu Thuật Thường (Vật tư lẻ không dùng cho CSSD)", "IS CSSD ITEM": false }
+    ];
+
+    let worksheet = XLSX.utils.json_to_sheet(mauDuan);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "ItemMasters");
+
+    worksheet["!cols"] = [
+        { wch: 15 }, { wch: 45 }, { wch: 15 }  
+    ];
+
+    XLSX.writeFile(workbook, "ArcusAir_ItemMaster_Template.xlsx");
+    showToast("Đã tải file Excel cấu hình mẫu Arcus Air chuẩn!", "success");
 }
 
 // --- HÀM TẠO ÂM THANH PHẢN HỒI CHUYÊN DỤNG (WEB AUDIO API) ---
@@ -558,6 +721,10 @@ function phatAmThanhPhanHoi(type = "success") {
         }
     } catch (e) { console.log("Lỗi âm thanh: ", e); }
 }
+
+// --- QUÉT CAMERA LIÊN TỤC KHÔNG TẮT ---
+let lastScannedCode = ""; 
+let scanThrottleTimeout = null;
 
 function moCamera(inputId) { 
     targetInputIdForScan = inputId; 
@@ -663,4 +830,39 @@ function clearTruyVetBatch() {
     const inp = document.getElementById("inp_searchBatch"); 
     if(inp) inp.value = ""; 
     callRender(); 
+}
+
+// --- CHỨC NĂNG ADMIN: XÓA SẠCH DỮ LIỆU DEMO ĐỂ CHẠY THẬT (GO-LIVE) ---
+function xoaSachDuLieuGiaoDichRealtime() {
+    let PINAdminXacNhan = prompt("CẢNH BÁO NGUY HIỂM:\nThao tác này sẽ XÓA VĨNH VIỄN toàn bộ lịch sử luân chuyển, giao nhận, mẻ hấp bẩn/sạch trên hệ thống để chuẩn bị chạy thật.\n\nVui lòng nhập mã PIN ADMIN để xác nhận:");
+    if (!PINAdminXacNhan) return; 
+    
+    let PINChuan = thongTinMatKhauAdmin.adminPIN || "admin2026";
+    if (PINAdminXacNhan.trim() !== PINChuan) {
+        return showToast("Mã PIN Admin không chính xác! Từ chối xóa dữ liệu.", "error");
+    }
+
+    if (!confirm("BẠN CÓ CHẮC CHẮN KHÔNG?\nDữ liệu phiếu giao nhận sau khi xóa sẽ KHÔNG THỂ KHÔI PHỤC.")) return;
+
+    showToast("Đang tiến hành xóa sạch dữ liệu dữ liệu rác...", "success");
+
+    db.collection("phieuGiaoNhan").get().then((snapshot) => {
+        if (snapshot.empty) {
+            return showToast("Hệ thống hiện tại đã sạch dữ liệu!", "success");
+        }
+
+        let batch = db.batch();
+        snapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        return batch.commit().then(() => {
+            showToast("ĐÃ XÓA SẠCH DỮ LIỆU! Hệ thống sẵn sàng Go-Live.", "success");
+            clearGioHang();
+            callRender();
+        });
+    }).catch((error) => {
+        console.error("Lỗi khi xóa dữ liệu: ", error);
+        showToast("Lỗi hệ thống khi xóa: " + error.message, "error");
+    });
 }
