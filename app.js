@@ -448,3 +448,5 @@ function taiDanhMucLinhKienChuand() {
         function showToast(msg, type="error") { const t = document.createElement('div'); t.className = `fixed top-6 right-6 ${type==="error"?"bg-rose-600":"bg-emerald-600"} text-white px-5 py-3.5 rounded-lg shadow-2xl z-[100] font-bold text-sm`; t.innerHTML = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
         function toggleMobileMenu() { const sb = document.getElementById("sidebar_menu"), ov = document.getElementById("mobile-overlay"); sb.classList.toggle("-translate-x-full"); ov.classList.toggle("hidden"); }
         function toggleLoginFields() { const r = document.getElementById("login_role").value; document.getElementById("field_khoa").style.display = (r === "KHOA") ? "block" : "none"; document.getElementById("field_nhanvien_cssd").style.display = (r === "CSSD") ? "block" : "none"; }
+// Gọi hàm này chung với các hàm tải dữ liệu ban đầu khác của hệ thống
+taiDanhMucLinhKienChuand();
