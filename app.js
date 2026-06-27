@@ -335,8 +335,29 @@ function renderTheoTabHienTai() {
     }
     else if(activeTab === 'tracuu') {
         const tbody = document.getElementById("bangLichSuTruyXuat");
+        const searchInp = document.getElementById("inp_searchBatch")?.value.trim();
+        const badge = document.getElementById("badgeLichSu");
+        
         if(tbody) {
-            tbody.innerHTML = listGiaoDich.map(x => `<tr class="border-b text-xs"><td class="p-2 font-mono font-bold">${x.maMacDinh || 'N/A'}</td><td class="p-2 font-bold">${x.bo}</td><td class="p-2">${x.khoa}</td><td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-800">${x.status}</span></td><td class="p-2 text-center font-mono">${x.batchCode || 'N/A'}</td><td class="p-2 text-center text-slate-500">${x.ngayTao || ''} ${x.time || ''}</td></tr>`).join('') || `<tr><td colspan="6" class="p-4 text-center italic text-slate-400">Không có dữ liệu lưu trữ</td></tr>`;
+            let dataFiltered = listGiaoDich;
+            if (searchInp) {
+                // Nếu điền mã lô, thực hiện bộ lọc tìm kiếm khẩn cấp để truy vết
+                dataFiltered = listGiaoDich.filter(x => x.batchCode && x.batchCode.toUpperCase() === searchInp.toUpperCase());
+                if(badge) badge.innerHTML = `<span class="text-rose-600">Tìm thấy ${dataFiltered.length} mâm đi chung lô lỗi</span>`;
+            } else {
+                if(badge) badge.innerText = `Tổng số: ${listGiaoDich.length} bản ghi`;
+            }
+
+            tbody.innerHTML = dataFiltered.map(x => `
+                <tr class="border-b text-xs hover:bg-slate-50">
+                    <td class="p-2.5 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td>
+                    <td class="p-2.5 font-bold text-slate-800">${x.bo}</td>
+                    <td class="p-2.5 font-semibold text-slate-500">${x.khoa}</td>
+                    <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-800">${x.status}</span></td>
+                    <td class="p-2.5 text-center font-mono font-black text-rose-700 bg-rose-50/40">${x.batchCode || 'N/A'}</td>
+                    <td class="p-2.5 text-center text-slate-400 font-medium">${x.ngayTao || ''} - ${x.time || ''}</td>
+                </tr>
+            `).join('') || `<tr><td colspan="6" class="p-8 text-center italic text-slate-400">Không tìm thấy dữ liệu luân chuyển nào khớp với mã lô này.</td></tr>`;
         }
     }
 }
