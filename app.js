@@ -193,23 +193,76 @@ function toggleSelectAllHap() { let checked = document.getElementById('selectAll
 
 function inTemTongHangLoat() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
-    if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem!", "error"); 
+    if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem mẻ hấp!", "error"); 
+    
     let batchCode = document.getElementById("hap_maySo").value;
-    let contentIn = `<h3>DANH SÁCH TEM MẺ HẤP (LÔ: ${batchCode})</h3><hr/>`;
+    let container = document.createElement('div');
+    container.style.display = "flex";
+    container.style.flexWrap = "wrap";
+    container.style.gap = "10px";
+    container.style.padding = "10px";
+    container.style.backgroundColor = "#fff";
+
+    // Lặp qua danh sách để tạo layout tem đôi giống như image_63543c.png
+    checkboxes.forEach((cb, idx) => {
+        let item = listGiaoDich.find(x => x.firestoreId === cb.value);
+        if(item) {
+            let tenBoText = item.bo.split(" [ID:")[0];
+            let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
+            let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr;
+            
+            // Khối layout cho một con tem đơn lẻ trong cặp
+            let temHtml = `
+                <div style="width: 240px; border: 1px solid #ccc; padding: 8px; font-family: Arial, sans-serif; font-size: 11px; color: #000; box-sizing: border-box; background: #fff;">
+                    <div style="text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${tenBoText}
+                    </div>
+                    <div style="text-align: center; margin: 0 auto;">
+                        <svg id="barcode-lo-${item.firestoreId}"></svg>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px;">
+                        <span>SL: ${item.slThucTe || 1}</span>
+                        <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${loginUserCode || 'CSSD'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px; border-t: 1px dashed #ccc; padding-top: 3px;">
+                        <span>${dateHapStr}</span>
+                        <span style="font-weight: black;">HSD: ${dateHsdStr}</span>
+                    </div>
+                    <div style="text-align: center; font-size: 9px; color: #666; margin-top: 2px; font-family: monospace;">
+                        Lô: ${batchCode}
+                    </div>
+                </div>
+            `;
+            container.innerHTML += temHtml;
+        }
+    });
+
+    // Đổ vào khu vực in ẩn và kích hoạt thư viện vẽ mã vạch tự động
+    const pZone = document.getElementById("print-zone"); 
+    pZone.innerHTML = ""; 
+    pZone.appendChild(container); 
+    pZone.classList.remove("hidden");
+
+    // Tiến hành vẽ Barcode bằng JsBarcode dựa trên Mã định danh mâm dụng cụ
     checkboxes.forEach(cb => {
         let item = listGiaoDich.find(x => x.firestoreId === cb.value);
         if(item) {
-            contentIn += `<div style="border:1px dashed #000; padding:10px; margin-bottom:10px; font-family:monospace; width:300px;">
-                <strong>MÂM: ${item.bo}</strong><br/>
-                ID: ${item.maMacDinh}<br/>
-                Lô hấp: ${batchCode}<br/>
-                Ngày hấp: ${new Date().toLocaleDateString('vi-VN')}<br/>
-                HSD: ${item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN') : 'N/A'}<br/>
-            </div>`;
+            let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000";
+            JsBarcode(`#barcode-lo-${item.firestoreId}`, cleanId, {
+                format: "CODE128",
+                width: 1.5,
+                height: 35,
+                displayValue: true,
+                fontSize: 11,
+                margin: 2
+            });
         }
     });
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = contentIn; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden");
-    showToast("Đã kết xuất và xuất lệnh in tem mẻ hấp!", "success"); 
+
+    // Thực thi lệnh xuất lệnh in ra máy in nhiệt của viện
+    window.print(); 
+    pZone.classList.add("hidden");
+    showToast("Đã kết xuất thiết kế tem đôi theo mẻ hấp!", "success"); 
 }
 
 function xacNhanMeHap() { 
