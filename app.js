@@ -155,9 +155,9 @@ function moPopupKiemDem(id) {
     if(item) { 
         document.getElementById("popBo").innerText = item.bo; document.getElementById("popKhoa").innerText = item.khoa; 
         let tenBo = item.bo.split(" [ID:")[0];
-        let itemsInBo = databaseExcel.filter(x => { let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ']; return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); });
+        let itemsInBo = databaseExcel.filter(x => { let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); });
         let chkList = document.getElementById("popKiemDemChecklist");
-        if(itemsInBo.length > 0) { chkList.innerHTML = itemsInBo.map((ct, idx) => { let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['TÊN DỤNG CỤ'] || ct['Tên Chi Tiết'] || "Dụng cụ"; let sl = ct['Số lượng'] || ct['SL'] || ct['Số Lượng'] || 1; return `<label class="flex items-center justify-between py-2 border-b border-slate-200 cursor-pointer hover:bg-slate-100 px-2 rounded"><div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 rounded text-sky-600"><span class="text-[12px] font-bold text-slate-700">${tenDc}</span></div><span class="text-[12px] font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded">SL: ${sl}</span></label>`; }).join(''); } 
+        if(itemsInBo.length > 0) { chkList.innerHTML = itemsInBo.map((ct, idx) => { let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['TÊN DỤNG CỤ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ"; let sl = ct['Số lượng'] || ct['SL'] || ct['Số Lượng'] || 1; return `<label class="flex items-center justify-between py-2 border-b border-slate-200 cursor-pointer hover:bg-slate-100 px-2 rounded"><div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 rounded text-sky-600"><span class="text-[12px] font-bold text-slate-700">${tenDc}</span></div><span class="text-[12px] font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded">SL: ${sl}</span></label>`; }).join(''); } 
         else { chkList.innerHTML = `<p class="italic text-center text-[11px] text-slate-400 py-4">Hệ thống chưa có cấu hình chi tiết bộ dụng cụ này. Vui lòng tự kiểm đếm.</p>`; }
         document.getElementById("popGhiChu").value = ""; document.getElementById("popupKiemDem").classList.remove("hidden"); 
     } 
@@ -407,8 +407,8 @@ function renderTheoTabHienTai() {
         let lsTG = listGiaoDich.filter(x => x.status === "CHO_THU"); 
         document.getElementById("bangChoThuGom").innerHTML = lsTG.map(i => {
             let tenBo = i.bo.split(" [ID:")[0];
-            let itemsInBo = databaseExcel.filter(x => { let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ']; return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); });
-            let checklistHtml = itemsInBo.length > 0 ? `<div class="max-h-24 overflow-y-auto pr-1">` + itemsInBo.map(item => { let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['TÊN DỤNG CỤ'] || item['Tên Chi Tiết'] || "Dụng cụ"; let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1; return `<div class="flex justify-between border-b border-dashed border-slate-200 py-1 text-[10px] text-slate-600"><span>- ${tenDc}</span><span class="font-bold text-sky-700">x${sl}</span></div>`; }).join('') + `</div>` : `<span class="italic text-[10px] text-slate-400">Không có cấu hình chi tiết</span>`;
+            let itemsInBo = databaseExcel.filter(x => { let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); });
+            let checklistHtml = itemsInBo.length > 0 ? `<div class="max-h-24 overflow-y-auto pr-1">` + itemsInBo.map(item => { let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['TÊN DỤNG CỤ'] || item['Tên Chi Tiết'] || item['NAME'] || "Dụng cụ"; let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1; return `<div class="flex justify-between border-b border-dashed border-slate-200 py-1 text-[10px] text-slate-600"><span>- ${tenDc}</span><span class="font-bold text-sky-700">x${sl}</span></div>`; }).join('') + `</div>` : `<span class="italic text-[10px] text-slate-400">Không có cấu hình chi tiết</span>`;
             return `<tr class="border-b border-slate-50"><td class="p-3"><div class="font-bold text-slate-700 text-[11px] uppercase">${i.khoa}</div>${i.ghiChu ? `<div class="text-[10px] text-rose-600 font-medium italic mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${i.ghiChu}</div>` : ''}</td><td class="p-3"><div class="font-bold text-sky-700 text-[12px] uppercase">${tenBo}</div><div class="text-[10px] font-mono text-slate-400 mb-2">Mã ID: ${i.maMacDinh}</div><div class="bg-slate-50 p-2 rounded border border-slate-100">${checklistHtml}</div></td><td class="p-3 text-center text-[10px] text-slate-500 font-bold">${i.time}</td><td class="p-3 text-center action-col"><button onclick="moPopupKiemDem('${i.firestoreId}')" class="bg-sky-600 text-white hover:bg-sky-700 px-3 py-1.5 rounded shadow font-black text-[11px]">KIỂM ĐẾM</button></td></tr>`;
         }).join('');
     }
@@ -540,7 +540,6 @@ function themKtvCssd() {
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => { showToast("Đã thêm KTV thành công!", "success"); });
 }
 
-// ... các hàm phụ trợ giữ nguyên
 function xoaKtvCssd(code) {
     if(confirm(`Bạn có chắc chắn muốn xóa nhân viên ${code} không?`)) {
         danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code);
@@ -569,24 +568,69 @@ function updatePINTrựcTiep(idx, tenKhoa) {
     }
 }
 
+// --- HÀM ĐỒNG BỘ ĐỌC TRỰC TIẾP FILE ITEM MASTER CỦA ARCUS AIR ---
 function processExcelUpload() {
-    let fileInput = document.getElementById('excelFileInput'); let file = fileInput.files[0];
-    if (!file) return showToast("Vui lòng chọn file Excel!", "error");
+    let fileInput = document.getElementById('excelFileInput'); 
+    let file = fileInput.files[0];
+    if (!file) return showToast("Vui lòng chọn file Excel từ Arcus Air!", "error");
+    
     let reader = new FileReader();
     reader.onload = function(e) {
-        let data = e.target.result; let workbook = XLSX.read(data, {type: 'binary'});
-        let excelData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+        let data = e.target.result; 
+        let workbook = XLSX.read(data, {type: 'binary'});
+        
+        // Đọc sheet đầu tiên (ItemMasters) chứa danh mục dụng cụ tổng của Arcus Air
+        let sheetName = workbook.SheetNames[0];
+        let excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        
         let khoaMap = {};
+        let countCssdItems = 0;
+
         excelData.forEach(row => {
-            let keys = Object.keys(row);
-            let kKey = keys.find(k => k.toLowerCase().includes('khoa') || k.toLowerCase().includes('phòng'));
-            let boKey = keys.find(k => k.toLowerCase().includes('bộ') || k.toLowerCase().includes('mâm') || k.toLowerCase().includes('dụng'));
-            let k = kKey ? row[kKey] : null; let bo = boKey ? row[boKey] : null;
-            if(k && bo) { k = String(k).trim().toUpperCase(); bo = String(bo).trim(); if(!khoaMap[k]) khoaMap[k] = []; if(!khoaMap[k].includes(bo)) khoaMap[k].push(bo); }
+            // Đọc trực tiếp các tên cột gốc từ cấu trúc dữ liệu Arcus Air
+            let itemCode = row['CODE'] || row['code'];
+            let itemName = row['NAME'] || row['name'];
+            let isCssd = row['IS CSSD ITEM'] || row['is cssd item'];
+            
+            // Mặc định gom dụng cụ vô khuẩn vào phân hệ Phòng Mổ Phương Nam
+            let khoaTen = "KHOA PHÒNG MỔ"; 
+
+            if (itemCode && itemName && (isCssd === true || String(isCssd).toLowerCase() === 'true')) {
+                let codeSach = String(itemCode).trim();
+                let tenSach = String(itemName).trim();
+                
+                if (!khoaMap[khoaTen]) {
+                    khoaMap[khoaTen] = [];
+                }
+                
+                // Mã hóa mâm dụng cụ tự động đồng bộ ID vào đuôi mâm để làm sạch dữ liệu
+                let mâmDinhDanh = `${tenSach} [ID:${codeSach}]`;
+                if (!khoaMap[khoaTen].includes(mâmDinhDanh)) {
+                    khoaMap[khoaTen].push(mâmDinhDanh);
+                    countCssdItems++;
+                }
+            }
         });
-        let newDanhSachKhoa = Object.keys(khoaMap).map(k => ({ ten: k, pin: danhSachKhoa.find(old => old.ten === k)?.pin || "123", danhSachBo: khoaMap[k] }));
-        if(newDanhSachKhoa.length === 0) return showToast("Lỗi định dạng. Cần cột KHOA và BỘ DỤNG CỤ!", "error");
-        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: newDanhSachKhoa, databaseExcel: excelData }).then(() => { showToast("Đã nạp thành công Database!", "success"); fileInput.value = ""; });
+
+        let newDanhSachKhoa = Object.keys(khoaMap).map(k => ({
+            ten: k,
+            pin: danhSachKhoa.find(old => old.ten === k)?.pin || "123",
+            danhSachBo: khoaMap[k]
+        }));
+
+        if (countCssdItems === 0) {
+            return showToast("Không tìm thấy dụng cụ nào có gắn mác 'IS CSSD ITEM = true'!", "error");
+        }
+
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
+            danhSachKhoa: newDanhSachKhoa,
+            databaseExcel: excelData 
+        }).then(() => {
+            showToast(`Đồng bộ thành công! Đã nạp ${countCssdItems} dụng cụ từ Arcus Air.`, "success");
+            fileInput.value = "";
+        }).catch(err => {
+            showToast("Lỗi đồng bộ Firebase: " + err, "error");
+        });
     };
     reader.readAsBinaryString(file);
 }
@@ -597,9 +641,51 @@ function initSelects() {
     let optsKtv = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
     if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = optsKtv;
 }
+
 function showToast(msg, type="error") { const t = document.createElement('div'); t.className = `fixed top-6 right-6 ${type==="error"?"bg-rose-600":"bg-emerald-600"} text-white px-5 py-3.5 rounded-lg shadow-2xl z-[100] font-bold text-sm`; t.innerHTML = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
 function toggleMobileMenu() { const sb = document.getElementById("sidebar_menu"), ov = document.getElementById("mobile-overlay"); sb.classList.toggle("-translate-x-full"); ov.classList.toggle("hidden"); }
 function toggleLoginFields() { const r = document.getElementById("login_role").value; document.getElementById("field_khoa").style.display = (r === "KHOA") ? "block" : "none"; document.getElementById("field_nhanvien_cssd").style.display = (r === "CSSD") ? "block" : "none"; }
+
+// --- TÍNH NĂNG XUẤT NHẬT KÝ ĐỒNG BỘ SANG ARCUS AIR ---
+function xuatLichSuHapRaExcel() {
+    if (listGiaoDich.length === 0) return showToast("Không có dữ liệu nhật ký luân chuyển để xuất!", "error");
+    
+    let dataToExport = listGiaoDich.map(x => ({
+        "MÃ ID KHAY": x.maMacDinh || 'N/A',
+        "TÊN MÂM DỤNG CỤ": x.bo || 'N/A',
+        "KHOA LÂM SÀNG": x.khoa || 'N/A',
+        "TRẠNG THÁI CUỐI": x.status || 'N/A',
+        "MÃ LÔ HẤP (BATCH)": x.batchCode || 'N/A',
+        "VẬT LIỆU BAO BÌ": x.chatLieu || 'N/A',
+        "HẠN SỬ DỤNG (HSD)": x.hsd ? new Date(x.hsd).toLocaleDateString('vi-VN') : 'N/A',
+        "NGÀY KHỞI TẠO": x.ngayTao || 'N/A',
+        "THỜI GIAN QUÉT": x.time || 'N/A'
+    }));
+
+    let worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKy_CSSD");
+
+    worksheet["!cols"] = [
+        { wch: 15 }, { wch: 30 }, { wch: 20 }, { wch: 15 }, { wch: 18 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }
+    ];
+
+    let tenFile = `NhatKy_TruyXuat_CSSD_PhuongNam_${getTodayDateStr()}.xlsx`;
+    XLSX.writeFile(workbook, tenFile);
+    showToast("Đã xuất file nhật ký đồng bộ thành công!", "success");
+}
+
+function taiExcelMauDongBo() {
+    let mauDuan = [
+        { "MÃ ID KHAY": "ID_KHAY_001", "TÊN MÂM DỤNG CỤ": "Mâm Phẫu Thuật Đại Phẫu", "KHOA SỞ HỮU": "PHÒNG MỔ" },
+        { "MÃ ID KHAY": "ID_KHAY_002", "TÊN MÂM DỤNG CỤ": "Bộ Khám Âm Đạo Nhỏ", "KHOA SỞ HỮU": "SẢN LÂM SÀNG" }
+    ];
+    let worksheet = XLSX.utils.json_to_sheet(mauDuan);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Mau_Dong_Bo");
+    XLSX.writeFile(workbook, "Mau_Dong_Bo_CSSD_Standard.xlsx");
+    showToast("Đã tải file Excel cấu hình mẫu!", "success");
+}
 
 taiDanhMucLinhKienChuand();
 function truyVetTheoMaBatch() { callRender(); }
