@@ -24,7 +24,48 @@
             renderAdminInterface(); 
             callRender();
         });
+// Hàm tải danh mục Bộ linh kiện chuẩn từ Firestore và render ra bảng 7.1
+function taiDanhMucLinhKienChuand() {
+    db.collection("danhMucLinhKien").orderBy("tenLoaiBo").onSnapshot((snapshot) => {
+        const tbody = document.getElementById("bangDanhMucLinhKien");
+        const badge = document.getElementById("badgeDanhMucLinhKien");
+        
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        badge.innerText = `${snapshot.size} Loại bộ`;
 
+        if (snapshot.empty) {
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Chưa có dữ liệu cấu hình bộ linh kiện. Vui lòng nạp Excel ở Tab 8.</td></tr>`;
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            
+            // Format chuỗi hiển thị linh kiện thành các badge nhỏ cho đẹp
+            let linhKienHtml = `<div class="flex flex-wrap gap-1">`;
+            if (data.chiTiet && Array.isArray(data.chiTiet)) {
+                data.chiTiet.forEach(item => {
+                    linhKienHtml += `<span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium border border-slate-200">${item.tenBaoCao} (${item.soLuong})</span>`;
+                });
+            } else {
+                linhKienHtml += `<span class="text-slate-400 italic">Không có chi tiết</span>`;
+            }
+            linhKienHtml += `</div>`;
+
+            const tr = document.createElement("tr");
+            tr.className = "hover:bg-slate-50 transition-colors";
+            tr.innerHTML = `
+                <td class="p-3 font-bold text-slate-800">${data.tenLoaiBo}</td>
+                <td class="p-3">${linhKienHtml}</td>
+                <td class="p-3 text-center font-black text-sky-700 bg-sky-50/30">${data.tongSoLuong || 0}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }, (error) => {
+        console.error("Lỗi tải danh mục linh kiện chuẩn: ", error);
+    });
+}
         db.collection("phieuGiaoNhan").orderBy("id", "desc").limit(1000).onSnapshot(snap => { 
             listGiaoDich = []; snap.forEach(doc => { let d = doc.data(); d.firestoreId = doc.id; listGiaoDich.push(d); }); 
             callRender();
