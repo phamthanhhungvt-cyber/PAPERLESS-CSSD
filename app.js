@@ -294,24 +294,73 @@ function xacNhanMeHap() {
 function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
 function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã nhập kho Vô Khuẩn!", "success"); callRender(); }); }
 
-function inTemNghiemThuHangLoat() { 
+ffunction inTemNghiemThuHangLoat() { 
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem nghiệm thu!", "error"); 
-    let contentIn = `<h3>TEM NGHIỆM THU ĐẠT VÔ KHUẨN</h3><hr/>`;
+    
+    let container = document.createElement('div');
+    container.style.display = "flex";
+    container.style.flexWrap = "wrap";
+    container.style.gap = "10px";
+    container.style.padding = "10px";
+
+    checkboxes.forEach((cb) => {
+        let item = listGiaoDich.find(x => x.firestoreId === cb.value);
+        if(item) {
+            let tenBoText = item.bo.split(" [ID:")[0];
+            let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
+            let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr;
+            
+            let temHtml = `
+                <div style="width: 240px; border: 2px solid #000; padding: 8px; font-family: Arial, sans-serif; font-size: 11px; color: #000; box-sizing: border-box; background: #fff;">
+                    <div style="text-align: center; font-size: 9px; font-weight: bold; color: #444; letter-spacing: 1px;">PN HOSPITAL - CSSD</div>
+                    <div style="text-align: center; font-weight: bold; font-size: 13px; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${tenBoText}
+                    </div>
+                    <div style="text-align: center; margin: 0 auto;">
+                        <svg id="barcode-nt-${item.firestoreId}"></svg>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px;">
+                        <span>SL: ${item.slThucTe || 1}</span>
+                        <span>ĐẠT VÔ KHUẨN</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px; border-t: 1px solid #000; padding-top: 3px;">
+                        <span>${dateHapStr}</span>
+                        <span style="font-weight: black;">HSD: ${dateHsdStr}</span>
+                    </div>
+                    <div style="text-align: center; font-size: 8px; color: #333; font-weight: bold; margin-top: 2px; font-family: monospace;">
+                        BATCH: ${item.batchCode || 'N/A'}
+                    </div>
+                </div>
+            `;
+            container.innerHTML += temHtml;
+        }
+    });
+
+    const pZone = document.getElementById("print-zone"); 
+    pZone.innerHTML = ""; 
+    pZone.appendChild(container); 
+    pZone.classList.remove("hidden");
+
     checkboxes.forEach(cb => {
         let item = listGiaoDich.find(x => x.firestoreId === cb.value);
         if(item) {
-            contentIn += `<div style="border:2px solid #000; padding:12px; margin-bottom:10px; font-family:sans-serif; width:320px; text-align:center;">
-                <h4 style="margin:0 0 5px 0;">P.NAM HOSPITAL - CSSD</h4>
-                <span style="font-size:14px; font-weight:bold;">${item.bo}</span><br/>
-                <small>Mã ID: ${item.maMacDinh}</small><br/>
-                <table style="width:100%; font-size:11px; margin-top:5px; text-align:left;">
-                    <tr><td>Lô hấp (Batch):</td><td><strong>${item.batchCode || 'N/A'}</strong></td></tr>
-                    <tr><td>Trạng thái:</td><td><strong style="color:green;">ĐẠT VÔ KHUẨN</strong></td></tr>
-                    <tr><td>Hạn sử dụng:</td><td><strong>${item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN') : 'N/A'}</strong></td></tr>
-                </table>
-            </div>`;
+            let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000";
+            JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, {
+                format: "CODE128",
+                width: 1.5,
+                height: 35,
+                displayValue: true,
+                fontSize: 11,
+                margin: 2
+            });
         }
+    });
+
+    window.print(); 
+    pZone.classList.add("hidden");
+    showToast("Đang kết xuất hàng loạt tem đôi nghiệm thu vô khuẩn...", "success"); 
+}
     });
     const pZone = document.getElementById("print-zone"); pZone.innerHTML = contentIn; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden");
     showToast("Đang kết xuất tem nghiệm thu vô khuẩn...", "success"); 
