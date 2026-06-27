@@ -474,3 +474,9 @@ function toggleMobileMenu() { const sb = document.getElementById("sidebar_menu")
 function toggleLoginFields() { const r = document.getElementById("login_role").value; document.getElementById("field_khoa").style.display = (r === "KHOA") ? "block" : "none"; document.getElementById("field_nhanvien_cssd").style.display = (r === "CSSD") ? "block" : "none"; }
 
 taiDanhMucLinhKienChuand();
+function truyVetTheoMaBatch() { callRender(); }
+function clearTruyVetBatch() { 
+    const inp = document.getElementById("inp_searchBatch"); 
+    if(inp) inp.value = ""; 
+    callRender(); 
+}
