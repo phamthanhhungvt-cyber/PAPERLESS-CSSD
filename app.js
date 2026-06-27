@@ -496,9 +496,6 @@ function resetDuLieuKet() {
     }
 }
 
-function moCamera(inputId) { targetInputIdForScan = inputId; document.getElementById("popupScanner").classList.remove("hidden"); let camStatus = document.getElementById("camStatus"); camStatus.innerText = "Đang xin quyền Camera..."; html5QrCode = new Html5Qrcode("reader"); Html5Qrcode.getCameras().then(devices => { if (devices && devices.length) { let cameraId = devices.length > 1 ? devices[devices.length - 1].id : devices[0].id; camStatus.innerText = "Đã bật Camera sau. Hãy quét mã!"; html5QrCode.start(cameraId, { fps: 10, qrbox: { width: 250, height: 250 } }, (decodedText) => { document.getElementById(targetInputIdForScan).value = decodedText.trim(); dongCamera(); if(targetInputIdForScan === 'khoa_inpMaBo') themVaoGio(); }).catch(err => camStatus.innerText = "Lỗi khởi động: " + err); } else { camStatus.innerText = "Không tìm thấy ống kính Camera!"; } }).catch(err => camStatus.innerText = "Cần cấp quyền Camera trong trình duyệt!"); }
-function dongCamera() { if(html5QrCode) { html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => {}); } document.getElementById("popupScanner").classList.add("hidden"); }
-
 function switchAdminSubtab(sub) { 
     document.getElementById('subtab-database').classList.add('hidden'); document.getElementById('subtab-security').classList.add('hidden');
     document.getElementById('subbtn-database').classList.replace('admin-subtab-active', 'text-slate-600'); document.getElementById('subbtn-security').classList.replace('admin-subtab-active', 'text-slate-600');
@@ -579,7 +576,6 @@ function processExcelUpload() {
         let data = e.target.result; 
         let workbook = XLSX.read(data, {type: 'binary'});
         
-        // Đọc sheet đầu tiên (ItemMasters) chứa danh mục dụng cụ tổng của Arcus Air
         let sheetName = workbook.SheetNames[0];
         let excelData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
         
@@ -587,12 +583,10 @@ function processExcelUpload() {
         let countCssdItems = 0;
 
         excelData.forEach(row => {
-            // Đọc trực tiếp các tên cột gốc từ cấu trúc dữ liệu Arcus Air
             let itemCode = row['CODE'] || row['code'];
             let itemName = row['NAME'] || row['name'];
             let isCssd = row['IS CSSD ITEM'] || row['is cssd item'];
             
-            // Mặc định gom dụng cụ vô khuẩn vào phân hệ Phòng Mổ Phương Nam
             let khoaTen = "KHOA PHÒNG MỔ"; 
 
             if (itemCode && itemName && (isCssd === true || String(isCssd).toLowerCase() === 'true')) {
@@ -603,7 +597,6 @@ function processExcelUpload() {
                     khoaMap[khoaTen] = [];
                 }
                 
-                // Mã hóa mâm dụng cụ tự động đồng bộ ID vào đuôi mâm để làm sạch dữ liệu
                 let mâmDinhDanh = `${tenSach} [ID:${codeSach}]`;
                 if (!khoaMap[khoaTen].includes(mâmDinhDanh)) {
                     khoaMap[khoaTen].push(mâmDinhDanh);
@@ -685,6 +678,120 @@ function taiExcelMauDongBo() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Mau_Dong_Bo");
     XLSX.writeFile(workbook, "Mau_Dong_Bo_CSSD_Standard.xlsx");
     showToast("Đã tải file Excel cấu hình mẫu!", "success");
+}
+
+// --- HÀM TẠO ÂM THANH PHẢN HỒI CHUYÊN DỤNG (WEB AUDIO API) ---
+function phatAmThanhPhanHoi(type = "success") {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (type === "success") {
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        } else {
+            [0, 0.2].forEach(delay => {
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = "square";
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime + delay); 
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + delay + 0.2);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + delay);
+                osc.stop(audioCtx.currentTime + delay + 0.2);
+            });
+        }
+    } catch (e) { console.log("Lỗi âm thanh: ", e); }
+}
+
+// --- CẢI TIẾN HÀM QUÉT CAMERA LIÊN TỤC KHÔNG TẮT & TÍCH HỢP ÂM THANH ---
+let lastScannedCode = ""; 
+let scanThrottleTimeout = null;
+
+function moCamera(inputId) { 
+    targetInputIdForScan = inputId; 
+    lastScannedCode = ""; 
+    
+    const popupZone = document.getElementById("popupScanner");
+    popupZone.classList.remove("hidden"); 
+    
+    let camStatus = document.getElementById("camStatus"); 
+    camStatus.innerHTML = `
+        <div class="flex flex-col gap-2 items-center">
+            <span class="text-emerald-600 font-black animate-pulse"><i class="fa-solid fa-circle-dot mr-1"></i> CHẾ ĐỘ QUÉT LIÊN TỤC ĐANG BẬT</span>
+            <p class="text-[11px] text-slate-500">Đưa camera lần lượt qua các mã Barcode. App sẽ bíp bíp nhận diện liên tục.</p>
+        </div>
+    `; 
+    
+    const btnDongCam = popupZone.querySelector("button");
+    if(btnDongCam) {
+        btnDongCam.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-3 rounded shadow text-xs mt-3 uppercase tracking-wider";
+        btnDongCam.innerHTML = `<i class="fa-solid fa-circle-check mr-1 text-emerald-400"></i> HOÀN TẤT QUÉT & ĐÓNG CAMERA`;
+    }
+
+    html5QrCode = new Html5Qrcode("reader"); 
+    Html5Qrcode.getCameras().then(devices => { 
+        if (devices && devices.length) { 
+            let cameraId = devices.length > 1 ? devices[devices.length - 1].id : devices[0].id; 
+            
+            html5QrCode.start(cameraId, { fps: 15, qrbox: { width: 260, height: 180 } }, (decodedText) => {
+                let currentCode = decodedText.trim().toUpperCase();
+                
+                if (currentCode === lastScannedCode) return;
+                lastScannedCode = currentCode;
+                clearTimeout(scanThrottleTimeout);
+                scanThrottleTimeout = setTimeout(() => { lastScannedCode = ""; }, 2000);
+
+                const targetInput = document.getElementById(targetInputIdForScan);
+                if (targetInput) {
+                    targetInput.value = currentCode;
+                    
+                    if (targetInputIdForScan === 'khoa_inpMaBo') {
+                        if (gioHangTam.some(x => x.maMacDinh === currentCode)) {
+                            phatAmThanhPhanHoi("error");
+                            showToast(`Mã khay ${currentCode} đã nằm trong danh sách chờ!`, "error");
+                        } else {
+                            phatAmThanhPhanHoi("success");
+                            themVaoGio(); 
+                            showToast(`Đã nạp mâm: ${currentCode}`, "success");
+                        }
+                    } 
+                    else if (targetInputIdForScan === 'xuat_inpMaBo') {
+                        let khayThucTe = listGiaoDich.find(x => x.maMacDinh === currentCode && x.status === "CHO_XUAT");
+                        if (!khayThucTe) {
+                            phatAmThanhPhanHoi("error");
+                            targetInput.value = "";
+                            showToast(`LỖI: Khay ${currentCode} không có trong kho sạch!`, "error");
+                        } else {
+                            phatAmThanhPhanHoi("success");
+                            xuatKhoXoayVong(); 
+                        }
+                    } else {
+                        phatAmThanhPhanHoi("success");
+                        showToast(`Đã ghi nhận mã: ${currentCode}`, "success");
+                    }
+                }
+            }).catch(err => { camStatus.innerText = "Lỗi ống kính: " + err; }); 
+        } else { 
+            camStatus.innerText = "Không tìm thấy ống kính Camera!"; 
+        } 
+    }).catch(err => camStatus.innerText = "Vui lòng cấp quyền Camera cho trình duyệt!"); 
+}
+
+function dongCamera() { 
+    if(html5QrCode) { 
+        html5QrCode.stop().then(() => html5QrCode.clear()).catch(err => {}); 
+    } 
+    document.getElementById("popupScanner").classList.add("hidden"); 
+    phatAmThanhPhanHoi("success"); 
 }
 
 taiDanhMucLinhKienChuand();
