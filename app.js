@@ -670,14 +670,41 @@ function xuatLichSuHapRaExcel() {
 
 function taiExcelMauDongBo() {
     let mauDuan = [
-        { "MÃ ID KHAY": "ID_KHAY_001", "TÊN MÂM DỤNG CỤ": "Mâm Phẫu Thuật Đại Phẫu", "KHOA SỞ HỮU": "PHÒNG MỔ" },
-        { "MÃ ID KHAY": "ID_KHAY_002", "TÊN MÂM DỤNG CỤ": "Bộ Khám Âm Đạo Nhỏ", "KHOA SỞ HỮU": "SẢN LÂM SÀNG" }
+        { 
+            "CODE": "PM-K01", 
+            "NAME": "Mâm Phẫu Thuật Đại Phẫu (Mở Bụng)", 
+            "IS CSSD ITEM": true 
+        },
+        { 
+            "CODE": "PM-K02", 
+            "NAME": "Bộ Dụng Cụ Nội Soi Ổ Bụng Chuẩn", 
+            "IS CSSD ITEM": true 
+        },
+        { 
+            "CODE": "S-K03", 
+            "NAME": "Bộ Khám Sản Khoa / Khám Âm Đạo", 
+            "IS CSSD ITEM": true 
+        },
+        { 
+            "CODE": "VT-001", 
+            "NAME": "Kéo Phẫu Thuật Thường (Vật tư lẻ không dùng cho CSSD)", 
+            "IS CSSD ITEM": false 
+        }
     ];
+
     let worksheet = XLSX.utils.json_to_sheet(mauDuan);
     let workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Mau_Dong_Bo");
-    XLSX.writeFile(workbook, "Mau_Dong_Bo_CSSD_Standard.xlsx");
-    showToast("Đã tải file Excel cấu hình mẫu!", "success");
+    
+    XLSX.utils.book_append_sheet(workbook, worksheet, "ItemMasters");
+
+    worksheet["!cols"] = [
+        { wch: 15 }, 
+        { wch: 45 }, 
+        { wch: 15 }  
+    ];
+
+    XLSX.writeFile(workbook, "ArcusAir_ItemMaster_Template.xlsx");
+    showToast("Đã tải file Excel cấu hình mẫu Arcus Air chuẩn!", "success");
 }
 
 // --- HÀM TẠO ÂM THANH PHẢN HỒI CHUYÊN DỤNG (WEB AUDIO API) ---
@@ -731,7 +758,6 @@ function moCamera(inputId) {
         </div>
     `; 
     
-    // Luôn hiển thị rõ nút để người dùng có đường lui
     const btnDongCam = popupZone.querySelector("button");
     if(btnDongCam) {
         btnDongCam.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-3.5 rounded shadow text-xs mt-3 uppercase tracking-wider block";
