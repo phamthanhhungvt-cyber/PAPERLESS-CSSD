@@ -215,14 +215,27 @@ function inTemTongHangLoat() {
 function xacNhanMeHap() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
-    let batchCode = document.getElementById("hap_maySo").value; 
-    if(!batchCode) return showToast("Vui lòng nhập hoặc chọn Số máy / Số lô Batch!", "error");
+    
+    let mayInp = document.getElementById("hap_maySo").value; // Lấy "Máy 01" hoặc "Máy 02"
+    let soMe = document.getElementById("hap_meSo").value.padStart(2, '0'); // Lấy số chu kỳ ví dụ "01"
+    
+    // Tự động sinh mã lô chuẩn y tế (Ví dụ: Máy 01 ngày 2026-06-27 mẻ 01 -> A1260627_01)
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    let mayKyHieu = mayInp.includes("02") ? "2" : "1";
+    let batchCode = `A${mayKyHieu}${yy}${mm}${dd}_${soMe}`;
+
     let p = []; 
     checkboxes.forEach(cb => { 
         if(cb.id === 'selectAllHap') return; 
         p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ status: "DANG_HAP", batchCode: batchCode })); 
     }); 
-    Promise.all(p).then(() => { showToast(`Đã đưa các mâm vào lò. Cập nhật số lô: ${batchCode}`, "success"); callRender(); }); 
+    Promise.all(p).then(() => { 
+        showToast(`Đã kích hoạt lò hấp thành công! Mã Lô: ${batchCode}`, "success"); 
+        callRender(); 
+    }); 
 }
 
 function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
