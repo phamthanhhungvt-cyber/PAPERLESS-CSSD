@@ -712,7 +712,7 @@ function phatAmThanhPhanHoi(type = "success") {
     } catch (e) { console.log("Lỗi âm thanh: ", e); }
 }
 
-// --- CẢI TIẾN HÀM QUÉT CAMERA LIÊN TỤC KHÔNG TẮT & TÍCH HỢP ÂM THANH ---
+// --- CẢI TIẾN HÀM QUÉT CAMERA LIÊN TỤC KHÔNG TẮT & CHỐNG KẸT GIAO DIỆN ---
 let lastScannedCode = ""; 
 let scanThrottleTimeout = null;
 
@@ -731,9 +731,10 @@ function moCamera(inputId) {
         </div>
     `; 
     
+    // Luôn hiển thị rõ nút để người dùng có đường lui
     const btnDongCam = popupZone.querySelector("button");
     if(btnDongCam) {
-        btnDongCam.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-3 rounded shadow text-xs mt-3 uppercase tracking-wider";
+        btnDongCam.className = "w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-3.5 rounded shadow text-xs mt-3 uppercase tracking-wider block";
         btnDongCam.innerHTML = `<i class="fa-solid fa-circle-check mr-1 text-emerald-400"></i> HOÀN TẤT QUÉT & ĐÓNG CAMERA`;
     }
 
@@ -779,11 +780,31 @@ function moCamera(inputId) {
                         showToast(`Đã ghi nhận mã: ${currentCode}`, "success");
                     }
                 }
-            }).catch(err => { camStatus.innerText = "Lỗi ống kính: " + err; }); 
+            }).catch(err => { 
+                camStatus.innerHTML = `<span class="text-amber-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Ống kính mất nét, đang tự động lấy nét lại...</span>`;
+            }); 
         } else { 
-            camStatus.innerText = "Không tìm thấy ống kính Camera!"; 
+            phatAmThanhPhanHoi("error");
+            camStatus.innerHTML = `<span class="text-rose-600 font-bold"><i class="fa-solid fa-camera-slash mr-1"></i> KHÔNG TÌM THẤY CAMERA SAU!</span>`;
+            if(btnDongCam) {
+                btnDongCam.className = "w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded shadow text-sm mt-3 uppercase tracking-wider block animate-bounce";
+                btnDongCam.innerHTML = `<i class="fa-solid fa-arrow-left-long mr-2"></i> KHÔNG CÓ CAM - BẤM ĐỂ THOÁT RA`;
+            }
         } 
-    }).catch(err => camStatus.innerText = "Vui lòng cấp quyền Camera cho trình duyệt!"); 
+    }).catch(err => {
+        phatAmThanhPhanHoi("error");
+        camStatus.innerHTML = `
+            <div class="text-rose-600 font-bold p-3 bg-rose-50 rounded-lg text-center border border-rose-200">
+                <i class="fa-solid fa-shield-halved text-xl mb-1 block"></i>
+                <span>TRÌNH DUYỆT ĐANG CHẶN CAMERA</span>
+                <p class="text-[10px] text-slate-500 font-normal mt-1">Vui lòng bấm vào biểu tượng 🔒 hoặc 🔴 trên thanh địa chỉ duyệt web để CẤP QUYỀN CAMERA, sau đó tải lại trang.</p>
+            </div>
+        `;
+        if(btnDongCam) {
+            btnDongCam.className = "w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 rounded shadow text-sm mt-3 uppercase tracking-wider block";
+            btnDongCam.innerHTML = `<i class="fa-solid fa-arrow-left-long mr-2"></i> LỖI QUYỀN CAM - BẤM ĐỂ THOÁT RA`;
+        }
+    }); 
 }
 
 function dongCamera() { 
