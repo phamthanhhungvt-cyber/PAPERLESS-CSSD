@@ -12,10 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
     <link rel="stylesheet" href="style.css">
-</head>
 </head>
 <body class="flex h-screen overflow-hidden relative">
 
@@ -254,13 +251,47 @@
                     </div>
                 </div>
 
-                <div id="tab-danhmuc" class="hidden h-full">
-                    <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
-                        <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4 gap-4">
-                            <div><h3 class="text-base font-black text-slate-700 uppercase">Giám Sát Tuổi Thọ Dụng Cụ</h3></div>
+                <div id="tab-danhmuc" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+                    <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500 bg-white">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                            <h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-list-check mr-2 text-sky-500"></i> 7.1 Danh Mục Loại Bộ Linh Kiện Chuẩn</h3>
+                            <span id="badgeDanhMucLinhKien" class="text-xs font-bold text-sky-700 bg-sky-50 px-2 py-1 rounded">0 Loại bộ</span>
                         </div>
-                        <div class="flex-1 overflow-auto bg-white rounded border border-slate-100">
-                            <table class="w-full text-left text-xs"><thead class="sticky top-0 shadow-sm bg-slate-50"><tr><th class="p-3">Mã Lưu Kho</th><th class="p-3">Tên Khay</th><th class="p-3 text-center">Trạng thái xử lý</th><th class="p-3 text-center">Chu Kỳ Lò (Tuổi thọ)</th></tr></thead><tbody id="bangDanhMucTong" class="divide-y divide-slate-50 text-slate-700"></tbody></table>
+                        <div class="flex-1 overflow-auto border border-slate-100 rounded-lg">
+                            <table class="w-full text-left text-xs">
+                                <thead class="sticky top-0 bg-slate-50 shadow-sm z-10">
+                                    <tr>
+                                        <th class="p-3 w-1/3">Tên Loại Bộ</th>
+                                        <th class="p-3 w-1/2">Chi Tiết Linh Kiện Chuẩn (Tên | SL)</th>
+                                        <th class="p-3 text-center">Tổng SL</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bangDanhMucLinhKien" class="divide-y divide-slate-100 text-slate-700 bg-white">
+                                    <tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Đang tải dữ liệu bộ linh kiện...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-teal-500 bg-white">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-3 mb-4">
+                            <h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-chart-line mr-2 text-teal-500"></i> 7.2 Giám Sát Tuổi Thọ & Chu Kỳ Khay</h3>
+                            <span id="badgeTuoiThoKhay" class="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-1 rounded">0 Khay</span>
+                        </div>
+                        <div class="flex-1 overflow-auto border border-slate-100 rounded-lg">
+                            <table class="w-full text-left text-xs">
+                                <thead class="sticky top-0 bg-slate-50 shadow-sm z-10">
+                                    <tr>
+                                        <th class="p-3">Mã Lưu Kho</th>
+                                        <th class="p-3">Tên Khay (Phân loại)</th>
+                                        <th class="p-3 text-center">Trạng Thái</th>
+                                        <th class="p-3 text-center bg-amber-50 text-amber-900 font-bold">Chu Kỳ Lò</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bangDanhMucTong" class="divide-y divide-slate-100 text-slate-700 bg-white">
+                                    <tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Đang tải danh sách khay vận hành...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -323,7 +354,7 @@
                             <div class="overflow-x-auto border border-slate-200 rounded max-h-96">
                                 <table class="w-full text-left text-xs">
                                     <thead class="bg-slate-50 sticky top-0">
-                                        <tr><th class="p-3">Tên Khoa</th><th class="p-3 text-center border-x border-slate-200">MÃ PIN HIỆN TẠI</th><th class="p-3 text-center">Thao tác Đổi/Reset</th></tr>
+                                        <tr><th class="p-3">Tên Khoa</th><th class="p-3 text-center border-x border-slate-200">MÃ PIN HIỆI TẠI</th><th class="p-3 text-center">Thao tác Đổi/Reset</th></tr>
                                     </thead>
                                     <tbody id="bangPhanQuyenKhoa" class="bg-white divide-y divide-slate-100"></tbody>
                                 </table>
