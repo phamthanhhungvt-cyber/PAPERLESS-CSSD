@@ -196,39 +196,54 @@ function inTemTongHangLoat() {
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem mẻ hấp!", "error"); 
     
     let batchCode = document.getElementById("hap_maySo").value;
+    
+    // Tạo vùng chứa Layout Flexbox hỗ trợ chia 2 tem trên một hàng
     let container = document.createElement('div');
+    container.className = "print-label-container";
     container.style.display = "flex";
     container.style.flexWrap = "wrap";
-    container.style.gap = "10px";
-    container.style.padding = "10px";
-    container.style.backgroundColor = "#fff";
+    container.style.width = "100%";
+    container.style.boxSizing = "border-box";
+    container.style.gap = "4px"; // Khoảng cách nhỏ giữa 2 tem cạnh nhau
 
-    // Lặp qua danh sách để tạo layout tem đôi giống như image_63543c.png
-    checkboxes.forEach((cb, idx) => {
+    // Thêm CSS ép style khi in (Ẩn toàn bộ giao diện phần mềm, chỉ hiện tem)
+    let stylePrint = document.createElement('style');
+    stylePrint.innerHTML = `
+        @media print {
+            body * { visibility: hidden; }
+            #print-zone, #print-zone * { visibility: visible; }
+            #print-zone { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; }
+            .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; }
+        }
+    `;
+    container.appendChild(stylePrint);
+
+    checkboxes.forEach((cb) => {
         let item = listGiaoDich.find(x => x.firestoreId === cb.value);
         if(item) {
             let tenBoText = item.bo.split(" [ID:")[0];
             let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-');
             let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr;
             
-            // Khối layout cho một con tem đơn lẻ trong cặp
+            // Mỗi con tem đơn lẻ chiếm gần 50% bề ngang để đi vừa hàng đôi
             let temHtml = `
-                <div style="width: 240px; border: 1px solid #ccc; padding: 8px; font-family: Arial, sans-serif; font-size: 11px; color: #000; box-sizing: border-box; background: #fff;">
-                    <div style="text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial, sans-serif; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;">
+                    <div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
                         ${tenBoText}
                     </div>
-                    <div style="text-align: center; margin: 0 auto;">
-                        <svg id="barcode-lo-${item.firestoreId}"></svg>
+                    <div style="text-align: center; margin: 0 auto; width: 100%; overflow: hidden;">
+                        <svg id="barcode-lo-${item.firestoreId}" style="max-width: 100%;"></svg>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;">
                         <span>SL: ${item.slThucTe || 1}</span>
-                        <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${loginUserCode || 'CSSD'}</span>
+                        <span style="max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${loginUserCode || 'CSSD'}</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 4px; border-t: 1px dashed #ccc; padding-top: 3px;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px;">
                         <span>${dateHapStr}</span>
-                        <span style="font-weight: black;">HSD: ${dateHsdStr}</span>
+                        <span style="font-weight: bold;">HSD: ${dateHsdStr}</span>
                     </div>
-                    <div style="text-align: center; font-size: 9px; color: #666; margin-top: 2px; font-family: monospace;">
+                    <div style="text-align: center; font-size: 9px; color: #000; margin-top: 2px; font-family: monospace; font-weight: bold;">
                         Lô: ${batchCode}
                     </div>
                 </div>
@@ -237,32 +252,32 @@ function inTemTongHangLoat() {
         }
     });
 
-    // Đổ vào khu vực in ẩn và kích hoạt thư viện vẽ mã vạch tự động
     const pZone = document.getElementById("print-zone"); 
     pZone.innerHTML = ""; 
     pZone.appendChild(container); 
     pZone.classList.remove("hidden");
 
-    // Tiến hành vẽ Barcode bằng JsBarcode dựa trên Mã định danh mâm dụng cụ
+    // Vẽ Barcode
     checkboxes.forEach(cb => {
         let item = listGiaoDich.find(x => x.firestoreId === cb.value);
         if(item) {
             let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000";
             JsBarcode(`#barcode-lo-${item.firestoreId}`, cleanId, {
                 format: "CODE128",
-                width: 1.5,
-                height: 35,
+                width: 1.2, // Giảm độ rộng vạch một chút để vừa khít tem nhỏ
+                height: 30,  // Chiều cao vừa vặn
                 displayValue: true,
-                fontSize: 11,
+                fontSize: 10,
                 margin: 2
             });
         }
     });
 
-    // Thực thi lệnh xuất lệnh in ra máy in nhiệt của viện
-    window.print(); 
-    pZone.classList.add("hidden");
-    showToast("Đã kết xuất thiết kế tem đôi theo mẻ hấp!", "success"); 
+    // Thực thi lệnh in chuyên dụng
+    setTimeout(() => {
+        window.print(); 
+        pZone.classList.add("hidden");
+    }, 300); // Trì hoãn 300ms để đảm bảo Barcode đã được vẽ xong hoàn toàn trước khi in
 }
 
 function xacNhanMeHap() { 
@@ -294,15 +309,29 @@ function xacNhanMeHap() {
 function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
 function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã nhập kho Vô Khuẩn!", "success"); callRender(); }); }
 
-ffunction inTemNghiemThuHangLoat() { 
+function inTemNghiemThuHangLoat() { 
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem nghiệm thu!", "error"); 
     
     let container = document.createElement('div');
+    container.className = "print-label-container";
     container.style.display = "flex";
     container.style.flexWrap = "wrap";
-    container.style.gap = "10px";
-    container.style.padding = "10px";
+    container.style.width = "100%";
+    container.style.boxSizing = "border-box";
+    container.style.gap = "4px";
+
+    let stylePrint = document.createElement('style');
+    stylePrint.innerHTML = `
+        @media print {
+            body * { visibility: hidden; }
+            #print-zone, #print-zone * { visibility: visible; }
+            #print-zone { position: absolute; left: 0; top: 0; width: 100%; }
+            .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; }
+            .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; }
+        }
+    `;
+    container.appendChild(stylePrint);
 
     checkboxes.forEach((cb) => {
         let item = listGiaoDich.find(x => x.firestoreId === cb.value);
@@ -312,23 +341,23 @@ ffunction inTemNghiemThuHangLoat() {
             let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr;
             
             let temHtml = `
-                <div style="width: 240px; border: 2px solid #000; padding: 8px; font-family: Arial, sans-serif; font-size: 11px; color: #000; box-sizing: border-box; background: #fff;">
-                    <div style="text-align: center; font-size: 9px; font-weight: bold; color: #444; letter-spacing: 1px;">PN HOSPITAL - CSSD</div>
-                    <div style="text-align: center; font-weight: bold; font-size: 13px; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                <div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial, sans-serif; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;">
+                    <div style="text-align: center; font-size: 9px; font-weight: bold; letter-spacing: 0.5px;">PN HOSPITAL - CSSD</div>
+                    <div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
                         ${tenBoText}
                     </div>
-                    <div style="text-align: center; margin: 0 auto;">
-                        <svg id="barcode-nt-${item.firestoreId}"></svg>
+                    <div style="text-align: center; margin: 0 auto; width: 100%; overflow: hidden;">
+                        <svg id="barcode-nt-${item.firestoreId}" style="max-width: 100%;"></svg>
                     </div>
-                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px;">
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;">
                         <span>SL: ${item.slThucTe || 1}</span>
-                        <span>ĐẠT VÔ KHUẨN</span>
+                        <span style="color: green; font-weight: bold;">ĐẠT VÔ KHUẨN</span>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 4px; border-t: 1px solid #000; padding-top: 3px;">
+                    <div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;">
                         <span>${dateHapStr}</span>
-                        <span style="font-weight: black;">HSD: ${dateHsdStr}</span>
+                        <span style="font-weight: bold;">HSD: ${dateHsdStr}</span>
                     </div>
-                    <div style="text-align: center; font-size: 8px; color: #333; font-weight: bold; margin-top: 2px; font-family: monospace;">
+                    <div style="text-align: center; font-size: 8px; color: #000; font-weight: bold; margin-top: 2px; font-family: monospace;">
                         BATCH: ${item.batchCode || 'N/A'}
                     </div>
                 </div>
@@ -336,6 +365,32 @@ ffunction inTemNghiemThuHangLoat() {
             container.innerHTML += temHtml;
         }
     });
+
+    const pZone = document.getElementById("print-zone"); 
+    pZone.innerHTML = ""; 
+    pZone.appendChild(container); 
+    pZone.classList.remove("hidden");
+
+    checkboxes.forEach(cb => {
+        let item = listGiaoDich.find(x => x.firestoreId === cb.value);
+        if(item) {
+            let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000";
+            JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, {
+                format: "CODE128",
+                width: 1.2,
+                height: 30,
+                displayValue: true,
+                fontSize: 10,
+                margin: 2
+            });
+        }
+    });
+
+    setTimeout(() => {
+        window.print(); 
+        pZone.classList.add("hidden");
+    }, 300);
+}
 
     const pZone = document.getElementById("print-zone"); 
     pZone.innerHTML = ""; 
