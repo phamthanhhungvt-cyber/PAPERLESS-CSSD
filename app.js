@@ -114,7 +114,6 @@ function checkLogin() {
         
         document.getElementById('header-vanhanh').classList.remove('hidden'); 
         document.getElementById('header-dulieu').classList.remove('hidden');
-        // Bổ sung 'tracuu' (Truy xuất dụng cụ) vào danh sách menu được phép của CSSD
         ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
         switchTab('thugom');
     } else if (role === "GUEST") {
@@ -171,16 +170,15 @@ function moPopupDongGoi(id) {
     if(item) { 
         document.getElementById("popDG_Bo").innerText = item.bo; 
         
-        // Cập nhật lại danh mục chất liệu đóng gói đầy đủ
+        // CẬP NHẬT CHUẨN: Đồng bộ chính xác danh mục vật liệu và số ngày HSD bệnh viện quy định
         const selectChatLieu = document.getElementById("popDG_Loai");
         if (selectChatLieu) {
             selectChatLieu.innerHTML = `
-                <option value="Túi ép nhiệt Plasma/EO|365">Túi ép nhiệt độ thấp (Plasma/EO) - 1 Năm</option>
-                <option value="Túi ép nhiệt Hơi nước|180">Túi ép nhiệt Cao tần (Hơi nước) - 6 Tháng</option>
-                <option value="Vải SMS chuyên dụng|30">Vải không dệt SMS - 30 Ngày</option>
-                <option value="Vải Cotton 2 lớp|14">Vải Cotton 2 lớp tiêu chuẩn - 14 Ngày</option>
-                <option value="Giấy gói y tế Crepe|60">Giấy gói y tế chuyên dụng Crepe - 60 Ngày</option>
-                <option value="Hộp/Container vô khuẩn|180">Hộp/Container lọc vô khuẩn - 180 Ngày</option>
+                <option value="Vải|7">Vải - 7 Ngày</option>
+                <option value="Túi ép nhiệt độ cao|30">Túi ép nhiệt độ cao - 30 Ngày</option>
+                <option value="Giấy gói chuyên dụng (vải không dệt)|30">Giấy gói chuyên dụng (vải không dệt) - 30 Ngày</option>
+                <option value="Hộp chuyên dụng|90">Hộp chuyên dụng - 90 Ngày</option>
+                <option value="Túi ép nhiệt độ thấp (Tyvek)|90">Túi ép nhiệt độ thấp (Tyvek) - 90 Ngày</option>
             `;
         }
         tinhHanSuDung(); 
@@ -193,7 +191,6 @@ function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.g
 
 function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
 
-// --- TAB 4: SỬA LỖI IN TEM VÀ CẬP NHẬT MÃ BATCH CHO LÔ MẺ HẤP ---
 function inTemTongHangLoat() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem!", "error"); 
@@ -223,7 +220,6 @@ function xacNhanMeHap() {
     let p = []; 
     checkboxes.forEach(cb => { 
         if(cb.id === 'selectAllHap') return; 
-        // Sửa lỗi: Cập nhật đồng thời trạng thái DANG_HAP và đè mã Lô mẻ hấp (batchCode) vào database
         p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ status: "DANG_HAP", batchCode: batchCode })); 
     }); 
     Promise.all(p).then(() => { showToast(`Đã đưa các mâm vào lò. Cập nhật số lô: ${batchCode}`, "success"); callRender(); }); 
@@ -324,7 +320,6 @@ function renderTheoTabHienTai() {
             tbody.innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Chưa có dữ liệu khay vận hành.</td></tr>`;
         }
     }
-    // Render Tab 8 - Tra cứu / Truy xuất lịch sử dụng cụ chuyên sâu
     else if(activeTab === 'tracuu') {
         const tbody = document.getElementById("bangLichSuTruyXuat");
         if(tbody) {
