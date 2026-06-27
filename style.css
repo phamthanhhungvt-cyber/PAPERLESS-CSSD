@@ -1,4 +1,4 @@
- <style>
+
         html, body { max-width: 100%; overflow-x: hidden; height: 100%; background-color: #f1f5f9; color: #1e293b; font-family: system-ui, -apple-system, sans-serif; }
         .scrollbar-none::-webkit-scrollbar { display: none; }
         .sidebar-item-active { background-color: #e0f2fe !important; color: #0284c7 !important; border-left: 4px solid #0284c7; font-weight: 800; }
@@ -20,4 +20,4 @@
             #print-zone, #print-zone * { visibility: visible; }
             #print-zone { position: absolute; left: 0; top: 0; width: 100%; }
         }
-    </style>
+  
