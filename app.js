@@ -76,17 +76,38 @@ function taiDanhMucLinhKienChuand() {
 
 function callRender() { clearTimeout(renderTimeout); renderTimeout = setTimeout(() => { renderTheoTabHienTai(); }, 100); }
 
+function anTatCaHeadersVaMenus() {
+    // Ẩn tất cả các nhóm Header đầu mục menu
+    document.getElementById('header-lamsang')?.classList.add('hidden');
+    document.getElementById('header-vanhanh')?.classList.add('hidden');
+    document.getElementById('header-dulieu')?.classList.add('hidden');
+    
+    // Ẩn tất cả các nút Menu điều hướng
+    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance'].forEach(x => {
+        document.getElementById('menu-' + x)?.classList.add('hidden');
+    });
+}
+
 function checkLogin() {
     const role = document.getElementById("login_role").value; 
     const pass = document.getElementById("login_pass").value; 
     let pA = thongTinMatKhauAdmin.adminPIN || "admin2026"; 
     let pC = thongTinMatKhauAdmin.cssdPIN || "cssd2026"; 
     let pG = thongTinMatKhauAdmin.guestPIN || "guest2026"; 
+    
+    // 1. Dọn dẹp ẩn hết các menu trước khi phân quyền
+    anTatCaHeadersVaMenus();
+
     if (role === "ADMIN" && pass === pA) { 
         currentRole = "ADMIN"; loginUserCode = "ADMIN"; document.getElementById("nav_user_info").innerText = "ADMINISTRATOR";
         document.getElementById("khoa_selKhoa").disabled = false; document.body.classList.remove('guest-mode');
-        document.getElementById('header-lamsang').classList.remove('hidden'); document.getElementById('header-vanhanh').classList.remove('hidden'); document.getElementById('header-dulieu').classList.remove('hidden');
+        
+        // Hiện toàn bộ Header và Menu cho Admin
+        document.getElementById('header-lamsang').classList.remove('hidden'); 
+        document.getElementById('header-vanhanh').classList.remove('hidden'); 
+        document.getElementById('header-dulieu').classList.remove('hidden');
         ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
+        
         switchTab('tracuu');
     } else if (role === "KHOA") { 
         const khoaSelect = document.getElementById("login_khoa").value; 
@@ -94,8 +115,13 @@ function checkLogin() {
         if (pass === (found ? found.pin : "123")) { 
             currentRole = "KHOA"; loginUserCode = khoaSelect; document.getElementById("nav_user_info").innerText = khoaSelect; 
             document.getElementById("khoa_selKhoa").value = khoaSelect; document.getElementById("khoa_selKhoa").disabled = true; document.body.classList.remove('guest-mode');
-            document.getElementById('header-lamsang').classList.remove('hidden'); document.getElementById('header-dulieu').classList.remove('hidden');
-            document.getElementById('menu-khoaphong').classList.remove('hidden'); document.getElementById('menu-quanlykho').classList.remove('hidden');
+            
+            // PHÂN QUYỀN LÂM SÀNG: Chỉ hiện mục Lâm Sàng (Tab 1) và mục Tồn Kho (Tab 6)
+            document.getElementById('header-lamsang').classList.remove('hidden'); 
+            document.getElementById('header-dulieu').classList.remove('hidden');
+            document.getElementById('menu-khoaphong').classList.remove('hidden'); 
+            document.getElementById('menu-quanlykho').classList.remove('hidden');
+            
             switchTab('khoaphong');
         } else { return showToast("Sai mã PIN Khoa!", "error"); } 
     } else if (role === "CSSD") {
@@ -106,9 +132,14 @@ function checkLogin() {
             if (nv && pass === nv.pin) { currentRole = "CSSD"; loginUserCode = nvCode; document.getElementById("nav_user_info").innerText = `${nvCode} - ${nv.ten}`; }
             else { return showToast("Sai mã PIN của nhân viên này!", "error"); }
         } else { return showToast("Vui lòng chọn Nhân viên hoặc nhập PIN Backup!", "error"); }
+        
         document.getElementById("khoa_selKhoa").disabled = false; document.body.classList.remove('guest-mode');
-        document.getElementById('header-vanhanh').classList.remove('hidden'); document.getElementById('header-dulieu').classList.remove('hidden');
-        ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','performance'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
+        
+        // PHÂN QUYỀN CHUYÊN VIÊN CSSD: Chỉ hiện từ Tab 2 đến Tab 7
+        document.getElementById('header-vanhanh').classList.remove('hidden'); 
+        document.getElementById('header-dulieu').classList.remove('hidden');
+        ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
+        
         switchTab('thugom');
     } else if (role === "GUEST") {
         if(pass === pG) {
@@ -241,7 +272,7 @@ function renderTheoTabHienTai() {
                 else if (viTriCode !== "CHO_XUAT") { viTriText = "Xử lý tại CSSD"; viTriColor = "bg-amber-100 text-amber-800"; }
                 let chuKyLo = listGiaoDich.filter(x => x.maMacDinh === ma && (x.status === "CHO_XUAT" || x.status === "HOAN_TAT")).length;
                 let tenLoai = currentTrans.bo.split(" [ID:")[0];
-                arrHtml.push(`<tr class="border-b border-slate-100 hover:bg-slate-50 font-medium"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${tenLoai}</td><td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-black text-amber-700 bg-amber-50/50">${chuKyLo} lần</td></tr>`);
+                arrHtml.push(`<tr class="border-b border-slate-100 hover:bg-slate-50 font-medium"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${tenLoai}</td><td class="p-3 text-center"><span class="px-2.5 py-0.5 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-black text-amber-700 bg-amber-50/50">${chuKyLo} lần</td></tr>`);
             });
             tbody.innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Chưa có dữ liệu khay vận hành.</td></tr>`;
         }
