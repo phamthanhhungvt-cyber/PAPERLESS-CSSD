@@ -153,7 +153,6 @@ function khoaGuiPhieuTraBatches() { const k = document.getElementById("khoa_selK
 function inHoaDonGiaoNhan() {
     const k = document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in!", "error");
     
-    // Bổ sung font-family: Arial, sans-serif toàn bộ khu vực in để tránh lỗi nhảy dấu tiếng Việt
     let printHtml = `
         <div style="font-family: Arial, sans-serif; color: #000; padding: 10px;">
             <div style="text-align:center; margin-bottom: 20px;">
@@ -494,7 +493,7 @@ function renderTheoTabHienTai() {
         document.getElementById("gridDongGoi").innerHTML = lsDG.map(i => `<div class="bg-white p-3 rounded border border-slate-200 mb-2 flex justify-between items-center"><div class="flex-1"><div class="font-bold text-sky-700 text-[13px]">${i.bo}</div><div class="text-[10px] text-slate-500">Từ khoa: ${i.khoa}</div></div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-sky-50 text-sky-700 border border-sky-300 px-3 py-1.5 rounded text-[11px] font-black">ĐÓNG GÓI</button></div>`).join('');
     }
     else if(activeTab === 'mayhap') {
-        tuDongTaoMaLoMeHap(); 
+        capNhatDanhSachMaMay(); // Đảm bảo đồng bộ danh sách máy hấp Phương Nam ngay lập tức
         let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); document.getElementById("bangChoHap").innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join('');
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); document.getElementById("bangChoNghiệmThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span></td></tr>`).join('');
     }
@@ -915,7 +914,7 @@ function moCamera(inputId) {
                     }
                 }
             }).catch(err => { 
-                camStatus.innerHTML = `<span class="text-amber-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Ống kính mất nét, đang tự động lấy nét lại...</span>`;
+                camStatus.innerHTML = `<span class="text-amber-500 font-bold"><i class="fa-solid fa-slate-exclamation mr-1"></i> Ống kính mất nét, đang tự động lấy nét lại...</span>`;
             }); 
         } else { 
             phatAmThanhPhanHoi("error");
