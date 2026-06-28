@@ -76,6 +76,7 @@
                     <a href="#" onclick="switchTab('danhmuc'); toggleMobileMenu();" id="menu-danhmuc" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50"><i class="fa-solid fa-microchip w-4 text-center"></i> <span>7. Giám Sát Tuổi Thọ</span></a>
                     <a href="#" onclick="switchTab('tracuu'); toggleMobileMenu();" id="menu-tracuu" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50"><i class="fa-solid fa-database w-4 text-center"></i> <span>8. Truy Xuất & Cấu Hình</span></a>
                     <a href="#" onclick="switchTab('performance'); toggleMobileMenu();" id="menu-performance" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50"><i class="fa-solid fa-chart-line w-4 text-center text-emerald-600"></i> <span class="font-bold text-slate-700">9. Hiệu Suất KPI</span></a>
+                    <a href="#" onclick="switchTab('dashboard_tv'); toggleMobileMenu();" id="menu-dashboard_tv" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-bold text-slate-600 transition hover:bg-slate-50 border-t border-slate-100 hidden"><i class="fa-solid fa-tv w-4 text-center text-rose-600"></i> <span class="text-rose-900">10. MÀN HÌNH TRỰC TIVI</span></a>
                 </nav>
             </div>
             <div class="p-4 border-t border-slate-100 bg-slate-50 shrink-0"><button onclick="location.reload()" class="w-full text-xs text-slate-500 hover:text-slate-800 bg-white border border-slate-200 py-2 rounded font-bold hover:shadow-sm"><i class="fa-solid fa-arrow-right-from-bracket mr-2"></i>Đăng xuất</button></div>
@@ -474,6 +475,80 @@
                     <div class="glass-panel p-5 border-t-4 border-t-emerald-600"><h3 class="text-base font-black text-slate-700 uppercase mb-4">Bảng Điểm KPI KTV Ca Trực</h3><div class="overflow-x-auto border border-slate-200 rounded"><table class="w-full text-left text-xs"><thead class="bg-slate-50"><tr><th class="p-3 text-center">Hạng</th><th class="p-3">Mã KTV</th><th class="p-3">Họ và Tên Nhân Viên</th><th class="p-3 text-center bg-slate-100">TỔNG KPI</th></tr></thead><tbody id="bangHieuSuatKTV" class="bg-white"></tbody></table></div></div>
                 </div>
 
+                <div id="tab-dashboard_tv" class="hidden p-6 bg-slate-900 text-white min-h-[650px] rounded-2xl shadow-inner">
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-4 mb-6">
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-3 w-3 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                            <h1 class="text-lg font-black tracking-wider text-emerald-400 uppercase"><i class="fa-solid fa-tv mr-2"></i> TRẠM GIÁM SÁT TRUNG TÂM CSSD - PHƯƠNG NAM HOSPITAL</h1>
+                        </div>
+                        <div class="text-right">
+                            <p id="tv_clock" class="text-xs font-mono font-bold text-slate-400"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-gradient-to-br from-blue-600 to-sky-700 p-6 rounded-2xl shadow-xl border border-blue-400/30">
+                            <div class="text-xs font-black opacity-90 uppercase tracking-wide text-blue-100">Mẻ Rửa Hôm Nay</div>
+                            <div id="tv_meRua" class="text-5xl font-black font-mono mt-2 text-white">0</div>
+                            <p class="text-[10px] opacity-70 mt-2 font-medium">Tổng chu kỳ làm sạch trong ngày</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-2xl shadow-xl border border-indigo-400/30">
+                            <div class="text-xs font-black opacity-90 uppercase tracking-wide text-indigo-100">Mẻ Hấp Hôm Nay</div>
+                            <div id="tv_meHap" class="text-5xl font-black font-mono mt-2 text-white">0</div>
+                            <p class="text-[10px] opacity-70 mt-2 font-medium">Lô tiệt khuẩn đạt chuẩn đã chạy</p>
+                        </div>
+                        <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex justify-between items-center">
+                            <div>
+                                <div class="text-xs font-black text-slate-400 uppercase tracking-wide">Đang xử lý tại CSSD</div>
+                                <div class="flex gap-6 mt-3">
+                                    <div>
+                                        <span class="text-[10px] text-amber-400 block font-bold uppercase">Trạm rửa</span>
+                                        <span id="tv_dangRua" class="text-3xl font-black font-mono text-amber-400">0</span>
+                                    </div>
+                                    <div class="border-l border-slate-700 pl-6">
+                                        <span class="text-[10px] text-indigo-400 block font-bold uppercase">Trong lò</span>
+                                        <span id="tv_dangHap" class="text-3xl font-black font-mono text-indigo-400">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-arrows-spin text-4xl text-slate-700 animate-spin" style="animation-duration: 8s;"></i>
+                        </div>
+                        <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex justify-between items-center">
+                            <div>
+                                <div class="text-xs font-black text-slate-400 uppercase tracking-wide">Kho Sạch & Vô Khuẩn</div>
+                                <div class="flex gap-4 mt-3">
+                                    <div>
+                                        <span class="text-[10px] text-teal-400 block font-bold uppercase">Sẵn sàng xuất</span>
+                                        <span id="tv_khoVoKhuan" class="text-3xl font-black font-mono text-teal-400">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-warehouse text-3xl text-slate-700"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xs font-black text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-500 animate-bounce"></i> Giám sát cảnh báo hạn sử dụng (Realtime)
+                            </h3>
+                        </div>
+                        <div class="flex items-center gap-6 p-4 bg-slate-900/80 rounded-xl border border-slate-700/50">
+                            <div class="p-4 rounded-xl bg-slate-800 border border-slate-700 text-center min-w-[120px]">
+                                <span class="text-[10px] text-slate-400 block font-black uppercase">Quá hạn HSD</span>
+                                <span id="tv_canhBaoHsd" class="text-4xl font-black font-mono text-rose-500">0</span>
+                            </div>
+                            <p class="text-xs text-slate-400 leading-relaxed font-medium">
+                                Hệ thống tự động rà quét và cảnh báo những khay/mâm dụng cụ đã lưu kho sạch nhưng vượt quá niên hạn sử dụng của vật liệu bao bì. <br>
+                                <span class="text-rose-400 font-black mt-1 block">* Đề nghị KTV thu hồi các khay báo đỏ trên hệ thống tủ để tiến hành xử lý tiệt khuẩn lại.</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
             </main>
         </div>
     </div>
@@ -514,5 +589,12 @@
     </div>
 
     <script src="app.js"></script>
+    <script>
+        // Logic đồng hồ cập nhật giây liên tục cho giao diện Tivi Trực Ban
+        setInterval(() => {
+            const el = document.getElementById('tv_clock');
+            if(el) el.innerText = "THỜI GIAN THỰC: " + new Date().toLocaleString('vi-VN');
+        }, 1000);
+    </script>
 </body>
 </html>
