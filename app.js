@@ -3,10 +3,10 @@ firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
 let thongTinMatKhauAdmin = { adminPIN: "admin2026", cssdPIN: "cssd2026", guestPIN: "guest2026" };
 let cauHinhGiaoDien = {
-    "ADMIN": ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance','dashboard_tv'],
-    "CSSD": ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','dashboard_tv'], // Mặc định mở, Admin có thể tick bỏ 'tracuu' (Tab 8)
-    "KHOA": ['khoaphong','quanlykho'],
-    "GUEST": ['quanlykho','danhmuc','performance','dashboard_tv']
+    "ADMIN": ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'],
+    "CSSD": ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','dashboard_tv'], // Mở sẵn Tab lịch sử cho CSSD, khóa Tab cấu hình 9
+    "KHOA": ['khoaphong','quanlykho','lichsuluanchuyen'], // Cho phép Lâm sàng xem hành trình khay đồ của họ công khai
+    "GUEST": ['quanlykho','danhmuc','lichsuluanchuyen','performance','dashboard_tv']
 };
 
 let currentRole = "", loginUserCode = "";
@@ -69,7 +69,7 @@ function anTatCaHeadersVaMenus() {
     document.getElementById('header-lamsang')?.classList.add('hidden');
     document.getElementById('header-vanhanh')?.classList.add('hidden');
     document.getElementById('header-dulieu')?.classList.add('hidden');
-    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance','dashboard_tv'].forEach(x => {
+    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => {
         document.getElementById('menu-' + x)?.classList.add('hidden');
     });
 }
@@ -77,16 +77,11 @@ function anTatCaHeadersVaMenus() {
 function apDungPhanQuyenGiaoDien(role) {
     anTatCaHeadersVaMenus();
     let tabsDuocPhep = cauHinhGiaoDien[role] || [];
-    
-    // Hiển thị các mục Menu được phép
-    tabsDuocPhep.forEach(tab => {
-        document.getElementById('menu-' + tab)?.classList.remove('hidden');
-    });
+    tabsDuocPhep.forEach(tab => { document.getElementById('menu-' + tab)?.classList.remove('hidden'); });
 
-    // Quản lý hiển thị các khối Header nhóm danh mục bên Sidebar
     if (tabsDuocPhep.includes('khoaphong')) document.getElementById('header-lamsang')?.classList.remove('hidden');
     if (['thugom','donggoi','mayhap','khovokhuan'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-vanhanh')?.classList.remove('hidden');
-    if (['quanlykho','danhmuc','tracuu','performance','dashboard_tv'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-dulieu')?.classList.remove('hidden');
+    if (['quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-dulieu')?.classList.remove('hidden');
 }
 
 function checkLogin() {
@@ -100,7 +95,7 @@ function checkLogin() {
         currentRole = "ADMIN"; loginUserCode = "ADMIN"; document.getElementById("nav_user_info").innerText = "ADMINISTRATOR";
         document.getElementById("khoa_selKhoa").disabled = false; document.body.classList.remove('guest-mode');
         apDungPhanQuyenGiaoDien("ADMIN");
-        switchTab('tracuu');
+        switchTab('lichsuluanchuyen');
     } else if (role === "KHOA") { 
         const khoaSelect = document.getElementById("login_khoa").value; 
         let found = danhSachKhoa.find(x => x.ten === khoaSelect); 
@@ -115,7 +110,7 @@ function checkLogin() {
         if(!nvCode && pass === pC) { currentRole = "CSSD"; loginUserCode = "CSSD_CHUNG"; document.getElementById("nav_user_info").innerText = "CSSD GENERAL"; } 
         else if (nvCode) {
             let nv = danhSachKtvCssd.find(x => x.code === nvCode);
-            if (nv && pass === nv.pin) { currentRole = "CSSD"; loginUserCode = nvCode; document.getElementById("nav_user_info").innerText = `${nvCode} - ${nv.ten}`; }
+            if (nv && pass === nv.pin) { currentRole = "CSSD"; loginUserCode = nv.ten; document.getElementById("nav_user_info").innerText = `${nvCode} - ${nv.ten}`; }
             else { return showToast("Sai mã PIN của nhân viên này!", "error"); }
         } else { return showToast("Vui lòng chọn Nhân viên hoặc nhập PIN Backup!", "error"); }
         
@@ -138,26 +133,20 @@ function checkLogin() {
 
 function switchTab(t) { 
     let tabsDuocPhep = cauHinhGiaoDien[currentRole] || [];
-    if(currentRole !== "ADMIN" && !tabsDuocPhep.includes(t)) {
-        return showToast("Tài khoản của bạn đã bị Admin khóa quyền truy cập tính năng này!", "error");
-    }
-    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance','dashboard_tv'].forEach(x => { 
+    if(currentRole !== "ADMIN" && !tabsDuocPhep.includes(t)) { return showToast("Tài khoản của bạn không có quyền truy cập chức năng này!", "error"); }
+    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
         document.getElementById('tab-'+x)?.classList.add('hidden'); document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
     }); 
     document.getElementById('tab-'+t)?.classList.remove('hidden'); document.getElementById('menu-'+t)?.classList.add('sidebar-item-active'); 
     activeTab = t; callRender(); 
 }
 
-// --- LOGIC PHÂN QUYỀN ĐỘNG TRONG DIỆN ADMIN ---
 function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     if(!cauHinhGiaoDien[role]) cauHinhGiaoDien[role] = [];
-    if(checkboxElement.checked) {
-        if(!cauHinhGiaoDien[role].includes(tabId)) cauHinhGiaoDien[role].push(tabId);
-    } else {
-        cauHinhGiaoDien[role] = cauHinhGiaoDien[role].filter(x => x !== tabId);
-    }
+    if(checkboxElement.checked) { if(!cauHinhGiaoDien[role].includes(tabId)) cauHinhGiaoDien[role].push(tabId); } 
+    else { cauHinhGiaoDien[role] = cauHinhGiaoDien[role].filter(x => x !== tabId); }
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
-    .then(() => showToast(`Đã cập nhật quyền truy cập Tab cho nhóm: ${role}`, "success"));
+    .then(() => showToast(`Đã cập nhật quyền truy cập cho nhóm: ${role}`, "success"));
 }
 
 function renderAdminInterface() {
@@ -165,7 +154,6 @@ function renderAdminInterface() {
     document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
     document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "";
     
-    // Render Ma trận check quyền giao diện động
     const MatrixRoles = ["CSSD", "KHOA", "GUEST"];
     const MatrixTabs = [
         { id: "khoaphong", name: "1. Cổng Báo Trả Đồ" },
@@ -175,20 +163,18 @@ function renderAdminInterface() {
         { id: "khovokhuan", name: "5. Kho Vô Khuẩn" },
         { id: "quanlykho", name: "6. Tồn Kho Toàn Viện" },
         { id: "danhmuc", name: "7. Giám Sát Tuổi Thọ" },
-        { id: "tracuu", name: "8. Truy Xuất Cấu Hình" },
-        { id: "performance", name: "9. Hiệu Suất KPI" },
-        { id: "dashboard_tv", name: "10. Màn Hình Tivi" }
+        { id: "lichsuluanchuyen", name: "8. Nhật Ký Luân Chuyển" },
+        { id: "tracuu", name: "9. Cấu Hình Hệ Thống" },
+        { id: "performance", name: "10. Hiệu Suất KPI" },
+        { id: "dashboard_tv", name: "11. Màn Hình Tivi" }
     ];
 
     let htmlMatrix = "";
     MatrixTabs.forEach(tab => {
-        htmlMatrix += `<tr class="border-b font-medium text-xs">
-            <td class="p-3 font-bold text-slate-700">${tab.name}</td>`;
+        htmlMatrix += `<tr class="border-b font-medium text-xs"><td class="p-3 font-bold text-slate-700">${tab.name}</td>`;
         MatrixRoles.forEach(role => {
             let isChecked = (cauHinhGiaoDien[role] && cauHinhGiaoDien[role].includes(tab.id)) ? "checked" : "";
-            htmlMatrix += `<td class="p-3 text-center">
-                <input type="checkbox" ${isChecked} onchange="updateGiaoDienMatrix('${role}', '${tab.id}', this)" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500">
-            </td>`;
+            htmlMatrix += `<td class="p-3 text-center"><input type="checkbox" ${isChecked} onchange="updateGiaoDienMatrix('${role}', '${tab.id}', this)" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"></td>`;
         });
         htmlMatrix += `</tr>`;
     });
@@ -206,109 +192,26 @@ function renderAdminInterface() {
     }
 }
 
-// --- CÁC LOGIC KHÁC GIỮ NGUYÊN HOÀN TOÀN KHÔNG ĐỔI ---
-function loadBoDungCuTheoKhoa() { let k = document.getElementById("khoa_selKhoa").value; let list = document.getElementById("listBoDungCu"); let f = danhSachKhoa.find(x => x.ten === k); list.innerHTML = (f && f.danhSachBo) ? f.danhSachBo.map(x => `<option value="${x}">`).join('') : ""; }
-function themVaoGio() { let val = document.getElementById("khoa_inpMaBo").value.trim().toUpperCase(); if(!val) return; if (gioHangTam.some(x => x.maMacDinh === val)) { document.getElementById("khoa_inpMaBo").value = ""; return showToast("Mã này đã có trong danh sách chờ!", "error"); } let tenGoc = val.includes("[ID:") ? val.split(" [ID:")[0] : val; gioHangTam.push({bo: tenGoc, maMacDinh: val, slYeuCau: 1}); document.getElementById("khoa_inpMaBo").value = ""; renderGioHang(); }
-function renderGioHang() { let khuVuc = document.getElementById("khuVucGioHang"); if(khuVuc) khuVuc.classList.toggle("hidden", gioHangTam.length===0); document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); }
-function clearGioHang() { gioHangTam = []; renderGioHang(); }
-function khoaGuiPhieuTraBatches() { const k = document.getElementById("khoa_selKhoa").value; if(!k) return showToast("Vui lòng chọn Khoa trước!"); if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); let p=[]; gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); }
-
-function inHoaDonGiaoNhan() {
-    const k = document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in!", "error");
-    let printHtml = `<div style="font-family: Arial, sans-serif; color: #000; padding: 10px;"><div style="text-align:center; margin-bottom: 20px;"><h2 style="font-size: 18px; margin-bottom: 5px;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2><p style="font-size: 13px; margin: 0;">Khoa/Phòng: <strong style="font-size: 14px;">${k}</strong> - Ngày xuất phiếu: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></p></div><table style="width:100%; border-collapse: collapse; text-align: left; font-size: 13px; font-family: Arial, sans-serif;"><thead><tr style="background-color: #f8fafc;"><th style="border: 1px solid #000; padding: 10px; font-weight: bold;">Phân Loại Mâm / Loại Dụng Cụ</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Đã Trả Bẩn</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Nhận Sạch</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">CSSD Nợ Khoa</th></tr></thead><tbody>${document.getElementById("bangHoaDonGiaoNhan").innerHTML}</tbody></table></div>`;
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = printHtml; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden");
+// --- THAY ĐỔI QUAN TRỌNG: GHI NHẬN TÊN NV CSSD XUẤT KHO ---
+function xuatKhoXoayVong() { 
+    const k = document.getElementById("xuat_selKhoa").value; 
+    const ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); 
+    if(!k || !ma) return showToast("Vui lòng Chọn Khoa và Quét Mã!", "error"); 
+    let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && x.status === "CHO_XUAT"); 
+    if(!khayThucTe) { document.getElementById("xuat_inpMaBo").value = ""; return showToast(`Mã ID ${ma} không tồn tại ở Kho Sạch Vô Khuẩn.`, "error"); } 
+    
+    db.collection("phieuGiaoNhan").doc(khayThucTe.firestoreId).update({ 
+        status: "HOAN_TAT", 
+        khoa: k, 
+        ngayHoanTat: getTodayDateStr(),
+        timeHoanTat: new Date().toLocaleTimeString('vi-VN'),
+        nvXuatKho: loginUserCode || "CSSD_CHUNG" // Lưu tên KTV đã trực tiếp xuất kho mâm đồ này
+    }).then(() => { 
+        showToast(`Đã bàn giao mâm đồ cho Khoa ${k}!`, "success"); 
+        document.getElementById("xuat_inpMaBo").value = ""; 
+        callRender(); 
+    }); 
 }
-
-function moPopupKiemDem(id) { 
-    idDangKiemDem = id; let item = listGiaoDich.find(x => x.firestoreId === id); 
-    if(item) { 
-        document.getElementById("popBo").innerText = item.bo; document.getElementById("popKhoa").innerText = item.khoa; 
-        let tenBo = item.bo.split(" [ID:")[0];
-        let itemsInBo = databaseExcel.filter(x => { let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); });
-        let chkList = document.getElementById("popKiemDemChecklist");
-        if(itemsInBo.length > 0) { chkList.innerHTML = itemsInBo.map((ct, idx) => { let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['TÊN DỤNG CỤ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ"; let sl = ct['Số lượng'] || ct['SL'] || ct['Số Lượng'] || 1; return `<label class="flex items-center justify-between py-2 border-b border-slate-200 cursor-pointer hover:bg-slate-100 px-2 rounded"><div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 rounded text-sky-600"><span class="text-[12px] font-bold text-slate-700">${getTodayDateStr() === '2025-06' ? 'DAT' : tenDc}</span></div><span class="text-[12px] font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded">SL: ${sl}</span></label>`; }).join(''); } 
-        else { chkList.innerHTML = `<p class="italic text-center text-[11px] text-slate-400 py-4">Chưa có cấu hình chi tiết.</p>`; }
-        document.getElementById("popGhiChu").value = ""; document.getElementById("popupKiemDem").classList.remove("hidden"); 
-    } 
-}
-function closePopupKiemDem() { document.getElementById("popupKiemDem").classList.add("hidden"); }
-function saveKiemDem() { if(!idDangKiemDem) return; db.collection("phieuGiaoNhan").doc(idDangKiemDem).update({ status: "DANG_RUA", ghiChu: document.getElementById("popGhiChu").value }).then(() => { showToast("Đã chuyển mâm sang Trạm Làm Sạch!", "success"); closePopupKiemDem(); callRender(); }); }
-
-function moPopupDongGoi(id) { 
-    idDangDongGoi = id; let item = listGiaoDich.find(x => x.firestoreId === id); 
-    if(item) { 
-        document.getElementById("popDG_Bo").innerText = item.bo; tinhHanSuDung(); 
-        document.getElementById("popupDongGoi").classList.remove("hidden"); 
-    } 
-}
-function closePopupDongGoi() { document.getElementById("popupDongGoi").classList.add("hidden"); }
-function tinhHanSuDung() { let val = document.getElementById("popDG_Loai").value.split("|"); let days = parseInt(val[1]); let dateHSD = new Date(); dateHSD.setDate(dateHSD.getDate() + days); let p = document.getElementById("popDG_Han"); p.innerText = dateHSD.toLocaleDateString('vi-VN'); p.dataset.dateDB = dateHSD.toISOString().split('T')[0]; }
-function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.getElementById("popDG_Loai").value.split("|")[0]; db.collection("phieuGiaoNhan").doc(idDangDongGoi).update({ status: "CHO_HAP", chatLieu: chatLieuTen, hsd: document.getElementById("popDG_Han").dataset.dateDB }).then(() => { showToast("Đã đóng gói, chuyển chờ hấp!", "success"); closePopupDongGoi(); callRender(); }); }
-
-function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
-
-function capNhatDanhSachMaMay() {
-    const loaiHap = document.getElementById("hap_loaiHap")?.value; const selectMay = document.getElementById("hap_maySo"); if (!selectMay || !loaiHap) return;
-    selectMay.innerHTML = ""; if (cauHinhMayHap[loaiHap]) { cauHinhMayHap[loaiHap].forEach(may => { selectMay.innerHTML += `<option value="${may}">${may}</option>`; }); }
-    tuDongTaoMaLoMeHap();
-}
-
-function tuDongTaoMaLoMeHap() {
-    const maMay = document.getElementById("hap_maySo")?.value || "A1"; const now = new Date(); const yy = String(now.getFullYear()).slice(-2); const mm = String(now.getMonth() + 1).padStart(2, '0'); const dd = String(now.getDate()).padStart(2, '0'); const ngayChuoi = `${yy}${mm}${dd}`; 
-    let cacMeTrongNgay = listGiaoDich.filter(x => x.batchCode && x.batchCode.startsWith(maMay + ngayChuoi));
-    let soMeMax = 0; cacMeTrongNgay.forEach(x => { let phanDuoi = x.batchCode.split("_")[1]; if (phanDuoi) { let num = parseInt(phanDuoi); if (num > soMeMax) soMeMax = num; } });
-    let meTiepTheo = soMeMax + 1; if (meTiepTheo > 99) meTiepTheo = 1; 
-    const chuoiMe = String(meTiepTheo).padStart(2, '0'); const soLanDone = `${ngayChuoi}_${chuoiMe}`; const batchIdHoanChinh = `${maMay}${soLanDone}`;
-    if (document.getElementById("hap_meSo")) document.getElementById("hap_meSo").value = soLanDone;
-    if (document.getElementById("hap_batchId")) document.getElementById("hap_batchId").value = batchIdHoanChinh;
-}
-
-function inTemTongHangLoat() { 
-    let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem!", "error"); 
-    let batchCode = document.getElementById("hap_batchId")?.value || "A1000000_01";
-    let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px";
-    let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`;
-    container.appendChild(stylePrint);
-    checkboxes.forEach((cb) => {
-        let item = listGiaoDich.find(x => x.firestoreId === cb.value);
-        if(item) {
-            let tenBoText = item.bo.split(" [ID:")[0]; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr;
-            container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${tenBoText}</div><div style="text-align: center;"><svg id="barcode-lo-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span>${loginUserCode}</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 9px; margin-top: 2px; font-family: monospace; font-weight: bold;">Lô: ${batchCode}</div></div>`;
-        }
-    });
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden");
-    checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-lo-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } });
-    setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300);
-}
-
-function xacNhanMeHap() { 
-    let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ!", "error"); 
-    let loaiHap = document.getElementById("hap_loaiHap").value; let maMay = document.getElementById("hap_maySo").value; let batchCode = document.getElementById("hap_batchId").value; let chuKyNhiet = document.getElementById("hap_nhietDo").value; let apSuat = document.getElementById("hap_apSuat").value || "N/A";
-    let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllHap') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ status: "DANG_HAP", batchCode: batchCode, ngayHapRealtime: getTodayDateStr(), thongTinLoHap: { loaiHap: loaiHap, maMay: maMay, chuKyNhiet: chuKyNhiet, apSuat: apSuat, thoiGianBatDau: new Date().toLocaleTimeString('vi-VN') } })); });
-    Promise.all(p).then(() => { showToast(`Kích hoạt lò thành công! Lô: ${batchCode}`, "success"); tuDongTaoMaLoMeHap(); callRender(); }); 
-}
-
-function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
-function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã nhập kho Vô Khuẩn!", "success"); callRender(); }); }
-
-function inTemNghiemThuHangLoat() { 
-    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
-    let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px";
-    let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint);
-    checkboxes.forEach((cb) => {
-        let item = listGiaoDich.find(x => x.firestoreId === cb.value);
-        if(item) {
-            let tenBoText = item.bo.split(" [ID:")[0]; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr;
-            container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-size: 9px; font-weight: bold;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0;">${tenBoText}</div><div style="text-align: center;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; margin-top: 2px; font-family: monospace;">BATCH: ${item.batchCode || 'N/A'}</div></div>`;
-        }
-    });
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden");
-    checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } });
-    setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300);
-}
-
-function tuChoiHapHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); }
-function xuatKhoXoayVong() { const k = document.getElementById("xuat_selKhoa").value; const ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); if(!k || !ma) return showToast("Vui lòng Chọn Khoa và Quét Mã!", "error"); let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && x.status === "CHO_XUAT"); if(!khayThucTe) { document.getElementById("xuat_inpMaBo").value = ""; return showToast(`Mã ID ${ma} không có ở Kho Vô Khuẩn.`, "error"); } db.collection("phieuGiaoNhan").doc(khayThucTe.firestoreId).update({ status: "HOAN_TAT", khoa: k, ngayHoanTat: getTodayDateStr() }).then(() => { showToast(`Đã xuất cho Khoa ${k}!`, "success"); document.getElementById("xuat_inpMaBo").value = ""; callRender(); }); }
 
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
@@ -316,7 +219,7 @@ function renderTheoTabHienTai() {
         let arrHtml = []; let noK = listGiaoDich.filter(x => x.khoa === k && x.status !== "HOAN_TAT" && x.status !== "CHO_XUAT");
         let gopNo = {}; noK.forEach(x => { let ten = x.bo.split(" [ID:")[0]; gopNo[ten] = (gopNo[ten]||0) + 1; });
         for (let key in gopNo) { arrHtml.push(`<tr class="border-b"><td class="p-3 font-bold text-slate-800">${key}</td><td class="p-3 text-center">-</td><td class="p-3 text-center">-</td><td class="p-3 text-center text-rose-600 font-bold">Nợ ${gopNo[key]}</td></tr>`); }
-        document.getElementById("bangHoaDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh nợ/trả.</td></tr>`;
+        document.getElementById("bangDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh công nợ trả đồ.</td></tr>`;
     }
     else if(activeTab === 'thugom') {
         let lsTG = listGiaoDich.filter(x => x.status === "CHO_THU"); 
@@ -370,8 +273,29 @@ function renderTheoTabHienTai() {
         });
         tbody.innerHTML = arrHtml.join('');
     }
+    else if(activeTab === 'lichsuluanchuyen') {
+        const tbody = document.getElementById("bangLichSuHanhTrinhGoc");
+        if(tbody) {
+            tbody.innerHTML = listGiaoDich.map(x => {
+                let statusBadge = `<span class="px-2 py-0.5 bg-slate-100 text-slate-700 font-bold rounded text-[10px]">${x.status}</span>`;
+                if(x.status === "HOAN_TAT") statusBadge = `<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-black rounded text-[10px]">ĐÃ BÀN GIAO</span>`;
+                else if(x.status === "CHO_XUAT") statusBadge = `<span class="px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded text-[10px]">KHO VÔ KHUẨN</span>`;
+                else if(x.status === "DANG_HAP") statusBadge = `<span class="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded text-[10px]">ĐANG HẤP LÒ</span>`;
+
+                return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors">
+                    <td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td>
+                    <td class="p-3 font-bold text-slate-800">${x.bo ? x.bo.split(" [ID:")[0] : 'N/A'}</td>
+                    <td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                    <td class="p-3 text-center font-mono font-bold text-rose-700 bg-rose-50/30">${x.batchCode || 'N/A'}</td>
+                    <td class="p-3 text-center font-bold text-sky-800 bg-sky-50/40">${x.nvXuatKho || '<span class="text-slate-300 font-normal">Chưa xuất</span>'}</td>
+                    <td class="p-3 text-center text-slate-400 font-mono text-[11px]">${x.ngayTao || ''} ${x.time || ''}</td>
+                </tr>`;
+            }).join('');
+        }
+    }
     else if(activeTab === 'tracuu') {
-        const tbody = document.getElementById("bangLichSuTruyXuat"); const searchInp = document.getElementById("inp_searchBatch")?.value.trim();
+        const tbody = document.getElementById("bangLichSuTruyXuatAdmin"); const searchInp = document.getElementById("inp_searchBatch")?.value.trim();
         if(tbody) {
             let dataFiltered = searchInp ? listGiaoDich.filter(x => x.batchCode && x.batchCode.toUpperCase() === searchInp.toUpperCase()) : listGiaoDich;
             tbody.innerHTML = dataFiltered.map(x => `<tr class="border-b text-xs"><td class="p-2.5 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td><td class="p-2.5 font-bold text-slate-800">${x.bo}</td><td class="p-2.5 font-semibold text-slate-500">${x.khoa}</td><td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100">${x.status}</span></td><td class="p-2.5 text-center font-mono font-black text-rose-700 bg-rose-50/40">${x.batchCode || 'N/A'}</td><td class="p-2.5 text-center text-slate-400">${x.ngayTao || ''} - ${x.time || ''}</td></tr>`).join('');
@@ -397,6 +321,28 @@ function renderDashboardTiviRealtime() {
     if(document.getElementById("tv_canhBaoHsd")) { document.getElementById("tv_canhBaoHsd").innerText = countQuadHan; }
 }
 
+function loadBoDungCuTheoKhoa() { let k = document.getElementById("khoa_selKhoa").value; let list = document.getElementById("listBoDungCu"); let f = danhSachKhoa.find(x => x.ten === k); list.innerHTML = (f && f.danhSachBo) ? f.danhSachBo.map(x => `<option value="${x}">`).join('') : ""; }
+function themVaoGio() { let val = document.getElementById("khoa_inpMaBo").value.trim().toUpperCase(); if(!val) return; if (gioHangTam.some(x => x.maMacDinh === val)) { document.getElementById("khoa_inpMaBo").value = ""; return showToast("Mã này đã có trong danh sách chờ!", "error"); } let tenGoc = val.includes("[ID:") ? val.split(" [ID:")[0] : val; gioHangTam.push({bo: tenGoc, maMacDinh: val, slYeuCau: 1}); document.getElementById("khoa_inpMaBo").value = ""; renderGioHang(); }
+function renderGioHang() { let khuVuc = document.getElementById("khuVucGioHang"); if(khuVuc) khuVuc.classList.toggle("hidden", gioHangTam.length===0); document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); }
+function clearGioHang() { gioHangTam = []; renderGioHang(); }
+function khoaGuiPhieuTraBatches() { const k = document.getElementById("khoa_selKhoa").value; if(!k) return showToast("Vui lòng chọn Khoa trước!"); if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); let p=[]; gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); }
+function inHoaDonGiaoNhan() { const k = document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in!", "error"); let printHtml = `<div style="font-family: Arial, sans-serif; color: #000; padding: 10px;"><div style="text-align:center; margin-bottom: 20px;"><h2 style="font-size: 18px; margin-bottom: 5px;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2><p style="font-size: 13px; margin: 0;">Khoa/Phòng: <strong style="font-size: 14px;">${k}</strong> - Ngày xuất phiếu: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></p></div><table style="width:100%; border-collapse: collapse; text-align: left; font-size: 13px; font-family: Arial, sans-serif;"><thead><tr style="background-color: #f8fafc;"><th style="border: 1px solid #000; padding: 10px; font-weight: bold;">Phân Loại Mâm / Loại Dụng Cụ</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Đã Trả Bẩn</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Nhận Sạch</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">CSSD Nợ Khoa</th></tr></thead><tbody>${document.getElementById("bangDonGiaoNhan").innerHTML}</tbody></table></div>`; const pZone = document.getElementById("print-zone"); pZone.innerHTML = printHtml; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden"); }
+function moPopupKiemDem(id) { idDangKiemDem = id; let item = listGiaoDich.find(x => x.firestoreId === id); if(item) { document.getElementById("popBo").innerText = item.bo; document.getElementById("popKhoa").innerText = item.khoa; let tenBo = item.bo.split(" [ID:")[0]; let itemsInBo = databaseExcel.filter(x => { let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); }); let chkList = document.getElementById("popKiemDemChecklist"); if(itemsInBo.length > 0) { chkList.innerHTML = itemsInBo.map((ct, idx) => { let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['TÊN BỘ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ"; let sl = ct['Số lượng'] || ct['SL'] || ct['Số Lượng'] || 1; return `<label class="flex items-center justify-between py-2 border-b border-slate-200 cursor-pointer hover:bg-slate-100 px-2 rounded"><div class="flex items-center gap-2"><input type="checkbox" class="w-4 h-4 rounded text-sky-600"><span class="text-[12px] font-bold text-slate-700">${tenDc}</span></div><span class="text-[12px] font-black text-sky-700 bg-sky-100 px-2 py-0.5 rounded">SL: ${sl}</span></label>`; }).join(''); } else { chkList.innerHTML = `<p class="italic text-center text-[11px] text-slate-400 py-4">Chưa có cấu hình chi tiết linh kiện.</p>`; } document.getElementById("popGhiChu").value = ""; document.getElementById("popupKiemDem").classList.remove("hidden"); } }
+function closePopupKiemDem() { document.getElementById("popupKiemDem").classList.add("hidden"); }
+function saveKiemDem() { if(!idDangKiemDem) return; db.collection("phieuGiaoNhan").doc(idDangKiemDem).update({ status: "DANG_RUA", ghiChu: document.getElementById("popGhiChu").value }).then(() => { showToast("Đã chuyển mâm sang Trạm Làm Sạch!", "success"); closePopupKiemDem(); callRender(); }); }
+function moPopupDongGoi(id) { idDangDongGoi = id; let item = listGiaoDich.find(x => x.firestoreId === id); if(item) { document.getElementById("popDG_Bo").innerText = item.bo; tinhHanSuDung(); document.getElementById("popupDongGoi").classList.remove("hidden"); } }
+function closePopupDongGoi() { document.getElementById("popupDongGoi").classList.add("hidden"); }
+function tinhHanSuDung() { let val = document.getElementById("popDG_Loai").value.split("|"); let days = parseInt(val[1]); let dateHSD = new Date(); dateHSD.setDate(dateHSD.getDate() + days); let p = document.getElementById("popDG_Han"); p.innerText = dateHSD.toLocaleDateString('vi-VN'); p.dataset.dateDB = dateHSD.toISOString().split('T')[0]; }
+function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.getElementById("popDG_Loai").value.split("|")[0]; db.collection("phieuGiaoNhan").doc(idDangDongGoi).update({ status: "CHO_HAP", chatLieu: chatLieuTen, hsd: document.getElementById("popDG_Han").dataset.dateDB }).then(() => { showToast("Đã đóng gói, chuyển chờ hấp!", "success"); closePopupDongGoi(); callRender(); }); }
+function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
+function capNhatDanhSachMaMay() { const loaiHap = document.getElementById("hap_loaiHap")?.value; const selectMay = document.getElementById("hap_maySo"); if (!selectMay || !loaiHap) return; selectMay.innerHTML = ""; if (cauHinhMayHap[loaiHap]) { cauHinhMayHap[loaiHap].forEach(may => { selectMay.innerHTML += `<option value="${may}">${may}</option>`; }); } tuDongTaoMaLoMeHap(); }
+function tuDongTaoMaLoMeHap() { const maMay = document.getElementById("hap_maySo")?.value || "A1"; const now = new Date(); const yy = String(now.getFullYear()).slice(-2); const mm = String(now.getMonth() + 1).padStart(2, '0'); const dd = String(now.getDate()).padStart(2, '0'); const ngayChuoi = `${yy}${mm}${dd}`; let cacMeTrongNgay = listGiaoDich.filter(x => x.batchCode && x.batchCode.startsWith(maMay + ngayChuoi)); let soMeMax = 0; cacMeTrongNgay.forEach(x => { let phanDuoi = x.batchCode.split("_")[1]; if (phanDuoi) { let num = parseInt(phanDuoi); if (num > soMeMax) soMeMax = num; } }); let meTiepTheo = soMeMax + 1; if (meTiepTheo > 99) meTiepTheo = 1; const chuoiMe = String(meTiepTheo).padStart(2, '0'); const soLanDone = `${ngayChuoi}_${chuoiMe}`; const batchIdHoanChinh = `${maMay}${soLanDone}`; if (document.getElementById("hap_meSo")) document.getElementById("hap_meSo").value = soLanDone; if (document.getElementById("hap_batchId")) document.getElementById("hap_batchId").value = batchIdHoanChinh; }
+function inTemTongHangLoat() { let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem!", "error"); let batchCode = document.getElementById("hap_batchId")?.value || "A1000000_01"; let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let tenBoText = item.bo.split(" [ID:")[0]; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${tenBoText}</div><div style="text-align: center;"><svg id="barcode-lo-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 9px; margin-top: 2px; font-family: monospace; font-weight: bold;">Lô: ${batchCode}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-lo-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
+function xacNhanMeHap() { let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ!", "error"); let loaiHap = document.getElementById("hap_loaiHap").value; let maMay = document.getElementById("hap_maySo").value; let batchCode = document.getElementById("hap_batchId").value; let chuKyNhiet = document.getElementById("hap_nhietDo").value; let apSuat = document.getElementById("hap_apSuat").value || "N/A"; let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllHap') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ status: "DANG_HAP", batchCode: batchCode, ngayHapRealtime: getTodayDateStr(), thongTinLoHap: { loaiHap: loaiHap, maMay: maMay, chuKyNhiet: chuKyNhiet, apSuat: apSuat, thoiGianBatDau: new Date().toLocaleTimeString('vi-VN') } })); }); Promise.all(p).then(() => { showToast(`Kích hoạt lò thành công! Lô: ${batchCode}`, "success"); tuDongTaoMaLoMeHap(); callRender(); }); }
+function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
+function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã duyệt mâm đạt nhập kho Vô Khuẩn!", "success"); callRender(); }); }
+function inTemNghiemThuHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let tenBoText = item.bo.split(" [ID:")[0]; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-size: 9px; font-weight: bold;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0;">${tenBoText}</div><div style="text-align: center;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; margin-top: 2px; font-family: monospace;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
+function tuChoiHapHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); }
 function resetDuLieuKet() { if(confirm("Dọn dẹp mâm kẹt?")) { let p = []; listGiaoDich.forEach(doc => { if(doc.status !== "HOAN_TAT") { p.push(db.collection("phieuGiaoNhan").doc(doc.firestoreId).update({ status: "HOAN_TAT", ghiChu: "Dọn kẹt" })); } }); Promise.all(p).then(() => callRender()); } }
 function switchAdminSubtab(sub) { document.getElementById('subtab-database').classList.add('hidden'); document.getElementById('subtab-security').classList.add('hidden'); document.getElementById('subbtn-database').classList.replace('admin-subtab-active', 'text-slate-600'); document.getElementById('subbtn-security').classList.replace('admin-subtab-active', 'text-slate-600'); document.getElementById('subtab-' + sub).classList.remove('hidden'); document.getElementById('subbtn-' + sub).classList.add('admin-subtab-active'); }
 function saveAdminPIN(type) { let newVal = document.getElementById(`cfg_pin${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}`).value.trim(); if(type === 'ADMIN') thongTinMatKhauAdmin.adminPIN = newVal; if(type === 'CSSD') thongTinMatKhauAdmin.cssdPIN = newVal; if(type === 'GUEST') thongTinMatKhauAdmin.guestPIN = newVal; db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ thongTinMatKhauAdmin: thongTinMatKhauAdmin }).then(() => showToast("Đã lưu PIN!", "success")); }
@@ -411,3 +357,5 @@ function toggleLoginFields() { const r = document.getElementById("login_role").v
 function moCamera(inputId) { targetInputIdForScan = inputId; document.getElementById("popupScanner").classList.remove("hidden"); html5QrCode = new Html5Qrcode("reader"); Html5Qrcode.getCameras().then(devices => { let cid = devices.length > 1 ? devices[devices.length - 1].id : devices[0].id; html5QrCode.start(cid, { fps: 15, qrbox: { width: 260, height: 180 } }, (txt) => { document.getElementById(targetInputIdForScan).value = txt.trim().toUpperCase(); if(targetInputIdForScan==='khoa_inpMaBo') themVaoGio(); if(targetInputIdForScan==='xuat_inpMaBo') xuatKhoXoayVong(); }).catch(e=>{}) }); }
 function dongCamera() { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()); document.getElementById("popupScanner").classList.add("hidden"); }
 function xoaSachDuLieuGiaoDichRealtime() { if(prompt("Nhập PIN ADMIN để xóa:") === (thongTinMatKhauAdmin.adminPIN||"admin2026")) { db.collection("phieuGiaoNhan").get().then(snap => { let b = db.batch(); snap.forEach(d => b.delete(d.ref)); b.commit().then(() => location.reload()); }); } }
+function truyVetTheoMaBatch() { callRender(); }
+function clearTruyVetBatch() { document.getElementById("inp_searchBatch").value = ""; callRender(); }
