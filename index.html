@@ -170,7 +170,7 @@
                             <div class="flex-1 overflow-auto rounded border border-slate-100">
                                 <table class="w-full text-left text-xs">
                                     <thead class="sticky top-0 bg-slate-50 shadow-sm z-10">
-                                        <tr><th class="p-3 w-10 text-center"><input type="checkbox" id="selectAllHap" onchange="toggleSelectAllHap()" class="hap-checkbox"></th><th class="p-3">Mâm Dụng Cụ</th><th class="p-3 text-right">Mã Định Danh Khay</th></tr>
+                                        <tr><th class="p-3 w-10 text-center"><input type="checkbox" id="selectAllHap" onchange="toggleSelectAllHap()" class="hap-checkbox"></th><th class="p-3">Mâm Dụng Cụ</th><th class="p-3 text-right">Mã Định Định Khay</th></tr>
                                     </thead>
                                     <tbody id="bangChoHap" class="divide-y divide-slate-100 text-slate-700 bg-white"></tbody>
                                 </table>
@@ -423,6 +423,28 @@
                     </div>
 
                     <div id="subtab-security" class="glass-panel p-6 space-y-6 hidden">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+                            <h4 class="text-xs font-black text-slate-700 uppercase mb-2 flex items-center gap-1.5">
+                                <i class="fa-solid fa-toggle-on text-sky-600 text-sm"></i> BẢNG PHÂN QUYỀN & KHÓA TAB CHỨC NĂNG GIAO DIỆN
+                            </h4>
+                            <p class="text-[11px] text-slate-500 mb-4">Admin chỉ cần check vào ô vuông để mở Tab hoặc bỏ check để KHÓA/ẨN Tab đó ngay lập tức với từng vai trò người dùng (Realtime).</p>
+                            
+                            <div class="overflow-x-auto border border-slate-200 rounded-lg bg-white">
+                                <table class="w-full text-left">
+                                    <thead class="bg-slate-100 text-[10px] font-black uppercase text-slate-600 border-b">
+                                        <tr>
+                                            <th class="p-3 w-2/5">Tên Tab / Chức năng hệ thống</th>
+                                            <th class="p-3 text-center w-1/5 bg-sky-50/50">KTV CSSD</th>
+                                            <th class="p-3 text-center w-1/5">Điều Dưỡng Lâm Sàng</th>
+                                            <th class="p-3 text-center w-1/5">Khách Tham Quan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bodyMaTranGiaoDien" class="divide-y divide-slate-100 text-slate-600">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-slate-50 p-4 rounded border border-slate-200">
                                 <h4 class="text-xs font-black text-slate-600 uppercase">PIN ADMIN HỆ THỐNG</h4>
