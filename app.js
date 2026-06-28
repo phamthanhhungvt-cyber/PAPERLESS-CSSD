@@ -152,7 +152,29 @@ function khoaGuiPhieuTraBatches() { const k = document.getElementById("khoa_selK
 
 function inHoaDonGiaoNhan() {
     const k = document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in!", "error");
-    let printHtml = `<div style="text-align:center; margin-bottom: 20px;"><h2>BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2><p>Khoa/Phòng: <strong>${k}</strong> - Ngày xuất phiếu: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></p></div><table style="width:100%; border-collapse: collapse; text-align: left; font-size: 13px;"><thead><tr><th style="border: 1px solid #000; padding: 10px;">Phân Loại Mâm / Loại Dụng Cụ</th><th style="border: 1px solid #000; padding: 10px; text-align: center;">Đã Trả Bẩn</th><th style="border: 1px solid #000; padding: 10px; text-align: center;">Nhận Sạch</th><th style="border: 1px solid #000; padding: 10px; text-align: center;">CSSD Nợ Khoa</th></tr></thead><tbody>${document.getElementById("bangHoaDonGiaoNhan").innerHTML}</tbody></table>`;
+    
+    // Bổ sung font-family: Arial, sans-serif toàn bộ khu vực in để tránh lỗi nhảy dấu tiếng Việt
+    let printHtml = `
+        <div style="font-family: Arial, sans-serif; color: #000; padding: 10px;">
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h2 style="font-size: 18px; margin-bottom: 5px;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2>
+                <p style="font-size: 13px; margin: 0;">Khoa/Phòng: <strong style="font-size: 14px;">${k}</strong> - Ngày xuất phiếu: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></p>
+            </div>
+            <table style="width:100%; border-collapse: collapse; text-align: left; font-size: 13px; font-family: Arial, sans-serif;">
+                <thead>
+                    <tr style="background-color: #f8fafc;">
+                        <th style="border: 1px solid #000; padding: 10px; font-weight: bold;">Phân Loại Mâm / Loại Dụng Cụ</th>
+                        <th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Đã Trả Bẩn</th>
+                        <th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Nhận Sạch</th>
+                        <th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">CSSD Nợ Khoa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${document.getElementById("bangHoaDonGiaoNhan").innerHTML}
+                </tbody>
+            </table>
+        </div>
+    `;
     const pZone = document.getElementById("print-zone"); pZone.innerHTML = printHtml; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden");
 }
 
