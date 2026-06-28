@@ -10,6 +10,13 @@ let activeTab = 'thugom'; let renderTimeout = null;
 
 function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
+// --- KHU VỰC CẤU HÌNH PHÂN LOẠI MÁY HẤP PHƯƠNG NAM ---
+const cauHinhMayHap = {
+    "Hấp hơi nước": ["A1", "A2", "A3", "A4"],
+    "Hấp H2O2 (Plasma)": ["P1", "P2"],
+    "Khử khuẩn EO": ["EO1", "EO2"]
+};
+
 // --- KHU VỰC CÁC HÀM LẮNG NGHE DỮ LIỆU TỪ FIREBASE (REALTIME LISTENERS) ---
 
 db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
@@ -189,19 +196,61 @@ function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.g
 
 function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
 
+// --- HÀM HỖ TRỢ TỰ ĐỘNG TẠO MÃ LÔ VÀ ĐỒNG BỘ LÒ HẤP PHƯƠNG NAM ---
+function capNhatDanhSachMaMay() {
+    const loaiHap = document.getElementById("hap_loaiHap")?.value;
+    const selectMay = document.getElementById("hap_maySo");
+    if (!selectMay || !loaiHap) return;
+    
+    selectMay.innerHTML = "";
+    if (cauHinhMayHap[loaiHap]) {
+        cauHinhMayHap[loaiHap].forEach(may => {
+            selectMay.innerHTML += `<option value="${may}">${may}</option>`;
+        });
+    }
+    tuDongTaoMaLoMeHap();
+}
+
+function tuDongTaoMaLoMeHap() {
+    const maMay = document.getElementById("hap_maySo")?.value || "A1";
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const ngayChuoi = `${yy}${mm}${dd}`; 
+
+    // Đếm các mẻ của chính máy này đã kích hoạt trong ngày hôm nay trên cơ sở dữ liệu
+    let cacMeTrongNgay = listGiaoDich.filter(x => 
+        x.batchCode && 
+        x.batchCode.startsWith(maMay + ngayChuoi)
+    );
+    
+    let soMeMax = 0;
+    cacMeTrongNgay.forEach(x => {
+        let phanDuoi = x.batchCode.split("_")[1];
+        if (phanDuoi) {
+            let num = parseInt(phanDuoi);
+            if (num > soMeMax) soMeMax = num;
+        }
+    });
+
+    let meTiepTheo = soMeMax + 1;
+    if (meTiepTheo > 99) meTiepTheo = 1; 
+    
+    const chuoiMe = String(meTiepTheo).padStart(2, '0');
+    const soLanDone = `${ngayChuoi}_${chuoiMe}`;
+    const batchIdHoanChinh = `${maMay}${soLanDone}`;
+
+    if (document.getElementById("hap_meSo")) document.getElementById("hap_meSo").value = soLanDone;
+    if (document.getElementById("hap_batchId")) document.getElementById("hap_batchId").value = batchIdHoanChinh;
+}
+
 // --- TAB 4 : CHỨC NĂNG IN TEM MẺ HẤP ĐÔI CHUẨN ---
 function inTemTongHangLoat() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem mẻ hấp!", "error"); 
     
-    let mayInp = document.getElementById("hap_maySo").value;
-    let soMe = document.getElementById("hap_meSo").value.padStart(2, '0');
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    let mayKyHieu = mayInp.includes("02") ? "2" : "1";
-    let batchCode = `A${mayKyHieu}${yy}${mm}${dd}_${soMe}`;
+    let batchCode = document.getElementById("hap_batchId")?.value || "A1000000_01";
     
     let container = document.createElement('div');
     container.className = "print-label-container";
@@ -283,25 +332,32 @@ function inTemTongHangLoat() {
 
 function xacNhanMeHap() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
-    if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
+    if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ để nạp vào lò!", "error"); 
     
-    let mayInp = document.getElementById("hap_maySo").value; 
-    let soMe = document.getElementById("hap_meSo").value.padStart(2, '0'); 
-    
-    const now = new Date();
-    const yy = String(now.getFullYear()).slice(-2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    let mayKyHieu = mayInp.includes("02") ? "2" : "1";
-    let batchCode = `A${mayKyHieu}${yy}${mm}${dd}_${soMe}`;
+    let loaiHap = document.getElementById("hap_loaiHap").value;
+    let maMay = document.getElementById("hap_maySo").value; 
+    let batchCode = document.getElementById("hap_batchId").value;
+    let chuKyNhiet = document.getElementById("hap_nhietDo").value;
+    let apSuat = document.getElementById("hap_apSuat").value || "N/A";
 
     let p = []; 
     checkboxes.forEach(cb => { 
         if(cb.id === 'selectAllHap') return; 
-        p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ status: "DANG_HAP", batchCode: batchCode })); 
+        p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ 
+            status: "DANG_HAP", 
+            batchCode: batchCode,
+            thongTinLoHap: {
+                loaiHap: loaiHap,
+                maMay: maMay,
+                chuKyNhiet: chuKyNhiet,
+                apSuat: apSuat,
+                thoiGianBatDau: new Date().toLocaleTimeString('vi-VN')
+            }
+        })); 
     }); 
     Promise.all(p).then(() => { 
-        showToast(`Đã kích hoạt lò hấp thành công! Mã Lô: ${batchCode}`, "success"); 
+        showToast(`Đã vận hành lò thành công! Mã Lô: ${batchCode}`, "success"); 
+        tuDongTaoMaLoMeHap(); 
         callRender(); 
     }); 
 }
@@ -417,6 +473,7 @@ function renderTheoTabHienTai() {
         document.getElementById("gridDongGoi").innerHTML = lsDG.map(i => `<div class="bg-white p-3 rounded border border-slate-200 mb-2 flex justify-between items-center"><div class="flex-1"><div class="font-bold text-sky-700 text-[13px]">${i.bo}</div><div class="text-[10px] text-slate-500">Từ khoa: ${i.khoa}</div></div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-sky-50 text-sky-700 border border-sky-300 px-3 py-1.5 rounded text-[11px] font-black">ĐÓNG GÓI</button></div>`).join('');
     }
     else if(activeTab === 'mayhap') {
+        tuDongTaoMaLoMeHap(); // Luôn kích hoạt cập nhật mã lô theo thời gian thực khi vào trạm
         let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); document.getElementById("bangChoHap").innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join('');
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); document.getElementById("bangChoNghiệmThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span></td></tr>`).join('');
     }
@@ -556,7 +613,6 @@ function themKhoaThuCong() {
     }
 }
 
-// --- CẬP NHẬT PIN KHOA TRỰC TIẾP ---
 function updatePINTrựcTiep(idx, tenKhoa) {
     let userInp = document.getElementById(`pin-khoa-${idx}`).value.trim();
     if(userInp === "") return showToast("Vui lòng nhập mã PIN mới vào ô trống!", "error");
@@ -567,7 +623,6 @@ function updatePINTrựcTiep(idx, tenKhoa) {
     }
 }
 
-// --- HÀM ĐỒNG BỘ ĐỌC TRỰC TIẾP FILE ITEM MASTER CỦA ARCUS AIR ---
 function processExcelUpload() {
     let fileInput = document.getElementById('excelFileInput'); 
     let file = fileInput.files[0];
@@ -641,7 +696,6 @@ function showToast(msg, type="error") { const t = document.createElement('div');
 function toggleMobileMenu() { const sb = document.getElementById("sidebar_menu"), ov = document.getElementById("mobile-overlay"); sb.classList.toggle("-translate-x-full"); ov.classList.toggle("hidden"); }
 function toggleLoginFields() { const r = document.getElementById("login_role").value; document.getElementById("field_khoa").style.display = (r === "KHOA") ? "block" : "none"; document.getElementById("field_nhanvien_cssd").style.display = (r === "CSSD") ? "block" : "none"; }
 
-// --- TÍNH NĂNG XUẤT NHẬT KÝ ĐỒNG BỘ SANG ARCUS AIR ---
 function xuatLichSuHapRaExcel() {
     if (listGiaoDich.length === 0) return showToast("Không có dữ liệu nhật ký luân chuyển để xuất!", "error");
     
@@ -690,7 +744,6 @@ function taiExcelMauDongBo() {
     showToast("Đã tải file Excel cấu hình mẫu Arcus Air chuẩn!", "success");
 }
 
-// --- HÀM TẠO ÂM THANH PHẢN HỒI CHUYÊN DỤNG (WEB AUDIO API) ---
 function phatAmThanhPhanHoi(type = "success") {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -722,7 +775,6 @@ function phatAmThanhPhanHoi(type = "success") {
     } catch (e) { console.log("Lỗi âm thanh: ", e); }
 }
 
-// --- QUÉT CAMERA LIÊN TỤC KHÔNG TẮT ---
 let lastScannedCode = ""; 
 let scanThrottleTimeout = null;
 
@@ -832,7 +884,6 @@ function clearTruyVetBatch() {
     callRender(); 
 }
 
-// --- CHỨC NĂNG ADMIN: XÓA SẠCH DỮ LIỆU DEMO ĐỂ CHẠY THẬT (GO-LIVE) ---
 function xoaSachDuLieuGiaoDichRealtime() {
     let PINAdminXacNhan = prompt("CẢNH BÁO NGUY HIỂM:\nThao tác này sẽ XÓA VĨNH VIỄN toàn bộ lịch sử luân chuyển, giao nhận, mẻ hấp bẩn/sạch trên hệ thống để chuẩn bị chạy thật.\n\nVui lòng nhập mã PIN ADMIN để xác nhận:");
     if (!PINAdminXacNhan) return; 
