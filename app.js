@@ -72,7 +72,7 @@ function anTatCaHeadersVaMenus() {
     document.getElementById('header-lamsang')?.classList.add('hidden');
     document.getElementById('header-vanhanh')?.classList.add('hidden');
     document.getElementById('header-dulieu')?.classList.add('hidden');
-    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance'].forEach(x => {
+    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance','dashboard_tv'].forEach(x => {
         document.getElementById('menu-' + x)?.classList.add('hidden');
     });
 }
@@ -93,7 +93,7 @@ function checkLogin() {
         document.getElementById('header-lamsang').classList.remove('hidden'); 
         document.getElementById('header-vanhanh').classList.remove('hidden'); 
         document.getElementById('header-dulieu').classList.remove('hidden');
-        ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
+        ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance','dashboard_tv'].forEach(x => document.getElementById('menu-'+x)?.classList.remove('hidden'));
         switchTab('tracuu');
     } else if (role === "KHOA") { 
         const khoaSelect = document.getElementById("login_khoa").value; 
@@ -121,14 +121,14 @@ function checkLogin() {
         
         document.getElementById('header-vanhanh').classList.remove('hidden'); 
         document.getElementById('header-dulieu').classList.remove('hidden');
-        ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
+        ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','dashboard_tv'].forEach(x => document.getElementById('menu-'+x)?.classList.remove('hidden'));
         switchTab('thugom');
     } else if (role === "GUEST") {
         if(pass === pG) {
             currentRole = "GUEST"; loginUserCode = "GUEST"; document.getElementById("nav_user_info").innerText = "KHÁCH THAM QUAN";
             document.body.classList.add('guest-mode'); 
             document.getElementById('header-dulieu').classList.remove('hidden');
-            ['quanlykho','danhmuc','performance'].forEach(x => document.getElementById('menu-'+x).classList.remove('hidden'));
+            ['quanlykho','danhmuc','performance','dashboard_tv'].forEach(x => document.getElementById('menu-'+x)?.classList.remove('hidden'));
             switchTab('quanlykho');
         } else { return showToast("Sai mã PIN Khách tham quan!", "error"); }
     } else { return showToast("Sai thông tin đăng nhập!", "error"); }
@@ -136,7 +136,7 @@ function checkLogin() {
 }
 
 function switchTab(t) { 
-    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance'].forEach(x => { 
+    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','tracuu','performance','dashboard_tv'].forEach(x => { 
         document.getElementById('tab-'+x)?.classList.add('hidden'); document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
     }); 
     document.getElementById('tab-'+t)?.classList.remove('hidden'); document.getElementById('menu-'+t)?.classList.add('sidebar-item-active'); 
@@ -366,6 +366,7 @@ function xacNhanMeHap() {
         p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ 
             status: "DANG_HAP", 
             batchCode: batchCode,
+            ngayHapRealtime: getTodayDateStr(), // Phục vụ bộ lọc Live Dashboard Tivi
             thongTinLoHap: {
                 loaiHap: loaiHap,
                 maMay: maMay,
@@ -493,7 +494,7 @@ function renderTheoTabHienTai() {
         document.getElementById("gridDongGoi").innerHTML = lsDG.map(i => `<div class="bg-white p-3 rounded border border-slate-200 mb-2 flex justify-between items-center"><div class="flex-1"><div class="font-bold text-sky-700 text-[13px]">${i.bo}</div><div class="text-[10px] text-slate-500">Từ khoa: ${i.khoa}</div></div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-sky-50 text-sky-700 border border-sky-300 px-3 py-1.5 rounded text-[11px] font-black">ĐÓNG GÓI</button></div>`).join('');
     }
     else if(activeTab === 'mayhap') {
-        capNhatDanhSachMaMay(); // Đảm bảo đồng bộ danh sách máy hấp Phương Nam ngay lập tức
+        capNhatDanhSachMaMay(); 
         let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); document.getElementById("bangChoHap").innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join('');
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); document.getElementById("bangChoNghiệmThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span></td></tr>`).join('');
     }
@@ -613,6 +614,56 @@ function renderTheoTabHienTai() {
                     <td class="p-2.5 text-center text-slate-400 font-medium">${x.ngayTao || ''} - ${x.time || ''}</td>
                 </tr>
             `).join('') || `<tr><td colspan="6" class="p-8 text-center italic text-slate-400">Không tìm thấy dữ liệu luân chuyển nào khớp với mã lô này.</td></tr>`;
+        }
+    }
+    else if(activeTab === 'dashboard_tv') {
+        renderDashboardTiviRealtime(); // Kích hoạt bộ đếm và vẽ biểu đồ realtime cho Tivi
+    }
+}
+
+// --- TAB 10 : LOGIC TÍNH TOÁN REALTIME CHO MÀN HÌNH TIVI TRỰC BAN ---
+function renderDashboardTiviRealtime() {
+    const homNayChuoi = getTodayDateStr();
+    
+    // 1. Tính tổng số mâm đang ở từng khu vực
+    let slDangRua = listGiaoDich.filter(x => x.status === "DANG_RUA").length;
+    let slDangHap = listGiaoDich.filter(x => x.status === "DANG_HAP").length;
+    let slChoXuat = listGiaoDich.filter(x => x.status === "CHO_XUAT").length;
+    let slSanSang = listGiaoDich.filter(x => x.status === "HOAN_TAT").length;
+    
+    // 2. Tính tổng số mẻ Rửa và mẻ Hấp trong ngày hôm nay
+    // Mẻ rửa được gom nhóm theo thời gian (cùng thời điểm chuyển trạng thái)
+    let uniqueMeRuaHomNay = new Set(listGiaoDich.filter(x => x.status === "DANG_RUA" && x.ngayTao === homNayChuoi).map(x => x.time?.substring(0,5)));
+    let tongMeRuaTrongNgay = uniqueMeRuaHomNay.size;
+    
+    // Mẻ hấp dựa trên mã Lô (Batch ID) liên kết trong ngày hôm nay
+    let uniqueMeHapHomNay = new Set(listGiaoDich.filter(x => x.ngayHapRealtime === homNayChuoi && x.batchCode).map(x => x.batchCode));
+    let tongMeHapTrongNgay = uniqueMeHapHomNay.size;
+
+    // 3. Tính toán các mâm khẩn cấp hoặc quá hạn HSD
+    const ngayHomNay = new Date(); ngayHomNay.setHours(0,0,0,0);
+    let countQuadHan = 0;
+    
+    listGiaoDich.forEach(x => {
+        if(x.hsd && (x.status === "CHO_XUAT" || x.status === "HOAN_TAT")) {
+            let nd = new Date(x.hsd); nd.setHours(0,0,0,0);
+            if(nd.getTime() - ngayHomNay.getTime() < 0) countQuadHan++;
+        }
+    });
+
+    // 4. Đẩy dữ liệu ra giao diện hiển thị đồ họa
+    if(document.getElementById("tv_meRua")) document.getElementById("tv_meRua").innerText = tongMeRuaTrongNgay;
+    if(document.getElementById("tv_meHap")) document.getElementById("tv_meHap").innerText = tongMeHapTrongNgay;
+    if(document.getElementById("tv_dangRua")) document.getElementById("tv_dangRua").innerText = slDangRua;
+    if(document.getElementById("tv_dangHap")) document.getElementById("tv_dangHap").innerText = slDangHap;
+    if(document.getElementById("tv_khoVoKhuan")) document.getElementById("tv_khoVoKhuan").innerText = slChoXuat;
+    if(document.getElementById("tv_canhBaoHsd")) {
+        const divCb = document.getElementById("tv_canhBaoHsd");
+        divCb.innerText = countQuadHan;
+        if(countQuadHan > 0) {
+            divCb.parentElement.classList.add("bg-rose-500", "text-white", "animate-pulse");
+        } else {
+            divCb.parentElement.classList.remove("bg-rose-500", "text-white", "animate-pulse");
         }
     }
 }
