@@ -64,7 +64,7 @@
                 
                 <div id="header-vanhanh" class="px-4 py-3 text-[10px] uppercase text-slate-400 font-bold tracking-wider">Vận Hành Tiệt Khuẩn</div>
                 <nav class="flex flex-col px-2 space-y-0.5">
-                    <a href="#" onclick="switchTab('thugom'); toggleMobileMenu();" id="menu-thugom" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition"><i class="fa-solid fa-truck-medical w-4 text-center"></i> <span>2. Điều Phối Thu Gom</span></a>
+                    <a href="#" onclick="switchTab('thugom'); toggleMobileMenu();" id="menu-thugom" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition"><i class="fa-solid fa-truck-medical w-4 text-center"></i> <span>2. Điều Phối Xe Thu Gom</span></a>
                     <a href="#" onclick="switchTab('donggoi'); toggleMobileMenu();" id="menu-donggoi" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition"><i class="fa-solid fa-hands-bubbles w-4 text-center"></i> <span>3. Trạm Làm Sạch & Gói</span></a>
                     <a href="#" onclick="switchTab('mayhap'); toggleMobileMenu();" id="menu-mayhap" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition"><i class="fa-solid fa-server w-4 text-center"></i> <span>4. Quản Lý Mẻ Hấp</span></a>
                     <a href="#" onclick="switchTab('khovokhuan'); toggleMobileMenu();" id="menu-khovokhuan" class="flex items-center space-x-3 px-3 py-2.5 rounded-md text-[13px] font-semibold text-slate-600 transition"><i class="fa-solid fa-door-closed w-4 text-center"></i> <span>5. Kho Vô Khuẩn (Xuất)</span></a>
@@ -175,18 +175,68 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-sky-500">
-                            <div class="border-b border-slate-100 pb-3 mb-4"><h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-server mr-2 text-sky-500"></i> Thiết Lập Mẻ Hấp</h3></div>
-                            <div class="bg-slate-50 p-5 rounded border border-slate-200 flex-1 flex flex-col justify-center space-y-4">
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div><label class="block text-xs uppercase font-bold text-slate-500 mb-1.5">Máy số:</label><select id="hap_maySo" class="w-full px-3 py-2.5 shadow-sm font-bold text-slate-700"><option value="Máy 01">Máy 01</option><option value="Máy 02">Máy 02</option></select></div>
-                                    <div><label class="block text-xs uppercase font-bold text-slate-500 mb-1.5">Chu kỳ mẻ:</label><input type="number" id="hap_meSo" min="1" value="1" class="w-full px-3 py-2.5 shadow-sm text-sky-700 font-black text-center text-lg"></div>
+                        
+                        <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-sky-500 bg-white">
+                            <div class="border-b border-slate-100 pb-3 mb-4 flex justify-between items-center">
+                                <h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-square-poll-horizontal mr-2 text-sky-500"></i> Chi Tiết Mẻ Tiệt Khuẩn</h3>
+                                <span class="text-[10px] text-slate-400 font-bold uppercase">Autoclave Details</span>
+                            </div>
+                            
+                            <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 flex-1 space-y-3">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Loại hình tiệt khuẩn:</label>
+                                        <select id="hap_loaiHap" onchange="capNhatDanhSachMaMay()" class="w-full px-2.5 py-2 font-bold text-xs bg-white border border-slate-300 rounded shadow-sm">
+                                            <option value="Hấp hơi nước">Hấp hơi nước</option>
+                                            <option value="Hấp H2O2 (Plasma)">Hấp H2O2 (Plasma)</option>
+                                            <option value="Khử khuẩn EO">Khử khuẩn EO</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Mã máy đã chọn (Code):</label>
+                                        <select id="hap_maySo" onchange="tuDongTaoMaLoMeHap()" class="w-full px-2.5 py-2 font-black text-xs text-sky-700 bg-white border border-slate-300 rounded shadow-sm">
+                                            <option value="A1">A1</option>
+                                            <option value="A2">A2</option>
+                                            <option value="A3">A3</option>
+                                            <option value="A4">A4</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div><label class="block text-xs uppercase font-bold text-slate-500 mb-1.5">Chương trình:</label><select id="hap_nhietDo" class="w-full px-3 py-2.5 shadow-sm font-bold text-slate-700"><option value="134°C - 4 phút">134°C - 4 phút</option><option value="121°C - 20 phút">121°C - 20 phút</option></select></div>
-                                <div class="pt-2"><button onclick="xacNhanMeHap()" class="w-full btn-primary font-black py-4 rounded-lg text-sm shadow-md action-btn">KÍCH HOẠT VÀ KHỞI ĐỘNG LÒ HẤP</button></div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Số lần đã thực hiện:</label>
+                                        <input type="text" id="hap_meSo" readonly class="w-full px-2.5 py-2 text-xs font-mono font-bold text-center bg-slate-100 border border-slate-200 rounded text-slate-600">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-rose-600 uppercase mb-1"><i class="fa-solid fa-star text-[8px] mr-0.5"></i> Mã lô liên kết (Batch ID):</label>
+                                        <input type="text" id="hap_batchId" readonly class="w-full px-2.5 py-2 text-xs font-mono font-black text-center bg-rose-50 border border-rose-300 rounded text-rose-700">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="col-span-2">
+                                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Nhiệt độ / Chương trình:</label>
+                                        <select id="hap_nhietDo" class="w-full px-2 py-2 text-xs font-semibold bg-white border border-slate-300 rounded">
+                                            <option value="134°C - 4 phút">134°C - 4 phút</option>
+                                            <option value="121°C - 20 phút">121°C - 20 phút</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Áp suất (Bar):</label>
+                                        <input type="text" id="hap_apSuat" placeholder="2.1" class="w-full px-2 py-2 text-xs font-bold text-center bg-white border border-slate-300 rounded">
+                                    </div>
+                                </div>
+
+                                <div class="pt-3 border-t border-slate-200 mt-2">
+                                    <button onclick="xacNhanMeHap()" class="w-full btn-primary font-black py-3.5 rounded-lg text-xs uppercase tracking-wider shadow-md action-btn transition-transform active:scale-[0.98]">
+                                        <i class="fa-solid fa-play-circle mr-1.5 text-sm"></i> KÍCH HOẠT VÀ KHỞI ĐỘNG LÒ HẤP
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[450px]">
                         <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-amber-500">
                             <div class="border-b border-slate-100 pb-3 mb-4"><h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-vial-circle-check mr-2 text-amber-500"></i> Phê Duyệt - Chấp Nhận Vô Kho</h3></div>
@@ -198,7 +248,7 @@
                                 </div>
                             </div>
                             <div class="flex-1 overflow-auto bg-amber-50/20 rounded-lg border border-amber-200/50">
-                                <table class="w-full text-left"><thead class="sticky top-0 bg-amber-100 shadow-sm z-10"><tr><th class="p-2 w-10 text-center"><input type="checkbox" id="selectAllNghiemThu" onchange="toggleSelectAllNghiemThu()" class="hap-checkbox"></th><th class="p-2 text-xs font-black text-slate-700">Mâm dụng cụ / Mã mẻ</th></tr></thead><tbody id="bangChoNghiệmThu" class="divide-y divide-slate-200"></tbody></table>
+                                <table class="w-full text-left"><thead class="sticky top-0 bg-amber-100 shadow-sm z-10"><tr><th class="p-2 w-10 text-center"><input type="checkbox" id="selectAllNghiemThu" onchange="toggleSelectAllNghiemThu()" class="nghiemthu-checkbox"></th><th class="p-2 text-xs font-black text-slate-700">Mâm dụng cụ / Mã mẻ</th></tr></thead><tbody id="bangChoNghiệmThu" class="divide-y divide-slate-200"></tbody></table>
                             </div>
                         </div>
                         <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-emerald-500">
