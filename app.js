@@ -4,8 +4,8 @@ firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 let thongTinMatKhauAdmin = { adminPIN: "admin2026", cssdPIN: "cssd2026", guestPIN: "guest2026" };
 let cauHinhGiaoDien = {
     "ADMIN": ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'],
-    "CSSD": ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','dashboard_tv'], // Mở sẵn Tab lịch sử cho CSSD, khóa Tab cấu hình 9
-    "KHOA": ['khoaphong','quanlykho','lichsuluanchuyen'], // Cho phép Lâm sàng xem hành trình khay đồ của họ công khai
+    "CSSD": ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','dashboard_tv'], 
+    "KHOA": ['khoaphong','quanlykho','lichsuluanchuyen'], 
     "GUEST": ['quanlykho','danhmuc','lichsuluanchuyen','performance','dashboard_tv']
 };
 
@@ -74,8 +74,20 @@ function anTatCaHeadersVaMenus() {
     });
 }
 
+// TỐI ƯU: ADMIN hiển thị toàn bộ menu, các vai trò khác phân quyền theo Database
 function apDungPhanQuyenGiaoDien(role) {
     anTatCaHeadersVaMenus();
+    
+    if (role === "ADMIN") {
+        ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(tab => {
+            document.getElementById('menu-' + tab)?.classList.remove('hidden');
+        });
+        document.getElementById('header-lamsang')?.classList.remove('hidden');
+        document.getElementById('header-vanhanh')?.classList.remove('hidden');
+        document.getElementById('header-dulieu')?.classList.remove('hidden');
+        return;
+    }
+
     let tabsDuocPhep = cauHinhGiaoDien[role] || [];
     tabsDuocPhep.forEach(tab => { document.getElementById('menu-' + tab)?.classList.remove('hidden'); });
 
@@ -131,9 +143,13 @@ function checkLogin() {
     document.getElementById("login-screen").classList.add("hidden"); document.getElementById("main-app").classList.remove("hidden");
 }
 
+// TỐI ƯU: ADMIN vượt qua kiểm tra, chuyển tab không bị lỗi add class
 function switchTab(t) { 
-    let tabsDuocPhep = cauHinhGiaoDien[currentRole] || [];
-    if(currentRole !== "ADMIN" && !tabsDuocPhep.includes(t)) { return showToast("Tài khoản của bạn không có quyền truy cập chức năng này!", "error"); }
+    if (currentRole !== "ADMIN") {
+        let tabsDuocPhep = cauHinhGiaoDien[currentRole] || [];
+        if(!tabsDuocPhep.includes(t)) { return showToast("Tài khoản của bạn không có quyền truy cập chức năng này!", "error"); }
+    }
+    
     ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
         document.getElementById('tab-'+x)?.classList.add('hidden'); document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
     }); 
@@ -192,7 +208,6 @@ function renderAdminInterface() {
     }
 }
 
-// --- THAY ĐỔI QUAN TRỌNG: GHI NHẬN TÊN NV CSSD XUẤT KHO ---
 function xuatKhoXoayVong() { 
     const k = document.getElementById("xuat_selKhoa").value; 
     const ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); 
@@ -205,7 +220,7 @@ function xuatKhoXoayVong() {
         khoa: k, 
         ngayHoanTat: getTodayDateStr(),
         timeHoanTat: new Date().toLocaleTimeString('vi-VN'),
-        nvXuatKho: loginUserCode || "CSSD_CHUNG" // Lưu tên KTV đã trực tiếp xuất kho mâm đồ này
+        nvXuatKho: loginUserCode || "CSSD_CHUNG"
     }).then(() => { 
         showToast(`Đã bàn giao mâm đồ cho Khoa ${k}!`, "success"); 
         document.getElementById("xuat_inpMaBo").value = ""; 
