@@ -14,6 +14,7 @@ let danhSachKhoa = [], listGiaoDich = [], gioHangTam = [], danhSachKtvCssd = [],
 
 let html5QrCode = null; let targetInputIdForScan = ""; let idDangKiemDem = null; let idDangDongGoi = null;
 let activeTab = 'thugom'; let renderTimeout = null;
+let duLieuAnhBiTamBase64 = ""; // Biến tạm lưu chuỗi hình ảnh chỉ thị sinh học khi chụp
 
 function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
@@ -74,10 +75,8 @@ function anTatCaHeadersVaMenus() {
     });
 }
 
-// TỐI ƯU: ADMIN hiển thị toàn bộ menu, các vai trò khác phân quyền theo Database
 function apDungPhanQuyenGiaoDien(role) {
     anTatCaHeadersVaMenus();
-    
     if (role === "ADMIN") {
         ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(tab => {
             document.getElementById('menu-' + tab)?.classList.remove('hidden');
@@ -87,10 +86,8 @@ function apDungPhanQuyenGiaoDien(role) {
         document.getElementById('header-dulieu')?.classList.remove('hidden');
         return;
     }
-
     let tabsDuocPhep = cauHinhGiaoDien[role] || [];
     tabsDuocPhep.forEach(tab => { document.getElementById('menu-' + tab)?.classList.remove('hidden'); });
-
     if (tabsDuocPhep.includes('khoaphong')) document.getElementById('header-lamsang')?.classList.remove('hidden');
     if (['thugom','donggoi','mayhap','khovokhuan'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-vanhanh')?.classList.remove('hidden');
     if (['quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-dulieu')?.classList.remove('hidden');
@@ -102,7 +99,6 @@ function checkLogin() {
     let pA = thongTinMatKhauAdmin.adminPIN || "admin2026"; 
     let pC = thongTinMatKhauAdmin.cssdPIN || "cssd2026"; 
     let pG = thongTinMatKhauAdmin.guestPIN || "guest2026"; 
-    
     if (role === "ADMIN" && pass === pA) { 
         currentRole = "ADMIN"; loginUserCode = "ADMIN"; document.getElementById("nav_user_info").innerText = "ADMINISTRATOR";
         document.getElementById("khoa_selKhoa").disabled = false; document.body.classList.remove('guest-mode');
@@ -125,10 +121,8 @@ function checkLogin() {
             if (nv && pass === nv.pin) { currentRole = "CSSD"; loginUserCode = nv.ten; document.getElementById("nav_user_info").innerText = `${nvCode} - ${nv.ten}`; }
             else { return showToast("Sai mã PIN của nhân viên này!", "error"); }
         } else { return showToast("Vui lòng chọn Nhân viên hoặc nhập PIN Backup!", "error"); }
-        
         document.getElementById("khoa_selKhoa").disabled = false; document.body.classList.remove('guest-mode');
         apDungPhanQuyenGiaoDien("CSSD");
-        
         let tabsDuocPhep = cauHinhGiaoDien["CSSD"] || [];
         if(tabsDuocPhep.includes('thugom')) switchTab('thugom');
         else if (tabsDuocPhep.length > 0) switchTab(tabsDuocPhep[0]);
@@ -143,13 +137,11 @@ function checkLogin() {
     document.getElementById("login-screen").classList.add("hidden"); document.getElementById("main-app").classList.remove("hidden");
 }
 
-// TỐI ƯU: ADMIN vượt qua kiểm tra, chuyển tab không bị lỗi add class
 function switchTab(t) { 
     if (currentRole !== "ADMIN") {
         let tabsDuocPhep = cauHinhGiaoDien[currentRole] || [];
         if(!tabsDuocPhep.includes(t)) { return showToast("Tài khoản của bạn không có quyền truy cập chức năng này!", "error"); }
     }
-    
     ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
         document.getElementById('tab-'+x)?.classList.add('hidden'); document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
     }); 
@@ -228,6 +220,111 @@ function xuatKhoXoayVong() {
     }); 
 }
 
+// --- HÀM XỬ LÝ ĐỌC FILE ẢNH BI TẠI CHỖ CHUYỂN ĐỔI SANG BASE64 ---
+function docAnhBiUpTaiCho(inputElement) {
+    const file = inputElement.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = function() {
+        duLieuAnhBiTamBase64 = reader.result; // Lưu trữ chuỗi mã hóa Base64 vào biến toàn cục
+        showToast("Đã ghi nhận ảnh test BI thành công!", "success");
+    };
+    reader.readAsDataURL(file);
+}
+
+// --- TỐI ƯU LOGIC TỰ ĐỘNG PHÁT HIỆN MẺ ĐẦU TIÊN TRONG NGÀY ---
+function tuDongTaoMaLoMeHap() {
+    const maMay = document.getElementById("hap_maySo")?.value || "A1";
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const ngayChuoi = `${yy}${mm}${dd}`;
+    
+    let cacMeTrongNgay = listGiaoDich.filter(x => x.batchCode && x.batchCode.startsWith(maMay + ngayChuoi));
+    let soMeMax = 0;
+    cacMeTrongNgay.forEach(x => {
+        let phanDuoi = x.batchCode.split("_")[1];
+        if (phanDuoi) {
+            let num = parseInt(phanDuoi);
+            if (num > soMeMax) soMeMax = num;
+        }
+    });
+    
+    let meTiepTheo = soMeMax + 1;
+    if (meTiepTheo > 99) meTiepTheo = 1;
+    const chuoiMe = String(meTiepTheo).padStart(2, '0');
+    const soLanDone = `${ngayChuoi}_${chuoiMe}`;
+    const batchIdHoanChinh = `${maMay}${soLanDone}`;
+    
+    if (document.getElementById("hap_meSo")) document.getElementById("hap_meSo").value = chuoiMe;
+    if (document.getElementById("hap_batchId")) document.getElementById("hap_batchId").value = batchIdHoanChinh;
+
+    // HIỂN THỊ HOẶC ẨN KHU VỰC UP ẢNH BI: Chỉ hiện nút upload nếu là mẻ số 01 đầu tiên trong ngày
+    const vungUpAnh = document.getElementById("khuVucUploadBI");
+    if (vungUpAnh) {
+        if (soMeMax === 0) {
+            vungUpAnh.classList.remove("hidden");
+            duLieuAnhBiTamBase64 = ""; // Reset dữ liệu ảnh tạm
+        } else {
+            vungUpAnh.classList.add("hidden");
+            duLieuAnhBiTamBase64 = "";
+        }
+    }
+}
+
+// --- CẢI TIẾN HÀM XÁC NHẬN MẺ HẤP KẾ THỪA DỮ LIỆU TỰ ĐỘNG KHÔNG CẦN SHAREPOINT ---
+function xacNhanMeHap() { 
+    let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
+    if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ!", "error"); 
+    
+    let loaiHap = document.getElementById("hap_loaiHap").value; 
+    let maMay = document.getElementById("hap_maySo").value; 
+    let batchCode = document.getElementById("hap_batchId").value; 
+    let chuKyNhiet = document.getElementById("hap_nhietDo").value; 
+    let apSuat = document.getElementById("hap_apSuat").value || "N/A"; 
+    
+    const ngayHomNay = getTodayDateStr();
+    let cacMeCuaMayTrongNgay = listGiaoDich.filter(x => x.batchCode && x.batchCode.startsWith(maMay) && x.ngayHapRealtime === ngayHomNay);
+    let laMeDauTien = cacMeCuaMayTrongNgay.length === 0;
+
+    // Nếu là mẻ số 01 bắt buộc chụp/đính kèm hình ảnh minh chứng
+    if (laMeDauTien && !duLieuAnhBiTamBase64) {
+        return showToast("Mẻ đầu tiên trong ngày! Vui lòng chụp/đính kèm ảnh test sinh học BI.", "error");
+    }
+
+    let p = []; 
+    checkboxes.forEach(cb => { 
+        if(cb.id === 'selectAllHap') return; 
+        p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ 
+            status: "DANG_HAP", 
+            batchCode: batchCode, 
+            ngayHapRealtime: ngayHomNay, 
+            thongTinLoHap: { 
+                loaiHap: loaiHap, 
+                maMay: maMay, 
+                chuKyNhiet: chuKyNhiet, 
+                apSuat: apSuat, 
+                thoiGianBatDau: new Date().toLocaleTimeString('vi-VN'),
+                giamSatChatLuong: {
+                    chiThiHoaHoc: "ĐẠT",
+                    laMeTestSinhHocGoc: laMeDauTien,
+                    keThuaTuMaLo: laMeDauTien ? batchCode : (cacMeCuaMayTrongNgay[cacMeCuaMayTrongNgay.length - 1]?.batchCode || batchCode),
+                    ketQuaSinhHoc: laMeDauTien ? "ÂM TÍNH (ĐẠT)" : "KẾ THỪA ĐẦU NGÀY",
+                    minhChungAnhBase64: laMeDauTien ? duLieuAnhBiTamBase64 : "" // Đẩy thẳng chuỗi văn bản ảnh vào Database
+                }
+            } 
+        })); 
+    }); 
+    
+    Promise.all(p).then(() => { 
+        showToast(`Kích hoạt lò thành công! Lô: ${batchCode}`, "success"); 
+        duLieuAnhBiTamBase64 = ""; // Xóa dữ liệu tạm sau khi lưu thành công
+        tuDongTaoMaLoMeHap(); 
+        callRender(); 
+    }); 
+}
+
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
         const k = document.getElementById("khoa_selKhoa").value;
@@ -297,12 +394,21 @@ function renderTheoTabHienTai() {
                 else if(x.status === "CHO_XUAT") statusBadge = `<span class="px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded text-[10px]">KHO VÔ KHUẨN</span>`;
                 else if(x.status === "DANG_HAP") statusBadge = `<span class="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded text-[10px]">ĐANG HẤP LÒ</span>`;
 
+                // LOGIC HIỂN THỊ ICON XEM NHANH ẢNH BI TEST (NẾU CÓ DỮ LIỆU)
+                let minhChungHtml = "";
+                let loGoc = listGiaoDich.find(m => m.batchCode === x.batchCode && m.thongTinLoHap?.giamSatChatLuong?.laMeTestSinhHocGoc === true);
+                let anhBase64 = loGoc?.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || x.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64;
+                
+                if (anhBase64) {
+                    minhChungHtml = `<br><span onclick="alert('Hình ảnh minh chứng BI gốc đang được tải...'); let w=window.open(); w.document.write('<img src=\''+'${anhBase64}'+'\' style=\'max-width:100%\'/>')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`;
+                }
+
                 return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors">
                     <td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td>
                     <td class="p-3 font-bold text-slate-800">${x.bo ? x.bo.split(" [ID:")[0] : 'N/A'}</td>
                     <td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td>
                     <td class="p-3 text-center">${statusBadge}</td>
-                    <td class="p-3 text-center font-mono font-bold text-rose-700 bg-rose-50/30">${x.batchCode || 'N/A'}</td>
+                    <td class="p-3 text-center font-mono font-bold text-rose-700 bg-rose-50/30">${x.batchCode || 'N/A'}${minhChungHtml}</td>
                     <td class="p-3 text-center font-bold text-sky-800 bg-sky-50/40">${x.nvXuatKho || '<span class="text-slate-300 font-normal">Chưa xuất</span>'}</td>
                     <td class="p-3 text-center text-slate-400 font-mono text-[11px]">${x.ngayTao || ''} ${x.time || ''}</td>
                 </tr>`;
@@ -351,9 +457,7 @@ function tinhHanSuDung() { let val = document.getElementById("popDG_Loai").value
 function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.getElementById("popDG_Loai").value.split("|")[0]; db.collection("phieuGiaoNhan").doc(idDangDongGoi).update({ status: "CHO_HAP", chatLieu: chatLieuTen, hsd: document.getElementById("popDG_Han").dataset.dateDB }).then(() => { showToast("Đã đóng gói, chuyển chờ hấp!", "success"); closePopupDongGoi(); callRender(); }); }
 function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
 function capNhatDanhSachMaMay() { const loaiHap = document.getElementById("hap_loaiHap")?.value; const selectMay = document.getElementById("hap_maySo"); if (!selectMay || !loaiHap) return; selectMay.innerHTML = ""; if (cauHinhMayHap[loaiHap]) { cauHinhMayHap[loaiHap].forEach(may => { selectMay.innerHTML += `<option value="${may}">${may}</option>`; }); } tuDongTaoMaLoMeHap(); }
-function tuDongTaoMaLoMeHap() { const maMay = document.getElementById("hap_maySo")?.value || "A1"; const now = new Date(); const yy = String(now.getFullYear()).slice(-2); const mm = String(now.getMonth() + 1).padStart(2, '0'); const dd = String(now.getDate()).padStart(2, '0'); const ngayChuoi = `${yy}${mm}${dd}`; let cacMeTrongNgay = listGiaoDich.filter(x => x.batchCode && x.batchCode.startsWith(maMay + ngayChuoi)); let soMeMax = 0; cacMeTrongNgay.forEach(x => { let phanDuoi = x.batchCode.split("_")[1]; if (phanDuoi) { let num = parseInt(phanDuoi); if (num > soMeMax) soMeMax = num; } }); let meTiepTheo = soMeMax + 1; if (meTiepTheo > 99) meTiepTheo = 1; const chuoiMe = String(meTiepTheo).padStart(2, '0'); const soLanDone = `${ngayChuoi}_${chuoiMe}`; const batchIdHoanChinh = `${maMay}${soLanDone}`; if (document.getElementById("hap_meSo")) document.getElementById("hap_meSo").value = soLanDone; if (document.getElementById("hap_batchId")) document.getElementById("hap_batchId").value = batchIdHoanChinh; }
 function inTemTongHangLoat() { let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm để in tem!", "error"); let batchCode = document.getElementById("hap_batchId")?.value || "A1000000_01"; let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let tenBoText = item.bo.split(" [ID:")[0]; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${tenBoText}</div><div style="text-align: center;"><svg id="barcode-lo-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 9px; margin-top: 2px; font-family: monospace; font-weight: bold;">Lô: ${batchCode}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-lo-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
-function xacNhanMeHap() { let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ!", "error"); let loaiHap = document.getElementById("hap_loaiHap").value; let maMay = document.getElementById("hap_maySo").value; let batchCode = document.getElementById("hap_batchId").value; let chuKyNhiet = document.getElementById("hap_nhietDo").value; let apSuat = document.getElementById("hap_apSuat").value || "N/A"; let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllHap') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({ status: "DANG_HAP", batchCode: batchCode, ngayHapRealtime: getTodayDateStr(), thongTinLoHap: { loaiHap: loaiHap, maMay: maMay, chuKyNhiet: chuKyNhiet, apSuat: apSuat, thoiGianBatDau: new Date().toLocaleTimeString('vi-VN') } })); }); Promise.all(p).then(() => { showToast(`Kích hoạt lò thành công! Lô: ${batchCode}`, "success"); tuDongTaoMaLoMeHap(); callRender(); }); }
 function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
 function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã duyệt mâm đạt nhập kho Vô Khuẩn!", "success"); callRender(); }); }
 function inTemNghiemThuHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let tenBoText = item.bo.split(" [ID:")[0]; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-size: 9px; font-weight: bold;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0;">${tenBoText}</div><div style="text-align: center;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; margin-top: 2px; font-family: monospace;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
