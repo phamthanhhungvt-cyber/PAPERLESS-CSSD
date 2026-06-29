@@ -466,12 +466,14 @@ function renderTheoTabHienTai() {
                 else if(x.status === "CHO_XUAT") statusBadge = `<span class="px-2 py-0.5 bg-teal-100 text-teal-800 font-bold rounded text-[10px]">KHO VÔ KHUẨN</span>`;
                 else if(x.status === "DANG_HAP") statusBadge = `<span class="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded text-[10px]">ĐANG HẤP LÒ</span>`;
 
+                // CẢI TIẾN AN TOÀN: Đưa chuỗi ảnh Base64 vào bộ nhớ đệm ứng dụng để không làm lỗi cấu trúc HTML khi render nút
                 let minhChungHtml = "";
                 let loGoc = listGiaoDich.find(m => m.batchCode === x.batchCode && m.thongTinLoHap?.giamSatChatLuong?.laMeTestSinhHocGoc === true);
                 let anhBase64 = loGoc?.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || x.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64;
                 
                 if (anhBase64) {
-                    minhChungHtml = `<br><span onclick="let w=window.open(); w.document.write('<img src=\''+'${anhBase64}'+'\' style=\'max-width:100%\'/>')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`;
+                    window[`img_bi_${x.id}`] = anhBase64;
+                    minhChungHtml = `<br><span onclick="let w=window.open(); w.document.write('<img src=\'' + window['img_bi_${x.id}'] + '\' style=\'max-width:100%\'/>')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`;
                 }
 
                 return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors">
@@ -563,5 +565,27 @@ function toggleLoginFields() { const r = document.getElementById("login_role").v
 function moCamera(inputId) { targetInputIdForScan = inputId; document.getElementById("popupScanner").classList.remove("hidden"); html5QrCode = new Html5Qrcode("reader"); Html5Qrcode.getCameras().then(devices => { let cid = devices.length > 1 ? devices[devices.length - 1].id : devices[0].id; html5QrCode.start(cid, { fps: 15, qrbox: { width: 260, height: 180 } }, (txt) => { document.getElementById(targetInputIdForScan).value = txt.trim().toUpperCase(); if(targetInputIdForScan==='khoa_inpMaBo') themVaoGio(); if(targetInputIdForScan==='xuat_inpMaBo') xuatKhoXoayVong(); }).catch(e=>{}) }); }
 function dongCamera() { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()); document.getElementById("popupScanner").classList.add("hidden"); }
 function xoaSachDuLieuGiaoDichRealtime() { if(prompt("Nhập PIN ADMIN để xóa:") === (thongTinMatKhauAdmin.adminPIN||"admin2026")) { db.collection("phieuGiaoNhan").get().then(snap => { let b = db.batch(); snap.forEach(d => b.delete(d.ref)); b.commit().then(() => location.reload()); }); } }
-function truyVetTheoMaBatch() { callRender(); }
+
+// --- ĐÃ VIẾT LẠI: HÀM TRUY VẾT KHOANH VÙNG MẺ NHIỄM TRÙNG KHẨN CẤP ---
+function truyVetTheoMaBatch() {
+    let maBatchSearch = document.getElementById("inp_searchBatch")?.value.trim();
+    if(!maBatchSearch) {
+        return showToast("Vui lòng nhập mã mẻ hấp cần truy vết khẩn cấp!", "error");
+    }
+    
+    // Tự động chuyển hướng sang Tab 9 (Tra cứu/Cấu hình hệ thống) nếu đang ở tab khác
+    if(activeTab !== 'tracuu') {
+        switchTab('tracuu');
+    }
+    
+    // Đồng bộ mã lô vào ô tìm kiếm chính của Tab 9
+    if(document.getElementById("inp_searchBatch")) {
+        document.getElementById("inp_searchBatch").value = maBatchSearch;
+    }
+    
+    // Làm mới và lọc dữ liệu hiển thị
+    callRender();
+    showToast(`Đã khoanh vùng dữ liệu mẻ hấp: ${maBatchSearch}`, "success");
+}
+
 function clearTruyVetBatch() { document.getElementById("inp_searchBatch").value = ""; callRender(); }
