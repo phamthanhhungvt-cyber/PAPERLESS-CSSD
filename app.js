@@ -368,6 +368,58 @@ function renderTheoTabHienTai() {
         let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); document.getElementById("badgeChoHap").innerText = `${lsCH.length} Mục`;
         document.getElementById("bangChoHap").innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join('');
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); document.getElementById("bangChoNghiệmThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span></td></tr>`).join('');
+    
+        // ĐỒNG BỘ NHẬT KÝ VẬN HÀNH LÒ HẤP (BẢNG TRÊN CÙNG BÊN PHẢI)
+        if(document.getElementById("bangLichSuHap")) {
+            let tatCaMucCoLo = listGiaoDich.filter(x => x.batchCode);
+            let cacMeHapGop = {};
+            tatCaMucCoLo.forEach(x => {
+                if(!cacMeHapGop[x.batchCode]) {
+                    cacMeHapGop[x.batchCode] = {
+                        batchCode: x.batchCode,
+                        loaiHap: x.thongTinLoHap?.loaiHap || "Hấp hơi nước",
+                        chuKyNhiet: x.thongTinLoHap?.chuKyNhiet || "134°C - 4 phút",
+                        apSuat: x.thongTinLoHap?.apSuat || "2.1",
+                        thoiGian: x.thongTinLoHap?.thoiGianBatDau || x.time || "--:--",
+                        ngay: x.ngayHapRealtime || x.ngayTao || "",
+                        soLuongKhay: 0,
+                        trangThaiMe: x.status === "DANG_HAP" ? "Đang chạy lò" : "Đã hoàn thành"
+                    };
+                }
+                cacMeHapGop[x.batchCode].soLuongKhay += 1;
+            });
+
+            let danhSachMeHapSắpXep = Object.values(cacMeHapGop).sort((a, b) => String(b.batchCode).localeCompare(String(a.batchCode)));
+
+            if(danhSachMeHapSắpXep.length === 0) {
+                document.getElementById("bangLichSuHap").innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Chưa có mẻ hấp nào được kích hoạt</td></tr>`;
+            } else {
+                document.getElementById("bangLichSuHap").innerHTML = danhSachMeHapSắpXep.map(me => {
+                    let colorStatus = me.trangThaiMe === "Đang chạy lò" ? "text-purple-600 bg-purple-50 border border-purple-200" : "text-emerald-600 bg-emerald-50 border border-emerald-200";
+                    return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="p-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-black text-rose-700 text-sm tracking-wider">${me.batchCode}</span>
+                                    <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded ${colorStatus}">${me.trangThaiMe}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 font-medium mt-1">
+                                    <i class="fa-solid fa-gear text-slate-400 mr-1"></i> ${me.loaiHap} | ${me.chuKyNhiet} | Áp suất: ${me.apSuat} Bar
+                                </div>
+                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">
+                                    <i class="fa-solid fa-clock text-slate-300 mr-1"></i> Bắt đầu: ${me.thoiGian} (${me.ngay})
+                                </div>
+                            </td>
+                            <td class="p-3 text-right pr-4">
+                                <span class="font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-xs">
+                                    ${me.soLuongKhay} khay
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
     }
     else if(activeTab === 'khovokhuan') {
         let kList = [...new Set(listGiaoDich.map(x=>x.khoa))].filter(Boolean); if(document.getElementById("xuat_selKhoa").options.length <= 1) { document.getElementById("xuat_selKhoa").innerHTML = '<option value="">-- Chọn Khoa --</option>' + kList.map(k=>`<option value="${k}">${k}</option>`).join(''); }
