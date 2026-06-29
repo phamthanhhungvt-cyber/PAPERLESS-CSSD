@@ -226,7 +226,7 @@ function docAnhBiUpTaiCho(inputElement) {
     if (!file) return;
     const reader = new FileReader();
     reader.onloadend = function() {
-        duLieuAnhBiTamBase64 = reader.result; // Lưu trữ chuỗi mã hóa Base64 vào biến toàn cục
+        duLieuAnhBiTamBase64 = reader.result; 
         showToast("Đã ghi nhận ảnh test BI thành công!", "success");
     };
     reader.readAsDataURL(file);
@@ -265,7 +265,7 @@ function tuDongTaoMaLoMeHap() {
     if (vungUpAnh) {
         if (soMeMax === 0) {
             vungUpAnh.classList.remove("hidden");
-            duLieuAnhBiTamBase64 = ""; // Reset dữ liệu ảnh tạm
+            duLieuAnhBiTamBase64 = ""; 
         } else {
             vungUpAnh.classList.add("hidden");
             duLieuAnhBiTamBase64 = "";
@@ -311,7 +311,7 @@ function xacNhanMeHap() {
                     laMeTestSinhHocGoc: laMeDauTien,
                     keThuaTuMaLo: laMeDauTien ? batchCode : (cacMeCuaMayTrongNgay[cacMeCuaMayTrongNgay.length - 1]?.batchCode || batchCode),
                     ketQuaSinhHoc: laMeDauTien ? "ÂM TÍNH (ĐẠT)" : "KẾ THỪA ĐẦU NGÀY",
-                    minhChungAnhBase64: laMeDauTien ? duLieuAnhBiTamBase64 : "" // Đẩy thẳng chuỗi văn bản ảnh vào Database
+                    minhChungAnhBase64: laMeDauTien ? duLieuAnhBiTamBase64 : "" 
                 }
             } 
         })); 
@@ -319,7 +319,7 @@ function xacNhanMeHap() {
     
     Promise.all(p).then(() => { 
         showToast(`Kích hoạt lò thành công! Lô: ${batchCode}`, "success"); 
-        duLieuAnhBiTamBase64 = ""; // Xóa dữ liệu tạm sau khi lưu thành công
+        duLieuAnhBiTamBase64 = ""; 
         tuDongTaoMaLoMeHap(); 
         callRender(); 
     }); 
@@ -337,7 +337,7 @@ function renderTheoTabHienTai() {
         let lsTG = listGiaoDich.filter(x => x.status === "CHO_THU"); 
         document.getElementById("bangChoThuGom").innerHTML = lsTG.map(i => {
             let tenBo = i.bo.split(" [ID:")[0]; let itemsInBo = databaseExcel.filter(x => { let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); });
-            let checklistHtml = itemsInBo.length > 0 ? `<div class="max-h-24 overflow-y-auto pr-1">` + itemsInBo.map(item => { let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['TÊN DỤNG CỤ'] || item['Tên Chi Tiết'] || item['NAME'] || "Dụng cụ"; let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1; return `<div class="flex justify-between border-b border-dashed border-slate-200 py-1 text-[10px] text-slate-600"><span>- ${tenDc}</span><span class="font-bold text-sky-700">x${sl}</span></div>`; }).join('') + `</div>` : `<span class="italic text-[10px] text-slate-400">Không có cấu hình chi tiết</span>`;
+            let checklistHtml = itemsInBo.length > 0 ? `<div class="max-h-24 overflow-y-auto pr-1">` + itemsInBo.map(item => { let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['TÊN BỤ'] || item['Tên Chi Tiết'] || item['NAME'] || "Dụng cụ"; let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1; return `<div class="flex justify-between border-b border-dashed border-slate-200 py-1 text-[10px] text-slate-600"><span>- ${tenDc}</span><span class="font-bold text-sky-700">x${sl}</span></div>`; }).join('') + `</div>` : `<span class="italic text-[10px] text-slate-400">Không có cấu hình chi tiết</span>`;
             return `<tr class="border-b border-slate-50"><td class="p-3"><div class="font-bold text-slate-700 text-[11px] uppercase">${i.khoa}</div>${i.ghiChu ? `<div class="text-[10px] text-rose-600 font-medium italic mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${i.ghiChu}</div>` : ''}</td><td class="p-3"><div class="font-bold text-sky-700 text-[12px] uppercase">${tenBo}</div><div class="text-[10px] font-mono text-slate-400 mb-2">ID: ${i.maMacDinh}</div><div class="bg-slate-50 p-2 rounded border border-slate-100">${checklistHtml}</div></td><td class="p-3 text-center text-[10px] text-slate-500 font-bold">${i.time}</td><td class="p-3 text-center action-col"><button onclick="moPopupKiemDem('${i.firestoreId}')" class="bg-sky-600 text-white hover:bg-sky-700 px-3 py-1.5 rounded shadow font-black text-[11px]">KIỂM ĐẾM</button></td></tr>`;
         }).join('');
     }
@@ -400,7 +400,7 @@ function renderTheoTabHienTai() {
                 let anhBase64 = loGoc?.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || x.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64;
                 
                 if (anhBase64) {
-                    minhChungHtml = `<br><span onclick="alert('Hình ảnh minh chứng BI gốc đang được tải...'); let w=window.open(); w.document.write('<img src=\''+'${anhBase64}'+'\' style=\'max-width:100%\'/>')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`;
+                    minhChungHtml = `<br><span onclick="let w=window.open(); w.document.write('<img src=\''+'${anhBase64}'+'\' style=\'max-width:100%\'/>')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`;
                 }
 
                 return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors">
