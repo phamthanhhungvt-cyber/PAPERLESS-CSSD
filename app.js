@@ -327,7 +327,6 @@ function xacNhanMeHap() {
     }); 
 }
 
-// --- HÀM TRUNG GIAN ĐỂ MỞ ẢNH BI TỪ MẢNG DỮ LIỆU ĐANG CHẠY - TRÁNH LỖI BUFFER CHUỖI HTML ---
 function hanhDongXemAnhBiMoi(firestoreId) {
     let item = listGiaoDich.find(x => x.firestoreId === firestoreId);
     if (!item) return showToast("Không tìm thấy thông tin giao dịch dụng cụ này", "error");
@@ -352,6 +351,19 @@ function renderTheoTabHienTai() {
     else if(activeTab === 'thugom') {
         let fK = document.getElementById("filterKhoaThuGom")?.value || "";
         let lsTG = listGiaoDich.filter(x => x.status === "CHO_THU"); 
+        
+        // --- ĐÃ TÍCH HỢP LỌC ĐỘNG: Chỉ render các khoa phòng có đơn bẩn chờ thu gom ---
+        if (document.getElementById("filterKhoaThuGom")) {
+            let danhSachKhoaCoDon = [...new Set(lsTG.map(x => x.khoa))].filter(Boolean);
+            let htmlOpts = '<option value="">-- Lọc theo Khoa --</option>';
+            danhSachKhoaCoDon.forEach(k => {
+                let selectedAttr = (k === fK) ? "selected" : "";
+                htmlOpts += `<option value="${k}" ${selectedAttr}>${k}</option>`;
+            });
+            document.getElementById("filterKhoaThuGom").innerHTML = htmlOpts;
+            fK = document.getElementById("filterKhoaThuGom").value || "";
+        }
+
         if (fK) lsTG = lsTG.filter(x => x.khoa === fK);
         if (document.getElementById("badgeSoCho")) document.getElementById("badgeSoCho").innerText = `${lsTG.length} Lệnh`;
 
@@ -470,7 +482,6 @@ function renderTheoTabHienTai() {
                 let loGoc = listGiaoDich.find(m => m.batchCode === x.batchCode && m.thongTinLoHap?.giamSatChatLuong?.laMeTestSinhHocGoc === true);
                 let anhBase64 = loGoc?.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || x.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64;
                 
-                // THAY THẾ AN TOÀN: Chỉ truyền duy nhất firestoreId dạng text ngắn gọn, tránh lỗi gãy HTML
                 if (anhBase64) {
                     minhChungHtml = `<br><span onclick="hanhDongXemAnhBiMoi('${x.firestoreId}')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`;
                 }
@@ -489,7 +500,6 @@ function renderTheoTabHienTai() {
     }
     else if(activeTab === 'tracuu') {
         const tbody = document.getElementById("bangLichSuTruyXuatAdmin"); 
-        // ĐỒNG BỘ MẠNH MẼ: Ưu tiên lấy từ bộ lọc khẩn cấp toàn cục hoặc ô tìm kiếm tại chỗ
         let searchInp = maLoTruyVetToanCuc || document.getElementById("inp_searchBatch")?.value.trim();
         
         if(document.getElementById("inp_searchBatch")) {
@@ -554,13 +564,13 @@ function themKtvCssd() { let code = prompt("Mã NV:"); let ten = prompt("Tên:")
 function xoaKtvCssd(code) { if(confirm("Xóa?")) { danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
 function themKhoaThuCong() { let t = prompt("Tên Khoa:"); if(t) { danhSachKhoa.push({ ten: t.toUpperCase(), pin: "123", danhSachBo: [] }); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }); } }
 function updatePINTrựcTiep(idx, tenKhoa) { let p = document.getElementById(`pin-khoa-${idx}`).value.trim(); if(p) { danhSachKhoa.find(x => x.ten === tenKhoa).pin = p; db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => showToast("Đổi PIN thành công", "success")); } }
+
 function initSelects() { 
     let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join('');
     document.getElementById("login_khoa").innerHTML = opts; 
     document.getElementById("khoa_selKhoa").innerHTML = opts; 
-    if (document.getElementById("filterKhoaThuGom")) {
-        document.getElementById("filterKhoaThuGom").innerHTML = '<option value="">-- Lọc theo Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join('');
-    }
+    
+    // Giữ nguyên nạp danh sách KTV và kích hoạt mặc định
     if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
     if (document.getElementById("hap_loaiHap")) {
         capNhatDanhSachMaMay();
@@ -573,9 +583,7 @@ function moCamera(inputId) { targetInputIdForScan = inputId; document.getElement
 function dongCamera() { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()); document.getElementById("popupScanner").classList.add("hidden"); }
 function xoaSachDuLieuGiaoDichRealtime() { if(prompt("Nhập PIN ADMIN để xóa:") === (thongTinMatKhauAdmin.adminPIN||"admin2026")) { db.collection("phieuGiaoNhan").get().then(snap => { let b = db.batch(); snap.forEach(d => b.delete(d.ref)); b.commit().then(() => location.reload()); }); } }
 
-// --- ĐÃ TỐI ƯU TOÀN DIỆN: HÀM TRUY VẾT KHẨN CẤP ĐỒNG BỘ ĐA Ô NHẬP ---
 function truyVetTheoMaBatch() {
-    // Tự động quét và lấy giá trị ở cả 2 ô tìm kiếm có thể xảy ra trên giao diện của anh
     let maMẻKhẩnCấp = "";
     let oNhapKhonVung = document.querySelector('input[placeholder*="A1260627_02"]') || document.querySelector('input[value*="_02"]');
     
@@ -589,13 +597,9 @@ function truyVetTheoMaBatch() {
         return showToast("Vui lòng nhập mã mẻ hấp cần truy vết khẩn cấp!", "error");
     }
     
-    // Đóng băng mã lô vào biến toàn cục phục vụ bộ lọc render
     maLoTruyVetToanCuc = maMẻKhẩnCấp.toUpperCase();
-    
-    // Tự động ép chuyển hướng sang Tab 9 (Tra cứu/Cấu hình hệ thống)
     switchTab('tracuu');
     
-    // Ép hiển thị text lên ô tìm kiếm chính của Tab 9
     if(document.getElementById("inp_searchBatch")) {
         document.getElementById("inp_searchBatch").value = maLoTruyVetToanCuc;
     }
