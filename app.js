@@ -460,7 +460,7 @@ function renderTheoTabHienTai() {
             let htmlOpts = '<option value="">-- Lọc theo Khoa --</option>';
             danhSachKhoaCoDon.forEach(k => {
                 let selectedAttr = (k === fK) ? "selected" : "";
-                htmlOpts += `<option value="${k}" ${selectedAttr}>${k}</option>`;
+                htmlOpts += `<option value="${k}" ${selectedAttr}>${k}</option>';
             });
             document.getElementById("filterKhoaThuGom").innerHTML = htmlOpts;
             fK = document.getElementById("filterKhoaThuGom").value || "";
@@ -607,7 +607,31 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'tracuu') {
-        const safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
+        // --- GIẢI PHÁP AN TOÀN CAO CẤP: TỰ TẠO KHU VỰC HIỂN THỊ KẾT QUẢ ---
+        let safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
+        
+        if (!safeTbody) {
+            // Nếu HTML thiếu bảng kết quả, tự động tiêm bảng mới vào ngay dưới ô tìm kiếm mẻ hấp
+            let parentContainer = document.getElementById("tab-tracuu") || document.querySelector('.bg-white.p-6.rounded-xl.shadow-md');
+            if(parentContainer) {
+                let existingTableZone = document.getElementById("vung-ket-qua-truy-vet-tu-dong");
+                if(!existingTableZone) {
+                    let tableWrapper = document.createElement("div");
+                    tableWrapper.id = "vung-ket-qua-truy-vet-tu-dong";
+                    tableWrapper.className = "mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm";
+                    tableWrapper.innerHTML = `
+                        <h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>KẾT QUẢ KHOAN VÙNG MÂM DỤNG CỤ TRONG MẺ</h3>
+                        <div class="overflow-x-auto"><table class="w-full text-left border-collapse">
+                            <thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b">
+                                <th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng Thái Hiện Tại</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th>
+                            </tr></thead>
+                            <tbody id="bangLichSuTruyXuatAdmin"></tbody>
+                        </table></div>`;
+                    parentContainer.appendChild(tableWrapper);
+                    safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
+                }
+            }
+        }
         
         let searchInp = maLoTruyVetToanCuc || "";
         if (!searchInp && document.getElementById("inp_searchBatch")) {
@@ -616,24 +640,29 @@ function renderTheoTabHienTai() {
 
         if(safeTbody) {
             if (!searchInp) {
-                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nhập mã mẻ hấp ở ô phía trên rồi nhấn tìm kiếm để tiến hành truy vết...</td></tr>`;
+                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nhập mã mẻ hấp khẩn cấp ở ô phía trên rồi nhấn nút "TRA CỨU KHẨN CẤP" để tiến hành khoanh vùng...</td></tr>`;
                 return;
             }
             
             let dataFiltered = listGiaoDich.filter(x => x.batchCode && String(x.batchCode).toUpperCase().includes(searchInp.toUpperCase()));
             
             if(dataFiltered.length === 0) {
-                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-500 italic font-bold">Không tìm thấy dữ liệu mâm dụng cụ nào thuộc mã mẻ: ${searchInp}</td></tr>`;
+                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-500 italic font-bold">Không tìm thấy bất kỳ mâm dụng cụ nào thuộc mẻ hấp này: ${searchInp}</td></tr>`;
             } else {
                 safeTbody.innerHTML = dataFiltered.map(x => {
                     let cleanBo = x.bo ? x.bo.split(" [ID:")[0] : "N/A";
-                    return `<tr class="border-b text-xs hover:bg-slate-50">
-                        <td class="p-2.5 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td>
-                        <td class="p-2.5 font-bold text-slate-800">${cleanBo}</td>
-                        <td class="p-2.5 font-semibold text-slate-500">${x.khoa || 'N/A'}</td>
-                        <td class="p-2.5 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100">${x.status}</span></td>
-                        <td class="p-2.5 text-center font-mono font-black text-rose-700 bg-rose-50/40">${x.batchCode || 'N/A'}</td>
-                        <td class="p-2.5 text-center text-slate-400">${x.ngayTao || ''} - ${x.time || ''}</td>
+                    let statusBadgeColor = "bg-slate-100 text-slate-700";
+                    if(x.status === "HOAN_TAT") statusBadgeColor = "bg-emerald-100 text-emerald-800 font-bold";
+                    else if(x.status === "CHO_XUAT") statusBadgeColor = "bg-teal-100 text-teal-800 font-bold";
+                    else if(x.status === "DANG_HAP") statusBadgeColor = "bg-purple-100 text-purple-800 font-bold";
+
+                    return `<tr class="border-b text-xs hover:bg-slate-50 font-medium">
+                        <td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td>
+                        <td class="p-3 font-bold text-slate-800">${cleanBo}</td>
+                        <td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] ${statusBadgeColor}">${x.status}</span></td>
+                        <td class="p-3 text-center font-mono font-black text-rose-700 bg-rose-50/40">${x.batchCode || 'N/A'}</td>
+                        <td class="p-3 text-center text-slate-400 font-mono">${x.ngayTao || ''} ${x.time || ''}</td>
                     </tr>`;
                 }).join('');
             }
