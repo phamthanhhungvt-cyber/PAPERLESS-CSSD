@@ -15,9 +15,33 @@ let danhSachKhoa = [], listGiaoDich = [], gioHangTam = [], danhSachKtvCssd = [],
 let html5QrCode = null; let targetInputIdForScan = ""; let idDangKiemDem = null; let idDangDongGoi = null;
 let activeTab = 'thugom'; let renderTimeout = null;
 let duLieuAnhBiTamBase64 = ""; 
-let maLoTruyVetToanCuc = ""; // Biến lưu vết mã lô khi thực hiện truy xuất khẩn cấp
+let maLoTruyVetToanCuc = ""; 
+let gioHangXuatKho = []; // Biến giỏ hàng quét liên tục
 
 function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+// --- HỆ THỐNG ÂM THANH PHẢN HỒI ---
+function playSound(type) {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        if (type === 'success') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+            osc.start(); osc.stop(ctx.currentTime + 0.15);
+        } else {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(250, ctx.currentTime);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+            osc.start(); osc.stop(ctx.currentTime + 0.4);
+        }
+    } catch(e) {}
+}
 
 const cauHinhMayHap = { "Hấp hơi nước": ["A1", "A2", "A3", "A4"], "Hấp H2O2 (Plasma)": ["P1", "P2"], "Khử khuẩn EO": ["EO1", "EO2"] };
 
@@ -207,25 +231,105 @@ function renderAdminInterface() {
     }
 }
 
+// --- CẬP NHẬT LOGIC XUẤT KHO: CHUYỂN THÀNH QUÉT LIÊN TỤC VÀO GIỎ ---
 function xuatKhoXoayVong() { 
     const k = document.getElementById("xuat_selKhoa").value; 
-    const ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); 
-    if(!k || !ma) return showToast("Vui lòng Chọn Khoa và Quét Mã!", "error"); 
-    let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && x.status === "CHO_XUAT"); 
-    if(!khayThucTe) { document.getElementById("xuat_inpMaBo").value = ""; return showToast(`Mã ID ${ma} không tồn tại ở Kho Sạch Vô Khuẩn.`, "error"); } 
+    let ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); 
     
-    db.collection("phieuGiaoNhan").doc(khayThucTe.firestoreId).update({ 
-        status: "HOAN_TAT", 
-        khoa: k, 
-        ngayHoanTat: getTodayDateStr(),
-        timeHoanTat: new Date().toLocaleTimeString('vi-VN'),
-        nvXuatKho: loginUserCode || "CSSD_CHUNG"
-    }).then(() => { 
-        showToast(`Đã bàn giao mâm đồ cho Khoa ${k}!`, "success"); 
+    if(!k) { 
+        playSound('error'); 
+        return showToast("Vui lòng Chọn Khoa nhận trước khi quét mã!", "error"); 
+    } 
+    if(!ma) return;
+    
+    // Kiểm tra trùng lặp trong giỏ
+    if(gioHangXuatKho.some(x => x.maMacDinh === ma)) {
+        playSound('error'); 
         document.getElementById("xuat_inpMaBo").value = ""; 
-        callRender(); 
-    }); 
+        return showToast("Mã này đã được quét vào danh sách xuất!", "error");
+    }
+
+    let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && x.status === "CHO_XUAT"); 
+    if(!khayThucTe) { 
+        playSound('error');
+        document.getElementById("xuat_inpMaBo").value = ""; 
+        return showToast(`Mã ID ${ma} không có sẵn ở Kho Vô Khuẩn.`, "error"); 
+    } 
+    
+    // Đẩy vào giỏ và phát âm thanh
+    gioHangXuatKho.push(khayThucTe);
+    playSound('success');
+    document.getElementById("xuat_inpMaBo").value = "";
+    renderGioHangXuat();
 }
+
+function renderGioHangXuat() {
+    let listContainer = document.getElementById("danhSachXuatTam");
+    // Tự động nhúng UI Giỏ hàng nếu chưa có trong HTML
+    if (!listContainer) {
+        let bangKho = document.getElementById("bangKhoVoKhuan");
+        if (bangKho && bangKho.closest('table')) {
+            let wrapper = document.createElement("div");
+            wrapper.id = "danhSachXuatTam";
+            wrapper.className = "mb-4 bg-sky-50 border border-sky-200 rounded p-3 hidden shadow-inner";
+            bangKho.closest('table').parentNode.insertBefore(wrapper, bangKho.closest('table'));
+            listContainer = wrapper;
+        }
+    }
+    
+    if(listContainer) {
+        if(gioHangXuatKho.length === 0) {
+            listContainer.classList.add("hidden");
+        } else {
+            listContainer.classList.remove("hidden");
+            let html = `<div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-200">
+                            <h3 class="font-bold text-sky-800 text-[13px]"><i class="fa-solid fa-cart-flatbed mr-2"></i>Đang quét xuất kho: <span class="bg-rose-500 text-white px-2 py-0.5 rounded ml-1">${gioHangXuatKho.length} mâm</span></h3>
+                            <button onclick="xacNhanXuatKhoHangLoat()" class="bg-emerald-600 text-white px-4 py-1.5 rounded shadow font-black text-xs hover:bg-emerald-700 transition-colors uppercase"><i class="fa-solid fa-check-double mr-1"></i>Chốt Bàn Giao</button>
+                        </div>
+                        <div class="flex flex-wrap gap-2">`;
+            gioHangXuatKho.forEach((item, index) => {
+                html += `<div class="bg-white border border-sky-300 px-2 py-1 rounded flex items-center gap-2 shadow-sm animate-pulse">
+                            <span class="text-[11px] font-bold text-slate-700">${item.bo.split(" [ID:")[0]}</span>
+                            <span class="text-[10px] font-mono text-sky-700 bg-sky-100 px-1 rounded font-bold">${item.maMacDinh}</span>
+                            <i class="fa-solid fa-xmark text-rose-500 cursor-pointer ml-1 text-xs hover:text-rose-700" onclick="xoaKhoiGioXuat(${index})"></i>
+                         </div>`;
+            });
+            html += `</div>`;
+            listContainer.innerHTML = html;
+        }
+    }
+}
+
+function xoaKhoiGioXuat(index) {
+    gioHangXuatKho.splice(index, 1);
+    renderGioHangXuat();
+}
+
+function xacNhanXuatKhoHangLoat() {
+    const k = document.getElementById("xuat_selKhoa").value;
+    if(!k || gioHangXuatKho.length === 0) return;
+    
+    let p = [];
+    gioHangXuatKho.forEach(khay => {
+        p.push(db.collection("phieuGiaoNhan").doc(khay.firestoreId).update({ 
+            status: "HOAN_TAT", 
+            khoa: k, 
+            ngayHoanTat: getTodayDateStr(),
+            timeHoanTat: new Date().toLocaleTimeString('vi-VN'),
+            nvXuatKho: loginUserCode || "CSSD_CHUNG"
+        }));
+    });
+
+    Promise.all(p).then(() => {
+        playSound('success'); setTimeout(() => playSound('success'), 200); // Kêu bíp kép báo chốt thành công
+        showToast(`Đã bàn giao hoàn tất ${gioHangXuatKho.length} mâm đồ cho Khoa ${k}!`, "success"); 
+        gioHangXuatKho = [];
+        document.getElementById("xuat_inpMaBo").value = ""; 
+        renderGioHangXuat();
+        callRender();
+    });
+}
+// -----------------------------------------------------------
 
 function docAnhBiUpTaiCho(inputElement) {
     const file = inputElement.files[0];
@@ -440,6 +544,9 @@ function renderTheoTabHienTai() {
         }
         let lsXK = listGiaoDich.filter(x => x.status === "CHO_XUAT");
         document.getElementById("bangKhoVoKhuan").innerHTML = lsXK.map(i => `<tr class="border-b"><td class="p-3 font-bold text-slate-800 text-[11px]">${i.bo.split(" [ID:")[0]}</td><td class="p-3 font-mono text-sky-700 font-bold">${i.maMacDinh}</td><td class="p-3 text-center font-bold text-slate-500 text-[11px]">Kệ 01</td><td class="p-3 text-center text-[10px] text-emerald-700 font-bold">${i.hsd ? new Date(i.hsd).toLocaleDateString('vi-VN') : 'An toàn'}</td></tr>`).join('');
+        
+        // Gọi render phần giỏ hàng xuất ở Tab 5
+        renderGioHangXuat();
     }
     else if(activeTab === 'quanlykho') {
         let fK = document.getElementById("inv_filterKhoa").value; let uniqueKhoa = [...new Set(listGiaoDich.map(x=>x.khoa))].filter(Boolean); document.getElementById("inv_filterKhoa").innerHTML = '<option value="">-- Tất cả --</option>' + uniqueKhoa.map(k=>`<option value="${k}" ${k===fK?'selected':''}>${k}</option>`).join('');
