@@ -18,7 +18,6 @@ let duLieuAnhBiTamBase64 = "";
 let maLoTruyVetToanCuc = ""; 
 let gioHangXuatKho = [];
 
-// --- ĐÃ SỬA LỖI CÚ PHÁP TẠI ĐÂY ---
 function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 function playSound(type) {
@@ -182,7 +181,7 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     if(!cauHinhGiaoDien[role]) cauHinhGiaoDien[role] = [];
     if(checkboxElement.checked) { if(!cauHinhGiaoDien[role].includes(tabId)) cauHinhGiaoDien[role].push(tabId); } 
     else { cauHinhGiaoDien[role] = cauHinhGiaoDien[role].filter(x => x !== tabId); }
-    db.collection("heThongDanhMuc").doc("danhMucTongPhuong Nam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
+    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
     .then(() => showToast(`Đã cập nhật quyền truy cập cho nhóm: ${role}`, "success"));
 }
 
@@ -407,7 +406,7 @@ function renderTheoTabHienTai() {
                 }
             }
         }
-        let searchInp = maLoTruyVet ToanCuc || "";
+        let searchInp = maLoTruyVetToanCuc || "";
         if (!searchInp && document.getElementById("inp_searchBatch")) { searchInp = document.getElementById("inp_searchBatch").value.trim(); }
         if(safeTbody) {
             if (!searchInp) { safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Vui lòng nhập mã mẻ hấp và nhấn "TRA CỨU KHẨN CẤP" để hiển thị dữ liệu...</td></tr>`; return; }
