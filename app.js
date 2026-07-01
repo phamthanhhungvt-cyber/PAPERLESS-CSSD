@@ -187,7 +187,6 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     .then(() => showToast(`Đã cập nhật quyền truy cập cho nhóm: ${role}`, "success"));
 }
 
-// --- KHÔI PHỤC CHÍNH XÁC ID CỦA BẢNG ĐỂ TRÁNH LỖI GHI ĐÈ UI ---
 function renderAdminInterface() {
     if (document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
     if (document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
@@ -221,16 +220,6 @@ function renderAdminInterface() {
     const tbodyMatrix = document.getElementById("bodyMaTranGiaoDien");
     if (tbodyMatrix) {
         tbodyMatrix.innerHTML = htmlMatrix;
-    } else {
-        // Fallback an toàn: Chỉ chèn nếu tìm đúng header của bảng phân quyền
-        let tables = document.querySelectorAll('table');
-        for (let t of tables) {
-            if(t.innerHTML.includes('KTV CSSD') && t.innerHTML.includes('KHÁCH THAM QUAN')) {
-                let tb = t.querySelector('tbody');
-                if(tb) tb.innerHTML = htmlMatrix;
-                break;
-            }
-        }
     }
 
     const tbKhoa = document.getElementById("bangPhanQuyenKhoa");
@@ -618,19 +607,7 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'tracuu') {
-        const tbody = document.getElementById("bangLichSuTruyXuatAdmin");
-        let safeTbody = tbody;
-
-        // BẮT CHẶT VỊ TRÍ: Chỉ tìm bảng CÓ CHỨA cột Trạng Thái và KHÔNG CHỨA cột Mã NV
-        if (!safeTbody) {
-            let tables = document.querySelectorAll('table');
-            for (let t of tables) {
-                if (t.innerHTML.includes('TRẠNG THÁI') && !t.innerHTML.includes('MÃ NV')) {
-                    safeTbody = t.querySelector('tbody');
-                    break;
-                }
-            }
-        }
+        const safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
         
         let searchInp = maLoTruyVetToanCuc || "";
         if (!searchInp && document.getElementById("inp_searchBatch")) {
@@ -639,7 +616,7 @@ function renderTheoTabHienTai() {
 
         if(safeTbody) {
             if (!searchInp) {
-                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nhập mã mẻ hấp để tiến hành truy vết...</td></tr>`;
+                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nhập mã mẻ hấp ở ô phía trên rồi nhấn tìm kiếm để tiến hành truy vết...</td></tr>`;
                 return;
             }
             
