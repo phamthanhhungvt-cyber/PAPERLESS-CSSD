@@ -187,7 +187,7 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     .then(() => showToast(`Đã cập nhật quyền truy cập cho nhóm: ${role}`, "success"));
 }
 
-// --- KHẮC PHỤC TRIỆT ĐỂ ẨN MA TRẬN PHÂN QUYỀN TRÊN MỌI ĐỊNH DẠNG HTML ---
+// --- KHÔI PHỤC CHÍNH XÁC ID CỦA BẢNG ĐỂ TRÁNH LỖI GHI ĐÈ UI ---
 function renderAdminInterface() {
     if (document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
     if (document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
@@ -208,47 +208,28 @@ function renderAdminInterface() {
         { id: "dashboard_tv", name: "11. Màn Hình Tivi" }
     ];
 
-    let targetContainer = document.getElementById("bodyMaTranGiaoDien") || 
-                          document.getElementById("maTranPhanQuyen") || 
-                          document.getElementById("bodyMaTran") ||
-                          document.querySelector("#subtab-security table tbody");
-
-    if (!targetContainer) {
-        targetContainer = document.querySelector("#subtab-security .space-y-2") || 
-                          document.querySelector("#subtab-security div.border") || 
-                          document.getElementById("subtab-security");
-    }
-
-    if (targetContainer) {
-        let isTableStructure = targetContainer.tagName === "TBODY" || targetContainer.tagName === "TABLE" || targetContainer.tagName === "TR";
-        let htmlMatrix = "";
-
-        MatrixTabs.forEach(tab => {
-            if (isTableStructure) {
-                htmlMatrix += `<tr class="border-b font-medium text-xs"><td class="p-3 font-bold text-slate-700">${tab.name}</td>`;
-                MatrixRoles.forEach(role => {
-                    let isChecked = (cauHinhGiaoDien[role] && cauHinhGiaoDien[role].includes(tab.id)) ? "checked" : "";
-                    htmlMatrix += `<td class="p-3 text-center"><input type="checkbox" ${isChecked} onchange="updateGiaoDienMatrix('${role}', '${tab.id}', this)" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"></td>`;
-                });
-                htmlMatrix += `</tr>`;
-            } else {
-                htmlMatrix += `<div class="grid grid-cols-4 items-center border-b border-slate-100 py-3 text-xs font-medium text-slate-600 hover:bg-slate-50">
-                    <div class="pl-4 font-bold text-slate-700">${tab.name}</div>`;
-                MatrixRoles.forEach(role => {
-                    let isChecked = (cauHinhGiaoDien[role] && cauHinhGiaoDien[role].includes(tab.id)) ? "checked" : "";
-                    htmlMatrix += `<div class="text-center"><input type="checkbox" ${isChecked} onchange="updateGiaoDienMatrix('${role}', '${tab.id}', this)" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 mx-auto"></div>`;
-                });
-                htmlMatrix += `</div>`;
-            }
+    let htmlMatrix = "";
+    MatrixTabs.forEach(tab => {
+        htmlMatrix += `<tr class="border-b font-medium text-xs hover:bg-slate-50"><td class="p-3 font-bold text-slate-700">${tab.name}</td>`;
+        MatrixRoles.forEach(role => {
+            let isChecked = (cauHinhGiaoDien[role] && cauHinhGiaoDien[role].includes(tab.id)) ? "checked" : "";
+            htmlMatrix += `<td class="p-3 text-center"><input type="checkbox" ${isChecked} onchange="updateGiaoDienMatrix('${role}', '${tab.id}', this)" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"></td>`;
         });
+        htmlMatrix += `</tr>`;
+    });
 
-        if (!isTableStructure && targetContainer.id === "subtab-security") {
-            let containerKhungInner = targetContainer.querySelector(".border.rounded-xl") || targetContainer;
-            if (containerKhungInner !== targetContainer) {
-                containerKhungInner.innerHTML = htmlMatrix;
+    const tbodyMatrix = document.getElementById("bodyMaTranGiaoDien");
+    if (tbodyMatrix) {
+        tbodyMatrix.innerHTML = htmlMatrix;
+    } else {
+        // Fallback an toàn: Chỉ chèn nếu tìm đúng header của bảng phân quyền
+        let tables = document.querySelectorAll('table');
+        for (let t of tables) {
+            if(t.innerHTML.includes('KTV CSSD') && t.innerHTML.includes('KHÁCH THAM QUAN')) {
+                let tb = t.querySelector('tbody');
+                if(tb) tb.innerHTML = htmlMatrix;
+                break;
             }
-        } else {
-            targetContainer.innerHTML = htmlMatrix;
         }
     }
 
@@ -257,6 +238,7 @@ function renderAdminInterface() {
         if(danhSachKhoa.length === 0) { tbKhoa.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa trống.</td></tr>`; } 
         else { tbKhoa.innerHTML = danhSachKhoa.map((k, index) => `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-black text-slate-700 text-[11px]">${k.ten}</td><td class="p-3 text-center border-x border-slate-200 font-mono font-black text-rose-600 text-sm bg-rose-50/50">${k.pin || '123'}</td><td class="p-3 text-center"><div class="flex items-center justify-center gap-2"><input type="text" id="pin-khoa-${index}" placeholder="PIN" class="w-24 p-1.5 text-center border border-slate-300 rounded text-xs font-bold"><button onclick="updatePINTrựcTiep(${index}, '${k.ten}')" class="bg-sky-600 text-white font-bold py-1.5 px-3 rounded shadow text-[10px]">ĐỔI PIN</button></div></td></tr>`).join(''); }
     }
+    
     const tbKtv = document.getElementById("bangNhanVienCssd");
     if(tbKtv) {
         if(danhSachKtvCssd.length === 0) { tbKtv.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Chưa có Nhân viên.</td></tr>`; }
@@ -313,7 +295,7 @@ function renderGioHangXuat() {
             listContainer.classList.remove("hidden");
             let html = `<div class="flex justify-between items-center mb-2 pb-2 border-b border-sky-200">
                             <h3 class="font-bold text-sky-800 text-[13px]"><i class="fa-solid fa-cart-flatbed mr-2"></i>Đang quét xuất kho: <span class="bg-rose-500 text-white px-2 py-0.5 rounded ml-1">${gioHangXuatKho.length} mâm</span></h3>
-                            <button onclick="xacNuanXuatKhoHangLoat()" class="bg-emerald-600 text-white px-4 py-1.5 rounded shadow font-black text-xs hover:bg-emerald-700 transition-colors uppercase"><i class="fa-solid fa-check-double mr-1"></i>Chốt Bàn Giao</button>
+                            <button onclick="xacNhanXuatKhoHangLoat()" class="bg-emerald-600 text-white px-4 py-1.5 rounded shadow font-black text-xs hover:bg-emerald-700 transition-colors uppercase"><i class="fa-solid fa-check-double mr-1"></i>Chốt Bàn Giao</button>
                         </div>
                         <div class="flex flex-wrap gap-2">`;
             gioHangXuatKho.forEach((item, index) => {
@@ -334,7 +316,7 @@ function xoaKhoiGioXuat(index) {
     renderGioHangXuat();
 }
 
-function xacNuanXuatKhoHangLoat() {
+function xacNhanXuatKhoHangLoat() {
     const k = document.getElementById("xuat_selKhoa").value;
     if(!k || gioHangXuatKho.length === 0) return;
     
@@ -472,7 +454,6 @@ function hanhDongXemAnhBiMoi(firestoreId) {
     w.document.write(`<html><head><title>MINH CHỨNG ẢNH BI - LÔ ${item.batchCode}</title></head><body style='margin:0; background:#000; display:flex; justify-content:center; align-items:center;'><img src='${chuoiAnhBase64}' style='max-width:100%; max-height:100vh; object-fit:contain;'/></body></html>`);
 }
 
-// --- KHẮC PHỤC TRIỆT ĐỂ LỖI KHÔNG IN RA ĐƯỢC DỮ LIỆU KHI TRUY XUẤT ---
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
         const k = document.getElementById("khoa_selKhoa").value;
@@ -637,37 +618,37 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'tracuu') {
-        const tbody = document.getElementById("bangLichSuTruyXuatAdmin") || 
-                      document.querySelector("#tab-tracuu table tbody") || 
-                      document.querySelector("#subtab-database table tbody");
-        
-        let searchInp = maLoTruyVetToanCuc;
-        if (!searchInp) {
-            let inputs = document.querySelectorAll('#tab-tracuu input, #subtab-database input, input[id="inp_searchBatch"]');
-            for (let inp of inputs) {
-                if (inp.value && inp.value.trim()) {
-                    searchInp = inp.value.trim();
+        const tbody = document.getElementById("bangLichSuTruyXuatAdmin");
+        let safeTbody = tbody;
+
+        // BẮT CHẶT VỊ TRÍ: Chỉ tìm bảng CÓ CHỨA cột Trạng Thái và KHÔNG CHỨA cột Mã NV
+        if (!safeTbody) {
+            let tables = document.querySelectorAll('table');
+            for (let t of tables) {
+                if (t.innerHTML.includes('TRẠNG THÁI') && !t.innerHTML.includes('MÃ NV')) {
+                    safeTbody = t.querySelector('tbody');
                     break;
                 }
             }
         }
         
-        document.querySelectorAll('input[id="inp_searchBatch"]').forEach(inp => {
-            inp.value = searchInp || "";
-        });
+        let searchInp = maLoTruyVetToanCuc || "";
+        if (!searchInp && document.getElementById("inp_searchBatch")) {
+            searchInp = document.getElementById("inp_searchBatch").value.trim();
+        }
 
-        if(tbody) {
+        if(safeTbody) {
             if (!searchInp) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Vui lòng nhập hoặc quét mã mẻ hấp để tiến hành kiểm tra khoanh vùng...</td></tr>`;
+                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Nhập mã mẻ hấp để tiến hành truy vết...</td></tr>`;
                 return;
             }
             
             let dataFiltered = listGiaoDich.filter(x => x.batchCode && String(x.batchCode).toUpperCase().includes(searchInp.toUpperCase()));
             
             if(dataFiltered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-500 italic font-bold">Không tìm thấy dữ liệu mâm dụng cụ nào thuộc mã mẻ hấp: ${searchInp}</td></tr>`;
+                safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-500 italic font-bold">Không tìm thấy dữ liệu mâm dụng cụ nào thuộc mã mẻ: ${searchInp}</td></tr>`;
             } else {
-                tbody.innerHTML = dataFiltered.map(x => {
+                safeTbody.innerHTML = dataFiltered.map(x => {
                     let cleanBo = x.bo ? x.bo.split(" [ID:")[0] : "N/A";
                     return `<tr class="border-b text-xs hover:bg-slate-50">
                         <td class="p-2.5 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td>
@@ -723,7 +704,17 @@ function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiem
 function inTemNghiemThuHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanBo = item.bo ? item.bo.split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-size: 9px; font-weight: bold;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0;">${cleanBo}</div><div style="text-align: center;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; margin-top: 2px; font-family: monospace;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
 function tuChoiHapHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); }
 function resetDuLieuKet() { if(confirm("Dọn dẹp mâm kẹt?")) { let p = []; listGiaoDich.forEach(doc => { if(doc.status !== "HOAN_TAT") { p.push(db.collection("phieuGiaoNhan").doc(doc.firestoreId).update({ status: "HOAN_TAT", ghiChu: "Dọn kẹt" })); } }); Promise.all(p).then(() => callRender()); } }
-function switchAdminSubtab(sub) { document.getElementById('subtab-database').classList.add('hidden'); document.getElementById('subtab-security').classList.add('hidden'); document.getElementById('subbtn-database').classList.replace('admin-subtab-active', 'text-slate-600'); document.getElementById('subbtn-security').classList.replace('admin-subtab-active', 'text-slate-600'); document.getElementById('subtab-' + sub).classList.remove('hidden'); document.getElementById('subbtn-' + sub).classList.add('admin-subtab-active'); }
+
+function switchAdminSubtab(sub) { 
+    document.getElementById('subtab-database')?.classList.add('hidden'); 
+    document.getElementById('subtab-security')?.classList.add('hidden'); 
+    document.getElementById('subbtn-database')?.classList.replace('admin-subtab-active', 'text-slate-600'); 
+    document.getElementById('subbtn-security')?.classList.replace('admin-subtab-active', 'text-slate-600'); 
+    
+    document.getElementById('subtab-' + sub)?.classList.remove('hidden'); 
+    document.getElementById('subbtn-' + sub)?.classList.add('admin-subtab-active'); 
+}
+
 function saveAdminPIN(type) { let newVal = document.getElementById(`cfg_pin${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}`).value.trim(); if(type === 'ADMIN') thongTinMatKhauAdmin.adminPIN = newVal; if(type === 'CSSD') thongTinMatKhauAdmin.cssdPIN = newVal; if(type === 'GUEST') thongTinMatKhauAdmin.guestPIN = newVal; db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ thongTinMatKhauAdmin: thongTinMatKhauAdmin }).then(() => showToast("Đã lưu PIN!", "success")); }
 function themKtvCssd() { let code = prompt("Mã NV:"); let ten = prompt("Tên:"); let pin = prompt("PIN:"); if(code && ten && pin) { danhSachKtvCssd.push({ code: code.toUpperCase(), ten: ten, pin: pin }); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
 function xoaKtvCssd(code) { if(confirm("Xóa?")) { danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
@@ -747,7 +738,7 @@ function moCamera(inputId) { targetInputIdForScan = inputId; document.getElement
 function dongCamera() { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()); document.getElementById("popupScanner").classList.add("hidden"); }
 function xoaSachDuLieuGiaoDichRealtime() { if(prompt("Nhập PIN ADMIN để xóa:") === (thongTinMatKhauAdmin.adminPIN||"admin2026")) { db.collection("phieuGiaoNhan").get().then(snap => { let b = db.batch(); snap.forEach(d => b.delete(d.ref)); b.commit().then(() => location.reload()); }); } }
 
-// --- KHẮC PHỤC HOÀN TOÀN ĐỒNG BỘ DỮ LIỆU INPUT VÀ ÉP RENDER KHI TRUY VẾT ---
+// --- ÉP BUỘC CHUYỂN TAB VÀ ĐỒNG BỘ DỮ LIỆU KHI TRUY VẾT ---
 function truyVetTheoMaBatch() {
     let maMẻKhẩnCấp = "";
     let inputs = document.querySelectorAll('input[placeholder*="A126"], input[id="inp_searchBatch"], input[placeholder*="Mẻ hấp"]');
@@ -763,7 +754,14 @@ function truyVetTheoMaBatch() {
     }
     
     maLoTruyVetToanCuc = maMẻKhẩnCấp.toUpperCase();
+    
+    // Đảm bảo mở đúng Tab Truy Vết (Cấu hình)
     switchTab('tracuu');
+    
+    // Ép buộc chuyển qua cửa sổ nhỏ (Sub-tab) "1. Truy vết" thay vì ở lại trang mã PIN
+    if (typeof switchAdminSubtab === 'function') {
+        try { switchAdminSubtab('database'); } catch(e){}
+    }
     
     document.querySelectorAll('input[id="inp_searchBatch"]').forEach(inp => {
         inp.value = maLoTruyVetToanCuc;
