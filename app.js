@@ -18,7 +18,8 @@ let duLieuAnhBiTamBase64 = "";
 let maLoTruyVetToanCuc = ""; 
 let gioHangXuatKho = [];
 
-function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate')+1).padStart(2,'0')}`; }
+// --- ĐÃ SỬA LỖI CÚ PHÁP TẠI ĐÂY ---
+function getTodayDateStr() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 function playSound(type) {
     try {
@@ -181,11 +182,10 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     if(!cauHinhGiaoDien[role]) cauHinhGiaoDien[role] = [];
     if(checkboxElement.checked) { if(!cauHinhGiaoDien[role].includes(tabId)) cauHinhGiaoDien[role].push(tabId); } 
     else { cauHinhGiaoDien[role] = cauHinhGiaoDien[role].filter(x => x !== tabId); }
-    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
+    db.collection("heThongDanhMuc").doc("danhMucTongPhuong Nam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
     .then(() => showToast(`Đã cập nhật quyền truy cập cho nhóm: ${role}`, "success"));
 }
 
-// --- KHÔI PHỤC HOÀN TOÀN TÍNH NĂNG RESET VÀ QUẢN LÝ MÃ PIN ---
 function renderAdminInterface() {
     if (document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
     if (document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
@@ -395,7 +395,6 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'tracuu') {
-        // --- KHU VỰC HIỂN THỊ KẾT QUẢ ĐỘC LẬP TỰ ĐỘNG ---
         let safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
         if (!safeTbody) {
             let parentContainer = document.getElementById("tab-tracuu") || document.querySelector('.bg-white.p-6.rounded-xl.shadow-md');
@@ -408,7 +407,7 @@ function renderTheoTabHienTai() {
                 }
             }
         }
-        let searchInp = maLoTruyVetToanCuc || "";
+        let searchInp = maLoTruyVet ToanCuc || "";
         if (!searchInp && document.getElementById("inp_searchBatch")) { searchInp = document.getElementById("inp_searchBatch").value.trim(); }
         if(safeTbody) {
             if (!searchInp) { safeTbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Vui lòng nhập mã mẻ hấp và nhấn "TRA CỨU KHẨN CẤP" để hiển thị dữ liệu...</td></tr>`; return; }
