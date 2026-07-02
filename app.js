@@ -59,7 +59,7 @@ db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => {
         if(activeTab === 'khoaphong') loadBoDungCuTheoKhoa(); 
         renderAdminInterface(); 
         if(currentRole) apDungPhanQuyenGiaoDien(currentRole);
-        taiDanhMucLinhKienChuand();
+        taiDanhMucLinhKienChuan();
         callRender();
     } catch(err) { console.error("Lỗi đồng bộ danh mục:", err); }
 });
@@ -70,7 +70,7 @@ db.collection("phieuGiaoNhan").orderBy("id", "desc").limit(1000).onSnapshot(snap
 });
 
 // --- HÀM TẢI VÀ HIỂN THỊ DANH MỤC LINH KIỆN ---
-function taiDanhMucLinhKienChuand() {
+function taiDanhMucLinhKienChuan() {
     const tbody = document.getElementById("bangDanhMucLinhKien");
     if (!tbody) return; tbody.innerHTML = "";
     
@@ -351,9 +351,9 @@ function renderTheoTabHienTai() {
                 if(!cacMeHapGop[x.batchCode]) { cacMeHapGop[x.batchCode] = { batchCode: x.batchCode, loaiHap: x.thongTinLoHap?.loaiHap || "Hấp hơi nước", chuKyNhiet: x.thongTinLoHap?.chuKyNhiet || "134°C - 4 phút", apSuat: x.thongTinLoHap?.apSuat || "2.1", thoiGian: x.thongTinLoHap?.thoiGianBatDau || x.time || "--:--", ngay: x.ngayHapRealtime || x.ngayTao || "", soLuongKhay: 0, trangThaiMe: x.status === "DANG_HAP" ? "Đang chạy lò" : "Đã hoàn thành" }; }
                 cacMeHapGop[x.batchCode].soLuongKhay += 1;
             });
-            let danhSachMeHapSắpXep = Object.values(cacMeHapGop).sort((a, b) => String(b.batchCode).localeCompare(String(a.batchCode)));
-            if(danhSachMeHapSắpXep.length === 0) { document.getElementById("bangLichSuHap").innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Hôm nay chưa có mẻ hấp nào được kích hoạt</td></tr>`; } 
-            else { document.getElementById("bangLichSuHap").innerHTML = danhSachMeHapSắpXep.map(me => { let colorStatus = me.trangThaiMe === "Đang chạy lò" ? "text-purple-600 bg-purple-50 border border-purple-200" : "text-emerald-600 bg-emerald-50 border border-emerald-200"; return `<tr class="hover:bg-slate-50 transition-colors"><td class="p-3"><div class="flex items-center gap-2"><span class="font-mono font-black text-rose-700 text-sm tracking-wider">${me.batchCode}</span><span class="px-2 py-0.5 text-[9px] font-black uppercase rounded ${colorStatus}">${me.trangThaiMe}</span></div><div class="text-[11px] text-slate-500 font-medium mt-1"><i class="fa-solid fa-gear text-slate-400 mr-1"></i> ${me.loaiHap} | ${me.chuKyNhiet} | Áp suất: ${me.apSuat} Bar</div><div class="text-[10px] text-slate-400 font-mono mt-0.5"><i class="fa-solid fa-clock text-slate-300 mr-1"></i> Bắt đầu: ${me.thoiGian} (${me.ngay})</div></td><td class="p-3 text-right pr-4"><span class="font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-xs">${me.soLuongKhay} khay</span></td></tr>`; }).join(''); }
+            let danhSachMeHapSapXep = Object.values(cacMeHapGop).sort((a, b) => String(b.batchCode).localeCompare(String(a.batchCode)));
+            if(danhSachMeHapSapXep.length === 0) { document.getElementById("bangLichSuHap").innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Hôm nay chưa có mẻ hấp nào được kích hoạt</td></tr>`; } 
+            else { document.getElementById("bangLichSuHap").innerHTML = danhSachMeHapSapXep.map(me => { let colorStatus = me.trangThaiMe === "Đang chạy lò" ? "text-purple-600 bg-purple-50 border border-purple-200" : "text-emerald-600 bg-emerald-50 border border-emerald-200"; return `<tr class="hover:bg-slate-50 transition-colors"><td class="p-3"><div class="flex items-center gap-2"><span class="font-mono font-black text-rose-700 text-sm tracking-wider">${me.batchCode}</span><span class="px-2 py-0.5 text-[9px] font-black uppercase rounded ${colorStatus}">${me.trangThaiMe}</span></div><div class="text-[11px] text-slate-500 font-medium mt-1"><i class="fa-solid fa-gear text-slate-400 mr-1"></i> ${me.loaiHap} | ${me.chuKyNhiet} | Áp suất: ${me.apSuat} Bar</div><div class="text-[10px] text-slate-400 font-mono mt-0.5"><i class="fa-solid fa-clock text-slate-300 mr-1"></i> Bắt đầu: ${me.thoiGian} (${me.ngay})</div></td><td class="p-3 text-right pr-4"><span class="font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-xs">${me.soLuongKhay} khay</span></td></tr>`; }).join(''); }
         }
     }
     else if(activeTab === 'khovokhuan') {
@@ -528,9 +528,9 @@ function clearTruyVetBatch() {
     callRender(); 
 }
 
-// =========================================================
-// --- BỔ SUNG CƠ CHẾ ĐỌC FILE EXCEL ĐỂ NẠP DANH MỤC ---
-// =========================================================
+// ====================================================================
+// --- HÀM XỬ LÝ CHUẨN: TỰ ĐỘNG BÓC TÁCH KHOA/PHÒNG TỪ IMPORT-CƠ SỐ ---
+// ====================================================================
 function nhanFileExcelDanhMuc(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
@@ -543,27 +543,76 @@ function nhanFileExcelDanhMuc(inputElement) {
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
             
-            // Chuyển dữ liệu sheet thành mảng JSON dữ liệu thô
-            const rawData = XLSX.utils.sheet_to_json(worksheet);
+            // Đọc dưới dạng mảng hàng để bóc tách chính xác theo vị trí cột (0, 1, 2, 3)
+            const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
             
-            if (rawData.length === 0) {
-                return showToast("File Excel trống hoặc không đúng định dạng!", "error");
+            if (rawRows.length === 0) {
+                return showToast("File Excel trống hoặc cấu trúc sai!", "error");
             }
 
-            // Đồng bộ mảng databaseExcel cục bộ và đẩy lên tài liệu Firestore viết liền không dấu cách
+            let tapHopKhoa = new Set();
+            let danhSachBoTheoKhoa = {}; 
+            let duLieuExcelChuanHoa = [];
+
+            rawRows.forEach(row => {
+                // Bỏ qua các hàng tiêu đề cột (nếu chứa từ khóa như 'KHOA' hoặc 'PHÒNG')
+                if (!row[0] || String(row[0]).includes("Khoa") || String(row[0]).includes("PHÒNG")) {
+                    if (!row[1]) return; // Nếu là dữ liệu thật thì chạy tiếp
+                }
+
+                let tenKhoa = String(row[0]).trim().toUpperCase();
+                let maBo = row[1] ? String(row[1]).trim().toUpperCase() : "";
+                let tenBo = row[2] ? String(row[2]).trim() : "";
+                let soLuong = parseInt(row[3]) || 1;
+
+                if (tenKhoa && tenBo) {
+                    tapHopKhoa.add(tenKhoa);
+                    
+                    // Tạo danh mục mâm dụng cụ định hình gắn vào từng khoa sở hữu
+                    if (!danhSachBoTheoKhoa[tenKhoa]) {
+                        danhSachBoTheoKhoa[tenKhoa] = new Set();
+                    }
+                    // Đồng bộ định dạng chuỗi: "Tên Bộ [ID:Mã Bộ]"
+                    danhSachBoTheoKhoa[tenKhoa].add(`${tenBo} [ID:${maBo}]`);
+
+                    // Map dữ liệu mảng thô để không làm lỗi giao diện Trạm Kiểm Đếm
+                    duLieuExcelChuanHoa.push({
+                        "Tên Bộ Dụng Cụ": tenBo,
+                        "Mã Bộ": maBo,
+                        "Tên Dụng Cụ Chi Tiết": "Nguyên bộ cấu hình cơ số",
+                        "Số lượng": soLuong
+                    });
+                }
+            });
+
+            // Chuyển Set sang mảng Object cấu trúc dữ liệu Firestore chuẩn
+            let mangDanhSachKhoaMoi = Array.from(tapHopKhoa).map(khoaName => {
+                return {
+                    ten: khoaName,
+                    pin: "123", // PIN mặc định cho điều dưỡng khoa đăng nhập
+                    danhSachBo: Array.from(danhSachBoTheoKhoa[khoaName])
+                };
+            });
+
+            if (duLieuExcelChuanHoa.length === 0) {
+                return showToast("Không tìm thấy hàng dữ liệu hợp lệ!", "error");
+            }
+
+            // Ghi đè cập nhật cùng lúc cả Danh sách Khoa và database linh kiện lên Firebase
             db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
-                databaseExcel: rawData
+                danhSachKhoa: mangDanhSachKhoaMoi,
+                databaseExcel: duLieuExcelChuanHoa
             }).then(() => {
-                showToast("Đã nạp thành công danh mục bộ dụng cụ từ Excel lên hệ thống!", "success");
-                inputElement.value = ""; // Reset input file
+                showToast(`Thành công! Đã bóc tách ${mangDanhSachKhoaMoi.length} Khoa/Phòng và đồng bộ cơ số.`, "success");
+                inputElement.value = ""; 
             }).catch(err => {
                 console.error(err);
-                showToast("Lỗi đồng bộ lên Firestore!", "error");
+                showToast("Lỗi đẩy đồng bộ lên Firestore!", "error");
             });
 
         } catch (err) {
             console.error(err);
-            showToast("Không đọc được file Excel! Vui lòng kiểm tra lại cấu trúc file.", "error");
+            showToast("Lỗi phân tích cú pháp file Excel!", "error");
         }
     };
     reader.readAsArrayBuffer(file);
