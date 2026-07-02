@@ -59,6 +59,7 @@ db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => {
         if(activeTab === 'khoaphong') loadBoDungCuTheoKhoa(); 
         renderAdminInterface(); 
         if(currentRole) apDungPhanQuyenGiaoDien(currentRole);
+        taiDanhMucLinhKienChuand();
         callRender();
     } catch(err) { console.error("Lỗi đồng bộ danh mục:", err); }
 });
@@ -68,26 +69,40 @@ db.collection("phieuGiaoNhan").orderBy("id", "desc").limit(1000).onSnapshot(snap
     callRender();
 });
 
+// --- HÀM TẢI VÀ HIỂN THỊ DANH MỤC LINH KIỆN ---
 function taiDanhMucLinhKienChuand() {
-    db.collection("danhMucLinhKien").orderBy("tenLoaiBo").onSnapshot((snapshot) => {
-        const tbody = document.getElementById("bangDanhMucLinhKien");
-        if (!tbody) return; tbody.innerHTML = "";
-        if (snapshot.empty) {
-            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Chưa có dữ liệu cấu hình bộ linh kiện.</td></tr>`;
-            return;
-        }
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            let linhKienHtml = `<div class="flex flex-wrap gap-1">`;
-            if (data.chiTiet && Array.isArray(data.chiTiet)) {
-                data.chiTiet.forEach(item => { linhKienHtml += `<span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium border border-slate-200">${item.tenBaoCao || item.tenChiTiet} (${item.soLuong})</span>`; });
-            } else { linhKienHtml += `<span class="text-slate-400 italic">Không có chi tiết</span>`; }
-            linhKienHtml += `</div>`;
-            const tr = document.createElement("tr"); tr.className = "hover:bg-slate-50 transition-colors";
-            tr.innerHTML = `<td class="p-3 font-bold text-slate-800">${data.tenLoaiBo}</td><td class="p-3">${linhKienHtml}</td><td class="p-3 text-center font-black text-sky-700 bg-sky-50/30">${data.tongSoLuong || 0}</td>`;
-            tbody.appendChild(tr);
-        });
+    const tbody = document.getElementById("bangDanhMucLinhKien");
+    if (!tbody) return; tbody.innerHTML = "";
+    
+    if (!databaseExcel || databaseExcel.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Chưa có dữ liệu cấu hình bộ linh kiện. Vui lòng nạp file Excel.</td></tr>`;
+        return;
+    }
+
+    let gopBoExcel = {};
+    databaseExcel.forEach(x => {
+        let tenBo = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name'];
+        if (!tenBo) return;
+        tenBo = String(tenBo).trim();
+        if (!gopBoExcel[tenBo]) gopBoExcel[tenBo] = [];
+        gopBoExcel[tenBo].push(x);
     });
+
+    for (let tenBo in gopBoExcel) {
+        let linhKienHtml = `<div class="flex flex-wrap gap-1">`;
+        let tongSl = 0;
+        gopBoExcel[tenBo].forEach(item => {
+            let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ";
+            let sl = parseInt(item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1);
+            tongSl += sl;
+            linhKienHtml += `<span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium border border-slate-200">${tenDc} (${sl})</span>`;
+        });
+        linhKienHtml += `</div>`;
+
+        const tr = document.createElement("tr"); tr.className = "hover:bg-slate-50 transition-colors border-b";
+        tr.innerHTML = `<td class="p-3 font-bold text-slate-800 text-xs">${tenBo}</td><td class="p-3">${linhKienHtml}</td><td class="p-3 text-center font-black text-sky-700 bg-sky-50/30">${tongSl}</td>`;
+        tbody.appendChild(tr);
+    }
 }
 
 function callRender() { clearTimeout(renderTimeout); renderTimeout = setTimeout(() => { renderTheoTabHienTai(); }, 100); }
@@ -467,7 +482,6 @@ function switchAdminSubtab(sub) {
     document.getElementById('subtab-security')?.classList.add('hidden'); 
     document.getElementById('subbtn-database')?.classList.replace('admin-subtab-active', 'text-slate-600'); 
     document.getElementById('subbtn-security')?.classList.replace('admin-subtab-active', 'text-slate-600'); 
-    
     document.getElementById('subtab-' + sub)?.classList.remove('hidden'); 
     document.getElementById('subbtn-' + sub)?.classList.add('admin-subtab-active'); 
 }
@@ -482,7 +496,6 @@ function initSelects() {
     let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join('');
     if(document.getElementById("login_khoa")) document.getElementById("login_khoa").innerHTML = opts; 
     if(document.getElementById("khoa_selKhoa")) document.getElementById("khoa_selKhoa").innerHTML = opts; 
-    
     if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
     if (document.getElementById("hap_loaiHap")) { capNhatDanhSachMaMay(); }
 }
@@ -494,13 +507,11 @@ function moCamera(inputId) { targetInputIdForScan = inputId; document.getElement
 function dongCamera() { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()); document.getElementById("popupScanner").classList.add("hidden"); }
 function xoaSachDuLieuGiaoDichRealtime() { if(prompt("Nhập PIN ADMIN để xóa:") === (thongTinMatKhauAdmin.adminPIN||"admin2026")) { db.collection("phieuGiaoNhan").get().then(snap => { let b = db.batch(); snap.forEach(d => b.delete(d.ref)); b.commit().then(() => location.reload()); }); } }
 
-// --- TRUY VẾT BIỆT LẬP - TỰ ĐỘNG TẠO BẢNG Ở VỊ TRÍ SỐ 1 ---
 function truyVetTheoMaBatch() {
     let maMẻKhẩnCấp = "";
     let inputs = document.querySelectorAll('input[placeholder*="A126"], input[id="inp_searchBatch"], input[placeholder*="Mẻ hấp"]');
     for (let inp of inputs) { if (inp.value && inp.value.trim()) { maMẻKhẩnCấp = inp.value.trim(); break; } }
     if(!maMẻKhẩnCấp) { return showToast("Vui lòng nhập mã mẻ hấp cần truy vết khẩn cấp!", "error"); }
-    
     maLoTruyVetToanCuc = maMẻKhẩnCấp.toUpperCase();
     switchTab('tracuu');
     if (typeof switchAdminSubtab === 'function') { try { switchAdminSubtab('database'); } catch(e){} }
@@ -515,4 +526,45 @@ function clearTruyVetBatch() {
     const dynamicTable = document.getElementById("vung-ket-qua-truy-vet-tu-dong");
     if (dynamicTable) dynamicTable.remove();
     callRender(); 
+}
+
+// =========================================================
+// --- BỔ SUNG CƠ CHẾ ĐỌC FILE EXCEL ĐỂ NẠP DANH MỤC ---
+// =========================================================
+function nhanFileExcelDanhMuc(inputElement) {
+    const file = inputElement.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            // Chuyển dữ liệu sheet thành mảng JSON dữ liệu thô
+            const rawData = XLSX.utils.sheet_to_json(worksheet);
+            
+            if (rawData.length === 0) {
+                return showToast("File Excel trống hoặc không đúng định dạng!", "error");
+            }
+
+            // Đồng bộ mảng databaseExcel cục bộ và đẩy lên tài liệu Firestore viết liền không dấu cách
+            db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
+                databaseExcel: rawData
+            }).then(() => {
+                showToast("Đã nạp thành công danh mục bộ dụng cụ từ Excel lên hệ thống!", "success");
+                inputElement.value = ""; // Reset input file
+            }).catch(err => {
+                console.error(err);
+                showToast("Lỗi đồng bộ lên Firestore!", "error");
+            });
+
+        } catch (err) {
+            console.error(err);
+            showToast("Không đọc được file Excel! Vui lòng kiểm tra lại cấu trúc file.", "error");
+        }
+    };
+    reader.readAsArrayBuffer(file);
 }
