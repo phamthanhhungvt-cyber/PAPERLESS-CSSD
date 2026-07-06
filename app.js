@@ -233,7 +233,6 @@ function renderAdminInterface() {
     const tbodyMatrix = document.getElementById("bodyMaTranGiaoDien");
     if (tbodyMatrix) tbodyMatrix.innerHTML = htmlMatrix;
 
-    // CHUẨN HÓA ĐỒNG BỘ: Sửa chuỗi nút bấm vãng lai từ text cũ thành text mới "KHAI SINH KHAY MỚI"
     const tbKhoa = document.getElementById("bangPhanQuyenKhoa");
     if(tbKhoa) {
         if(danhSachKhoa.length === 0) { tbKhoa.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa trống.</td></tr>`; } 
@@ -417,7 +416,7 @@ function renderTheoTabHienTai() {
                 let existingTableZone = document.getElementById("vung-ket-qua-truy-vet-tu-dong");
                 if(!existingTableZone) {
                     let tableWrapper = document.createElement("div"); tableWrapper.id = "vung-ket-qua-truy-vet-tu-dong"; tableWrapper.className = "mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm";
-                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng Thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
+                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
                     parentContainer.appendChild(tableWrapper); safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
                 }
             }
@@ -475,7 +474,7 @@ function inTemTongHangLoat() { let checkboxes = document.querySelectorAll('.hap-
 function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
 function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã duyệt mâm đạt nhập kho Vô Khuẩn!", "success"); callRender(); }); }
 function inTemNghiemThuHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanBo = item.bo ? item.bo.split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-size: 9px; font-weight: bold;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0;">${cleanBo}</div><div style="text-align: center;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; margin-top: 2px; font-family: monospace;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
-function tuChoiHapHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); }
+function toggleChoiHapHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); }
 function resetDuLieuKet() { if(confirm("Dọn dẹp mâm kẹt?")) { let p = []; listGiaoDich.forEach(doc => { if(doc.status !== "HOAN_TAT") { p.push(db.collection("phieuGiaoNhan").doc(doc.firestoreId).update({ status: "HOAN_TAT", ghiChu: "Dọn kẹt" })); } }); Promise.all(p).then(() => callRender()); } }
 
 function switchAdminSubtab(sub) { 
@@ -490,7 +489,58 @@ function switchAdminSubtab(sub) {
 function saveAdminPIN(type) { let newVal = document.getElementById(`cfg_pin${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}`).value.trim(); if(type === 'ADMIN') thongTinMatKhauAdmin.adminPIN = newVal; if(type === 'CSSD') thongTinMatKhauAdmin.cssdPIN = newVal; if(type === 'GUEST') thongTinMatKhauAdmin.guestPIN = newVal; db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ thongTinMatKhauAdmin: thongTinMatKhauAdmin }).then(() => showToast("Đã lưu PIN!", "success")); }
 function themKtvCssd() { let code = prompt("Mã NV:"); let ten = prompt("Tên:"); let pin = prompt("PIN:"); if(code && ten && pin) { danhSachKtvCssd.push({ code: code.toUpperCase(), ten: ten, pin: pin }); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
 function xoaKtvCssd(code) { if(confirm("Xóa?")) { danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
-function themKhoaThuCong() { let t = prompt("Tên Khoa:"); if(t) { danhSachKhoa.push({ ten: t.toUpperCase(), pin: "123", danhSachBo: [] }); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }); } }
+
+// LOGIC GỐC TRẢ LẠI ĐÚNG VAI TRÒ: THÊM KHOA PHÒNG MỚI
+function themKhoaThuCong() { 
+    let t = prompt("Nhập Tên Khoa/Phòng mới cần thêm vào hệ thống:"); 
+    if(t) { 
+        danhSachKhoa.push({ ten: t.toUpperCase(), pin: "123", danhSachBo: [] }); 
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa })
+        .then(() => showToast(`Đã thêm Khoa ${t.toUpperCase()} thành công!`, "success")); 
+    } 
+}
+
+// LOGIC MỚI: KHAI SINH KHAY DỤNG CỤ VÃNG LAI/ĐỘC BẢN
+function khaiSinhKhayVangLai() {
+    if(danhSachKhoa.length === 0) return showToast("Hệ thống chưa có Khoa nào để cấp phát khay!", "error");
+    
+    let tenKhay = prompt("Nhập Tên Mâm/Khay dụng cụ mới (Ví dụ: BỘ PHẪU THUẬT NỘI SOI):");
+    if(!tenKhay) return;
+    
+    let maId = prompt("Nhập Mã ID định hình khay (Ví dụ: PC-8888):");
+    if(!maId) return;
+    maId = maId.toUpperCase().trim();
+
+    let dsTenKhoa = danhSachKhoa.map((k, idx) => `${idx + 1}. ${k.ten}`).join("\n");
+    let luaChon = prompt(`Chọn số thứ tự Khoa sở hữu khay này:\n${dsTenKhoa}`);
+    if(!luaChon) return;
+    
+    let idxKhoa = parseInt(luaChon) - 1;
+    if(isNaN(idxKhoa) || idxKhoa < 0 || idxKhoa >= danhSachKhoa.length) {
+        return showToast("Lựa chọn Khoa không hợp lệ!", "error");
+    }
+    
+    let khoaChon = danhSachKhoa[idxKhoa];
+    let chuoiKhayDinhDang = `${tenKhay.toUpperCase().trim()} [ID:${maId}]`;
+    
+    if(!khoaChon.danhSachBo) khoaChon.danhSachBo = [];
+    if(khoaChon.danhSachBo.includes(chuoiKhayDinhDang)) {
+        return showToast("Mã khay dụng cụ này đã tồn tại ở khoa này rồi!", "error");
+    }
+    
+    khoaChon.danhSachBo.push(chuoiKhayDinhDang);
+    
+    // Đẩy đồng bộ trực tiếp lên Firebase Firestore để cập nhật Realtime cho toàn viện
+    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa })
+    .then(() => {
+        showToast(`Khai sinh thành công khay ${maId} thuộc quyền sở hữu khoa ${khoaChon.ten}!`, "success");
+        callRender();
+    }).catch(err => {
+        console.error(err);
+        showToast("Lỗi đồng bộ khay lên hệ thống!", "error");
+    });
+}
+
 function updatePINTrựcTiep(idx, tenKhoa) { let p = document.getElementById(`pin-khoa-${idx}`).value.trim(); if(p) { danhSachKhoa.find(x => x.ten === tenKhoa).pin = p; db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => showToast("Đổi PIN thành công", "success")); } }
 
 function initSelects() { 
@@ -529,13 +579,9 @@ function clearTruyVetBatch() {
     callRender(); 
 }
 
-// ====================================================================
-// --- HÀM XỬ LÝ CHUẨN: TỰ ĐỘNG BÓC TÁCH KHOA/PHÒNG TỪ IMPORT-CƠ SỐ ---
-// ====================================================================
 function nhanFileExcelDanhMuc(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
@@ -543,24 +589,17 @@ function nhanFileExcelDanhMuc(inputElement) {
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
-            
-            // Đọc dưới dạng mảng hàng để bóc tách chính xác theo vị trí cột (0, 1, 2, 3)
             const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            
-            if (rawRows.length === 0) {
-                return showToast("File Excel trống hoặc cấu trúc sai!", "error");
-            }
+            if (rawRows.length === 0) return showToast("File Excel trống hoặc cấu trúc sai!", "error");
 
             let tapHopKhoa = new Set();
             let danhSachBoTheoKhoa = {}; 
             let duLieuExcelChuanHoa = [];
 
             rawRows.forEach(row => {
-                // Bỏ qua các hàng tiêu đề cột (nếu chứa từ khóa như 'KHOA' hoặc 'PHÒNG')
                 if (!row[0] || String(row[0]).includes("Khoa") || String(row[0]).includes("PHÒNG")) {
-                    if (!row[1]) return; // Nếu là dữ liệu thật thì chạy tiếp
+                    if (!row[1]) return;
                 }
-
                 let tenKhoa = String(row[0]).trim().toUpperCase();
                 let maBo = row[1] ? String(row[1]).trim().toUpperCase() : "";
                 let tenBo = row[2] ? String(row[2]).trim() : "";
@@ -568,38 +607,18 @@ function nhanFileExcelDanhMuc(inputElement) {
 
                 if (tenKhoa && tenBo) {
                     tapHopKhoa.add(tenKhoa);
-                    
-                    // Tạo danh mục mâm dụng cụ định hình gắn vào từng khoa sở hữu
-                    if (!danhSachBoTheoKhoa[tenKhoa]) {
-                        danhSachBoTheoKhoa[tenKhoa] = new Set();
-                    }
-                    // Đồng bộ định dạng chuỗi: "Tên Bộ [ID:Mã Bộ]"
+                    if (!danhSachBoTheoKhoa[tenKhoa]) danhSachBoTheoKhoa[tenKhoa] = new Set();
                     danhSachBoTheoKhoa[tenKhoa].add(`${tenBo} [ID:${maBo}]`);
-
-                    // Map dữ liệu mảng thô để không làm lỗi giao diện Trạm Kiểm Đếm
-                    duLieuExcelChuanHoa.push({
-                        "Tên Bộ Dụng Cụ": tenBo,
-                        "Mã Bộ": maBo,
-                        "Tên Dụng Cụ Chi Tiết": "Nguyên bộ cấu hình cơ số",
-                        "Số lượng": soLuong
-                    });
+                    duLieuExcelChuanHoa.push({ "Tên Bộ Dụng Cụ": tenBo, "Mã Bộ": maBo, "Tên Dụng Cụ Chi Tiết": "Nguyên bộ cấu hình cơ số", "Số lượng": soLuong });
                 }
             });
 
-            // Chuyển Set sang mảng Object cấu trúc dữ liệu Firestore chuẩn
             let mangDanhSachKhoaMoi = Array.from(tapHopKhoa).map(khoaName => {
-                return {
-                    ten: khoaName,
-                    pin: "123", // PIN mặc định cho điều dưỡng khoa đăng nhập
-                    danhSachBo: Array.from(danhSachBoTheoKhoa[khoaName])
-                };
+                return { ten: khoaName, pin: "123", danhSachBo: Array.from(danhSachBoTheoKhoa[khoaName]) };
             });
 
-            if (duLieuExcelChuanHoa.length === 0) {
-                return showToast("Không tìm thấy hàng dữ liệu hợp lệ!", "error");
-            }
+            if (duLieuExcelChuanHoa.length === 0) return showToast("Không tìm thấy hàng dữ liệu hợp lệ!", "error");
 
-            // Ghi đè cập nhật cùng lúc cả Danh sách Khoa và database linh kiện lên Firebase
             db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
                 danhSachKhoa: mangDanhSachKhoaMoi,
                 databaseExcel: duLieuExcelChuanHoa
@@ -607,12 +626,9 @@ function nhanFileExcelDanhMuc(inputElement) {
                 showToast(`Thành công! Đã bóc tách ${mangDanhSachKhoaMoi.length} Khoa/Phòng và đồng bộ cơ số.`, "success");
                 inputElement.value = ""; 
             }).catch(err => {
-                console.error(err);
                 showToast("Lỗi đẩy đồng bộ lên Firestore!", "error");
             });
-
         } catch (err) {
-            console.error(err);
             showToast("Lỗi phân tích cú pháp file Excel!", "error");
         }
     };
