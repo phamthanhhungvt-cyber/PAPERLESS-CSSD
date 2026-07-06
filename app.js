@@ -233,6 +233,7 @@ function renderAdminInterface() {
     const tbodyMatrix = document.getElementById("bodyMaTranGiaoDien");
     if (tbodyMatrix) tbodyMatrix.innerHTML = htmlMatrix;
 
+    // CHUẨN HÓA ĐỒNG BỘ: Sửa chuỗi nút bấm vãng lai từ text cũ thành text mới "KHAI SINH KHAY MỚI"
     const tbKhoa = document.getElementById("bangPhanQuyenKhoa");
     if(tbKhoa) {
         if(danhSachKhoa.length === 0) { tbKhoa.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa trống.</td></tr>`; } 
