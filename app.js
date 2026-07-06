@@ -416,7 +416,7 @@ function renderTheoTabHienTai() {
                 let existingTableZone = document.getElementById("vung-ket-qua-truy-vet-tu-dong");
                 if(!existingTableZone) {
                     let tableWrapper = document.createElement("div"); tableWrapper.id = "vung-ket-qua-truy-vet-tu-dong"; tableWrapper.className = "mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm";
-                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
+                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng Thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
                     parentContainer.appendChild(tableWrapper); safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
                 }
             }
@@ -474,7 +474,22 @@ function inTemTongHangLoat() { let checkboxes = document.querySelectorAll('.hap-
 function toggleSelectAllNghiemThu() { let checked = document.getElementById('selectAllNghiemThu').checked; document.querySelectorAll('.nghiemthu-checkbox').forEach(cb => cb.checked = checked); }
 function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã duyệt mâm đạt nhập kho Vô Khuẩn!", "success"); callRender(); }); }
 function inTemNghiemThuHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanBo = item.bo ? item.bo.split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-size: 9px; font-weight: bold;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0;">${cleanBo}</div><div style="text-align: center;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; margin-top: 2px; font-family: monospace;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
-function toggleChoiHapHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); }
+
+// SỬA TÊN HÀM GỐC CHUẨN ĐỂ KHÔNG BỊ BÁO LỖI HỆ THỐNG
+function tuChoiHapHangLoat() { 
+    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); 
+    if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
+    let p = []; 
+    checkboxes.forEach(cb => { 
+        if(cb.id === 'selectAllNghiemThu') return; 
+        p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); 
+    }); 
+    Promise.all(p).then(() => { 
+        showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); 
+        callRender(); 
+    }); 
+}
+
 function resetDuLieuKet() { if(confirm("Dọn dẹp mâm kẹt?")) { let p = []; listGiaoDich.forEach(doc => { if(doc.status !== "HOAN_TAT") { p.push(db.collection("phieuGiaoNhan").doc(doc.firestoreId).update({ status: "HOAN_TAT", ghiChu: "Dọn kẹt" })); } }); Promise.all(p).then(() => callRender()); } }
 
 function switchAdminSubtab(sub) { 
@@ -530,7 +545,6 @@ function khaiSinhKhayVangLai() {
     
     khoaChon.danhSachBo.push(chuoiKhayDinhDang);
     
-    // Đẩy đồng bộ trực tiếp lên Firebase Firestore để cập nhật Realtime cho toàn viện
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa })
     .then(() => {
         showToast(`Khai sinh thành công khay ${maId} thuộc quyền sở hữu khoa ${khoaChon.ten}!`, "success");
