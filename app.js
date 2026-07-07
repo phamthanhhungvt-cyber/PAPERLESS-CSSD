@@ -586,13 +586,13 @@ function truyVetTheoMaBatch() {
 function clearTruyVetBatch() { 
     maLoTruyVetToanCuc = ""; 
     document.querySelectorAll('input[id="inp_searchBatch"]').forEach(inp => { inp.value = ""; });
-    const dynamicTable = document.getElementById("vung-ket-qua-truy-vet-tu-dong");
+    const dynamicTable = document.getElementById("vung-ket-qua-try-vet-tu-dong");
     if (dynamicTable) dynamicTable.remove();
     callRender(); 
 }
 
 // =========================================================================
-// HÀM XỬ LÝ FILE EXCEL DANH MỤC MẸ - CON (BÓC TÁCH TUỔI THỌ LINH KIỆN)
+// HÀM XỬ LÝ FILE EXCEL ĐỒNG BỘ CƠ SỐ THEO KHOA THỰC TẾ (KHÔNG CÓ TIÊU ĐỀ)
 // =========================================================================
 function nhanFileExcelDanhMuc(inputElement) {
     const file = inputElement.files[0];
@@ -604,6 +604,8 @@ function nhanFileExcelDanhMuc(inputElement) {
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
+            
+            // Lấy dữ liệu dạng mảng thô để không trượt mất dòng đầu làm Header
             const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
             if (rawRows.length === 0) return showToast("File Excel trống hoặc cấu trúc sai!", "error");
 
@@ -611,33 +613,33 @@ function nhanFileExcelDanhMuc(inputElement) {
             let danhSachBoTheoKhoa = {}; 
             let duLieuExcelChuanHoa = [];
 
-            // Duyệt từ dòng thứ 2 (bỏ qua dòng tiêu đề cột)
-            for (let i = 1; i < rawRows.length; i++) {
+            // Quét từ i = 0 để lấy trọn vẹn dữ liệu từ dòng đầu tiên
+            for (let i = 0; i < rawRows.length; i++) {
                 let row = rawRows[i];
                 if (!row || row.length === 0) continue;
 
-                let tenBo = row[0] ? String(row[0]).trim() : "";
-                let tenDc = row[1] ? String(row[1]).trim() : "";
-                let soLuong = parseInt(row[2]) || 1;
-                let tuoiThoMax = parseInt(row[3]) || 100; // Mặc định 100 mẻ nếu để trống
+                // Bỏ qua nếu là dòng tiêu đề cũ vô tình lọt vào
+                if (String(row[0]).toUpperCase().includes("KHOA") && String(row[2]).toUpperCase().includes("BỘ")) continue;
 
-                if (tenBo && tenDc) {
-                    // Chuẩn hóa dữ liệu cấu hình lưu vào databaseExcel chi tiết
+                let tenKhoa = row[0] ? String(row[0]).trim().toUpperCase() : "";
+                let maBo = row[1] ? String(row[1]).trim().toUpperCase() : "";
+                let tenBo = row[2] ? String(row[2]).trim() : "";
+                let soLuong = parseInt(row[3]) || 1;
+
+                if (tenKhoa && tenBo) {
+                    tapHopKhoa.add(tenKhoa);
+                    if (!danhSachBoTheoKhoa[tenKhoa]) danhSachBoTheoKhoa[tenKhoa] = new Set();
+                    
+                    // Đưa mâm dụng cụ về đúng khoa sở hữu trong file Excel
+                    danhSachBoTheoKhoa[tenKhoa].add(`${tenBo.toUpperCase()} [ID:${maBo}]`);
+
+                    // Định dạng cấu trúc lưu trữ cơ sở
                     duLieuExcelChuanHoa.push({ 
                         "Tên Bộ Dụng Cụ": tenBo.toUpperCase(), 
-                        "Tên Dụng Cụ Chi Tiết": tenDc, 
+                        "Tên Dụng Cụ Chi Tiết": "Nguyên bộ cấu hình cơ số", 
                         "Số lượng": soLuong,
-                        "Tuổi thọ mẻ hấp": tuoiThoMax
+                        "Tuổi thọ mẻ hấp": 100 // Mặc định 100 mẻ
                     });
-
-                    // Gán mặc định vào khoa để phục vụ luân chuyển test
-                    let tenKhoaGiaDinh = "KHOA CẤP CỨU"; 
-                    tapHopKhoa.add(tenKhoaGiaDinh);
-                    if (!danhSachBoTheoKhoa[tenKhoaGiaDinh]) danhSachBoTheoKhoa[tenKhoaGiaDinh] = new Set();
-                    
-                    // Tạo ID định hình giả lập ngẫu nhiên cho mâm đồ
-                    let maIdGiaDinh = tenBo.substring(0,3).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
-                    danhSachBoTheoKhoa[tenKhoaGiaDinh].add(`${tenBo.toUpperCase()} [ID:${maIdGiaDinh}]`);
                 }
             }
 
@@ -647,18 +649,18 @@ function nhanFileExcelDanhMuc(inputElement) {
 
             if (duLieuExcelChuanHoa.length === 0) return showToast("Không tìm thấy hàng dữ liệu hợp lệ!", "error");
 
-            // Đẩy đồng bộ lên cơ sở dữ liệu hệ thống danh mục tổng
+            // Cập nhật đồng bộ dữ liệu chuẩn lên Cloud Firestore
             db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
                 danhSachKhoa: mangDanhSachKhoaMoi,
                 databaseExcel: duLieuExcelChuanHoa
             }).then(() => {
-                showToast(`Thành công! Đã bóc tách mâm Mẹ-Con và đồng bộ tuổi thọ linh kiện lên Cloud.`, "success");
+                showToast(`Thành công! Đã cập nhật ${mangDanhSachKhoaMoi.length} Khoa/Phòng lên hệ thống.`, "success");
                 inputElement.value = ""; 
             }).catch(err => {
                 showToast("Lỗi đẩy dữ liệu lên Firestore!", "error");
             });
         } catch (err) {
-            showToast("Lỗi xử lý file Excel!", "error");
+            showToast("Lỗi phân tích file Excel!", "error");
         }
     };
     reader.readAsArrayBuffer(file);
