@@ -83,7 +83,7 @@ function taiDanhMucLinhKienChuan() {
     databaseExcel.forEach(x => {
         let tenBo = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name'];
         if (!tenBo) return;
-        tenBo = String(tenBo).trim();
+        tenBo = String(tenBo).trim().toUpperCase();
         if (!gopBoExcel[tenBo]) gopBoExcel[tenBo] = [];
         gopBoExcel[tenBo].push(x);
     });
@@ -94,8 +94,9 @@ function taiDanhMucLinhKienChuan() {
         gopBoExcel[tenBo].forEach(item => {
             let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ";
             let sl = parseInt(item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1);
+            let hanHap = item['Tuổi thọ mẻ hấp'] || item['Tuổi thọ'] || 100;
             tongSl += sl;
-            linhKienHtml += `<span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium border border-slate-200">${tenDc} (${sl})</span>`;
+            linhKienHtml += `<span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium border border-slate-200">${tenDc} (${sl}) <span class="text-amber-600 font-bold">[Max: ${hanHap}]</span></span>`;
         });
         linhKienHtml += `</div>`;
 
@@ -475,7 +476,6 @@ function toggleSelectAllNghiemThu() { let checked = document.getElementById('sel
 function nhapKhoHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); let p = []; checkboxes.forEach(cb => { if(cb.id === 'selectAllNghiemThu') return; p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "CHO_XUAT"})); }); Promise.all(p).then(() => { showToast("Đã duyệt mâm đạt nhập kho Vô Khuẩn!", "success"); callRender(); }); }
 function inTemNghiemThuHangLoat() { let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); let container = document.createElement('div'); container.className = "print-label-container"; container.style.display = "flex"; container.style.flexWrap = "wrap"; container.style.width = "100%"; container.style.gap = "4px"; let stylePrint = document.createElement('style'); stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 100%; } .print-label-container { display: flex !important; flex-wrap: wrap !important; width: 100% !important; } .single-tem { width: 49% !important; page-break-inside: avoid; break-inside: avoid; } }`; container.appendChild(stylePrint); checkboxes.forEach((cb) => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanBo = item.bo ? item.bo.split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; container.innerHTML += `<div class="single-tem" style="width: 49%; border: 1px solid #000; padding: 6px; font-family: Arial; font-size: 11px; color: #000; box-sizing: border-box; background: #fff; margin-bottom: 6px;"><div style="text-align: center; font-size: 9px; font-weight: bold;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 2px 0;">${cleanBo}</div><div style="text-align: center;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 2px; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; margin-top: 4px; border-top: 1px solid #000; padding-top: 3px; font-size: 10px;"><span>${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; margin-top: 2px; font-family: monospace;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; } }); const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); checkboxes.forEach(cb => { let item = listGiaoDich.find(x => x.firestoreId === cb.value); if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 10, margin: 2 }); } }); setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); }
 
-// SỬA TÊN HÀM GỐC CHUẨN ĐỂ KHÔNG BỊ BÁO LỖI HỆ THỐNG
 function tuChoiHapHangLoat() { 
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
@@ -505,7 +505,6 @@ function saveAdminPIN(type) { let newVal = document.getElementById(`cfg_pin${typ
 function themKtvCssd() { let code = prompt("Mã NV:"); let ten = prompt("Tên:"); let pin = prompt("PIN:"); if(code && ten && pin) { danhSachKtvCssd.push({ code: code.toUpperCase(), ten: ten, pin: pin }); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
 function xoaKtvCssd(code) { if(confirm("Xóa?")) { danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
 
-// LOGIC GỐC TRẢ LẠI ĐÚNG VAI TRÒ: THÊM KHOA PHÒNG MỚI
 function themKhoaThuCong() { 
     let t = prompt("Nhập Tên Khoa/Phòng mới cần thêm vào hệ thống:"); 
     if(t) { 
@@ -515,7 +514,6 @@ function themKhoaThuCong() {
     } 
 }
 
-// LOGIC MỚI: KHAI SINH KHAY DỤNG CỤ VÃNG LAI/ĐỘC BẢN
 function khaiSinhKhayVangLai() {
     if(danhSachKhoa.length === 0) return showToast("Hệ thống chưa có Khoa nào để cấp phát khay!", "error");
     
@@ -593,6 +591,9 @@ function clearTruyVetBatch() {
     callRender(); 
 }
 
+// =========================================================================
+// HÀM XỬ LÝ FILE EXCEL DANH MỤC MẸ - CON (BÓC TÁCH TUỔI THỌ LINH KIỆN)
+// =========================================================================
 function nhanFileExcelDanhMuc(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
@@ -610,22 +611,35 @@ function nhanFileExcelDanhMuc(inputElement) {
             let danhSachBoTheoKhoa = {}; 
             let duLieuExcelChuanHoa = [];
 
-            rawRows.forEach(row => {
-                if (!row[0] || String(row[0]).includes("Khoa") || String(row[0]).includes("PHÒNG")) {
-                    if (!row[1]) return;
-                }
-                let tenKhoa = String(row[0]).trim().toUpperCase();
-                let maBo = row[1] ? String(row[1]).trim().toUpperCase() : "";
-                let tenBo = row[2] ? String(row[2]).trim() : "";
-                let soLuong = parseInt(row[3]) || 1;
+            // Duyệt từ dòng thứ 2 (bỏ qua dòng tiêu đề cột)
+            for (let i = 1; i < rawRows.length; i++) {
+                let row = rawRows[i];
+                if (!row || row.length === 0) continue;
 
-                if (tenKhoa && tenBo) {
-                    tapHopKhoa.add(tenKhoa);
-                    if (!danhSachBoTheoKhoa[tenKhoa]) danhSachBoTheoKhoa[tenKhoa] = new Set();
-                    danhSachBoTheoKhoa[tenKhoa].add(`${tenBo} [ID:${maBo}]`);
-                    duLieuExcelChuanHoa.push({ "Tên Bộ Dụng Cụ": tenBo, "Mã Bộ": maBo, "Tên Dụng Cụ Chi Tiết": "Nguyên bộ cấu hình cơ số", "Số lượng": soLuong });
+                let tenBo = row[0] ? String(row[0]).trim() : "";
+                let tenDc = row[1] ? String(row[1]).trim() : "";
+                let soLuong = parseInt(row[2]) || 1;
+                let tuoiThoMax = parseInt(row[3]) || 100; // Mặc định 100 mẻ nếu để trống
+
+                if (tenBo && tenDc) {
+                    // Chuẩn hóa dữ liệu cấu hình lưu vào databaseExcel chi tiết
+                    duLieuExcelChuanHoa.push({ 
+                        "Tên Bộ Dụng Cụ": tenBo.toUpperCase(), 
+                        "Tên Dụng Cụ Chi Tiết": tenDc, 
+                        "Số lượng": soLuong,
+                        "Tuổi thọ mẻ hấp": tuoiThoMax
+                    });
+
+                    // Gán mặc định vào khoa để phục vụ luân chuyển test
+                    let tenKhoaGiaDinh = "KHOA CẤP CỨU"; 
+                    tapHopKhoa.add(tenKhoaGiaDinh);
+                    if (!danhSachBoTheoKhoa[tenKhoaGiaDinh]) danhSachBoTheoKhoa[tenKhoaGiaDinh] = new Set();
+                    
+                    // Tạo ID định hình giả lập ngẫu nhiên cho mâm đồ
+                    let maIdGiaDinh = tenBo.substring(0,3).toUpperCase() + "-" + Math.floor(1000 + Math.random() * 9000);
+                    danhSachBoTheoKhoa[tenKhoaGiaDinh].add(`${tenBo.toUpperCase()} [ID:${maIdGiaDinh}]`);
                 }
-            });
+            }
 
             let mangDanhSachKhoaMoi = Array.from(tapHopKhoa).map(khoaName => {
                 return { ten: khoaName, pin: "123", danhSachBo: Array.from(danhSachBoTheoKhoa[khoaName]) };
@@ -633,17 +647,18 @@ function nhanFileExcelDanhMuc(inputElement) {
 
             if (duLieuExcelChuanHoa.length === 0) return showToast("Không tìm thấy hàng dữ liệu hợp lệ!", "error");
 
+            // Đẩy đồng bộ lên cơ sở dữ liệu hệ thống danh mục tổng
             db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
                 danhSachKhoa: mangDanhSachKhoaMoi,
                 databaseExcel: duLieuExcelChuanHoa
             }).then(() => {
-                showToast(`Thành công! Đã bóc tách ${mangDanhSachKhoaMoi.length} Khoa/Phòng và đồng bộ cơ số.`, "success");
+                showToast(`Thành công! Đã bóc tách mâm Mẹ-Con và đồng bộ tuổi thọ linh kiện lên Cloud.`, "success");
                 inputElement.value = ""; 
             }).catch(err => {
-                showToast("Lỗi đẩy đồng bộ lên Firestore!", "error");
+                showToast("Lỗi đẩy dữ liệu lên Firestore!", "error");
             });
         } catch (err) {
-            showToast("Lỗi phân tích cú pháp file Excel!", "error");
+            showToast("Lỗi xử lý file Excel!", "error");
         }
     };
     reader.readAsArrayBuffer(file);
