@@ -121,8 +121,8 @@
 
             <main class="p-4 md:p-6 w-full space-y-6 flex-1 z-10 max-w-7xl mx-auto">
                 
-                <div id="tab-khoaphong" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-                    <div class="glass-panel p-5 flex flex-col h-full border-t-4 border-t-sky-500">
+                <div id="tab-khoaphong" class="hidden flex flex-col lg:flex-row gap-6 h-full">
+                    <div class="glass-panel p-5 flex flex-col flex-1 border-t-4 border-t-sky-500 bg-white shadow-sm">
                         <h3 class="text-sm font-black text-slate-700 mb-4 uppercase border-b border-slate-100 pb-3"><i class="fa-solid fa-barcode mr-2 text-sky-500"></i> Trạm Quét Mã Trả Đồ</h3>
                         <div class="space-y-4">
                             <div><label class="block text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Đơn vị yêu cầu:</label><select id="khoa_selKhoa" onchange="loadBoDungCuTheoKhoa(); clearGioHang(); callRender();" class="w-full px-3 py-2.5 shadow-sm bg-slate-50"><option value="">-- Đang tải dữ liệu... --</option></select></div>
@@ -134,7 +134,7 @@
                                         <datalist id="listBoDungCu"></datalist>
                                         <button onclick="moCamera('khoa_inpMaBo')" class="bg-slate-800 text-white px-4 py-2.5 rounded-md shadow action-btn whitespace-nowrap"><i class="fa-solid fa-camera"></i> QUÉT</button>
                                     </div>
-                                    <button onclick="themVaoGio()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-3.5 rounded-lg text-xs shadow-md action-btn"><i class="fa-solid fa-plus mr-2"></i> THÊM VÀO PHIẾU GỬI</button>
+                                    <button onclick="themVaoGio()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-3.5 rounded-lg text-xs shadow-md mt-3 action-btn"><i class="fa-solid fa-plus mr-2"></i> THÊM VÀO PHIẾU GỬI</button>
                                 </div>
                             </div>
                         </div>
@@ -145,19 +145,43 @@
                         </div>
                     </div>
                     
-                    <div class="glass-panel p-5 flex flex-col h-[550px] border-t-4 border-t-emerald-500">
-                        <div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-4">
-                            <div><h3 class="text-sm font-black text-slate-700 uppercase"><i class="fa-solid fa-file-invoice mr-2 text-emerald-500"></i> Sổ Tay Giao Nhận Của Khoa</h3></div>
-                            <div class="flex flex-col items-end gap-2">
-                                <button onclick="inHoaDonGiaoNhan()" class="text-[10px] bg-white border border-slate-300 hover:border-emerald-600 hover:text-emerald-700 text-slate-700 px-3 py-1.5 rounded shadow-sm font-bold transition-all"><i class="fa-solid fa-print mr-1"></i> IN BIÊN BẢN</button>
+                    <div class="flex flex-col flex-1 gap-6">
+                        <div class="glass-panel p-5 flex flex-col border-t-4 border-t-purple-600 bg-white shadow-sm h-[260px]">
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5 mb-3">
+                                <h3 class="text-xs font-black text-slate-700 uppercase flex items-center gap-2"><i class="fa-solid fa-file-signature text-purple-600"></i> Đồ sạch đang chuyển về khoa (<span id="badgeChoNhanKhoa" class="text-purple-700 font-bold">0 mâm</span>)</h3>
+                                <span id="txtNguoiDungNhanHienTai" class="text-[10px] font-mono font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded">--</span>
                             </div>
+                            <div class="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white mb-3">
+                                <table class="w-full text-left text-[11px]">
+                                    <thead class="bg-slate-50 sticky top-0 shadow-sm z-10 font-bold text-slate-600 border-b">
+                                        <tr>
+                                            <th class="p-2 text-center w-10">Tích</th>
+                                            <th class="p-2">Mã ID Khay</th>
+                                            <th class="p-2">Tên Bộ Dụng Cụ</th>
+                                            <th class="p-2">KTV Xuất</th>
+                                            <th class="p-2 text-center">Mẻ Lô</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bangChoNhanTaiKhoa" class="divide-y divide-slate-100 text-slate-700">
+                                        <tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Hiện không có dụng cụ nào đang chuyển về khoa.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <button onclick="khoaKyNhanDoSachDienTu()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-black py-2.5 rounded-xl shadow text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all"><i class="fa-solid fa-pen-fancy"></i> KÝ TIẾP NHẬN ĐỒ SẠCH VÀO TỦ</button>
                         </div>
-                        <div class="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white"><table class="w-full text-left text-[11px]"><thead class="bg-slate-50 sticky top-0 shadow-sm z-10"><tr><th class="p-3 w-[55%] border-r border-slate-200">Phân Loại Mâm / Loại Dụng Cụ</th><th class="p-3 text-center text-rose-600 bg-rose-50/50 border-r border-slate-200">Đã Trả Bẩn</th><th class="p-3 text-center text-teal-600 bg-teal-50/50 border-r border-slate-200">Nhận Sạch</th><th class="p-3 text-center text-amber-600 bg-amber-50/50">CSSD Nợ Khoa</th></tr></thead><tbody id="bangDonGiaoNhan" class="divide-y divide-slate-100 text-slate-700"></tbody></table></div>
+
+                        <div class="glass-panel p-5 flex flex-col border-t-4 border-t-emerald-500 bg-white shadow-sm h-[290px]">
+                            <div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-3">
+                                <h3 class="text-xs font-black text-slate-700 uppercase"><i class="fa-solid fa-file-invoice mr-2 text-emerald-500"></i> Sổ Tay Giao Nhận Của Khoa</h3>
+                                <button onclick="inHoaDonGiaoNhan()" class="text-[10px] bg-white border border-slate-300 hover:border-emerald-600 hover:text-emerald-700 text-slate-700 px-2.5 py-1.5 rounded shadow-sm font-bold transition-all"><i class="fa-solid fa-print mr-1"></i> IN BIÊN BẢN</button>
+                            </div>
+                            <div class="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white"><table class="w-full text-left text-[11px]"><thead class="bg-slate-50 sticky top-0 shadow-sm z-10"><tr><th class="p-3 w-[55%] border-r border-slate-200">Phân Loại Mâm / Loại Dụng Cụ</th><th class="p-3 text-center text-rose-600 bg-rose-50/50 border-r border-slate-200">Đã Trả Bẩn</th><th class="p-3 text-center text-teal-600 bg-teal-50/50 border-r border-slate-200">Nhận Sạch</th><th class="p-3 text-center text-amber-600 bg-amber-50/50">CSSD Nợ Khoa</th></tr></thead><tbody id="bangDonGiaoNhan" class="divide-y divide-slate-100 text-slate-700"></tbody></table></div>
+                        </div>
                     </div>
                 </div>
 
                 <div id="tab-thugom" class="hidden h-full">
-                    <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
+                    <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500 bg-white">
                         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-100 pb-4 mb-4 gap-3">
                             <div><h3 class="text-base font-black text-slate-700 uppercase"><i class="fa-solid fa-truck-medical mr-2 text-sky-500"></i> Điều phối Xe Thu Gom</h3></div>
                             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto"><select id="filterKhoaThuGom" onchange="callRender()" class="rounded px-3 py-1.5 text-xs font-bold border border-slate-200"><option value="">-- Lọc theo Khoa --</option></select><span id="badgeSoCho" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1.5 rounded">0 Lệnh</span></div>
@@ -179,7 +203,7 @@
                 </div>
 
                 <div id="tab-donggoi" class="hidden h-full">
-                    <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500">
+                    <div class="glass-panel p-5 flex flex-col h-[650px] border-t-4 border-t-sky-500 bg-white">
                         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
                             <div><h3 class="text-base font-black text-slate-700 uppercase"><i class="fa-solid fa-hands-bubbles mr-2 text-sky-500"></i> Trạm Làm Sạch & Đóng Gói</h3></div>
                             <span id="badgeDongGoi" class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded">0 Mâm</span>
@@ -251,7 +275,7 @@
                                         </div>
                                         <div>
                                             <label class="block text-[10px] font-black text-rose-600 uppercase mb-1 flex items-center gap-1">
-                                                <i class="fa-solid Star text-[8px]"></i> Mã lô liên kết (Batch ID):
+                                                Mã lô liên kết (Batch ID):
                                             </label>
                                             <input type="text" id="hap_batchId" readonly class="w-full px-3 py-2 text-xs font-mono font-black text-center bg-rose-50 border border-rose-300 rounded text-rose-700 tracking-wider">
                                         </div>
@@ -829,6 +853,8 @@
             </div>
         </div>
     </div>
+
+    <div id="print-zone" class="hidden bg-white p-8 font-serif z-[9999]"></div>
 
     <script src="app.js"></script>
     <script>
