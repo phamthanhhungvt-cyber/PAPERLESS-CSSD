@@ -321,7 +321,7 @@ function xacNhanXuatKhoHangLoat() {
 // [Hiệu chỉnh Trạm 1.1] ĐIỀU DƯỠNG LÂM SÀNG KÝ XÁC NHẬN ĐIỆN TỬ
 // =========================================================================
 function khoaKyNhanDoSachDienTu() {
-    const khoaDangNhap = document.getElementById("login_khoa") ? document.getElementById("login_khoa").value : "";
+    const khoaDangNhap = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa") ? document.getElementById("khoa_selKhoa").value : "");
     const nameNguoiDung = loginUserCode || "Điều dưỡng khoa";
     
     const checkboxes = document.querySelectorAll("#bangChoNhanTaiKhoa input[type='checkbox']:checked");
@@ -405,7 +405,7 @@ function xacNhanMeHap() {
         let itemData = listGiaoDich.find(x => x.firestoreId === cb.value);
         let thongTinLo = { 
             loaiHap: loaiHap, 
-            maMay: mayMay, 
+            maMay: maMay, 
             chuKyNhiet: chuKyNhiet, 
             apSuat: apSuat, 
             thoiGianBatDau: bayGio.toLocaleTimeString('vi-VN'), 
@@ -547,7 +547,8 @@ function nhapKhoHangLoat() {
 // =========================================================================
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
-        const k = document.getElementById("khoa_selKhoa").value;
+        // TỰ ĐỘNG ĐỐI SOÁT THEO USER ĐĂNG NHẬP (TRÁNH LỖI GIAO DIỆN TREO DO Ô KHÓA DISABLED)
+        const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value;
         
         // --- ĐỐI SOÁT LUÂN CHUYỂN SỔ TAY CÔNG NỢ ---
         let tatCaDonCuaKhoa = listGiaoDich.filter(x => x.khoa === k);
@@ -794,7 +795,7 @@ function renderDashboardTiviRealtime() {
 }
 
 function loadBoDungCuTheoKhoa() { 
-    let k = document.getElementById("khoa_selKhoa").value; 
+    let k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
     let list = document.getElementById("listBoDungCu"); 
     if(!list) return;
     list.innerHTML = ""; 
@@ -817,8 +818,8 @@ function loadBoDungCuTheoKhoa() {
 function themVaoGio() { let val = document.getElementById("khoa_inpMaBo").value.trim().toUpperCase(); if(!val) return; if (gioHangTam.some(x => x.maMacDinh === val)) { document.getElementById("khoa_inpMaBo").value = ""; return showToast("Mã này đã có trong danh sách chờ!", "error"); } let tenGoc = val.includes("[ID:") ? val.split(" [ID:")[0] : val; gioHangTam.push({bo: tenGoc, maMacDinh: val, slYeuCau: 1}); document.getElementById("khoa_inpMaBo").value = ""; renderGioHang(); }
 function renderGioHang() { let khuVuc = document.getElementById("khuVucGioHang"); if(khuVuc) khuVuc.classList.toggle("hidden", gioHangTam.length===0); document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); }
 function clearGioHang() { gioHangTam = []; renderGioHang(); }
-function khoaGuiPhieuTraBatches() { const k = document.getElementById("khoa_selKhoa").value; if(!k) return showToast("Vui lòng chọn Khoa trước!"); if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); let p=[]; gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); }
-function inHoaDonGiaoNhan() { const k = document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in!", "error"); let printHtml = `<div style="font-family: Arial, sans-serif; color: #000; padding: 10px;"><div style="text-align:center; margin-bottom: 20px;"><h2 style="font-size: 18px; margin-bottom: 5px;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2><p style="font-size: 13px; margin: 0;">Khoa/Phòng: <strong style="font-size: 14px;">${k}</strong> - Ngày xuất phiếu: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></p></div><table style="width:100%; border-collapse: collapse; text-align: left; font-size: 13px; font-family: Arial, sans-serif;"><thead><tr style="background-color: #f8fafc;"><th style="border: 1px solid #000; padding: 10px; font-weight: bold;">Phân Label Mâm / Loại Dụng Cụ</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Đã Trả Bẩn</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Nhận Sạch</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">CSSD Nợ Khoa</th></tr></thead><tbody>${document.getElementById("bangDonGiaoNhan").innerHTML}</tbody></table></div>`; const pZone = document.getElementById("print-zone"); pZone.innerHTML = printHtml; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden"); }
+function khoaGuiPhieuTraBatches() { const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; if(!k) return showToast("Vui lòng chọn Khoa trước!"); if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); let p=[]; gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); }
+function inHoaDonGiaoNhan() { const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in!", "error"); let printHtml = `<div style="font-family: Arial, sans-serif; color: #000; padding: 10px;"><div style="text-align:center; margin-bottom: 20px;"><h2 style="font-size: 18px; margin-bottom: 5px;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2><p style="font-size: 13px; margin: 0;">Khoa/Phòng: <strong style="font-size: 14px;">${k}</strong> - Ngày xuất phiếu: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></p></div><table style="width:100%; border-collapse: collapse; text-align: left; font-size: 13px; font-family: Arial, sans-serif;"><thead><tr style="background-color: #f8fafc;"><th style="border: 1px solid #000; padding: 10px; font-weight: bold;">Phân Label Mâm / Loại Dụng Cụ</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Đã Trả Bẩn</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Nhận Sạch</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">CSSD Nợ Khoa</th></tr></thead><tbody>${document.getElementById("bangDonGiaoNhan").innerHTML}</tbody></table></div>`; const pZone = document.getElementById("print-zone"); pZone.innerHTML = printHtml; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden"); }
 
 function moPopupKiemDem(id) { 
     let item = listGiaoDich.find(x => x.firestoreId === id); 
@@ -1286,7 +1287,7 @@ function savePopupSuDung() {
     let ghiChu = document.getElementById("sd_ghiChu").value.trim();
     let nhanChung = document.getElementById("sd_nhanChung").value;
 
-    gioKhaySuDungTam.forEach(khay => {
+    gioHangSuDungTam.forEach(khay => {
         let thongTinMoi = {
             status: "DA_SU_DUNG",
             thongTinBenhNhan: {
