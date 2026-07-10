@@ -154,7 +154,11 @@ function checkLogin() {
         let found = danhSachKhoa.find(x => x.ten === khoaSelect); 
         if (pass === (found ? found.pin : "123")) { 
             currentRole = "KHOA"; loginUserCode = khoaSelect; document.getElementById("nav_user_info").innerText = khoaSelect; 
-            document.getElementById("khoa_selKhoa").value = khoaSelect; document.getElementById("khoa_selKhoa").disabled = true; document.body.classList.remove('guest-mode');
+            if (document.getElementById("khoa_selKhoa")) {
+                document.getElementById("khoa_selKhoa").value = khoaSelect;
+                document.getElementById("khoa_selKhoa").disabled = true;
+            }
+            document.body.classList.remove('guest-mode');
             apDungPhanQuyenGiaoDien("KHOA");
             switchTab('khoaphong');
         } else { return showToast("Sai mã PIN Khoa!", "error"); } 
@@ -1287,7 +1291,7 @@ function savePopupSuDung() {
     let ghiChu = document.getElementById("sd_ghiChu").value.trim();
     let nhanChung = document.getElementById("sd_nhanChung").value;
 
-    gioHangSuDungTam.forEach(khay => {
+    gioKhaySuDungTam.forEach(khay => {
         let thongTinMoi = {
             status: "DA_SU_DUNG",
             thongTinBenhNhan: {
