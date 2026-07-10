@@ -204,7 +204,7 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     if(!cauHinhGiaoDien[role]) cauHinhGiaoDien[role] = [];
     if(checkboxElement.checked) { if(!cauHinhGiaoDien[role].includes(tabId)) cauHinhGiaoDien[role].push(tabId); } 
     else { cauHinhGiaoDien[role] = cauHinhGiaoDien[role].filter(x => x !== tabId); }
-    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
+    db.collection("heThongDanhMuc").doc("danhMucTongPhuong Nam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
     .then(() => showToast(`Đã cập nhật quyền truy cập cho nhóm: ${role}`, "success"));
 }
 
@@ -555,7 +555,12 @@ function renderTheoTabHienTai() {
         const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value;
         
         // --- ĐỐI SOÁT LUÂN CHUYỂN SỔ TAY CÔNG NỢ ---
-        let tatCaDonCuaKhoa = listGiaoDich.filter(x => x.khoa === k);
+        let tatCaDonCuaKhoa = listGiaoDich.filter(x => {
+            const khoaDb = (x.khoa || "").toString().trim().toUpperCase();
+            const khoaTab = (k || "").toString().trim().toUpperCase();
+            return khoaDb === khoaTab;
+        });
+        
         let gopCongNo = {};
 
         tatCaDonCuaKhoa.forEach(x => {
@@ -628,7 +633,11 @@ function renderTheoTabHienTai() {
             danhSachKhoaCoDon.forEach(k => { let selectedAttr = (k === fK) ? "selected" : ""; htmlOpts += `<option value="${k}" ${selectedAttr}>${k}</option>`; });
             document.getElementById("filterKhoaThuGom").innerHTML = htmlOpts; fK = document.getElementById("filterKhoaThuGom").value || "";
         }
-        if (fK) lsTG = lsTG.filter(x => x.khoa === fK);
+        if (fK) {
+            lsTG = lsTG.filter(x => {
+                return (x.khoa || "").toString().trim().toUpperCase() === fK.toString().trim().toUpperCase();
+            });
+        }
         if (document.getElementById("badgeSoCho")) document.getElementById("badgeSoCho").innerText = `${lsTG.length} Lệnh`;
         document.getElementById("bangChoThuGom").innerHTML = lsTG.map(i => {
             let tenBo = i.bo ? String(i.bo).split(" [ID:")[0] : ""; 
@@ -681,7 +690,9 @@ function renderTheoTabHienTai() {
         let uniqueIDs = [...new Set(listGiaoDich.map(x=>x.maMacDinh))]; let arrHtml = []; const ngayHomNay = new Date(); ngayHomNay.setHours(0,0,0,0); 
         uniqueIDs.forEach(ma => {
             let allTrans = listGiaoDich.filter(x => x.maMacDinh === ma); let currentTrans = allTrans.sort((a,b) => b.id - a.id)[0]; if(!currentTrans || !ma) return;
-            let viTriCode = currentTrans.status; let khoaGiữ = currentTrans.khoa; if (fK && khoaGiữ !== fK) return;
+            let viTriCode = currentTrans.status; let khoaGiữ = currentTrans.khoa; 
+            if (fK && (khoaGiữ || "").toString().trim().toUpperCase() !== fK.toString().trim().toUpperCase()) return;
+            
             let viTriText = "Kho vô khuẩn"; let viTriColor = "bg-teal-100 text-teal-800";
             if(viTriCode === "HOAN_TAT") { viTriText = `Sẵn sàng tại Khoa`; viTriColor = "bg-emerald-100 text-emerald-800"; } 
             else if (viTriCode === "DA_SU_DUNG") { viTriText = `Đã sử dụng (BN)`; viTriColor = "bg-rose-100 text-rose-800"; }
@@ -804,7 +815,7 @@ function loadBoDungCuTheoKhoa() {
     if(!list) return;
     list.innerHTML = ""; 
     
-    let f = danhSachKhoa.find(x => x.ten === k); 
+    let f = danhSachKhoa.find(x => (x.ten || "").toString().trim().toUpperCase() === (k || "").toString().trim().toUpperCase()); 
     if (f && f.danhSachBo) {
         let htmlOptions = "";
         f.danhSachBo.forEach(x => {
