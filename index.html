@@ -13,6 +13,38 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Cấu hình nâng cao cho vùng in: Căn giữa tuyệt đối khi xuất bản in */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-zone, #print-zone * {
+                visibility: visible;
+            }
+            #print-zone {
+                position: absolute;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+                gap: 20px; /* Khoảng cách giữa các con tem */
+                width: 100%;
+                margin: 0 auto;
+                padding: 0;
+                background: white;
+            }
+            /* Đảm bảo khung bọc ngoài của mỗi con tem tự căn giữa nội dung bên trong */
+            #print-zone > div {
+                margin: 0 auto !important;
+                display: inline-block;
+                vertical-align: middle;
+            }
+        }
+    </style>
 </head>
 <body class="flex h-screen overflow-hidden relative">
 
@@ -783,7 +815,7 @@
             </div>
             
             <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-200 shadow-inner">
-                <button onclick="savePopupSuDung()" type="button" class="bg-teal-600 hover:bg-teal-700 text-white font-black px-6 py-2.5 rounded shadow text-xs uppercase flex items-center gap-1.5 transition-all"><i class="fa-floppy-disk solid fa-floppy-disk text-sm"></i> Lưu Hồ Sơ Bệnh Án</button>
+                <button onclick="savePopupSuDung()" type="button" class="bg-teal-600 hover:bg-teal-700 text-white font-black px-6 py-2.5 rounded shadow text-xs uppercase flex items-center gap-1.5 transition-all"><i class="fa-solid fa-floppy-disk text-sm"></i> Lưu Hồ Sơ Bệnh Án</button>
                 <button onclick="closePopupSuDung()" type="button" class="bg-white hover:bg-slate-100 border text-slate-700 font-bold px-6 py-2.5 rounded shadow text-xs uppercase flex items-center gap-1.5 transition-all"><i class="fa-solid fa-rotate-left"></i> Hủy</button>
             </div>
         </div>
