@@ -1128,4 +1128,202 @@ function nhanFileExcelDanhMuc(inputElement) {
 
                 if (tenKhoa && tenBo) {
                     tapHopKhoa.add(tenKhoa);
-                    if (!danhSachBoTheoKhoa
+                    if (!danhSachBoTheoKhoa[tenKhoa]) danhSachBoTheoKhoa[tenKhoa] = new Set();
+                    
+                    danhSachBoTheoKhoa[tenKhoa].add(`${tenBo.toUpperCase()} [ID:${maBo}]`);
+
+                    duLieuExcelChuanHoa.push({ 
+                        "Tên Bộ Dụng Cụ": tenBo.toUpperCase(), 
+                        "Tên Dụng Cụ Chi Tiết": "Nguyên bộ cấu hình cơ số", 
+                        "Số lượng": soLuong,
+                        "Tuổi thọ mẻ hấp": 100 
+                    });
+                }
+            }
+
+            let mangDanhSachKhoaMoi = Array.from(tapHopKhoa).map(khoaName => {
+                return { ten: khoaName, pin: "123", danhSachBo: Array.from(danhSachBoTheoKhoa[khoaName]) };
+            });
+
+            if (duLieuExcelChuanHoa.length === 0) return showToast("Không tìm thấy hàng dữ liệu hợp lệ!", "error");
+
+            db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
+                danhSachKhoa: mangDanhSachKhoaMoi,
+                databaseExcel: duLieuExcelChuanHoa
+            }).then(() => {
+                showToast(`Thành công! Đã cập nhật ${mangDanhSachKhoaMoi.length} Khoa/Phòng lên hệ thống.`, "success");
+                inputElement.value = ""; 
+            }).catch(err => {
+                showToast("Lỗi đẩy dữ liệu lên Firestore!", "error");
+            });
+        } catch (err) {
+            showToast("Lỗi phân tích file Excel!", "error");
+        }
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function dongBoSangMicrosoft365(hanhDong, duLieuGiaoDich) {
+    const POWER_AUTOMATE_WEBHOOK_URL = ""; 
+    
+    if (!POWER_AUTOMATE_WEBHOOK_URL) {
+        console.log("Module Microsoft 365 đang chạy ẩn ở chế độ chờ kích hoạt...");
+        return;
+    }
+
+    let tenBoGoc = duLieuGiaoDich.bo ? String(duLieuGiaoDich.bo).split(" [ID:")[0] : "N/A";
+    const dataPayload = {
+        action: hanhDong, 
+        maIDKhay: duLieuGiaoDich.maMacDinh || "N/A",
+        tenBoDungCu: tenBoGoc,
+        khoaSudung: duLieuGiaoDich.khoa || "N/A",
+        maLoHap: duLieuGiaoDich.batchCode || "N/A",
+        ngayThucHien: getTodayDateStr(),
+        thoiGian: new Date().toLocaleTimeString('vi-VN'),
+        nguoiVanHanh: loginUserCode || "CSSD_CHUNG",
+        loaiMayHap: duLieuGiaoDich.thongTinLoHap?.loaiHap || "N/A",
+        chuKyNhiet: duLieuGiaoDich.thongTinLoHap?.chuKyNhiet || "N/A",
+        ketQuaSinhHoc: duLieuGiaoDich.thongTinLoHap?.giamSatChatLuong?.ketQuaSinhHoc || "N/A",
+        thoiGianDocTestBiPhut: duLieuGiaoDich.thoiGianDocTestBiPhut || 0,
+        thoiGianTinhKpiPhut: duLieuGiaoDich.thoiGianTinhKpiPhut || 0,
+        ketQuaGiamSatKpi: duLieuGiaoDich.ketQuaGiamSatKpi || "N/A"
+    };
+
+    fetch(POWER_AUTOMATE_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataPayload)
+    })
+    .then(response => {
+        if(response.ok) console.log("Đồng bộ log sang luồng dữ liệu Microsoft 365 thành công!");
+    })
+    .catch(err => console.error("Trạm trung chuyển Microsoft 365 ngắt kết nối hoặc sai URL:", err));
+}
+
+let gioKhaySuDungTam = []; 
+
+function moPopupSuDungBoDungCu() {
+    gioKhaySuDungTam = [];
+    document.getElementById("sd_bangKhayChon").innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Vui lòng quét hoặc nhập mã khay dụng cụ để liên kết...</td></tr>`;
+    
+    document.getElementById("sd_ngaySuDung").value = getTodayDateStr();
+    document.getElementById("sd_nhanChung").value = loginUserCode || "ADMIN";
+    
+    document.getElementById("sd_khoaBenhNhan").value = currentRole === "KHOA" ? loginUserCode : "";
+    document.getElementById("sd_yTaPhongMo").value = "";
+    document.getElementById("sd_yTaVongNgoai").value = "";
+    document.getElementById("sd_searchBN").value = "";
+    document.getElementById("sd_ghiChu").value = "";
+    document.getElementById("sd_maKhayInp").value = "";
+    
+    document.getElementById("popupSuDungBoDungCu").classList.remove("hidden");
+}
+
+function closePopupSuDung() {
+    document.getElementById("popupSuDungBoDungCu").classList.add("hidden");
+}
+
+function scanKhayVaoSuDung() {
+    let ma = document.getElementById("sd_maKhayInp").value.trim().toUpperCase();
+    if(!ma) return;
+    document.getElementById("sd_maKhayInp").value = "";
+
+    if(gioKhaySuDungTam.some(x => x.maMacDinh === ma)) {
+        playSound('error');
+        return showToast("Mã khay này đã được quét vào danh sách!", "error");
+    }
+
+    let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && (x.status === "CHO_XUAT" || x.status === "HOAN_TAT"));
+    if(!khayThucTe) {
+        playSound('error');
+        return showToast(`Mã ID ${ma} không có sẵn hoặc chưa đạt chuẩn vô khuẩn!`, "error");
+    }
+
+    gioKhaySuDungTam.push(khayThucTe);
+    playSound('success');
+    renderBangKhaySuDung();
+}
+
+function renderBangKhaySuDung() {
+    const tbody = document.getElementById("sd_bangKhayChon");
+    if(gioKhaySuDungTam.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Vui lòng quét hoặc nhập mã khay dụng cụ để liên kết...</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = gioKhaySuDungTam.map((item, index) => {
+        let tenBoGoc = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A";
+        return `<tr class="border-b font-medium hover:bg-slate-50">
+            <td class="p-2 text-center"><i class="fa-solid fa-square-check text-teal-600 text-sm"></i></td>
+            <td class="p-2 font-mono font-bold text-sky-700">${item.maMacDinh}</td>
+            <td class="p-2 font-bold text-slate-800">${tenBoGoc}</td>
+            <td class="p-2 text-center font-mono font-bold text-rose-600 bg-rose-50/30">${item.batchCode || 'N/A'}</td>
+            <td class="p-2 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-800">${item.status}</span></td>
+            <td class="p-2 text-center"><i class="fa-solid fa-trash-can text-rose-500 cursor-pointer hover:text-rose-700" onclick="xoaKhayKhoiListSuDung(${index})"></i></td>
+        </tr>`;
+    }).join('');
+}
+
+function xoaKhayKhoiListSuDung(index) {
+    gioKhaySuDungTam.splice(index, 1);
+    renderBangKhaySuDung();
+}
+
+function savePopupSuDung() {
+    let khoaBN = document.getElementById("sd_khoaBenhNhan").value.trim();
+    let yTaPM = document.getElementById("sd_yTaPhongMo").value.trim();
+    let searchBN = document.getElementById("sd_searchBN").value.trim();
+    
+    if(!khoaBN || !yTaPM || !searchBN) {
+        return showToast("Vui lòng điền đầy đủ các trường bắt buộc (*)", "error");
+    }
+    if(gioKhaySuDungTam.length === 0) {
+        return showToast("Danh sách khay dụng cụ trống!", "error");
+    }
+
+    let batchUpdates = [];
+    let ngaySuDung = document.getElementById("sd_ngaySuDung").value;
+    let yTaVN = document.getElementById("sd_yTaVongNgoai").value.trim();
+    let ghiChu = document.getElementById("sd_ghiChu").value.trim();
+    let nhanChung = document.getElementById("sd_nhanChung").value;
+
+    gioKhaySuDungTam.forEach(khay => {
+        let thongTinMoi = {
+            status: "DA_SU_DUNG",
+            thongTinBenhNhan: {
+                khoaBenhNhan: khoaBN,
+                yTaPhongMo: yTaPM,
+                yTaVongNgoai: yTaVN || "N/A",
+                thongTinTimKiemBN: searchBN,
+                ngaySuDung: ngaySuDung,
+                timeSuDung: new Date().toLocaleTimeString('vi-VN'),
+                nhanChungYTe: nhanChung,
+                ghiChuLamSang: ghiChu
+            }
+        };
+
+        batchUpdates.push(db.collection("phieuGiaoNhan").doc(khay.firestoreId).update(thongTinMoi).then(() => {
+            if (typeof dongBoSangMicrosoft365 === 'function') {
+                dongBoSangMicrosoft365("GHI_NHAN_SU_DUNG_BN", {
+                    ...khay,
+                    khoa: khoaBN,
+                    thongTinLoHap: {
+                        ...khay.thongTinLoHap,
+                        giamSatChatLuong: {
+                            ketQuaSinhHoc: `Sử dụng BN: ${searchBN} | Y tá PM: ${yTaPM}`
+                        }
+                    }
+                });
+            }
+        }));
+    });
+
+    Promise.all(batchUpdates).then(() => {
+        playSound('success');
+        showToast(`Đã liên kết thành công ${gioKhaySuDungTam.length} mâm dụng cụ vào hồ sơ bệnh án!`, "success");
+        closePopupSuDung();
+        callRender();
+    }).catch(err => {
+        console.error(err);
+        showToast("Lỗi đồng bộ dữ liệu lâm sàng!", "error");
+    });
+}
