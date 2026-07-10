@@ -387,7 +387,7 @@ function renderTheoTabHienTai() {
                 cacMeHapGop[x.batchCode].soLuongKhay += 1;
             });
             let danhSachMeHapSapXep = Object.values(cacMeHapGop).sort((a, b) => String(b.batchCode).localeCompare(String(a.batchCode)));
-            if(dashSachMeHapSapXep.length === 0) { document.getElementById("bangLichSuHap").innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Hôm nay chưa có mẻ hấp nào được kích hoạt</td></tr>`; } 
+            if(danhSachMeHapSapXep.length === 0) { document.getElementById("bangLichSuHap").innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Hôm nay chưa có mẻ hấp nào được kích hoạt</td></tr>`; } 
             else { document.getElementById("bangLichSuHap").innerHTML = danhSachMeHapSapXep.map(me => { let colorStatus = me.trangThaiMe === "Đang chạy lò" ? "text-purple-600 bg-purple-50 border border-purple-200" : "text-emerald-600 bg-emerald-50 border border-emerald-200"; return `<tr class="hover:bg-slate-50 transition-colors"><td class="p-3"><div class="flex items-center gap-2"><span class="font-mono font-black text-rose-700 text-sm tracking-wider">${me.batchCode}</span><span class="px-2 py-0.5 text-[9px] font-black uppercase rounded ${colorStatus}">${me.trangThaiMe}</span></div><div class="text-[11px] text-slate-500 font-medium mt-1"><i class="fa-solid fa-gear text-slate-400 mr-1"></i> ${me.loaiHap} | ${me.chuKyNhiet} | Áp suất: ${me.apSuat} Bar</div><div class="text-[10px] text-slate-400 font-mono mt-0.5"><i class="fa-solid fa-clock text-slate-300 mr-1"></i> Bắt đầu: ${me.thoiGian} (${me.ngay})</div></td><td class="p-3 text-right pr-4"><span class="font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-xs">${me.soLuongKhay} khay</span></td></tr>`; }).join(''); }
         }
     }
@@ -417,7 +417,7 @@ function renderTheoTabHienTai() {
             }
             arrHtml.push(`<tr class="border-b border-slate-100 ${dongColorClass}"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${currentTrans.bo.split(" [ID:")[0]}</td><td class="p-3 text-slate-500 text-[11px]">${khoaGiữ}</td><td class="p-3 text-center"><span class="px-2.5 py-1 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-mono font-bold text-slate-400">${currentTrans.batchCode || 'N/A'}</td><td class="p-3 text-center">${hsdBadget}</td></tr>`);
         });
-        document.getElementById("bangTonKhoThucTe").innerHTML = arrHtml.join('');
+        document.getElementById("bangTonKhoTe").innerHTML = arrHtml.join('');
     }
     else if(activeTab === 'danhmuc') {
         const tbody = document.getElementById("bangDanhMucTong"); if (!tbody) return;
@@ -460,9 +460,9 @@ function renderTheoTabHienTai() {
         if (!safeTbody) {
             let parentContainer = document.getElementById("tab-tracuu") || document.querySelector('.bg-white.p-6.rounded-xl.shadow-md');
             if(parentContainer) {
-                let existingTableZone = document.getElementById("vung-ket-qua-truy-vet-tu-dong");
+                let existingTableZone = document.getElementById("vung-ket-qua-tu-dong");
                 if(!existingTableZone) {
-                    let tableWrapper = document.createElement("div"); tableWrapper.id = "vung-ket-qua-truy-vet-tu-dong"; tableWrapper.className = "mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm";
+                    let tableWrapper = document.createElement("div"); tableWrapper.id = "vung-ket-qua-tu-dong"; tableWrapper.className = "mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm";
                     tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng Thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
                     parentContainer.appendChild(tableWrapper); safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
                 }
@@ -503,7 +503,31 @@ function renderDashboardTiviRealtime() {
     if(document.getElementById("tv_canhBaoHsd")) { document.getElementById("tv_canhBaoHsd").innerText = countQuadHan; }
 }
 
-function loadBoDungCuTheoKhoa() { let k = document.getElementById("khoa_selKhoa").value; let list = document.getElementById("listBoDungCu"); let f = danhSachKhoa.find(x => x.ten === k); list.innerHTML = (f && f.danhSachBo) ? f.danhSachBo.map(x => `<option value="${x}">`).join('') : ""; }
+// =========================================================================
+// [SỬA LỖI TỰ ĐỘNG XỔ GỢI Ý] HÀM NẠP DANH MỤC MÂM RA DATALIST THEO KHOA SỞ HỮU
+// =========================================================================
+function loadBoDungCuTheoKhoa() { 
+    let k = document.getElementById("khoa_selKhoa").value; 
+    let list = document.getElementById("listBoDungCu"); 
+    if(!list) return;
+    list.innerHTML = ""; // Làm sạch danh sách gợi ý cũ để nạp mới
+    
+    let f = danhSachKhoa.find(x => x.ten === k); 
+    if (f && f.danhSachBo) {
+        let htmlOptions = "";
+        f.danhSachBo.forEach(x => {
+            // Tách chuỗi thô để lấy Tên bộ riêng biệt (Ví dụ: từ "BỘ MAY TẦNG SINH MÔN [ID:PS002]" -> "BỘ MAY TẦNG SINH MÔN")
+            let tenBoThuanTuy = x.includes(" [ID:") ? x.split(" [ID:")[0] : x;
+            
+            // Render 2 Option song song: giúp nhân viên nhập theo Mã ID hoặc gõ Tên mâm đều tự động bung gợi ý
+            htmlOptions += `<option value="${x}">`;
+            htmlOptions += `<option value="${tenBoThuanTuy}">`;
+        });
+        list.innerHTML = htmlOptions; 
+    }
+}
+// =========================================================================
+
 function themVaoGio() { let val = document.getElementById("khoa_inpMaBo").value.trim().toUpperCase(); if(!val) return; if (gioHangTam.some(x => x.maMacDinh === val)) { document.getElementById("khoa_inpMaBo").value = ""; return showToast("Mã này đã có trong danh sách chờ!", "error"); } let tenGoc = val.includes("[ID:") ? val.split(" [ID:")[0] : val; gioHangTam.push({bo: tenGoc, maMacDinh: val, slYeuCau: 1}); document.getElementById("khoa_inpMaBo").value = ""; renderGioHang(); }
 function renderGioHang() { let khuVuc = document.getElementById("khuVucGioHang"); if(khuVuc) khuVuc.classList.toggle("hidden", gioHangTam.length===0); document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); }
 function clearGioHang() { gioHangTam = []; renderGioHang(); }
@@ -517,7 +541,6 @@ function moPopupKiemDem(id) {
     let item = listGiaoDich.find(x => x.firestoreId === id); 
     if(!item) return showToast("Không tìm thấy thông tin dòng chỉ định!", "error");
 
-    // 1. Lưu thông tin mâm đang chọn vào biến toàn cục của Trạm 2
     currentKiemDemData = {
         id: id,
         tenBoDungCu: item.bo ? item.bo.split(" [ID:")[0] : "Chưa rõ mâm",
@@ -525,13 +548,11 @@ function moPopupKiemDem(id) {
         ghiChuLamSang: item.ghiChu || ""
     }; 
 
-    // 2. Đổ dữ liệu tóm tắt lên khung Header Popup
     document.getElementById('popBo').innerText = currentKiemDemData.tenBoDungCu;
     document.getElementById('popKhoa').innerText = currentKiemDemData.khoaYeuCau;
     document.getElementById('popGhiChu').value = currentKiemDemData.ghiChuLamSang;
     document.getElementById('popGhiChu').classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
 
-    // 3. Lấy danh sách linh kiện cấu hình chuẩn của mâm này từ database Excel đã nạp
     let itemsInBo = databaseExcel.filter(x => { 
         let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; 
         return String(boName).trim().toUpperCase() === String(currentKiemDemData.tenBoDungCu).trim().toUpperCase(); 
@@ -545,16 +566,11 @@ function moPopupKiemDem(id) {
             return { ten: tenDc, slChuan: sl, slThuc: sl, tinhTrang: "ĐỦ" };
         });
     } else {
-        // Trường hợp khay vãng lai chưa thiết lập cấu hình chi tiết, hệ thống tự động sinh 1 linh kiện đại diện
         checklistSơBộ = [{ ten: "Dụng cụ nguyên bộ (Chưa phân rã cấu hình)", slChuan: 1, slThuc: 1, tinhTrang: "ĐỦ" }];
     }
 
     currentKiemDemData.linhKienKiemDem = checklistSơBộ;
-
-    // 4. Render checklist động ra màn hình
     renderChecklistLinhKien();
-
-    // 5. Mở Popup Modal
     document.getElementById('popupKiemDem').classList.remove('hidden'); 
 }
 
@@ -626,7 +642,6 @@ async function saveKiemDem() {
     if(!currentKiemDemData) return; 
     const ghiChuValue = document.getElementById("popGhiChu").value.trim();
 
-    // Rà soát điều kiện chênh lệch linh kiện
     let coSuCoChenhLech = false;
     currentKiemDemData.linhKienKiemDem.forEach(item => {
         if (item.tinhTrang === "THIẾU" || item.tinhTrang === "HỎNG" || item.slThuc < item.slChuan) {
@@ -634,7 +649,6 @@ async function saveKiemDem() {
         }
     });
 
-    // Khóa lỗi bảo mật chủ quan: Phát hiện thiếu hụt cơ số bắt buộc điền lý do/biên bản
     if (coSuCoChenhLech && ghiChuValue === "") {
         playSound('error');
         alert("⚠️ PHÁT HIỆN SỰ CỐ CHÊNH LỆCH LINH KIỆN!\nAnh/Chị bắt buộc phải nhập lý do chênh lệch hoặc số biên bản sự cố từ khoa lâm sàng trước khi 'Chốt và Chuyển Rửa'.");
@@ -773,7 +787,7 @@ function initSelects() {
     let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join('');
     if(document.getElementById("login_khoa")) document.getElementById("login_khoa").innerHTML = opts; 
     if(document.getElementById("khoa_selKhoa")) document.getElementById("khoa_selKhoa").innerHTML = opts; 
-    if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
+    if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<code value="${k.code}">${k.code} - ${k.ten}</code>`).join(''); 
     if (document.getElementById("hap_loaiHap")) { capNhatDanhSachMaMay(); }
 }
 
