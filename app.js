@@ -822,18 +822,18 @@ function moPopupKiemDem(id) {
         return String(boName).trim().toUpperCase() === String(currentKiemDemData.tenBoDungCu).trim().toUpperCase(); 
     });
 
-    let checklistSơ Bộ = [];
+    let checklistSoBo = [];
     if(itemsInBo.length > 0) {
-        checklistSơ Bộ = itemsInBo.map(ct => {
+        checklistSoBo = itemsInBo.map(ct => {
             let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['TÊN BỘ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ";
             let sl = parseInt(ct['Số lượng'] || ct['SL'] || ct['Số Lượng'] || 1);
             return { ten: tenDc, slChuan: sl, slThuc: sl, tinhTrang: "ĐỦ" };
         });
     } else {
-        checklistSơ Bộ = [{ ten: "Dụng cụ nguyên bộ (Chưa phân rã cấu hình)", slChuan: 1, slThuc: 1, tinhTrang: "ĐỦ" }];
+        checklistSoBo = [{ ten: "Dụng cụ nguyên bộ (Chưa phân rã cấu hình)", slChuan: 1, slThuc: 1, tinhTrang: "ĐỦ" }];
     }
 
-    currentKiemDemData.linhKienKiemDem = checklistSơ Bộ;
+    currentKiemDemData.linhKienKiemDem = checklistSoBo;
     renderChecklistLinhKien();
     document.getElementById('popupKiemDem').classList.remove('hidden'); 
 }
