@@ -99,6 +99,7 @@
                                     <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1.5"><i class="fa-solid fa-crosshairs mr-1 text-sky-600"></i> Chọn Dụng Cụ Từ Danh Sách hoặc Quét Mã ID:</label>
                                     <div class="flex gap-2">
                                         <input type="text" id="khoa_inpMaBo" list="listBoDungCu" placeholder="Gõ tên mâm để chọn hoặc quét mã..." class="w-full px-3 py-2.5 font-bold text-sky-700 shadow-sm border border-sky-300 rounded-md bg-sky-50 focus:bg-white" onkeypress="if(event.key==='Enter') themVaoGio()">
+                                        <datalist id="listBoDungCu"></datalist>
                                         <button onclick="moCamera('khoa_inpMaBo')" class="bg-slate-800 text-white px-4 py-2.5 rounded-md shadow action-btn whitespace-nowrap"><i class="fa-solid fa-camera"></i> QUÉT</button>
                                     </div>
                                     <button onclick="themVaoGio()" class="w-full bg-slate-800 hover:bg-slate-700 text-white font-black py-3.5 rounded-lg text-xs shadow-md action-btn"><i class="fa-solid fa-plus mr-2"></i> THÊM VÀO PHIẾU GỬI</button>
@@ -350,7 +351,7 @@
                                         <th class="p-3 text-center">Mẻ Lò Gần Nhất</th>
                                         <th class="p-3 text-center">Giám Sát HSD</th> </tr>
                                 </thead>
-                                <tbody id="bangTonKhoThucTe" class="divide-y divide-slate-100 bg-white text-slate-700"></tbody>
+                                <tbody id="bangTonKhoTe" class="divide-y divide-slate-100 bg-white text-slate-700"></tbody>
                             </table>
                         </div>
                     </div>
@@ -690,7 +691,7 @@
             <div class="bg-slate-50 p-2 rounded border border-slate-100 mb-2"><span class="text-[10px] text-slate-500 uppercase font-bold">Mâm:</span> <span id="popDG_Bo" class="font-bold text-sky-700 text-sm ml-1">--</span></div>
             <div>
                 <label class="block text-[11px] font-bold text-slate-500 mb-1.5">Chất liệu đóng gói & HSD tương ứng:</label>
-                <select id="popDG_Loai" onchange="tinhHanSuDung()" class="w-full p-2.5 text-xs font-bold border border-slate-300 rounded bg-white text-slate-800">
+                <select id="popDG_Loai" onchange="tinhHanSuDung()" class="w-full p-2.5 text-xs font-bold border border-slate-300 rounded bg-white text-slate-880">
                     <option value="Vải|7">Vải (HSD 7 ngày)</option>
                     <option value="Túi ép nhiệt độ cao|30" selected>Túi ép nhiệt độ cao (HSD 30 ngày)</option>
                     <option value="Hộp chuyên dụng|90">Hộp chuyên dụng (HSD 90 ngày)</option>
@@ -782,7 +783,7 @@
             </div>
             
             <div class="bg-slate-50 px-6 py-4 flex justify-end gap-3 border-t border-slate-200 shadow-inner">
-                <button onclick="savePopupSuDung()" type="button" class="bg-teal-600 hover:bg-teal-700 text-white font-black px-6 py-2.5 rounded shadow text-xs uppercase flex items-center gap-1.5 transition-all"><i class="fa-solid fa-floppy-disk text-sm"></i> Lưu Hồ Sơ Bệnh Án</button>
+                <button onclick="savePopupSuDung()" type="button" class="bg-teal-600 hover:bg-teal-700 text-white font-black px-6 py-2.5 rounded shadow text-xs uppercase flex items-center gap-1.5 transition-all"><i class="fa-floppy-disk solid fa-floppy-disk text-sm"></i> Lưu Hồ Sơ Bệnh Án</button>
                 <button onclick="closePopupSuDung()" type="button" class="bg-white hover:bg-slate-100 border text-slate-700 font-bold px-6 py-2.5 rounded shadow text-xs uppercase flex items-center gap-1.5 transition-all"><i class="fa-solid fa-rotate-left"></i> Hủy</button>
             </div>
         </div>
