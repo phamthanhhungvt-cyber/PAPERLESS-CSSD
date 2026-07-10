@@ -787,8 +787,16 @@ function initSelects() {
     let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join('');
     if(document.getElementById("login_khoa")) document.getElementById("login_khoa").innerHTML = opts; 
     if(document.getElementById("khoa_selKhoa")) document.getElementById("khoa_selKhoa").innerHTML = opts; 
-    if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<code value="${k.code}">${k.code} - ${k.ten}</code>`).join(''); 
+    if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
     if (document.getElementById("hap_loaiHap")) { capNhatDanhSachMaMay(); }
+
+    // --- TỰ ĐỘNG LẮNG NGHE SỰ KIỆN ĐỔI KHOA PHÒNG ---
+    const selKhoaTraba = document.getElementById("khoa_selKhoa");
+    if(selKhoaTraba) {
+        // Xóa bám listener cũ nếu có tránh lặp sự kiện trước khi gán
+        selKhoaTraba.removeEventListener("change", loadBoDungCuTheoKhoa);
+        selKhoaTraba.addEventListener("change", loadBoDungCuTheoKhoa);
+    }
 }
 
 function showToast(msg, type="error") { const t = document.createElement('div'); t.className = `fixed top-6 right-6 ${type==="error"?"bg-rose-600":"bg-emerald-600"} text-white px-5 py-3.5 rounded-lg shadow-2xl z-[100] font-bold text-sm`; t.innerHTML = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
