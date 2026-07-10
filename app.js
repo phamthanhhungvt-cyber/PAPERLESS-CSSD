@@ -48,7 +48,7 @@ function playSound(type) {
 const cauHinhMayHap = { "Hấp hơi nước": ["A1", "A2", "A3", "A4"], "Hấp H2O2 (Plasma)": ["P1", "P2"], "Khử khuẩn EO": ["EO1", "EO2"] };
 
 // --- LISTENERS REALTIME ---
-db.collection("heThongDanhMuc").doc("danhMucTongPhuong Nam").onSnapshot(doc => { 
+db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
     try {
         if (doc.exists) { 
             let res = doc.data(); 
@@ -405,7 +405,7 @@ function xacNhanMeHap() {
         let itemData = listGiaoDich.find(x => x.firestoreId === cb.value);
         let thongTinLo = { 
             loaiHap: loaiHap, 
-            maMay: maMay, 
+            maMay: mayMay, 
             chuKyNhiet: chuKyNhiet, 
             apSuat: apSuat, 
             thoiGianBatDau: bayGio.toLocaleTimeString('vi-VN'), 
@@ -1077,11 +1077,11 @@ function dongCamera() { if(html5QrCode) html5QrCode.stop().then(() => html5QrCod
 function xoaSachDuLieuGiaoDichRealtime() { if(prompt("Nhập PIN ADMIN để xóa:") === (thongTinMatKhauAdmin.adminPIN||"admin2026")) { db.collection("phieuGiaoNhan").get().then(snap => { let b = db.batch(); snap.forEach(d => b.delete(d.ref)); b.commit().then(() => location.reload()); }); } }
 
 function truyVetTheoMaBatch() {
-    let maMẻKhẩn Cấp = "";
+    let maMeKhanCap = "";
     let inputs = document.querySelectorAll('input[placeholder*="A126"], input[id="inp_searchBatch"], input[placeholder*="Mẻ hấp"]');
-    for (let inp of inputs) { if (inp.value && inp.value.trim()) { maMẻKhẩn Cấp = inp.value.trim(); break; } }
-    if(!maMẻKhẩn Cấp) { return showToast("Vui lòng nhập mã mẻ hấp cần truy vết khẩn cấp!", "error"); }
-    maLoTruyVetToanCuc = maMẻKhẩn Cấp.toUpperCase();
+    for (let inp of inputs) { if (inp.value && inp.value.trim()) { maMeKhanCap = inp.value.trim(); break; } }
+    if(!maMeKhanCap) { return showToast("Vui lòng nhập mã mẻ hấp cần truy vết khẩn cấp!", "error"); }
+    maLoTruyVetToanCuc = maMeKhanCap.toUpperCase();
     switchTab('tracuu');
     if (typeof switchAdminSubtab === 'function') { try { switchAdminSubtab('database'); } catch(e){} }
     document.querySelectorAll('input[id="inp_searchBatch"]').forEach(inp => { inp.value = maLoTruyVetToanCuc; });
@@ -1180,7 +1180,7 @@ function dongBoSangMicrosoft365(hanhDong, duLieuGiaoDich) {
         maLoHap: duLieuGiaoDich.batchCode || "N/A",
         ngayThucHien: getTodayDateStr(),
         thoiGian: new Date().toLocaleTimeString('vi-VN'),
-        nguoiVanHanh: loginUserCode || "CSSD_CHUNG",
+        guoiVanHanh: loginUserCode || "CSSD_CHUNG",
         loaiMayHap: duLieuGiaoDich.thongTinLoHap?.loaiHap || "N/A",
         chuKyNhiet: duLieuGiaoDich.thongTinLoHap?.chuKyNhiet || "N/A",
         ketQuaSinhHoc: duLieuGiaoDich.thongTinLoHap?.giamSatChatLuong?.ketQuaSinhHoc || "N/A",
