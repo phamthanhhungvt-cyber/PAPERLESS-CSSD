@@ -271,11 +271,11 @@
                                         </div>
                                     </div>
 
-                                    <div id="khuVucUploadBI" class="mt-4 p-3 bg-amber-50/50 rounded-xl border border-dashed border-amber-300 hidden">
-                                        <label class="block w-full text-xs font-black text-amber-800 uppercase mb-1.5 flex items-center gap-1">
-                                            <i class="fa-solid fa-camera text-sm text-amber-600"></i> Minh chứng ảnh Test Chỉ thị Sinh học (BI) đầu ngày:
+                                    <div class="mb-1 mt-2 flex items-center gap-2 bg-amber-50 border border-amber-200 p-2.5 rounded-lg shadow-sm">
+                                        <input type="checkbox" id="hap_hasBI" class="w-4 h-4 rounded text-amber-600 focus:ring-amber-500 cursor-pointer">
+                                        <label for="hap_hasBI" class="text-xs font-black text-amber-800 cursor-pointer select-none">
+                                            🔥 MỀ CÓ KÈM ỐNG TEST SINH HỌC BI (BẮT BUỘC ĐỐI SOÁT KHI DUYỆT)
                                         </label>
-                                        <input type="file" id="input_anhBI" accept="image/*" onchange="docAnhBiUpTaiCho(this)" class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-black file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200 cursor-pointer">
                                     </div>
                                 </div>
 
@@ -295,6 +295,15 @@
                                     <i class="fa-solid fa-vial-circle-check text-amber-500"></i> Phê Duyệt - Chấp Nhận Vô Kho
                                 </h3>
                             </div>
+
+                            <div id="vungUploadMinhChungBI" class="mb-3 bg-slate-50 border border-slate-200 p-3 rounded-xl shadow-inner">
+                                <label class="block text-[11px] font-black text-slate-700 uppercase mb-1.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-camera text-sky-600"></i> Tải ảnh minh chứng kết quả BI (Nếu duyệt mẻ có BI):
+                                </label>
+                                <input type="file" id="input_anhBI" accept="image/*" onchange="docAnhBiUpTaiCho(this)" 
+                                       class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-black file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 cursor-pointer border border-slate-300 rounded-lg p-1 bg-white">
+                            </div>
+
                             <div class="mb-3 flex flex-col gap-2">
                                 <button onclick="nhapKhoHangLoat()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded text-xs shadow-md"><i class="fa-solid fa-check-double mr-1"></i> DUYỆT ĐẠT & CHO VÀO KHO LƯU TRỮ CHUNG</button>
                                 <div class="flex gap-2">
