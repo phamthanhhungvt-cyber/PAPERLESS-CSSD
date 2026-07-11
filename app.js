@@ -204,7 +204,7 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     if(!cauHinhGiaoDien[role]) cauHinhGiaoDien[role] = [];
     if(checkboxElement.checked) { if(!cauHinhGiaoDien[role].includes(tabId)) cauHinhGiaoDien[role].push(tabId); } 
     else { cauHinhGiaoDien[role] = cauHinhGiaoDien[role].filter(x => x !== tabId); }
-    db.collection("heThongDanhMuc").doc("danhMucTongPhuong Nam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
+    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHinhGiaoDien })
     .then(() => showToast(`Đã cập nhật quyền truy cập cho nhóm: ${role}`, "success"));
 }
 
@@ -291,9 +291,6 @@ function renderGioHangXuat() {
 
 function xoaKhoiGioXuat(index) { gioHangXuatKho.splice(index, 1); renderGioHangXuat(); }
 
-// =========================================================================
-// [Hiệu chỉnh Trạm 5] BÀN GIAO TREO TRẠNG THÁI "ĐANG_VAN_CHUYEN"
-// =========================================================================
 function xacNhanXuatKhoHangLoat() {
     const k = document.getElementById("xuat_selKhoa").value; if(!k || gioHangXuatKho.length === 0) return;
     let p = []; 
@@ -321,9 +318,6 @@ function xacNhanXuatKhoHangLoat() {
     });
 }
 
-// =========================================================================
-// [Hiệu chỉnh Trạm 1.1] ĐIỀU DƯỠNG LÂM SÀNG KÝ XÁC NHẬN ĐIỆN TỬ
-// =========================================================================
 function khoaKyNhanDoSachDienTu() {
     const khoaDangNhap = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa") ? document.getElementById("khoa_selKhoa").value : "");
     const nameNguoiDung = loginUserCode || "Điều dưỡng khoa";
@@ -366,9 +360,6 @@ function khoaKyNhanDoSachDienTu() {
     }
 }
 
-// =========================================================================
-// [Hiệu chỉnh Trạm 4.1] ĐỌC VÀ LẮNG NGHE MINH CHỨNG BI ĐỂ MỞ KHÓA TỰ ĐỘNG
-// =========================================================================
 function docAnhBiUpTaiCho(inputElement) { 
     const file = inputElement.files[0]; 
     if (!file) return; 
@@ -376,7 +367,7 @@ function docAnhBiUpTaiCho(inputElement) {
     reader.onloadend = function() { 
         duLieuAnhBiTamBase64 = reader.result; 
         showToast("Đã tải thành công bằng chứng kết quả BI! Hệ thống đã mở khóa quyền Duyệt.", "success"); 
-        kiemTraQuyenDuyetMeHap(); // Kiểm tra mở khóa nút bấm ngay lập tức
+        kiemTraQuyenDuyetMeHap(); 
     }; 
     reader.readAsDataURL(file); 
 }
@@ -390,9 +381,6 @@ function tuDongTaoMaLoMeHap() {
     if (document.getElementById("hap_batchId")) document.getElementById("hap_batchId").value = batchIdHoanChinh;
 }
 
-// =========================================================================
-// [Hiệu chỉnh Trạm 4.2] KÍCH HOẠT MẺ HẤP VÀ ĐÓNG DẤU CỜ BI ĐẦU NGÀY
-// =========================================================================
 function xacNhanMeHap() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ!", "error"); 
     let loaiHap = document.getElementById("hap_loaiHap").value; let maMay = document.getElementById("hap_maySo").value; let batchCode = document.getElementById("hap_batchId").value; let chuKyNhiet = document.getElementById("hap_nhietDo").value; let apSuat = document.getElementById("hap_apSuat").value || "N/A"; 
@@ -452,9 +440,6 @@ function hanhDongXemAnhBiMoi(firestoreId) {
     let w = window.open(); w.document.write(`<html><head><title>MINH CHỨNG ẢNH BI - LÔ ${item.batchCode}</title></head><body style='margin:0; background:#000; display:flex; justify-content:center; align-items:center;'><img src='${chuoiAnhBase64}' style='max-width:100%; max-height:100vh; object-fit:contain;'/></body></html>`);
 }
 
-// =========================================================================
-// [Hiệu chỉnh Trạm 4.3] HÀM KIỂM TRA CHẶN KHÓA NÚT PHÊ DUYỆT THEO ĐÚNG 2 BƯỚC
-// =========================================================================
 function kiemTraQuyenDuyetMeHap() {
     const nutDuyetDat = document.querySelector("button[onclick='nhapKhoHangLoat()']");
     if (!nutDuyetDat) return;
@@ -479,9 +464,6 @@ function kiemTraQuyenDuyetMeHap() {
     }
 }
 
-// =========================================================================
-// [Hiệu chỉnh Trạm 4.4] DUYỆT NHẬP KHO CHẤP NHẬN VÀ Logic KHẤU TRỪ KPI 20 PHÚT
-// =========================================================================
 function nhapKhoHangLoat() { 
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); 
     
@@ -547,14 +529,12 @@ function nhapKhoHangLoat() {
 }
 
 // =========================================================================
-// [Hiệu chỉnh CORE RENDER BIẾN ĐỘNG TAB 1 & SỔ TAY GIAO NHẬN CHỮ KÝ SỐ]
+// [TÍCH HỢP CORE RENDER LUỒNG ĐỐI SOÁT 4 CỘT CHUẨN MỚI]
 // =========================================================================
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
-        // TỰ ĐỘNG ĐỐI SOÁT THEO USER ĐĂNG NHẬP (TRÁNH LỖI GIAO DIỆN TREO DO Ô KHÓA DISABLED)
         const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value;
         
-        // --- ĐỐI SOÁT LUÂN CHUYỂN SỔ TAY CÔNG NỢ ---
         let tatCaDonCuaKhoa = listGiaoDich.filter(x => {
             const khoaDb = (x.khoa || "").toString().trim().toUpperCase();
             const khoaTab = (k || "").toString().trim().toUpperCase();
@@ -566,32 +546,42 @@ function renderTheoTabHienTai() {
         tatCaDonCuaKhoa.forEach(x => {
             let tenLoaiMâm = x.bo ? String(x.bo).split(" [ID:")[0] : "Chưa rõ mâm";
             if (!gopCongNo[tenLoaiMâm]) {
-                gopCongNo[tenLoaiMâm] = { daTraBan: 0, nhanSach: 0, cssdNo: 0 };
+                gopCongNo[tenLoaiMâm] = { daTraBan: 0, nhanSach: 0, nhanVoKhuan: 0, cssdNo: 0 };
             }
+            
+            // 1. Cột Đã Trả Bẩn: Khoa phòng phát lệnh gửi đi (mọi trạng thái ngoại trừ CHO_THU)
             if (x.status !== "CHO_THU") { 
                 gopCongNo[tenLoaiMâm].daTraBan += 1; 
             }
+            
+            // 2. Cột Đã Nhận Sạch: Thực tế CSSD đã bấm gom về kiểm đếm (Từ DANG_RUA trở đi)
+            if (["DANG_RUA", "CHO_HAP", "DANG_HAP", "CHO_XUAT", "ĐANG_VAN_CHUYEN", "HOAN_TAT", "DA_SU_DUNG"].includes(x.status)) {
+                gopCongNo[tenLoaiMâm].nhanSach += 1;
+            }
+            
+            // 3. Cột Nhận Vô Khuẩn: Điều dưỡng đã ký xác nhận đồ sạch vào tủ thành công
             if (x.status === "HOAN_TAT" || x.status === "DA_SU_DUNG") {
-                gopCongNo[tenLoaiMâm].nhanSach += 1; 
+                gopCongNo[tenLoaiMâm].nhanVoKhuan += 1; 
             }
-            if (x.status !== "HOAN_TAT" && x.status !== "DA_SU_DUNG") {
-                gopCongNo[tenLoaiMâm].cssdNo += 1;   
-            }
+            
+            // 4. Cột CSSD Nợ Khoa = Đã Trả Bẩn - Nhận Vô Khuẩn
+            gopCongNo[tenLoaiMâm].cssdNo = gopCongNo[tenLoaiMâm].daTraBan - gopCongNo[tenLoaiMâm].nhanVoKhuan;
         });
 
         let arrHtml = [];
         for (let key in gopCongNo) {
             let item = gopCongNo[key];
             arrHtml.push(`
-                <tr class="border-b hover:bg-slate-50 transition-colors font-medium">
-                    <td class="p-3 font-bold text-slate-800">${key}</td>
-                    <td class="p-3 text-center text-rose-600 font-bold bg-rose-50/20">${item.daTraBan}</td>
-                    <td class="p-3 text-center text-teal-600 font-bold bg-teal-50/20">${item.nhanSach}</td>
+                <tr class="border-b hover:bg-slate-50 transition-colors font-medium text-[11px]">
+                    <td class="p-3 font-bold text-slate-800 border-r">${key}</td>
+                    <td class="p-3 text-center text-rose-600 font-bold bg-rose-50/20 border-r">${item.daTraBan}</td>
+                    <td class="p-3 text-center text-sky-600 font-bold bg-sky-50/20 border-r">${item.nhanSach}</td>
+                    <td class="p-3 text-center text-purple-600 font-bold bg-purple-50/20 border-r">${item.nhanVoKhuan}</td>
                     <td class="p-3 text-center text-amber-600 font-black bg-amber-50/20">${item.cssdNo > 0 ? 'Nợ ' + item.cssdNo : '-'}</td>
                 </tr>
             `);
         }
-        document.getElementById("bangDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh công nợ luân chuyển đồ.</td></tr>`;
+        document.getElementById("bangDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh công nợ luân chuyển đồ.</td></tr>`;
 
         // --- RENDER BẢNG CHỜ TIẾP NHẬN ĐỒ SẠCH ĐANG ĐI ĐƯỜNG ---
         const tbodyChoNhan = document.getElementById("bangChoNhanTaiKhoa");
@@ -737,9 +727,10 @@ function renderTheoTabHienTai() {
                 else if(x.status === "DA_SU_DUNG") statusBadge = `<span class="px-2 py-0.5 bg-rose-600 text-white font-black rounded text-[10px]">SỬ DỤNG BN</span>`;
                 else if(x.status === "ĐANG_VAN_CHUYEN") statusBadge = `<span class="px-2 py-0.5 bg-purple-500 text-white font-bold rounded text-[10px] animate-pulse">ĐANG VẬN CHUYỂN</span>`;
                 
-                let minhChungHtml = ""; let loGoc = listGiaoDich.find(m => m.batchCode === x.batchCode && m.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64); 
+                let fontColor = "";
+                let loGoc = listGiaoDich.find(m => m.batchCode === x.batchCode && m.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64); 
                 let anhBase64 = loGoc?.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || x.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64;
-                if (anhBase64) { minhChungHtml = `<br><span onclick="hanhDongXemAnhBiMoi('${x.firestoreId}')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`; }
+                if (anhBase64) { fontColor = `<br><span onclick="hanhDongXemAnhBiMoi('${x.firestoreId}')" class="text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-300 rounded px-1 cursor-pointer font-bold mt-1 inline-block"><i class="fa-solid fa-image mr-1"></i>Xem ảnh BI</span>`; }
                 
                 let kpiHtml = "";
                 if(x.ketQuaGiamSatKpi) {
@@ -756,7 +747,7 @@ function renderTheoTabHienTai() {
                 }
 
                 let tenBoGoc = x.bo ? String(x.bo).split(" [ID:")[0] : 'N/A';
-                return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors"><td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td><td class="p-3 font-bold text-slate-800">${tenBoGoc}</td><td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td><td class="p-3 text-center">${statusBadge}${kpiHtml}</td><td class="p-3 text-center font-mono font-bold text-rose-700 bg-rose-50/30">${x.batchCode || 'N/A'}${minhChungHtml}</td><td class="p-3 text-center font-bold text-sky-800 bg-sky-50/40">${thongTinKemTheo}</td><td class="p-3 text-center text-slate-400 font-mono text-[11px]">${x.ngayTao || ''} ${x.time || ''}</td></tr>`;
+                return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors"><td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td><td class="p-3 font-bold text-slate-800">${tenBoGoc}</td><td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td><td class="p-3 text-center">${statusBadge}${kpiHtml}</td><td class="p-3 text-center font-mono font-bold text-rose-700 bg-rose-50/30">${x.batchCode || 'N/A'}${fontColor}</td><td class="p-3 text-center font-bold text-sky-800 bg-sky-50/40">${thongTinKemTheo}</td><td class="p-3 text-center text-slate-400 font-mono text-[11px]">${x.ngayTao || ''} ${x.time || ''}</td></tr>`;
             }).join('');
         }
     }
@@ -834,7 +825,82 @@ function themVaoGio() { let val = document.getElementById("khoa_inpMaBo").value.
 function renderGioHang() { let khuVuc = document.getElementById("khuVucGioHang"); if(khuVuc) khuVuc.classList.toggle("hidden", gioHangTam.length===0); document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); }
 function clearGioHang() { gioHangTam = []; renderGioHang(); }
 function khoaGuiPhieuTraBatches() { const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; if(!k) return showToast("Vui lòng chọn Khoa trước!"); if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); let p=[]; gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); }
-function inHoaDonGiaoNhan() { const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in!", "error"); let printHtml = `<div style="font-family: Arial, sans-serif; color: #000; padding: 10px;"><div style="text-align:center; margin-bottom: 20px;"><h2 style="font-size: 18px; margin-bottom: 5px;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2><p style="font-size: 13px; margin: 0;">Khoa/Phòng: <strong style="font-size: 14px;">${k}</strong> - Ngày xuất phiếu: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></p></div><table style="width:100%; border-collapse: collapse; text-align: left; font-size: 13px; font-family: Arial, sans-serif;"><thead><tr style="background-color: #f8fafc;"><th style="border: 1px solid #000; padding: 10px; font-weight: bold;">Phân Label Mâm / Loại Dụng Cụ</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Đã Trả Bẩn</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">Nhận Sạch</th><th style="border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold;">CSSD Nợ Khoa</th></tr></thead><tbody>${document.getElementById("bangDonGiaoNhan").innerHTML}</tbody></table></div>`; const pZone = document.getElementById("print-zone"); pZone.innerHTML = printHtml; pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden"); }
+
+// =========================================================================
+// [TÍCH HỢP HÀM XUẤT PHIẾU IN BIÊN BẢN GIAO NHẬN 4 CỘT CHUẨN]
+// =========================================================================
+function inHoaDonGiaoNhan() {
+    const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value;
+    if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in biên bản!", "error");
+
+    let htmlBang = `
+        <table style="width:100%; border-collapse:collapse; margin-top:15px; font-size:12px; text-align:left; font-family:Arial, sans-serif;">
+            <thead>
+                <tr style="background-color:#f8fafc; border:1px solid #000;">
+                    <th style="padding:8px; border:1px solid #000; width:40%;">PHÂN LOẠI MÂM / LOẠI DỤNG CỤ</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">ĐÃ TRẢ BẨN</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">ĐÃ NHẬN SẠCH</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">NHẬN VÔ KHUẨN</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">CSSD NỢ KHOA</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const rows = document.querySelectorAll('#bangDonGiaoNhan tr');
+    if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) {
+        htmlBang += `<tr><td colspan="5" style="padding:12px; border:1px solid #000; text-align:center; font-style:italic;">Không có dữ liệu công nợ luân chuyển dụng cụ.</td></tr>`;
+    } else {
+        rows.forEach(row => {
+            const cells = row.cells;
+            if (cells.length >= 4) {
+                const tenBo = cells[0].innerText;
+                const traBan = cells[1].innerText;
+                const nhanSach = cells[2].innerText;
+                const voKhuan = cells[3] ? cells[3].innerText : '-'; 
+                const noKhoa = cells[4] ? cells[4].innerText : '-';
+
+                htmlBang += `
+                    <tr style="border:1px solid #000;">
+                        <td style="padding:8px; border:1px solid #000; font-weight:bold;">${tenBo}</td>
+                        <td style="padding:8px; border:1px solid #000; text-align:center; color:#e11d48;">${traBan}</td>
+                        <td style="padding:8px; border:1px solid #000; text-align:center; color:#0284c7;">${nhanSach}</td>
+                        <td style="padding:8px; border:1px solid #000; text-align:center; color:#7c3aed;">${voKhuan}</td>
+                        <td style="padding:8px; border:1px solid #000; text-align:center; font-weight:bold; color:#d97706;">${noKhoa}</td>
+                    </tr>
+                `;
+            }
+        });
+    }
+    htmlBang += `</tbody></table>`;
+
+    const pZone = document.getElementById("print-zone");
+    pZone.innerHTML = `
+        <div style="width:100%; font-family:Arial, sans-serif; padding:10px; color:#000;">
+            <div style="text-align:center; margin-bottom:20px;">
+                <h2 style="margin:0; font-size:16px; font-weight:900; text-transform:uppercase;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2>
+                <p style="margin:5px 0 0 0; font-size:12px; font-weight:bold;">Khoa/Phòng: <span style="text-transform:uppercase;">${k}</span> - Ngày xuất phiếu: ${new Date().toLocaleDateString('vi-VN')}</p>
+            </div>
+            
+            ${htmlBang}
+            
+            <div style="margin-top:40px; display:flex; justify-content:space-between; font-size:11px; font-weight:bold; padding:0 20px;">
+                <div style="text-align:center; width:45%;">
+                    <p style="margin-bottom:60px; text-transform:uppercase;">ĐIỀU DƯỠNG LÂM SÀNG</p>
+                    <p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p>
+                </div>
+                <div style="text-align:center; width:45%;">
+                    <p style="margin-bottom:60px; text-transform:uppercase;">CHUYÊN VIÊN CSSD</p>
+                    <p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    pZone.classList.remove("hidden");
+    window.print();
+    pZone.classList.add("hidden");
+}
 
 function moPopupKiemDem(id) { 
     let item = listGiaoDich.find(x => x.firestoreId === id); 
@@ -892,7 +958,7 @@ function renderChecklistLinhKien() {
             </div>
             <div class="flex items-center gap-3 mr-4">
                 <button type="button" onclick="thayDoiSoLuongLinhKien(${index}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-black flex items-center justify-center text-xs transition-colors">-</button>
-                <span class="w-6 text-center text-xs font-black text-slate-800">${item.slThuc}</span>
+                <span class="w-6 text-center text-xs font-black text-slate-880">${item.slThuc}</span>
                 <button type="button" onclick="thayDoiSoLuongLinhKien(${index}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-black flex items-center justify-center text-xs transition-colors">+</button>
             </div>
             <div>
