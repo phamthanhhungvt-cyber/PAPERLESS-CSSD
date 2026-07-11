@@ -95,7 +95,7 @@ function taiDanhMucLinhKienChuan() {
         let linhKienHtml = `<div class="flex flex-wrap gap-1">`;
         let tongSl = 0;
         gopBoExcel[tenBo].forEach(item => {
-            let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ";
+            let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ Chi Tiết";
             let sl = parseInt(item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1);
             let hanHap = item['Tuổi thọ mẻ hấp'] || item['Tuổi thọ'] || 100;
             tongSl += sl;
@@ -549,22 +549,18 @@ function renderTheoTabHienTai() {
                 gopCongNo[tenLoaiMâm] = { daTraBan: 0, nhanSach: 0, nhanVoKhuan: 0, cssdNo: 0 };
             }
             
-            // 1. Cột Đã Trả Bẩn: Khoa phòng phát lệnh gửi đi (mọi trạng thái ngoại trừ CHO_THU)
             if (x.status !== "CHO_THU") { 
                 gopCongNo[tenLoaiMâm].daTraBan += 1; 
             }
             
-            // 2. Cột Đã Nhận Sạch: Thực tế CSSD đã bấm gom về kiểm đếm (Từ DANG_RUA trở đi)
             if (["DANG_RUA", "CHO_HAP", "DANG_HAP", "CHO_XUAT", "ĐANG_VAN_CHUYEN", "HOAN_TAT", "DA_SU_DUNG"].includes(x.status)) {
                 gopCongNo[tenLoaiMâm].nhanSach += 1;
             }
             
-            // 3. Cột Nhận Vô Khuẩn: Điều dưỡng đã ký xác nhận đồ sạch vào tủ thành công
             if (x.status === "HOAN_TAT" || x.status === "DA_SU_DUNG") {
                 gopCongNo[tenLoaiMâm].nhanVoKhuan += 1; 
             }
             
-            // 4. Cột CSSD Nợ Khoa = Đã Trả Bẩn - Nhận Vô Khuẩn
             gopCongNo[tenLoaiMâm].cssdNo = gopCongNo[tenLoaiMâm].daTraBan - gopCongNo[tenLoaiMâm].nhanVoKhuan;
         });
 
@@ -583,7 +579,6 @@ function renderTheoTabHienTai() {
         }
         document.getElementById("bangDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh công nợ luân chuyển đồ.</td></tr>`;
 
-        // --- RENDER BẢNG CHỜ TIẾP NHẬN ĐỒ SẠCH ĐANG ĐI ĐƯỜNG ---
         const tbodyChoNhan = document.getElementById("bangChoNhanTaiKhoa");
         const badgeChoNhan = document.getElementById("badgeChoNhanKhoa");
         const txtNguoiXacNhan = document.getElementById("txtNguoiDungNhanHienTai");
@@ -635,7 +630,7 @@ function renderTheoTabHienTai() {
                 let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; 
                 return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase(); 
             });
-            let checklistHtml = itemsInBo.length > 0 ? `<div class="max-h-24 overflow-y-auto pr-1">` + itemsInBo.map(item => { let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['TÊN BỘ'] || item['Tên Chi Tiết'] || item['NAME'] || "Dụng cụ"; let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1; return `<div class="flex justify-between border-b border-dashed border-slate-200 py-1 text-[10px] text-slate-600"><span>- ${tenDc}</span><span class="font-bold text-sky-700">x${sl}</span></div>`; }).join('') + `</div>` : `<span class="italic text-[10px] text-slate-400">Không có cấu hình chi tiết linh kiện</span>`;
+            let checklistHtml = itemsInBo.length > 0 ? `<div class="max-h-24 overflow-y-auto pr-1">` + itemsInBo.map(item => { let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ"; let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1; return `<div class="flex justify-between border-b border-dashed border-slate-200 py-1 text-[10px] text-slate-600"><span>- ${tenDc}</span><span class="font-bold text-sky-700">x${sl}</span></div>`; }).join('') + `</div>` : `<span class="italic text-[10px] text-slate-400">Không có cấu hình chi tiết linh kiện</span>`;
             return `<tr class="border-b border-slate-50"><td class="p-3"><div class="font-bold text-slate-700 text-[11px] uppercase">${i.khoa}</div>${i.ghiChu ? `<div class="text-[10px] text-rose-600 font-medium italic mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${i.ghiChu}</div>` : ''}</td><td class="p-3"><div class="font-bold text-sky-700 text-[12px] uppercase">${tenBo}</div><div class="text-[10px] font-mono text-slate-400 mb-2">ID: ${i.maMacDinh}</div><div class="bg-slate-50 p-2 rounded border border-slate-100">${checklistHtml}</div></td><td class="p-3 text-center text-[10px] text-slate-500 font-bold">${i.time}</td><td class="p-3 text-center action-col"><button onclick="moPopupKiemDem('${i.firestoreId}')" class="bg-sky-600 text-white hover:bg-sky-700 px-3 py-1.5 rounded shadow font-black text-[11px]">KIỂM ĐẾM</button></td></tr>`;
         }).join('');
     }
@@ -826,9 +821,6 @@ function renderGioHang() { let khuVuc = document.getElementById("khuVucGioHang")
 function clearGioHang() { gioHangTam = []; renderGioHang(); }
 function khoaGuiPhieuTraBatches() { const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; if(!k) return showToast("Vui lòng chọn Khoa trước!"); if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); let p=[]; gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); }
 
-// =========================================================================
-// [TÍCH HỢP HÀM XUẤT PHIẾU IN BIÊN BẢN GIAO NHẬN 4 CỘT CHUẨN]
-// =========================================================================
 function inHoaDonGiaoNhan() {
     const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value;
     if (!k) return showToast("Vui lòng chọn Khoa/Phòng trước khi in biên bản!", "error");
@@ -958,7 +950,7 @@ function renderChecklistLinhKien() {
             </div>
             <div class="flex items-center gap-3 mr-4">
                 <button type="button" onclick="thayDoiSoLuongLinhKien(${index}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-black flex items-center justify-center text-xs transition-colors">-</button>
-                <span class="w-6 text-center text-xs font-black text-slate-880">${item.slThuc}</span>
+                <span class="w-6 text-center text-xs font-black text-slate-800">${item.slThuc}</span>
                 <button type="button" onclick="thayDoiSoLuongLinhKien(${index}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-black flex items-center justify-center text-xs transition-colors">+</button>
             </div>
             <div>
@@ -1179,6 +1171,9 @@ function clearTruyVetBatch() {
     callRender(); 
 }
 
+// =========================================================================
+// [SỬA ĐỔI TOÀN DIỆN HÀM NẠP EXCEL: ĐỌC DỮ LIỆU ĐỘNG THEO CỘT LINH KIỆN CHI TIẾT]
+// =========================================================================
 function nhanFileExcelDanhMuc(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
@@ -1190,38 +1185,47 @@ function nhanFileExcelDanhMuc(inputElement) {
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
             
-            const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-            if (rawRows.length === 0) return showToast("File Excel trống hoặc cấu trúc sai!", "error");
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            if (jsonData.length === 0) return showToast("File Excel trống hoặc cấu trúc sai!", "error");
 
             let tapHopKhoa = new Set();
             let danhSachBoTheoKhoa = {}; 
             let duLieuExcelChuanHoa = [];
 
-            for (let i = 0; i < rawRows.length; i++) {
-                let row = rawRows[i];
-                if (!row || row.length === 0) continue;
+            jsonData.forEach(row => {
+                let tenKhoa = row['KHOA PHÒNG'] || row['Khoa'] || row['KHOA'] || "";
+                let maBo = row['MÃ BỘ'] || row['Mã bộ'] || row['MA BO'] || "";
+                let tenBo = row['TÊN BỘ'] || row['Tên Bộ'] || row['Tên Bộ Dụng Cụ'] || "";
+                
+                // Giải pháp: Đọc động tên dụng cụ chi tiết thay vì gán cứng
+                let tenChiTietDungCu = row['TÊN DỤNG CỤ CHI TIẾT'] || row['Tên Dụng Cụ Chi Tiết'] || row['Dụng cụ chi tiết'] || row['Tên dụng cụ'] || row['Chi tiết'] || "";
+                let soLuong = parseInt(row['SỐ LƯỢNG'] || row['Số lượng'] || row['SL'] || 1);
+                let tuoiTho = parseInt(row['TUỔI THỌ MẺ HẤP'] || row['Tuổi thọ'] || 100);
 
-                if (String(row[0]).toUpperCase().includes("KHOA") && String(row[2]).toUpperCase().includes("BỘ")) continue;
+                tenKhoa = String(tenKhoa).trim().toUpperCase();
+                tenBo = String(tenBo).trim().toUpperCase();
+                maBo = String(maBo).trim().toUpperCase();
+                tenChiTietDungCu = String(tenChiTietDungCu).trim();
 
-                let tenKhoa = row[0] ? String(row[0]).trim().toUpperCase() : "";
-                let maBo = row[1] ? String(row[1]).trim().toUpperCase() : "";
-                let tenBo = row[2] ? String(row[2]).trim() : "";
-                let soLuong = parseInt(row[3]) || 1;
+                // Nếu cột chi tiết trống, tự động fallback về tên bộ dụng cụ để dữ liệu không bị lỗi
+                if (!tenChiTietDungCu) {
+                    tenChiTietDungCu = "Dụng cụ nguyên bộ";
+                }
 
                 if (tenKhoa && tenBo) {
                     tapHopKhoa.add(tenKhoa);
                     if (!danhSachBoTheoKhoa[tenKhoa]) danhSachBoTheoKhoa[tenKhoa] = new Set();
                     
-                    danhSachBoTheoKhoa[tenKhoa].add(`${tenBo.toUpperCase()} [ID:${maBo}]`);
+                    danhSachBoTheoKhoa[tenKhoa].add(`${tenBo} [ID:${maBo}]`);
 
                     duLieuExcelChuanHoa.push({ 
-                        "Tên Bộ Dụng Cụ": tenBo.toUpperCase(), 
-                        "Tên Dụng Cụ Chi Tiết": "Nguyên bộ cấu hình cơ số", 
+                        "Tên Bộ Dụng Cụ": tenBo, 
+                        "Tên Dụng Cụ Chi Tiết": tenChiTietDungCu, 
                         "Số lượng": soLuong,
-                        "Tuổi thọ mẻ hấp": 100 
+                        "Tuổi thọ mẻ hấp": tuoiTho 
                     });
                 }
-            }
+            });
 
             let mangDanhSachKhoaMoi = Array.from(tapHopKhoa).map(khoaName => {
                 return { ten: khoaName, pin: "123", danhSachBo: Array.from(danhSachBoTheoKhoa[khoaName]) };
@@ -1233,7 +1237,7 @@ function nhanFileExcelDanhMuc(inputElement) {
                 danhSachKhoa: mangDanhSachKhoaMoi,
                 databaseExcel: duLieuExcelChuanHoa
             }).then(() => {
-                showToast(`Thành công! Đã cập nhật ${mangDanhSachKhoaMoi.length} Khoa/Phòng lên hệ thống.`, "success");
+                showToast(`Thành công! Đã cập nhật ${mangDanhSachKhoaMoi.length} Khoa/Phòng và bóc tách dữ liệu linh kiện chi tiết thành công.`, "success");
                 inputElement.value = ""; 
             }).catch(err => {
                 showToast("Lỗi đẩy dữ liệu lên Firestore!", "error");
