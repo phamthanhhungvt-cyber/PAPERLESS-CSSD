@@ -384,10 +384,10 @@ function tuDongTaoMaLoMeHap() {
 function xacNhanMeHap() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ!", "error"); 
     let loaiHap = document.getElementById("hap_loaiHap").value; let maMay = document.getElementById("hap_maySo").value; let batchCode = document.getElementById("hap_batchId").value; let chuKyNhiet = document.getElementById("hap_nhietDo").value; let apSuat = document.getElementById("hap_apSuat").value || "N/A"; 
-    
+     
     let coKemBI = document.getElementById("hap_hasBI") ? document.getElementById("hap_hasBI").checked : false;
     const ngayHomNay = getTodayDateStr(); 
-    
+     
     let bayGio = new Date();
     let thoiGianDuKienXong = new Date(bayGio.getTime() + 45 * 60 * 1000);
 
@@ -407,7 +407,7 @@ function xacNhanMeHap() {
                 ketQuaSinhHoc: coKemBI ? "ĐANG CHỜ MÁY Ủ ĐỌC BI (20 PHÚT)" : "KẾ THỪA ĐẦU NGÀY" 
             } 
         };
-        
+         
         p.push(
             db.collection("phieuGiaoNhan").doc(cb.value).update({ 
                 status: "DANG_HAP", 
@@ -466,10 +466,10 @@ function kiemTraQuyenDuyetMeHap() {
 
 function nhapKhoHangLoat() { 
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!"); 
-    
+     
     const bayGio = new Date(); 
     let p = []; 
-    
+     
     checkboxes.forEach(cb => { 
         if(cb.id === 'selectAllNghiemThu') return; 
         let itemData = listGiaoDich.find(x => x.firestoreId === cb.value);
@@ -492,7 +492,7 @@ function nhapKhoHangLoat() {
         let capNhatGiamSat = {
             ...itemData.thongTinLoHap?.giamSatChatLuong,
             ketQuaSinhHoc: coKemBI ? "ÂM TÍNH (ĐẠT)" : "KẾ THỪA ĐẦU NGÀY",
-            minhChungAnhBase64: coKemBI ? duLieuAnhBiTamBase64 : (itemData.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || "")
+            minChungAnhBase64: coKemBI ? duLieuAnhBiTamBase64 : (itemData.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || "")
         };
 
         p.push(
@@ -500,7 +500,7 @@ function nhapKhoHangLoat() {
                 status: "CHO_XUAT",
                 thoiGianKetLuan: bayGio.toISOString(),
                 thoiGianDocTestBiPhut: soPhutThucTe, 
-                thoiGianTinhKpiPhut: soPhutTinhKPI,  
+                thoiGianTinhKpiPhut: soPhutTinhKPI,    
                 ketQuaGiamSatKpi: trangThaiKPI,      
                 "thongTinLoHap.giamSatChatLuong": capNhatGiamSat
             }).then(() => {
@@ -518,7 +518,7 @@ function nhapKhoHangLoat() {
             })
         ); 
     }); 
-    
+     
     Promise.all(p).then(() => { 
         showToast("Đã duyệt mâm đạt chuẩn, khấu trừ thời gian ủ BI thành công và nhập kho Vô Khuẩn!", "success"); 
         duLieuAnhBiTamBase64 = ""; 
@@ -661,13 +661,42 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'khovokhuan') {
-        let uniqueKhoaSanCo = [...new Set(listGiaoDich.map(x=>x.khoa))].filter(Boolean);
-        if(document.getElementById("xuat_selKhoa") && document.getElementById("xuat_selKhoa").options.length <= 1) { document.getElementById("xuat_selKhoa").innerHTML = '<option value="">-- Chọn Khoa --</option>' + uniqueKhoaSanCo.map(k=>`<option value="${k}">${k}</option>`).join(''); }
+        // [CẬP NHẬT MỚI]: Luồng tự động hiển thị danh mục mâm hoàn trả theo khoa lâm sàng được lựa chọn
+        let uniqueKhoaSanCo = [...new Set(listGiaoDich.map(x => x.khoa))].filter(Boolean);
+        const selKhoaXuat = document.getElementById("xuat_selKhoa");
+        
+        if(selKhoaXuat) {
+            let currentSelected = selKhoaXuat.value;
+            let htmlOpts = '<option value="">-- Chọn Khoa Muốn Trả Đồ --</option>';
+            uniqueKhoaSanCo.forEach(k => {
+                htmlOpts += `<option value="${k}" ${k === currentSelected ? 'selected' : ''}>${k}</option>`;
+            });
+            selKhoaXuat.innerHTML = htmlOpts;
+        }
+
         let lsXK = listGiaoDich.filter(x => x.status === "CHO_XUAT");
-        document.getElementById("bangKhoVoKhuan").innerHTML = lsXK.map(i => {
-            let tenBoGoc = i.bo ? String(i.bo).split(" [ID:")[0] : "N/A";
-            return `<tr class="border-b"><td class="p-3 font-bold text-slate-800 text-[11px]">${tenBoGoc}</td><td class="p-3 font-mono text-sky-700 font-bold">${i.maMacDinh}</td><td class="p-3 text-center font-bold text-slate-500 text-[11px]">Kệ 01</td><td class="p-3 text-center text-[10px] text-emerald-700 font-bold">${i.hsd ? new Date(i.hsd).toLocaleDateString('vi-VN') : 'An toàn'}</td></tr>`;
-        }).join('');
+        
+        const khoaDuocChon = selKhoaXuat ? selKhoaXuat.value : "";
+        if (khoaDuocChon) {
+            lsXK = lsXK.filter(x => String(x.khoa).toUpperCase() === khoaDuocChon.toUpperCase());
+        }
+
+        const tbodyKho = document.getElementById("bangKhoVoKhuan");
+        if(tbodyKho) {
+            if(lsXK.length === 0) {
+                tbodyKho.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">${khoaDuocChon ? 'Khoa này hiện không có dụng cụ nào chờ hoàn trả.' : 'Vui lòng chọn Khoa ở bên trái để duyệt danh sách dụng cụ cần trả.'}</td></tr>`;
+            } else {
+                tbodyKho.innerHTML = lsXK.map(i => {
+                    let tenBoGoc = i.bo ? String(i.bo).split(" [ID:")[0] : "N/A";
+                    return `<tr class="border-b hover:bg-slate-50 font-medium text-xs">
+                        <td class="p-3 font-bold text-slate-800">${tenBoGoc}</td>
+                        <td class="p-3 font-mono text-sky-700 font-bold">${i.maMacDinh}</td>
+                        <td class="p-3 text-center font-bold text-slate-500">Kệ 01</td>
+                        <td class="p-3 text-center text-[11px] text-emerald-700 font-bold">${i.hsd ? new Date(i.hsd).toLocaleDateString('vi-VN') : 'An toàn'}</td>
+                    </tr>`;
+                }).join('');
+            }
+        }
         renderGioHangXuat();
     }
     else if(activeTab === 'quanlykho') {
@@ -800,7 +829,7 @@ function loadBoDungCuTheoKhoa() {
     let list = document.getElementById("listBoDungCu"); 
     if(!list) return;
     list.innerHTML = ""; 
-    
+     
     let f = danhSachKhoa.find(x => (x.ten || "").toString().trim().toUpperCase() === (k || "").toString().trim().toUpperCase()); 
     if (f && f.danhSachBo) {
         let htmlOptions = "";
@@ -873,9 +902,9 @@ function inHoaDonGiaoNhan() {
                 <h2 style="margin:0; font-size:16px; font-weight:900; text-transform:uppercase;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2>
                 <p style="margin:5px 0 0 0; font-size:12px; font-weight:bold;">Khoa/Phòng: <span style="text-transform:uppercase;">${k}</span> - Ngày xuất phiếu: ${new Date().toLocaleDateString('vi-VN')}</p>
             </div>
-            
+             
             ${htmlBang}
-            
+             
             <div style="margin-top:40px; display:flex; justify-content:space-between; font-size:11px; font-weight:bold; padding:0 20px;">
                 <div style="text-align:center; width:45%;">
                     <p style="margin-bottom:60px; text-transform:uppercase;">ĐIỀU DƯỠNG LÂM SÀNG</p>
@@ -1023,7 +1052,7 @@ async function saveKiemDem() {
             coSuCoChenhLech: coSuCoChenhLech,
             chiTietChecklistLinhKien: currentKiemDemData.linhKienKiemDem
         });
-        
+         
         showToast("Đã đối soát xong! Mâm đồ đã chuyển sang Trạm Làm Sạch & Rửa.", "success"); 
         closePopupKiemDem(); 
         callRender(); 
@@ -1084,10 +1113,10 @@ function themKhoaThuCong() {
 
 function khaiSinhKhayVangLai() {
     if(danhSachKhoa.length === 0) return showToast("Hệ thống chưa có Khoa nào để cấp phát khay!", "error");
-    
+     
     let tenKhay = prompt("Nhập Tên Mâm/Khay dụng cụ mới (Ví dụ: BỘ PHẪU THUẬT NỘI SOI):");
     if(!tenKhay) return;
-    
+     
     let maId = prompt("Nhập Mã ID định hình khay (Ví dụ: PC-8888):");
     if(!maId) return;
     maId = maId.toUpperCase().trim();
@@ -1095,22 +1124,22 @@ function khaiSinhKhayVangLai() {
     let dsTenKhoa = danhSachKhoa.map((k, idx) => `${idx + 1}. ${k.ten}`).join("\n");
     let luaChon = prompt(`Chọn số thứ tự Khoa sở hữu khay này:\n${dsTenKhoa}`);
     if(!luaChon) return;
-    
+     
     let idxKhoa = parseInt(luaChon) - 1;
     if(isNaN(idxKhoa) || idxKhoa < 0 || idxKhoa >= danhSachKhoa.length) {
         return showToast("Lựa chọn Khoa không hợp lệ!", "error");
     }
-    
+     
     let khoaChon = danhSachKhoa[idxKhoa];
     let chuoiKhayDinhDang = `${tenKhay.toUpperCase().trim()} [ID:${maId}]`;
-    
+     
     if(!khoaChon.danhSachBo) khoaChon.danhSachBo = [];
     if(khoaChon.danhSachBo.includes(chuoiKhayDinhDang)) {
         return showToast("Mã khay dụng cụ này đã tồn tại ở khoa này rồi!", "error");
     }
-    
+     
     khoaChon.danhSachBo.push(chuoiKhayDinhDang);
-    
+     
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa })
     .then(() => {
         showToast(`Khai sinh thành công khay ${maId} thuộc quyền sở hữu khoa ${khoaChon.ten}!`, "success");
