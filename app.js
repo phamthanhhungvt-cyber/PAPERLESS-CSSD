@@ -254,14 +254,18 @@ function renderAdminInterface() {
     }
 }
 
+// [TÍCH HỢP ĐỔI MỚI CHUẨN FIFO]: Quét mã ID khay thực tế và tự động điều phối về Khoa lâm sàng đích
 function xuatKhoXoayVong() { 
     const k = document.getElementById("xuat_selKhoa").value; 
     let ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); 
     if(!k) { playSound('error'); return showToast("Vui lòng Chọn Khoa nhận trước khi quét mã!", "error"); } 
     if(!ma) return;
     if(gioHangXuatKho.some(x => x.maMacDinh === ma)) { playSound('error'); document.getElementById("xuat_inpMaBo").value = ""; return showToast("Mã này đã được quét vào danh sách xuất!", "error"); }
+    
+    // Tìm kiếm khay thực tế đang nằm ở kho vô khuẩn (Không giới hạn khoa gốc ban đầu)
     let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && x.status === "CHO_XUAT"); 
     if(!khayThucTe) { playSound('error'); document.getElementById("xuat_inpMaBo").value = ""; return showToast(`Mã ID ${ma} không có sẵn ở Kho Vô Khuẩn.`, "error"); } 
+    
     gioHangXuatKho.push(khayThucTe); playSound('success'); document.getElementById("xuat_inpMaBo").value = ""; renderGioHangXuat();
 }
 
@@ -298,7 +302,7 @@ function xacNhanXuatKhoHangLoat() {
         p.push(
             db.collection("phieuGiaoNhan").doc(khay.firestoreId).update({ 
                 status: "ĐANG_VAN_CHUYEN", 
-                khoa: k, 
+                khoa: k, // Hệ thống tự động cập nhật khoa nhận mới để trừ công nợ theo loại mâm chuẩn FIFO
                 ngayHoanTat: getTodayDateStr(), 
                 timeHoanTat: new Date().toLocaleTimeString('vi-VN'), 
                 nvXuatKho: loginUserCode || "CSSD_CHUNG" 
@@ -529,7 +533,7 @@ function nhapKhoHangLoat() {
 }
 
 // =========================================================================
-// [TÍCH HỢP CORE RENDER LUỒNG ĐỐI SOÁT 4 CỘT CHUẨN MỚI]
+// [CORE RENDER LUỒNG ĐỐI SOÁT & TÍCH HỢP CHUẨN FIFO KHO VÔ KHUẨN]
 // =========================================================================
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
@@ -661,7 +665,7 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'khovokhuan') {
-        // [CẬP NHẬT MỚI]: Luồng tự động hiển thị danh mục mâm hoàn trả theo khoa lâm sàng được lựa chọn
+        // [CẬP NHẬT MỚI]: Đồng bộ dữ liệu tất cả các Khoa có công nợ để làm menu chọn điểm giao đồ sạch
         let uniqueKhoaSanCo = [...new Set(listGiaoDich.map(x => x.khoa))].filter(Boolean);
         const selKhoaXuat = document.getElementById("xuat_selKhoa");
         
@@ -674,23 +678,24 @@ function renderTheoTabHienTai() {
             selKhoaXuat.innerHTML = htmlOpts;
         }
 
-        let lsXK = listGiaoDich.filter(x => x.status === "CHO_XUAT");
+        // [TỐI ƯU HOÀN TOÀN LUỒNG FIFO]: Lấy TOÀN BỘ khay dụng cụ sẵn sàng xuất trong kho
+        // Sắp xếp tăng dần theo ID (hoặc thời gian vào kho) để tạo luồng bốc xếp xoay vòng FIFO minh bạch
+        let lsXK = listGiaoDich.filter(x => x.status === "CHO_XUAT").sort((a, b) => a.id - b.id);
         
-        const khoaDuocChon = selKhoaXuat ? selKhoaXuat.value : "";
-        if (khoaDuocChon) {
-            lsXK = lsXK.filter(x => String(x.khoa).toUpperCase() === khoaDuocChon.toUpperCase());
-        }
-
         const tbodyKho = document.getElementById("bangKhoVoKhuan");
         if(tbodyKho) {
             if(lsXK.length === 0) {
-                tbodyKho.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">${khoaDuocChon ? 'Khoa này hiện không có dụng cụ nào chờ hoàn trả.' : 'Vui lòng chọn Khoa ở bên trái để duyệt danh sách dụng cụ cần trả.'}</td></tr>`;
+                tbodyKho.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Kho vô khuẩn hiện tại trống. Chưa có mẻ hấp nào được duyệt đạt.</td></tr>`;
             } else {
                 tbodyKho.innerHTML = lsXK.map(i => {
                     let tenBoGoc = i.bo ? String(i.bo).split(" [ID:")[0] : "N/A";
+                    // Thêm nhãn gắn tag Khoa sở hữu gốc ban đầu để nhân viên dễ nhận biết thông tin tham khảo
+                    let khoaGocBadge = `<span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold border">${i.khoa || 'Vãng lai'}</span>`;
+                    
                     return `<tr class="border-b hover:bg-slate-50 font-medium text-xs">
                         <td class="p-3 font-bold text-slate-800">${tenBoGoc}</td>
                         <td class="p-3 font-mono text-sky-700 font-bold">${i.maMacDinh}</td>
+                        <td class="p-3 text-center">${khoaGocBadge}</td>
                         <td class="p-3 text-center font-bold text-slate-500">Kệ 01</td>
                         <td class="p-3 text-center text-[11px] text-emerald-700 font-bold">${i.hsd ? new Date(i.hsd).toLocaleDateString('vi-VN') : 'An toàn'}</td>
                     </tr>`;
@@ -1200,9 +1205,6 @@ function clearTruyVetBatch() {
     callRender(); 
 }
 
-// =========================================================================
-// [SỬA ĐỔI TOÀN DIỆN HÀM NẠP EXCEL: ĐỌC DỮ LIỆU ĐỘNG THEO CỘT LINH KIỆN CHI TIẾT]
-// =========================================================================
 function nhanFileExcelDanhMuc(inputElement) {
     const file = inputElement.files[0];
     if (!file) return;
@@ -1226,7 +1228,6 @@ function nhanFileExcelDanhMuc(inputElement) {
                 let maBo = row['MÃ BỘ'] || row['Mã bộ'] || row['MA BO'] || "";
                 let tenBo = row['TÊN BỘ'] || row['Tên Bộ'] || row['Tên Bộ Dụng Cụ'] || "";
                 
-                // Giải pháp: Đọc động tên dụng cụ chi tiết thay vì gán cứng
                 let tenChiTietDungCu = row['TÊN DỤNG CỤ CHI TIẾT'] || row['Tên Dụng Cụ Chi Tiết'] || row['Dụng cụ chi tiết'] || row['Tên dụng cụ'] || row['Chi tiết'] || "";
                 let soLuong = parseInt(row['SỐ LƯỢNG'] || row['Số lượng'] || row['SL'] || 1);
                 let tuoiTho = parseInt(row['TUỔI THỌ MẺ HẤP'] || row['Tuổi thọ'] || 100);
@@ -1236,7 +1237,6 @@ function nhanFileExcelDanhMuc(inputElement) {
                 maBo = String(maBo).trim().toUpperCase();
                 tenChiTietDungCu = String(tenChiTietDungCu).trim();
 
-                // Nếu cột chi tiết trống, tự động fallback về tên bộ dụng cụ để dữ liệu không bị lỗi
                 if (!tenChiTietDungCu) {
                     tenChiTietDungCu = "Dụng cụ nguyên bộ";
                 }
