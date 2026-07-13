@@ -26,6 +26,7 @@ let html5QrCode = null; let targetInputIdForScan = ""; let idDangDongGoi = null;
 let activeTab = 'thugom'; let renderTimeout = null;
 let duLieuAnhBiTamBase64 = ""; let maLoTruyVetToanCuc = ""; 
 let gioHangXuatKho = []; let gioKhaySuDungTam = []; 
+let currentKiemDemData = null;
 
 const cauHinhMayHap = { "Hấp hơi nước": ["A1", "A2", "A3", "A4"], "Hấp H2O2 (Plasma)": ["P1", "P2"], "Khử khuẩn EO": ["EO1", "EO2"] };
 
@@ -215,9 +216,6 @@ function themVaoGio() {
     renderGioHang(); 
 }
 
-// =========================================================================
-// 5. TRẠM 2: XE THU GOM & KIỂM ĐẾM CHI TIẾT LINH KIỆN
-// =========================================================================
 function renderGioHang() { 
     let khuVuc = document.getElementById("khuVucGioHang"); if(khuVuc) khuVuc.classList.toggle("hidden", gioHangTam.length===0); 
     document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); 
@@ -234,6 +232,9 @@ function khoaGuiPhieuTraBatches() {
     Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); 
 }
 
+// =========================================================================
+// 5. TRẠM 2: XE THU GOM & KIỂM ĐẾM CHI TIẾT LINH KIỆN
+// =========================================================================
 function moPopupKiemDem(id) { 
     let item = listGiaoDich.find(x => x.firestoreId === id); 
     if(!item) return showToast("Không tìm thấy thông tin dòng chỉ định!", "error");
@@ -453,7 +454,7 @@ function nhapKhoHangLoat() {
             }).then(() => {
                 dongBoSangMicrosoft365("NGHIEM_THU_DAT_VOHUAN", { 
                     ...itemData, status: "CHO_XUAT", thoiGianDocTestBiPhut: soPhutThucTe, thoiGianTinhKpiPhut: soPhutTinhKPI,
-                    ketQuaGiamSatKpi: trangThaiKPI, thongTinLoHap: { ...itemData.thongTinLoHap, giamSatChatLuong: capNhatGiamSat }
+                    ketQuaGiamSatKpi: trangThaiKPI, thongTinLoHap: { ...itemData.thongTinLoHap, giamSatChatLuong: ...capNhatGiamSat }
                 });
             })
         ); 
@@ -719,36 +720,6 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHinhGiaoDien }).then(() => showToast("Đã cập nhật quyền truy cập!", "success"));
 }
 
-function renderAdminInterface() {
-    if (document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
-    if (document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
-    if (document.getElementById("cfg_pinGuest")) document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "";
-    const MatrixRoles = ["CSSD", "KHOA", "GUEST"];
-    const MatrixTabs = [
-        { id: "khoaphong", name: "1. Cổng Báo Trả Đồ" }, { id: "thugom", name: "2. Xe Thu Gom" }, { id: "donggoi", name: "3. Làm Sạch & Gói" }, { id: "mayhap", name: "4. Quản Lý Mẻ Hấp" }, { id: "khovokhuan", name: "5. Kho Vô Khuẩn" }, { id: "quanlykho", name: "6. Tồn Kho Toàn Viện" }, { id: "danhmuc", name: "7. Giám Sát Tuổi Thọ" }, { id: "lichsuluanchuyen", name: "8. Nhật Ký Luân Chuyển" }, { id: "tracuu", name: "9. Cấu Hình Hệ Thống" }, { id: "performance", name: "10. Hiệu Suất KPI" }, { id: "dashboard_tv", name: "11. Màn Hình Tivi" }
-    ];
-    let htmlMatrix = "";
-    MatrixTabs.forEach(tab => {
-        htmlMatrix += `<tr class="border-b font-medium text-xs hover:bg-slate-50"><td class="p-3 font-bold text-slate-700">${tab.name}</td>`;
-        MatrixRoles.forEach(role => {
-            let isChecked = (cauHinhGiaoDien[role] && cauHinhGiaoDien[role].includes(tab.id)) ? "checked" : "";
-            htmlMatrix += `<td class="p-3 text-center"><input type="checkbox" ${isChecked} onchange="updateGiaoDienMatrix('${role}', '${tab.id}', this)" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"></td>`;
-        });
-        htmlMatrix += `</tr>`;
-    });
-    const tbodyMatrix = document.getElementById("bodyMaTranGiaoDien"); if (tbodyMatrix) tbodyMatrix.innerHTML = htmlMatrix;
-    const trKhoa = document.getElementById("bangPhanQuyenKhoa");
-    if(trKhoa) {
-        if(danhSachKhoa.length === 0) { trKhoa.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa trống.</td></tr>`; } 
-        else { trKhoa.innerHTML = danhSachKhoa.map((k, index) => `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-black text-slate-700 text-[11px]">${k.ten}</td><td class="p-3 text-center border-x border-slate-200 font-mono font-black text-rose-600 text-sm bg-rose-50/50">${k.pin || '123'}</td><td class="p-3 text-center"><div class="flex items-center justify-center gap-2"><input type="text" id="pin-khoa-${index}" placeholder="PIN" class="w-24 p-1.5 text-center border border-slate-300 rounded text-xs font-bold"><button onclick="updatePINTrựcTiep(${index}, '${k.ten}')" class="bg-sky-600 text-white font-bold py-1.5 px-3 rounded shadow text-[10px]">ĐỔI PIN</button></div></td></tr>`).join(''); }
-    }
-    const tbKtv = document.getElementById("bangNhanVienCssd");
-    if(tbKtv) {
-        if(danhSachKtvCssd.length === 0) { tbKtv.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Chưa có Nhân viên.</td></tr>`; }
-        else { tbKtv.innerHTML = danhSachKtvCssd.map((nv, index) => `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-black text-sky-700 text-xs">${nv.code}</td><td class="p-3 font-bold text-slate-700 text-[11px]">${nv.ten}</td><td class="p-3 text-center border-x border-slate-200 font-mono font-black text-sky-600 text-sm bg-sky-50/50">${nv.pin}</td><td class="p-3 text-center"><button onclick="xoaKtvCssd('${nv.code}')" class="text-rose-600 font-bold text-[10px]"><i class="fa-solid fa-trash-can mr-1"></i>XÓA</button></td></tr>`).join(''); }
-    }
-}
-
 function handleViewAnhBiMoi(firestoreId) { hanhDongXemAnhBiMoi(firestoreId); }
 function hanhDongXemAnhBiMoi(firestoreId) {
     let item = listGiaoDich.find(x => x.firestoreId === firestoreId); if (!item) return showToast("Không tìm thấy thông tin!", "error");
@@ -798,6 +769,7 @@ function toggleMobileMenu() { document.getElementById("sidebar_menu").classList.
 
 function moCamera(inputId) { targetInputIdForScan = inputId; document.getElementById("popupScanner").classList.remove("hidden"); html5QrCode = new Html5Qrcode("reader"); Html5Qrcode.getCameras().then(devices => { let cid = devices.length > 1 ? devices[devices.length - 1].id : devices[0].id; html5QrCode.start(cid, { fps: 15, qrbox: { width: 260, height: 180 } }, (txt) => { document.getElementById(targetInputIdForScan).value = txt.trim().toUpperCase(); if(targetInputIdForScan==='khoa_inpMaBo') themVaoGio(); if(targetInputIdForScan==='xuat_inpMaBo') xuatKhoXoayVong(); if(targetInputIdForScan==='sd_maKhayInp') scanKhayVaoSuDung(); }).catch(e=>{}) }); }
 function dongCamera() { if(html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()); document.getElementById("popupScanner").classList.add("hidden"); }
+// Thay đổi sang Firebase thực tế của Phương Nam
 function xoaSachDuLieuGiaoDichRealtime() { if(prompt("Nhập PIN ADMIN:") === (thongTinMatKhauAdmin.adminPIN||"admin2026")) { db.collection("phieuGiaoNhan").get().then(snap => { let b = db.batch(); snap.forEach(d => b.delete(d.ref)); b.commit().then(() => location.reload()); }); } }
 
 function docAnhBiUpTaiCho(inputElement) { 
@@ -838,7 +810,6 @@ function nhanFileExcelDanhMuc(inputElement) {
             });
             let mangDanhSachKhoaMoi = Array.from(tapHopKhoa).map(kName => { return { ten: kName, pin: "123", danhSachBo: Array.from(danhSachBoTheoKhoa[kName]) }; });
             
-            // Đã chỉnh sửa chính xác tên ID document thành "danhMucTongPhuongNam"
             db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: mangDanhSachKhoaMoi, databaseExcel: duLieuExcelChuanHoa }).then(() => { showToast("Cập nhật danh mục thành công!", "success"); inputElement.value = ""; });
         } catch (err) { showToast("Lỗi phân tích file!", "error"); }
     };
@@ -902,13 +873,11 @@ function renderTheoTabHienTai() {
         document.getElementById("bangChoThuGom").innerHTML = lsTG.map(i => {
             let tenBo = i.bo ? String(i.bo).split(" [ID:")[0] : ""; 
             
-            // Tìm các linh kiện chi tiết thuộc bộ dụng cụ này từ databaseExcel
             let itemsInBo = databaseExcel.filter(x => {
                 let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || '';
                 return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase();
             });
             
-            // Xây dựng danh mục hiển thị dụng cụ thực tế thay vì chữ "Nguyên bộ cấu hình cơ"
             let checklistHtml = "";
             if (itemsInBo.length > 0) {
                 checklistHtml = `<div class="max-h-32 overflow-y-auto pr-1 border border-slate-200/60 rounded bg-slate-50/50 p-1.5 mt-1 flex flex-col gap-1">`;
@@ -1048,7 +1017,7 @@ function renderTheoTabHienTai() {
                 let existingTableZone = document.getElementById("vung-ket-qua-tu-dong");
                 if(!existingTableZone) {
                     let tableWrapper = document.createElement("div"); tableWrapper.id = "vung-ket-qua-tu-dong"; tableWrapper.className = "mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm";
-                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng Thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
+                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
                     parentContainer.appendChild(tableWrapper); safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
                 }
             }
@@ -1062,7 +1031,7 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'performance') { if(typeof renderKpiPerformanceGoc === 'function') renderKpiPerformanceGoc(); }
-    else if(activeTab === 'dashboard_tv') { renderDashboardTiviRealtime(); }
+    else if(activeTab === 'dashboard_tv') { if(typeof renderDashboardTiviRealtime === 'function') renderDashboardTiviRealtime(); }
 }
 
 function renderAdminInterface() {
