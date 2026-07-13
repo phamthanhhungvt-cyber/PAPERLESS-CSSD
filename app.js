@@ -180,7 +180,7 @@ function switchTab(t) {
     ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
         document.getElementById('tab-'+x)?.classList.add('hidden'); document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
     }); 
-    document.getElementById('tab-'+t)?.classList.remove('hidden'); document.getElementById('menu-'+t)?.幕.classList.add('sidebar-item-active'); 
+    document.getElementById('tab-'+t)?.classList.remove('hidden'); document.getElementById('menu-'+t)?.classList.add('sidebar-item-active'); 
     activeTab = t; 
     if (t === 'mayhap') { setTimeout(() => { tuDongTaoMaLoMeHap(); }, 50); }
     callRender(); 
@@ -751,51 +751,6 @@ function docAnhBiUpTaiCho(inputElement) {
     reader.readAsDataURL(file); 
 }
 
-function truyVetTheoMaBatch() {
-    let maMeKhanCap = ""; let inputs = document.querySelectorAll('input[placeholder*="A126"], input[id="inp_searchBatch"], input[placeholder*="Mẻ hấp"]');
-    for (let inp of inputs) { if (inp.value && inp.value.trim()) { maMeKhanCap = inp.value.trim(); break; } }
-    if(!maMeKhanCap) return showToast("Vui lòng nhập mã mẻ hấp!", "error");
-    maLoTruyVetToanCuc = maMeKhanCap.toUpperCase(); switchTab('tracuu');
-    if (typeof switchAdminSubtab === 'function') { try { switchAdminSubtab('database'); } catch(e){} }
-    document.querySelectorAll('input[id="inp_searchBatch"]').forEach(inp => { inp.value = maLoTruyVetToanCuc; });
-    renderTheoTabHienTai(); showToast(`Đang khoanh vùng mẻ: ${maLoTruyVetToanCuc}`, "success");
-}
-
-function clearTruyVetBatch() { maLoTruyVetToanCuc = ""; document.querySelectorAll('input[id="inp_searchBatch"]').forEach(inp => { inp.value = ""; }); const dynamicTable = document.getElementById("vung-ket-qua-tu-dong"); if (dynamicTable) dynamicTable.remove(); callRender(); }
-
-function nhanFileExcelDanhMuc(inputElement) {
-    const file = inputElement.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const data = new Uint8Array(e.target.result); const workbook = XLSX.read(data, { type: 'array' });
-            const worksheet = workbook.Sheets[workbook.SheetNames[0]]; const jsonData = XLSX.utils.sheet_to_json(worksheet);
-            if (jsonData.length === 0) return showToast("File Excel sai cấu trúc hoặc trống!", "error");
-            let tapHopKhoa = new Set(); let danhSachBoTheoKhoa = {}; let duLieuExcelChuanHoa = [];
-
-            jsonData.forEach(row => {
-                let tenKhoa = row['KHOA PHÒNG'] || row['Khoa'] || row['KHOA'] || ""; let maBo = row['MÃ BỘ'] || row['Mã bộ'] || row['MA BO'] || "";
-                let tenBo = row['TÊN BỘ'] || row['Tên Bộ'] || row['Tên Bộ Dụng Cụ'] || ""; let tenChiTietDungCu = row['TÊN DỤNG CỤ CHI TIẾT'] || row['Tên Dụng CỤ Chi Tiết'] || row['Tên dụng cụ'] || "";
-                let soLuong = parseInt(row['SỐ LƯỢNG'] || row['Số lượng'] || 1) || 0; let tuoiTho = parseInt(row['TUỔI THỌ MẺ HẤP'] || 100) || 100;
-                tenKhoa = String(tenKhoa).trim().toUpperCase(); tenBo = String(tenBo).trim().toUpperCase(); maBo = String(maBo).trim().toUpperCase();
-                if (!tenChiTietDungCu) tenChiTietDungCu = "Dụng cụ nguyên bộ";
-                if (tenKhoa && tenBo) { tapHopKhoa.add(tenKhoa); if (!danhSachBoTheoKhoa[tenKhoa]) danhSachBoTheoKhoa[tenKhoa] = new Set(); danhSachBoTheoKhoa[tenKhoa].add(`${tenBo} [ID:${maBo}]`); duLieuExcelChuanHoa.push({ "Tên Bộ Dụng Cụ": tenBo, "Tên Dụng Cụ Chi Tiết": tenChiTietDungCu, "Số lượng": soLuong, "Tuổi thọ mẻ hấp": tuoiTho }); }
-            });
-            let mangDanhSachKhoaMoi = Array.from(tapHopKhoa).map(kName => { return { ten: kName, pin: "123", danhSachBo: Array.from(danhSachBoTheoKhoa[kName]) }; });
-            
-            db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: mangDanhSachKhoaMoi, databaseExcel: duLieuExcelChuanHoa }).then(() => { showToast("Cập nhật danh mục thành công!", "success"); inputElement.value = ""; });
-        } catch (err) { showToast("Lỗi phân tích file!", "error"); }
-    };
-    reader.readAsArrayBuffer(file);
-}
-
-function dongBoSangMicrosoft365(hanhDong, duLieuGiaoDich) {
-    const POWER_AUTOMATE_WEBHOOK_URL = ""; if (!POWER_AUTOMATE_WEBHOOK_URL) return;
-    let tenBoGoc = duLieuGiaoDich.bo ? String(duLieuGiaoDich.bo).split(" [ID:")[0] : "N/A";
-    const dataPayload = { action: hanhDong, maIDKhay: duLieuGiaoDich.maMacDinh || "N/A", tenBoDungCu: tenBoGoc, khoaSudung: duLieuGiaoDich.khoa || "N/A", maLoHap: duLieuGiaoDich.batchCode || "N/A", ngayThucHien: getTodayDateStr(), thoiGian: new Date().toLocaleTimeString('vi-VN'), guoiVanHanh: loginUserCode || "CSSD_CHUNG", loaiMayHap: duLieuGiaoDich.thongTinLoHap?.loaiHap || "N/A", chuKyNhiet: duLieuGiaoDich.thongTinLoHap?.chuKyNhiet || "N/A", ketQuaSinhHoc: duLieuGiaoDich.thongTinLoHap?.giamSatChatLuong?.ketQuaSinhHoc || "N/A", thoiGianDocTestBiPhut: duLieuGiaoDich.thoiGianDocTestBiPhut || 0, thoiGianTinhKpiPhut: duLieuGiaoDich.thoiGianTinhKpiPhut || 0, ketQuaGiamSatKpi: duLieuGiaoDich.ketQuaGiamSatKpi || "N/A" };
-    fetch(POWER_AUTOMATE_WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dataPayload) }).catch(e => {});
-}
-
 // =========================================================================
 // 12. HÀM CORE RENDER DỮ LIỆU ĐA TAB LUỒNG HỆ THỐNG
 // =========================================================================
@@ -892,7 +847,9 @@ function renderTheoTabHienTai() {
     }
     else if(activeTab === 'mayhap') {
         let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); document.getElementById("badgeChoHap").innerText = `${lsCH.length} Mục`;
-        document.getElementById("bangChoHap").innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join('');
+        document.getElementById("gridDongGoi").innerHTML = ""; // Clear wrapper an toàn
+        let bodyChoHap = document.getElementById("bangChoHap");
+        if(bodyChoHap) { bodyChoHap.innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join(''); }
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); 
         if(document.getElementById("bangChoNghiệmThu")) { document.getElementById("bangChoNghiệmThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox" data-hasbi="${i.hasBI ? 'true' : 'false'}" onchange="kiemTraQuyenDuyetMeHap()"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span> ${i.hasBI ? '<span class="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[9px] font-black"><i class="fa-solid fa-flask"></i> CHỜ BI</span>' : ''}</td></tr>`).join(''); }
         kiemTraQuyenDuyetMeHap();
@@ -922,7 +879,9 @@ function renderTheoTabHienTai() {
         renderGioHangXuat();
     }
     else if(activeTab === 'quanlykho') {
-        let fK = document.getElementById("inv_filterKhoa").value; let uniqueKhoa = [...new Set(listGiaoDich.map(x=>x.khoa))].filter(Boolean); document.getElementById("inv_filterKhoa").innerHTML = '<option value="">-- Tất cả --</option>' + uniqueKhoa.map(k=>`<option value="${k}" ${k===fK?'selected':''}>${k}</option>`).join('');
+        let fK = document.getElementById("inv_filterKhoa") ? document.getElementById("inv_filterKhoa").value : ""; 
+        let uniqueKhoa = [...new Set(listGiaoDich.map(x=>x.khoa))].filter(Boolean);
+        if(document.getElementById("inv_filterKhoa")) { document.getElementById("inv_filterKhoa").innerHTML = '<option value="">-- Tất cả --</option>' + uniqueKhoa.map(k=>`<option value="${k}" ${k===fK?'selected':''}>${k}</option>`).join(''); }
         let uniqueIDs = [...new Set(listGiaoDich.map(x=>x.maMacDinh))]; let arrHtml = []; const ngayHomNay = new Date(); ngayHomNay.setHours(0,0,0,0); 
         uniqueIDs.forEach(ma => {
             let allTrans = listGiaoDich.filter(x => x.maMacDinh === ma); let currentTrans = allTrans.sort((a,b) => b.id - a.id)[0]; if(!currentTrans || !ma) return;
@@ -941,7 +900,7 @@ function renderTheoTabHienTai() {
             }
             arrHtml.push(`<tr class="border-b border-slate-100 ${dongColorClass}"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${currentTrans.bo ? String(currentTrans.bo).split(" [ID:")[0] : "N/A"}</td><td class="p-3 text-slate-500 text-[11px]">${khoaGiữ}</td><td class="p-3 text-center"><span class="px-2.5 py-1 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-mono font-bold text-slate-400">${currentTrans.batchCode || 'N/A'}</td><td class="p-3 text-center">${hsdBadget}</td></tr>`);
         });
-        document.getElementById("bangTonKhoTe").innerHTML = arrHtml.join('');
+        if(document.getElementById("bangTonKhoTe")) document.getElementById("bangTonKhoTe").innerHTML = arrHtml.join('');
     }
     else if(activeTab === 'danhmuc') {
         const tbody = document.getElementById("bangDanhMucTong"); if (!tbody) return;
