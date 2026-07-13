@@ -868,7 +868,7 @@ function renderTheoTabHienTai() {
         let uniqueKhoaSanCo = [...new Set(listGiaoDich.map(x => x.khoa))].filter(Boolean); const selKhoaXuat = document.getElementById("xuat_selKhoa");
         if(selKhoaXuat) {
             let currentSelected = selKhoaXuat.value; let htmlOpts = '<option value="">-- Chọn Khoa Muốn Trả Đồ --</option>';
-            uniqueKhoaSanCo.forEach(k => { htmlOpts += `<option value="${k}" ${k === currentSelected ? 'selected' : ''}>${k}</option>'; });
+            uniqueKhoaSanCo.forEach(k => { htmlOpts += `<option value="${k}" ${k === currentSelected ? 'selected' : ''}>${k}</option>`; });
             selKhoaXuat.innerHTML = htmlOpts;
         }
         let lsXK = listGiaoDich.filter(x => x.status === "CHO_XUAT").sort((a, b) => a.id - b.id); const tbodyKho = document.getElementById("bangKhoVoKhuan");
