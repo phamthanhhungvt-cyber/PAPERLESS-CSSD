@@ -14,8 +14,8 @@ const db = firebase.firestore();
 
 let thongTinMatKhauAdmin = { adminPIN: "admin2026", cssdPIN: "cssd2026", guestPIN: "guest2026" };
 let cauHinhGiaoDien = {
-    "ADMIN": ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'],
-    "CSSD": ['thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','dashboard_tv'], 
+    "ADMIN": ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'],
+    "CSSD": ['thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','dashboard_tv'], 
     "KHOA": ['khoaphong','quanlykho','lichsuluanchuyen'], 
     "GUEST": ['quanlykho','danhmuc','lichsuluanchuyen','performance','dashboard_tv']
 };
@@ -28,7 +28,19 @@ let duLieuAnhBiTamBase64 = ""; let maLoTruyVetToanCuc = "";
 let gioHangXuatKho = []; let gioKhaySuDungTam = []; 
 let currentKiemDemData = null;
 
+// Cấu hình máy hấp & máy rửa (Belimed WD250)
 const cauHinhMayHap = { "Hấp hơi nước": ["A1", "A2", "A3", "A4"], "Hấp H2O2 (Plasma)": ["P1", "P2"], "Khử khuẩn EO": ["EO1", "EO2"] };
+const cauHinhMayRua = {
+    "Máy rửa khử khuẩn tự động": ["Belimed WD250"],
+    "Máy rửa sóng siêu âm": ["US1"],
+    "Bồn rửa thủ công": ["MAN1"]
+};
+const danhMucHoaChatRua = [
+    { ten: "Cidezyme (Enzym phân hủy protein)", lieuLuong: "8 ml/L" },
+    { ten: "Sekusept Active (Khử khuẩn mức độ cao)", lieuLuong: "10 ml/L" },
+    { ten: "Smeg (Nước rửa trung tính chuyên dụng)", lieuLuong: "5 ml/L" },
+    { ten: "Aniosyme DD1 (Làm sạch & khử trùng sơ bộ)", lieuLuong: "5 ml/L" }
+];
 
 function getTodayDateStr() { 
     const d = new Date(); 
@@ -149,7 +161,7 @@ function anTatCaHeadersVaMenus() {
     document.getElementById('header-lamsang')?.classList.add('hidden');
     document.getElementById('header-vanhanh')?.classList.add('hidden');
     document.getElementById('header-dulieu')?.classList.add('hidden');
-    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => {
+    ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => {
         document.getElementById('menu-' + x)?.classList.add('hidden');
     });
 }
@@ -157,7 +169,7 @@ function anTatCaHeadersVaMenus() {
 function apDungPhanQuyenGiaoDien(role) {
     anTatCaHeadersVaMenus();
     if (role === "ADMIN") {
-        ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(tab => {
+        ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(tab => {
             document.getElementById('menu-' + tab)?.classList.remove('hidden');
         });
         document.getElementById('header-lamsang')?.classList.remove('hidden');
@@ -168,7 +180,7 @@ function apDungPhanQuyenGiaoDien(role) {
     let tabsDuocPhep = cauHinhGiaoDien[role] || [];
     tabsDuocPhep.forEach(tab => { document.getElementById('menu-' + tab)?.classList.remove('hidden'); });
     if (tabsDuocPhep.includes('khoaphong')) document.getElementById('header-lamsang')?.classList.remove('hidden');
-    if (['thugom','donggoi','mayhap','khovokhuan'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-vanhanh')?.classList.remove('hidden');
+    if (['thugom','mayrua','donggoi','mayhap','khovokhuan'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-vanhanh')?.classList.remove('hidden');
     if (['quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-dulieu')?.classList.remove('hidden');
 }
 
@@ -177,11 +189,12 @@ function switchTab(t) {
         let tabsDuocPhep = cauHinhGiaoDien[currentRole] || [];
         if(!tabsDuocPhep.includes(t)) { return showToast("Tài khoản không có quyền truy cập!", "error"); }
     }
-    ['khoaphong','thugom','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
+    ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
         document.getElementById('tab-'+x)?.classList.add('hidden'); document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
     }); 
     document.getElementById('tab-'+t)?.classList.remove('hidden'); document.getElementById('menu-'+t)?.classList.add('sidebar-item-active'); 
     activeTab = t; 
+    if (t === 'mayrua') { setTimeout(() => { capNhatDanhSachMaMayRua(); }, 50); }
     if (t === 'mayhap') { setTimeout(() => { tuDongTaoMaLoMeHap(); }, 50); }
     callRender(); 
 }
@@ -360,7 +373,130 @@ async function saveKiemDem() {
 }
 
 // =========================================================================
-// 6. TRẠM 3: LÀM SẠCH VÀ ĐÓNG GÓI
+// 6. MODULE MỚI: QUẢN LÝ MẺ RỬA KHỬ KHUẨN (BELIMED WD250)
+// =========================================================================
+function toggleSelectAllRua() { let checked = document.getElementById('selectAllRua').checked; document.querySelectorAll('.rua-checkbox').forEach(cb => cb.checked = checked); }
+function toggleSelectAllNghiemThuRua() { let checked = document.getElementById('selectAllNghiemThuRua').checked; document.querySelectorAll('.nghiemthurua-checkbox').forEach(cb => cb.checked = checked); }
+
+function capNhatDanhSachMaMayRua() {
+    const loaiRua = document.getElementById("rua_loaiRua")?.value;
+    const selectMay = document.getElementById("rua_maySo");
+    if (!selectMay || !loaiRua) return;
+    selectMay.innerHTML = "";
+    if (cauHinhMayRua[loaiRua]) {
+        cauHinhMayRua[loaiRua].forEach(may => {
+            selectMay.innerHTML += `<option value="${may}">${may}</option>`;
+        });
+    }
+    tuDongTaoMaLoMeRua();
+}
+
+function tuDongTaoMaLoMeRua() {
+    const maMay = document.getElementById("rua_maySo")?.value || "Belimed WD250";
+    const maMayVietTat = (maMay === "Belimed WD250") ? "BL" : maMay;
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const ngayChuoi = `${yy}${mm}${dd}`;
+
+    let cacMeTrongNgay = listGiaoDich.filter(x => x.rua_batchCode && x.rua_batchCode.startsWith(maMayVietTat + ngayChuoi));
+    let soMeMax = 0;
+    cacMeTrongNgay.forEach(x => {
+        let phanDuoi = x.rua_batchCode.split("_")[1];
+        if (phanDuoi) {
+            let num = parseInt(phanDuoi);
+            if (num > soMeMax) soMeMax = num;
+        }
+    });
+    let meTiepTheo = soMeMax + 1;
+    const chuoiMe = String(meTiepTheo).padStart(2, '0');
+    const batchIdHoanChinh = `${maMayVietTat}${ngayChuoi}_${chuoiMe}`;
+
+    if (document.getElementById("rua_meSo")) document.getElementById("rua_meSo").value = chuoiMe;
+    if (document.getElementById("rua_batchId")) document.getElementById("rua_batchId").value = batchIdHoanChinh;
+}
+
+function xacNhanMeRua() {
+    let checkboxes = document.querySelectorAll('.rua-checkbox:checked');
+    if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ bẩn để xếp vào máy!", "error");
+    
+    let loaiRua = document.getElementById("rua_loaiRua").value;
+    let maMay = document.getElementById("rua_maySo").value;
+    let batchCode = document.getElementById("rua_batchId").value;
+    let chuKy = document.getElementById("rua_chuKy").value;
+    let hoaChat = document.getElementById("rua_hoaChat").value;
+    let lieuLuong = document.getElementById("rua_lieuLuong").value || "Theo chuẩn";
+    const ngayHomNay = getTodayDateStr();
+
+    let p = [];
+    checkboxes.forEach(cb => {
+        p.push(
+            db.collection("phieuGiaoNhan").doc(cb.value).update({
+                status: "TRONG_BUONG_RUA",
+                rua_batchCode: batchCode,
+                rua_ngayRua: ngayHomNay,
+                rua_mayRua: maMay,
+                rua_chuKy: chuKy,
+                rua_hoaChat: hoaChat,
+                rua_lieuLuong: lieuLuong,
+                rua_timeBatDau: new Date().toLocaleTimeString('vi-VN')
+            })
+        );
+    });
+    Promise.all(p).then(() => {
+        playSound('success');
+        showToast(`Bắt đầu chạy mẻ máy rửa: ${batchCode}`, "success");
+        tuDongTaoMaLoMeRua();
+        callRender();
+    });
+}
+
+function duyetSachMeRuaHangLoat() {
+    let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
+    if(checkboxes.length === 0) return showToast("Chọn mâm đã rửa sạch để nghiệm thu!", "error");
+    
+    let ketQuaTest = document.getElementById("rua_testDoSach").value;
+    let p = [];
+    checkboxes.forEach(cb => {
+        p.push(
+            db.collection("phieuGiaoNhan").doc(cb.value).update({
+                status: "CHO_DONG_GOI",
+                rua_ketQuaTestSach: ketQuaTest,
+                rua_timeKetThuc: new Date().toLocaleTimeString('vi-VN')
+            })
+        );
+    });
+    Promise.all(p).then(() => {
+        playSound('success');
+        showToast("Xác nhận nghiệm thu đạt chất lượng làm sạch!", "success");
+        callRender();
+    });
+}
+
+function tuChoiMeRuaHangLoat() {
+    let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
+    if(checkboxes.length === 0) return showToast("Chọn mâm không đạt!", "error");
+    
+    let p = [];
+    checkboxes.forEach(cb => {
+        p.push(
+            db.collection("phieuGiaoNhan").doc(cb.value).update({
+                status: "DANG_RUA",
+                rua_batchCode: firebase.firestore.FieldValue.delete(),
+                ghiChu: "Làm sạch chưa đạt, yêu cầu rửa lại."
+            })
+        );
+    });
+    Promise.all(p).then(() => {
+        playSound('error');
+        showToast("Đã trả các mâm không đạt về hàng đợi chờ rửa lại!", "success");
+        callRender();
+    });
+}
+
+// =========================================================================
+// 7. TRẠM 4: LÀM SẠCH VÀ ĐÓNG GÓI
 // =========================================================================
 function moPopupDongGoi(id) { idDangDongGoi = id; let item = listGiaoDich.find(x => x.firestoreId === id); if(item) { document.getElementById("popDG_Bo").innerText = item.bo; tinhHanSuDung(); document.getElementById("popupDongGoi").classList.remove("hidden"); } }
 function closePopupDongGoi() { document.getElementById("popupDongGoi").classList.add("hidden"); }
@@ -368,7 +504,7 @@ function tinhHanSuDung() { let val = document.getElementById("popDG_Loai").value
 function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.getElementById("popDG_Loai").value.split("|")[0]; db.collection("phieuGiaoNhan").doc(idDangDongGoi).update({ status: "CHO_HAP", chatLieu: chatLieuTen, hsd: document.getElementById("popDG_Han").dataset.dateDB }).then(() => { showToast("Đã đóng gói, chuyển chờ hấp!", "success"); closePopupDongGoi(); callRender(); }); }
 
 // =========================================================================
-// 7. TRẠM 4: VẬN HÀNH MẺ HẤP & DUYỆT NHẬP KHO VÔ KHUẨN
+// 8. TRẠM 5: VẬN HÀNH MẺ HẤP & DUYỆT NHẬP KHO VÔ KHUẨN
 // =========================================================================
 function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
 function capNhatDanhSachMaMay() { const loaiHap = document.getElementById("hap_loaiHap")?.value; const selectMay = document.getElementById("hap_maySo"); if (!selectMay || !loaiHap) return; selectMay.innerHTML = ""; if (cauHinhMayHap[loaiHap]) { cauHinhMayHap[loaiHap].forEach(may => { selectMay.innerHTML += `<option value="${may}">${may}</option>`; }); } tuDongTaoMaLoMeHap(); }
@@ -399,7 +535,7 @@ function xacNhanMeHap() {
         p.push(
             db.collection("phieuGiaoNhan").doc(cb.value).update({ 
                 status: "DANG_HAP", batchCode: batchCode, ngayHapRealtime: ngayHomNay, hasBI: coKemBI, thoiGianKetThucChuTrinh: thoiGianDuKienXong.toISOString(), thongTinLoHap: thongTinLo 
-            }).then(() => { if(itemData) dongBoSangMicrosoft365("KICH_HOAT_ME_HAP", { ...itemData, batchCode: batchCode, hasBI: coKemBI, thongTinLoHap: thongTinLo }); })
+            })
         ); 
     }); 
     Promise.all(p).then(() => { 
@@ -451,11 +587,6 @@ function nhapKhoHangLoat() {
             db.collection("phieuGiaoNhan").doc(cb.value).update({
                 status: "CHO_XUAT", thoiGianKetLuan: bayGio.toISOString(), thoiGianDocTestBiPhut: soPhutThucTe, 
                 thoiGianTinhKpiPhut: soPhutTinhKPI, ketQuaGiamSatKpi: trangThaiKPI, "thongTinLoHap.giamSatChatLuong": capNhatGiamSat
-            }).then(() => {
-                dongBoSangMicrosoft365("NGHIEM_THU_DAT_VOHUAN", { 
-                    ...itemData, status: "CHO_XUAT", thoiGianDocTestBiPhut: soPhutThucTe, thoiGianTinhKpiPhut: soPhutTinhKPI,
-                    ketQuaGiamSatKpi: trangThaiKPI, thongTinLoHap: { ...itemData.thongTinLoHap, giamSatChatLuong: capNhatGiamSat }
-                });
             })
         ); 
     }); 
@@ -475,7 +606,7 @@ function tuChoiHapHangLoat() {
 }
 
 // =========================================================================
-// 8. TRẠM 5: KHO VÔ KHUẨN & PHỐI HỢP XUẤT KHO XOAY VÒNG (FIFO)
+// 9. TRẠM 6: KHO VÔ KHUẨN & PHỐI HỢP XUẤT KHO XOAY VÒNG (FIFO)
 // =========================================================================
 function xuatKhoXoayVong() { 
     const k = document.getElementById("xuat_selKhoa").value; let ma = document.getElementById("xuat_inpMaBo").value.trim().toUpperCase(); 
@@ -522,7 +653,7 @@ function xacNhanXuatKhoHangLoat() {
         p.push(
             db.collection("phieuGiaoNhan").doc(khay.firestoreId).update({ 
                 status: "ĐANG_VAN_CHUYEN", khoa: k, ngayHoanTat: getTodayDateStr(), timeHoanTat: new Date().toLocaleTimeString('vi-VN'), nvXuatKho: loginUserCode || "CSSD_CHUNG" 
-            }).then(() => { dongBoSangMicrosoft365("XAC_NHAN_XUAT_KHO", { ...khay, status: "ĐANG_VAN_CHUYEN", khoa: k }); })
+            })
         ); 
     });
     Promise.all(p).then(() => { 
@@ -543,11 +674,10 @@ function khoaKyNhanDoSachDienTu() {
     if (confirm(`Xác nhận ký điện tử nhận ${dsIdDuocChon.length} mâm về khoa ${khoaDangNhap}?`)) {
         let p = [];
         dsIdDuocChon.forEach(idDoc => {
-            let itemData = listGiaoDich.find(x => x.firestoreId === idDoc);
             p.push(
                 db.collection("phieuGiaoNhan").doc(idDoc).update({
                     status: "HOAN_TAT", nguoiKyNhanKhoa: nameNguoiDung, timeKhoaNhanThucTe: new Date().toLocaleTimeString('vi-VN'), ngayKhoaNhanThucTe: getTodayDateStr()
-                }).then(() => { if(itemData) dongBoSangMicrosoft365("KHOA_KY_NHAN_DO_SACH", { ...itemData, status: "HOAN_TAT" }); })
+                })
             );
         });
         Promise.all(p).then(() => { playSound('success'); showToast(`Đã nhận đồ vô khuẩn vào tủ khoa!`, "success"); callRender(); });
@@ -555,7 +685,7 @@ function khoaKyNhanDoSachDienTu() {
 }
 
 // =========================================================================
-// 9. MODULE MỚI: LIÊN KẾT MÂM DỤNG CỤ VÀO HỒ SƠ BỆNH ÁN CHI TIẾT
+// 10. GHI NHẬN SỬ DỤNG BỘ DỤNG CỤ TRÊN BỆNH NHÂN
 // =========================================================================
 function moPopupSuDungBoDungCu() {
     gioKhaySuDungTam = []; document.getElementById("sd_bangKhayChon").innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Vui lòng quét hoặc nhập mã khay...</td></tr>`;
@@ -598,8 +728,51 @@ function renderBangKhaySuDung() {
     }).join('');
 }
 
+function xoaKhayKhoiListSuDung(index) {
+    gioKhaySuDungTam.splice(index, 1);
+    renderBangKhaySuDung();
+}
+
+function savePopupSuDung() {
+    const khoaBenhNhan = document.getElementById("sd_khoaBenhNhan")?.value.trim();
+    const yTaPhongMo = document.getElementById("sd_yTaPhongMo")?.value.trim();
+    const searchBN = document.getElementById("sd_searchBN")?.value.trim();
+    const ngaySuDung = document.getElementById("sd_ngaySuDung")?.value;
+    const nhanChung = document.getElementById("sd_nhanChung")?.value;
+    const ghiChu = document.getElementById("sd_ghiChu")?.value.trim();
+
+    if (!khoaBenhNhan || !yTaPhongMo || !searchBN || gioKhaySuDungTam.length === 0) {
+        playSound('error');
+        return showToast("Vui lòng nhập đầy đủ các trường bắt buộc (*) và quét khay liên kết!", "error");
+    }
+
+    let p = [];
+    gioKhaySuDungTam.forEach(khay => {
+        p.push(
+            db.collection("phieuGiaoNhan").doc(khay.firestoreId).update({
+                status: "DA_SU_DUNG",
+                thongTinBenhNhan: {
+                    khoaBenhNhan: khoaBenhNhan,
+                    yTaPhongMo: yTaPhongMo,
+                    thongTinTimKiemBN: searchBN,
+                    ngaySuDung: ngaySuDung,
+                    nhanChungThucHien: nhanChung,
+                    ghiChuLamSang: ghiChu
+                }
+            })
+        );
+    });
+
+    Promise.all(p).then(() => {
+        playSound('success');
+        showToast("Đã liên kết hồ sơ bệnh án thành công!", "success");
+        closePopupSuDung();
+        callRender();
+    });
+}
+
 // =========================================================================
-// 10. THIẾT LẬP MÁY IN BIXOLON SLP-TX403 & BIÊN BẢN HÀNG LOẠT
+// 11. THIẾT LẬP MÁY IN BIXOLON SLP-TX403 & BIÊN BẢN HÀNG LOẠT
 // =========================================================================
 function inTemTongHangLoat() { 
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
@@ -664,7 +837,7 @@ function inHoaDonGiaoNhan() {
 }
 
 // =========================================================================
-// 11. HÀM PHỤ TRỢ: CHỨC NĂNG QUẢN TRỊ ADMIN & TIỆN ÍCH
+// 12. HÀM PHỤ TRỢ: CHỨC NĂNG QUẢN TRỊ ADMIN & TIỆN ÍCH
 // =========================================================================
 function taiDanhMucLinhKienChuan() {
     const tbody = document.getElementById("bangDanhMucLinhKien"); if (!tbody) return; tbody.innerHTML = "";
@@ -734,7 +907,19 @@ function initSelects() {
     if(document.getElementById("login_khoa")) document.getElementById("login_khoa").innerHTML = opts; 
     if(document.getElementById("khoa_selKhoa")) document.getElementById("khoa_selKhoa").innerHTML = opts; 
     if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
+    
+    // Khởi tạo các danh mục hóa chất & máy rửa mẻ
+    if (document.getElementById("rua_hoaChat")) {
+        document.getElementById("rua_hoaChat").innerHTML = danhMucHoaChatRua.map(hc => `<option value="${hc.ten}">${hc.ten}</option>`).join('');
+        document.getElementById("rua_lieuLuong").value = danhMucHoaChatRua[0].lieuLuong;
+        document.getElementById("rua_hoaChat").addEventListener("change", (e) => {
+            let selectedHc = danhMucHoaChatRua.find(hc => hc.ten === e.target.value);
+            if(selectedHc) document.getElementById("rua_lieuLuong").value = selectedHc.lieuLuong;
+        });
+    }
+    if (document.getElementById("rua_loaiRua")) { capNhatDanhSachMaMayRua(); }
     if (document.getElementById("hap_loaiHap")) { capNhatDanhSachMaMay(); }
+    
     const selKhoaTraba = document.getElementById("khoa_selKhoa"); if(selKhoaTraba) { selKhoaTraba.removeEventListener("change", loadBoDungCuTheoKhoa); selKhoaTraba.addEventListener("change", loadBoDungCuTheoKhoa); }
 }
 
@@ -752,7 +937,7 @@ function docAnhBiUpTaiCho(inputElement) {
 }
 
 // =========================================================================
-// 12. HÀM CORE RENDER DỮ LIỆU ĐA TAB LUỒNG HỆ THỐNG
+// 13. HÀM CORE RENDER DỮ LIỆU ĐA TAB LUỒNG HỆ THỐNG
 // =========================================================================
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
@@ -763,7 +948,7 @@ function renderTheoTabHienTai() {
             let tenLoaiMâm = x.bo ? String(x.bo).split(" [ID:")[0] : "Chưa rõ mâm";
             if (!gopCongNo[tenLoaiMâm]) gopCongNo[tenLoaiMâm] = { daTraBan: 0, nhanSach: 0, nhanVoKhuan: 0, cssdNo: 0 };
             if (x.status !== "CHO_THU") gopCongNo[tenLoaiMâm].daTraBan += 1; 
-            if (["DANG_RUA", "CHO_HAP", "DANG_HAP", "CHO_XUAT", "ĐANG_VAN_CHUYEN", "HOAN_TAT", "DA_SU_DUNG"].includes(x.status)) gopCongNo[tenLoaiMâm].nhanSach += 1;
+            if (["DANG_RUA", "TRONG_BUONG_RUA", "CHO_DONG_GOI", "CHO_HAP", "DANG_HAP", "CHO_XUAT", "ĐANG_VAN_CHUYEN", "HOAN_TAT", "DA_SU_DUNG"].includes(x.status)) gopCongNo[tenLoaiMâm].nhanSach += 1;
             if (x.status === "HOAN_TAT" || x.status === "DA_SU_DUNG") gopCongNo[tenLoaiMâm].nhanVoKhuan += 1; 
             gopCongNo[tenLoaiMâm].cssdNo = gopCongNo[tenLoaiMâm].daTraBan - gopCongNo[tenLoaiMâm].nhanVoKhuan;
         });
@@ -841,13 +1026,69 @@ function renderTheoTabHienTai() {
                 </tr>`;
         }).join('');
     }
+    else if(activeTab === 'mayrua') {
+        let lsCR = listGiaoDich.filter(x => x.status === "DANG_RUA");
+        if(document.getElementById("badgeChoRua")) document.getElementById("badgeChoRua").innerText = `${lsCR.length} Mục`;
+        
+        let bodyChoRua = document.getElementById("bangChoRua");
+        if(bodyChoRua) {
+            bodyChoRua.innerHTML = lsCR.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="rua-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join('');
+        }
+        
+        let lsTR = listGiaoDich.filter(x => x.status === "TRONG_BUONG_RUA");
+        let bodyChoNghiemThuRua = document.getElementById("bangChoNiemThuRua");
+        if(bodyChoNghiemThuRua) {
+            bodyChoNghiemThuRua.innerHTML = lsTR.map(i => `<tr class="border-b"><td class="p-2.5 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthurua-checkbox"></td><td class="p-2 text-xs font-bold">${i.bo} <span class="text-slate-400 font-mono">(${i.rua_batchCode || 'Mẻ Rửa'})</span></td></tr>`).join('');
+        }
+        
+        // Render Nhật ký vận hành máy rửa
+        let bodyLichSuRua = document.getElementById("bangLichSuRua");
+        if(bodyLichSuRua) {
+            const homNayMoiStr = getTodayDateStr();
+            let tatCaMucCoLoRua = listGiaoDich.filter(x => x.rua_batchCode && (x.rua_ngayRua === homNayMoiStr || x.ngayTao === homNayMoiStr));
+            let cacMeRuaGop = {};
+            tatCaMucCoLoRua.forEach(x => {
+                if(!cacMeRuaGop[x.rua_batchCode]) {
+                    cacMeRuaGop[x.rua_batchCode] = {
+                        batchCode: x.rua_batchCode,
+                        mayRua: x.rua_mayRua || "Belimed WD250",
+                        chuKy: x.rua_chuKy || "Chu trình tiêu chuẩn",
+                        hoaChat: x.rua_hoaChat || "Smeg",
+                        timeBatDau: x.rua_timeBatDau || "--:--",
+                        ngay: x.rua_ngayRua || "",
+                        soLuong: 0,
+                        trangThaiMe: x.status === "TRONG_BUONG_RUA" ? "Đang rửa" : "Hoàn tất sạch"
+                    };
+                }
+                cacMeRuaGop[x.rua_batchCode].soLuong += 1;
+            });
+            let danhSachMeRuaSapXep = Object.values(cacMeRuaGop).sort((a, b) => String(b.batchCode).localeCompare(String(a.batchCode)));
+            if(danhSachMeRuaSapXep.length === 0) {
+                bodyLichSuRua.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Hôm nay chưa chạy mẻ rửa nào</td></tr>`;
+            } else {
+                bodyLichSuRua.innerHTML = danhSachMeRuaSapXep.map(me => `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-3">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-black text-sky-700 text-sm tracking-wider">${me.batchCode}</span>
+                                <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded ${me.trangThaiMe === "Đang rửa" ? "text-amber-600 bg-amber-50 border-amber-200" : "text-emerald-600 bg-emerald-50 border-emerald-200"}">${me.trangThaiMe}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 font-medium mt-1">${me.mayRua} | ${me.chuKy}</div>
+                            <div class="text-[10px] text-slate-400 font-mono mt-0.5">Hoá chất: ${me.hoaChat} | Bắt đầu: ${me.timeBatDau} (${me.ngay})</div>
+                        </td>
+                        <td class="p-3 text-right pr-4">
+                            <span class="font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-xs">${me.soLuong} khay</span>
+                        </td>
+                    </tr>`).join('');
+            }
+        }
+    }
     else if(activeTab === 'donggoi') {
-        let lsDG = listGiaoDich.filter(x => x.status === "DANG_RUA"); document.getElementById("badgeDongGoi").innerText = lsDG.length;
+        let lsDG = listGiaoDich.filter(x => x.status === "CHO_DONG_GOI"); document.getElementById("badgeDongGoi").innerText = lsDG.length;
         document.getElementById("gridDongGoi").innerHTML = lsDG.map(i => `<div class="bg-white p-3 rounded border border-slate-200 mb-2 flex justify-between items-center"><div class="flex-1"><div class="font-bold text-sky-700 text-[13px]">${i.bo}</div><div class="text-[10px] text-slate-500">Từ khoa: ${i.khoa}</div></div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-sky-50 text-sky-700 border border-sky-300 px-3 py-1.5 rounded text-[11px] font-black">ĐÓNG GÓI</button></div>`).join('');
     }
     else if(activeTab === 'mayhap') {
         let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); document.getElementById("badgeChoHap").innerText = `${lsCH.length} Mục`;
-        document.getElementById("gridDongGoi").innerHTML = ""; // Clear wrapper an toàn
         let bodyChoHap = document.getElementById("bangChoHap");
         if(bodyChoHap) { bodyChoHap.innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join(''); }
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); 
@@ -927,6 +1168,8 @@ function renderTheoTabHienTai() {
                 else if(x.status === "DANG_HAP") statusBadge = `<span class="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded text-[10px]">ĐANG HẤP LÒ</span>`;
                 else if(x.status === "DA_SU_DUNG") statusBadge = `<span class="px-2 py-0.5 bg-rose-600 text-white font-black rounded text-[10px]">SỬ DỤNG BN</span>`;
                 else if(x.status === "ĐANG_VAN_CHUYEN") statusBadge = `<span class="px-2 py-0.5 bg-purple-500 text-white font-bold rounded text-[10px] animate-pulse">ĐANG VẬN CHUYỂN</span>`;
+                else if(x.status === "DANG_RUA") statusBadge = `<span class="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded text-[10px]">HÀNG ĐỢI RỬA</span>`;
+                else if(x.status === "TRONG_BUONG_RUA") statusBadge = `<span class="px-2 py-0.5 bg-cyan-600 text-white font-bold rounded text-[10px] animate-spin">ĐANG RỬA MÁY</span>`;
                 
                 let fontColor = ""; let loGoc = listGiaoDich.find(m => m.batchCode === x.batchCode && m.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64); 
                 let anhBase64 = loGoc?.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64 || x.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64;
@@ -972,7 +1215,7 @@ function renderAdminInterface() {
     if (document.getElementById("cfg_pinGuest")) document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "";
     const MatrixRoles = ["CSSD", "KHOA", "GUEST"];
     const MatrixTabs = [
-        { id: "khoaphong", name: "1. Cổng Báo Trả Đồ" }, { id: "thugom", name: "2. Xe Thu Gom" }, { id: "donggoi", name: "3. Làm Sạch & Gói" }, { id: "mayhap", name: "4. Quản Lý Mẻ Hấp" }, { id: "khovokhuan", name: "5. Kho Vô Khuẩn" }, { id: "quanlykho", name: "6. Tồn Kho Toàn Viện" }, { id: "danhmuc", name: "7. Giám Sát Tuổi Thọ" }, { id: "lichsuluanchuyen", name: "8. Nhật Ký Luân Chuyển" }, { id: "tracuu", name: "9. Cấu Hình Hệ Thống" }, { id: "performance", name: "10. Hiệu Suất KPI" }, { id: "dashboard_tv", name: "11. Màn Hình Tivi" }
+        { id: "khoaphong", name: "1. Cổng Báo Trả Đồ" }, { id: "thugom", name: "2. Xe Thu Gom" }, { id: "mayrua", name: "3. Quản Lý Mẻ Rửa" }, { id: "donggoi", name: "4. Làm Sạch & Gói" }, { id: "mayhap", name: "5. Quản Lý Mẻ Hấp" }, { id: "khovokhuan", name: "6. Kho Vô Khuẩn" }, { id: "quanlykho", name: "7. Tồn Kho Toàn Viện" }, { id: "danhmuc", name: "8. Giám Sát Tuổi Thọ" }, { id: "lichsuluanchuyen", name: "9. Nhật Ký Luân Chuyển" }, { id: "tracuu", name: "10. Cấu Hình Hệ Thống" }, { id: "performance", name: "11. Hiệu Suất KPI" }, { id: "dashboard_tv", name: "12. Màn Hình Tivi" }
     ];
     let htmlMatrix = "";
     MatrixTabs.forEach(tab => {
