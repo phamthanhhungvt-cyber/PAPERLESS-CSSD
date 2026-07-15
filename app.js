@@ -234,17 +234,6 @@ function renderGioHang() {
     document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); 
 }
 
-function clearGioHang() { gioHangTam = []; renderGioHang(); }
-
-function khoaGuiPhieuTraBatches() { 
-    const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
-    if(!k) return showToast("Vui lòng chọn Khoa trước!"); 
-    if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); 
-    let p=[]; 
-    gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); 
-    Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); 
-}
-
 // =========================================================================
 // 5. TRẠM 2: XE THU GOM & KIỂM ĐẾM CHI TIẾT LINH KIỆN
 // =========================================================================
@@ -272,7 +261,13 @@ function moPopupKiemDem(id) {
     let checklistSoBo = [];
     if(itemsInBo.length > 0) {
         checklistSoBo = itemsInBo.map(ct => {
-            let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['TÊN BỘ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ";
+            let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ chi tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ";
+            
+            // Xử lý làm sạch placeholder "Nguyên bộ cấu hình cơ số"
+            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số" || String(tenDc).trim().toUpperCase() === String(currentKiemDemData.tenBoDungCu).trim().toUpperCase()) {
+                tenDc = "Dụng cụ chuẩn mâm";
+            }
+            
             let sl = parseInt(ct['Số lượng'] || ct['SL'] || ct['Số Lượng'] || 1) || 0;
             return { ten: tenDc, slChuan: sl, slThuc: sl, tinhTrang: "ĐỦ" };
         }).filter(line => line.slChuan > 0); 
@@ -372,8 +367,19 @@ async function saveKiemDem() {
     } catch(err) { showToast("Lỗi kết nối Firebase nội bộ!", "error"); }
 }
 
+function clearGioHang() { gioHangTam = []; renderGioHang(); }
+
+function khoaGuiPhieuTraBatches() { 
+    const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
+    if(!k) return showToast("Vui lòng chọn Khoa trước!"); 
+    if(gioHangTam.length === 0) return showToast("Không có dụng cụ trong danh sách!"); 
+    let p=[]; 
+    gioHangTam.forEach((i,idx) => p.push(db.collection("phieuGiaoNhan").add({ id: Date.now()+idx, ngayTao: getTodayDateStr(), time: new Date().toLocaleTimeString('vi-VN'), khoa: k, bo: i.bo, maMacDinh: i.maMacDinh, slYeuCau: 1, slThucTe: 1, status: "CHO_THU" }))); 
+    Promise.all(p).then(() => { clearGioHang(); showToast("Đã gửi lệnh thu gom!", "success"); callRender(); }); 
+}
+
 // =========================================================================
-// 6. MODULE MỚI: QUẢN LÝ MẺ RỬA KHỬ KHUẨN (BELIMED WD250)
+// 6. MODULE: QUẢN LÝ MẺ RỬA KHỬ KHUẨN (BELIMED WD250)
 // =========================================================================
 function toggleSelectAllRua() { let checked = document.getElementById('selectAllRua').checked; document.querySelectorAll('.rua-checkbox').forEach(cb => cb.checked = checked); }
 function toggleSelectAllNghiemThuRua() { let checked = document.getElementById('selectAllNghiemThuRua').checked; document.querySelectorAll('.nghiemthurua-checkbox').forEach(cb => cb.checked = checked); }
@@ -850,7 +856,13 @@ function taiDanhMucLinhKienChuan() {
     for (let tenBo in gopBoExcel) {
         let linhKienHtml = `<div class="flex flex-wrap gap-1">`; let tongSl = 0;
         gopBoExcel[tenBo].forEach(item => {
-            let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ Chi Tiết";
+            let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ chi tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ Chi Tiết";
+            
+            // Xử lý làm sạch placeholder trong tab Danh Mục
+            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số" || String(tenDc).trim().toUpperCase() === String(tenBo).trim().toUpperCase()) {
+                tenDc = "Dụng cụ chuẩn mâm";
+            }
+            
             let sl = parseInt(item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1) || 0; let hanHap = item['Tuổi thọ mẻ hấp'] || item['Tuổi thọ'] || 100;
             tongSl += sl; linhKienHtml += `<span class="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-medium border border-slate-200">${tenDc} (${sl}) <span class="text-amber-600 font-bold">[Max: ${hanHap}]</span></span>`;
         });
@@ -937,7 +949,7 @@ function docAnhBiUpTaiCho(inputElement) {
 }
 
 // =========================================================================
-// 13. HÀM CORE RENDER DỮ LIỆU ĐA TAB LUỒNG HỆ THỐNG
+// 13. HÀM CORE RENDER DỮ LIỆU ĐA TAB LUỒNG HỆ THỐNG (ĐÃ TỐI ƯU HIỂN THỊ TRẠM 2)
 // =========================================================================
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
@@ -995,11 +1007,24 @@ function renderTheoTabHienTai() {
             if (itemsInBo.length > 0) {
                 checklistHtml = `<div class="max-h-32 overflow-y-auto pr-1 border border-slate-200/60 rounded bg-slate-50/50 p-1.5 mt-1 flex flex-col gap-1">`;
                 itemsInBo.forEach(item => {
-                    let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || "Dụng cụ chi tiết";
+                    // MỞ RỘNG nhận diện tên cột Excel (ở cả viết thường/hoa)
+                    let tenDc = item['Tên Dụng Cụ Chi Tiết'] || 
+                                item['Tên dụng cụ chi tiết'] || 
+                                item['Tên dụng cụ'] || 
+                                item['Chi tiết'] || 
+                                "Dụng cụ chi tiết";
+                    
                     let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1;
+                    
+                    // LỌC SẠCH: Nếu cột tên dụng cụ mang placeholder "Nguyên bộ cấu hình cơ số" 
+                    // hoặc bị trùng với tên bộ thì thay đổi về hiển thị "Dụng cụ chuẩn mâm" cho khoa học
+                    if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số" || String(tenDc).trim().toUpperCase() === String(tenBo).trim().toUpperCase()) {
+                        tenDc = "Dụng cụ chuẩn mâm";
+                    }
+
                     checklistHtml += `
                         <div class="flex justify-between items-center border-b border-dashed border-slate-200 pb-0.5 last:border-none text-[11px]">
-                            <span class="text-slate-700 font-medium"><i class="fa-solid fa-circle text-[4px] text-sky-400 mr-1.5 align-middle"></i>${tenDc}</span>
+                            <span class="text-slate-700 font-semibold"><i class="fa-solid fa-circle text-[4px] text-sky-400 mr-1.5 align-middle"></i>${tenDc}</span>
                             <span class="font-bold text-sky-700 bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100 text-[10px]">x${sl}</span>
                         </div>`;
                 });
