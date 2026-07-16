@@ -255,17 +255,18 @@ function moPopupKiemDem(id) {
     document.getElementById('popGhiChu').value = currentKiemDemData.ghiChuLamSang;
     document.getElementById('popGhiChu').classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
 
+    // Hỗ trợ cả 2 định dạng tiêu đề cột Excel
     let itemsInBo = databaseExcel.filter(x => { 
-        let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; 
+        let boName = x['Tên TS (i)'] || x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; 
         return String(boName).trim().toUpperCase() === String(currentKiemDemData.tenBoDungCu).trim().toUpperCase(); 
     });
 
     let checklistSoBo = [];
     if(itemsInBo.length > 0) {
         checklistSoBo = itemsInBo.map(ct => {
-            let tenDc = ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ chi tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ";
+            let tenDc = ct['Tên TS chuẩn'] || ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ chi tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ";
             
-            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số" || String(tenDc).trim().toUpperCase() === String(currentKiemDemData.tenBoDungCu).trim().toUpperCase()) {
+            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số") {
                 tenDc = "Dụng cụ chuẩn mâm";
             }
             
@@ -526,7 +527,7 @@ function tuDongTaoMaLoMeHap() {
 }
 
 function xacNhanMeHap() { 
-    let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm dụng cụ!", "error"); 
+    let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
     let loaiHap = document.getElementById("hap_loaiHap").value; let maMay = document.getElementById("hap_maySo").value; let batchCode = document.getElementById("hap_batchId").value; let chuKyNhiet = document.getElementById("hap_nhietDo").value; let apSuat = document.getElementById("hap_apSuat").value || "N/A"; 
     let coKemBI = document.getElementById("hap_hasBI") ? document.getElementById("hap_hasBI").checked : false;
     const ngayHomNay = getTodayDateStr(); let bayGio = new Date(); let thoiGianDuKienXong = new Date(bayGio.getTime() + 45 * 60 * 1000);
@@ -852,15 +853,15 @@ function taiDanhMucLinhKienChuan() {
     if (!databaseExcel || databaseExcel.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-400 italic">Chưa có dữ liệu. Vui lòng nạp file Excel.</td></tr>`; return; }
     let gopBoExcel = {};
     databaseExcel.forEach(x => {
-        let tenBo = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; if (!tenBo) return;
+        let tenBo = x['Tên TS (i)'] || x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; if (!tenBo) return;
         tenBo = String(tenBo).trim().toUpperCase(); if (!gopBoExcel[tenBo]) gopBoExcel[tenBo] = []; gopBoExcel[tenBo].push(x);
     });
     for (let tenBo in gopBoExcel) {
         let linhKienHtml = `<div class="flex flex-wrap gap-1">`; let tongSl = 0;
         gopBoExcel[tenBo].forEach(item => {
-            let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ chi tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ Chi Tiết";
+            let tenDc = item['Tên TS chuẩn'] || item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ chi tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ Chi Tiết";
             
-            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số" || String(tenDc).trim().toUpperCase() === String(tenBo).trim().toUpperCase()) {
+            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số") {
                 tenDc = "Dụng cụ chuẩn mâm";
             }
             
@@ -877,7 +878,7 @@ function updateGiaoDienMatrix(role, tabId, checkboxElement) {
     if(!cauHinhGiaoDien[role]) cauHinhGiaoDien[role] = [];
     if(checkboxElement.checked) { if(!cauHinhGiaoDien[role].includes(tabId)) cauHinhGiaoDien[role].push(tabId); } 
     else { cauHinhGiaoDien[role] = cauHinhGiaoDien[role].filter(x => x !== tabId); }
-    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHinhGiaoDien }).then(() => showToast("Đã cập nhật quyền truy cập!", "success"));
+    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ cauHinhGiaoDien: cauHiaoDien }).then(() => showToast("Đã cập nhật quyền truy cập!", "success"));
 }
 
 function handleViewAnhBiMoi(firestoreId) { hanhDongXemAnhBiMoi(firestoreId); }
@@ -974,7 +975,6 @@ function renderTheoTabHienTai() {
         const tbodyChoNhan = document.getElementById("bangChoNhanTaiKhoa"); const badgeChoNhan = document.getElementById("badgeChoNhanKhoa"); const txtNguoiXacNhan = document.getElementById("txtNguoiDungNhanHienTai");
         if(txtNguoiXacNhan) txtNguoiXacNhan.innerText = `PM-ĐD: ${loginUserCode || "Chưa Đăng Nhập"}`;
         
-        // VÁ LỖI CÚ PHÁP SƠ ĐẲNG TẠI ĐÂY
         let dsDangVanChuyen = tatCaDonCuaKhoa.filter(x => x.status === "ĐANG_VAN_CHUYEN"); if(badgeChoNhan) badgeChoNhan.innerText = `${dsDangVanChuyen.length} khay`;
         if(tbodyChoNhan) {
             if(dsDangVanChuyen.length === 0) { tbodyChoNhan.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">Hiện không có dụng cụ nào đang chuyển về khoa.</td></tr>`; } 
@@ -1001,8 +1001,9 @@ function renderTheoTabHienTai() {
         document.getElementById("bangChoThuGom").innerHTML = lsTG.map(i => {
             let tenBo = i.bo ? String(i.bo).split(" [ID:")[0] : ""; 
             
+            // Tìm các dụng cụ chi tiết của bộ lớn
             let itemsInBo = databaseExcel.filter(x => {
-                let boName = x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || '';
+                let boName = x['Tên TS (i)'] || x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || '';
                 return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase();
             });
             
@@ -1010,10 +1011,10 @@ function renderTheoTabHienTai() {
             if (itemsInBo.length > 0) {
                 checklistHtml = `<div class="max-h-32 overflow-y-auto pr-1 border border-slate-200/60 rounded bg-slate-50/50 p-1.5 mt-1 flex flex-col gap-1">`;
                 itemsInBo.forEach(item => {
-                    let tenDc = item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ chi tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || "Dụng cụ chi tiết";
+                    let tenDc = item['Tên TS chuẩn'] || item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ chi tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || "Dụng cụ chi tiết";
                     let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1;
                     
-                    if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số" || String(tenDc).trim().toUpperCase() === String(tenBo).trim().toUpperCase()) {
+                    if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số") {
                         tenDc = "Dụng cụ chuẩn mâm";
                     }
 
@@ -1224,7 +1225,6 @@ function renderTheoTabHienTai() {
             else { safeTbody.innerHTML = dataFiltered.map(x => `<tr class="border-b text-xs hover:bg-slate-50 font-medium"><td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td><td class="p-3 font-bold text-slate-800">${x.bo ? String(x.bo).split(" [ID:")[0] : "N/A"}</td><td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td><td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] ${x.status === "HOAN_TAT" ? "bg-emerald-100 text-emerald-800 font-bold" : "bg-teal-100 text-teal-800"}">${x.status}</span></td><td class="p-3 text-center font-mono font-black text-rose-700 bg-rose-50/40">${x.batchCode || 'N/A'}</td><td class="p-3 text-center text-slate-400 font-mono">${x.ngayTao || ''} ${x.time || ''}</td></tr>`).join(''); }
         }
     }
-    // TÍCH HỢP ĐỒNG BỘ 2 PHÂN HỆ RENDER MỚI NHẤT
     else if(activeTab === 'performance') { renderKpiPerformanceGoc(); }
     else if(activeTab === 'dashboard_tv') { renderDashboardTiviRealtime(); }
 }
@@ -1344,10 +1344,9 @@ function renderAdminInterface() {
 }
 
 // =========================================================================
-// 14. XỬ LÝ ĐỌC FILE EXCEL (KHẮC PHỤC LỖI NHẬN NHẦM CỔNG CHỌN FILE)
+// 14. XỬ LÝ ĐỌC FILE EXCEL ĐA SHEET (DANH MỤC CHI TIẾT & CƠ SỐ KHOA)
 // =========================================================================
 document.addEventListener("DOMContentLoaded", () => {
-    // Sửa việc dùng querySelector chung chung dễ gây nhận nhầm input của Ảnh BI
     const fileInput = document.getElementById("excelFileInput");
     if (fileInput) {
         fileInput.addEventListener("change", (e) => {
@@ -1359,23 +1358,85 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
                     
-                    if (jsonData.length === 0) {
-                        return showToast("File Excel rỗng hoặc sai định dạng!", "error");
+                    let updateData = {};
+                    let logs = [];
+
+                    // --- SHEET 1: Danh mục Bộ & Chi tiết (Hoặc sheet "Data chi tiết" cũ của anh) ---
+                    const sheetDanhMucName = workbook.SheetNames.find(name => 
+                        name.includes("Danh mục") || name.includes("Data chi tiết") || name.includes("List CCDC")
+                    );
+                    if (sheetDanhMucName) {
+                        const worksheet = workbook.Sheets[sheetDanhMucName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                        if (jsonData.length > 0) {
+                            updateData.databaseExcel = jsonData;
+                            logs.push(`Nạp ${jsonData.length} dòng cấu hình chi tiết dụng cụ`);
+                        }
                     }
 
-                    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({
-                        databaseExcel: jsonData
-                    }).then(() => {
+                    // --- SHEET 2: Cơ số Bộ tại Khoa Phòng ---
+                    const sheetKhoaName = workbook.SheetNames.find(name => 
+                        name.includes("Khoa Phòng") || name.includes("Cơ số") || name.includes("Đầu mục")
+                    );
+                    if (sheetKhoaName) {
+                        const worksheet = workbook.Sheets[sheetKhoaName];
+                        const rawKhoaData = XLSX.utils.sheet_to_json(worksheet);
+                        
+                        if (rawKhoaData.length > 0) {
+                            // Khởi tạo lại cấu trúc gom nhóm khoa phòng từ database hiện tại
+                            let mapKhoa = {};
+                            danhSachKhoa.forEach(k => {
+                                mapKhoa[k.ten.trim().toUpperCase()] = {
+                                    ten: k.ten.trim().toUpperCase(),
+                                    pin: k.pin || "123",
+                                    danhSachBo: []
+                                };
+                            });
+
+                            // Duyệt dữ liệu Excel và phân bổ
+                            rawKhoaData.forEach(row => {
+                                let tenKhoa = row['Tên Khoa / Phòng Lâm Sàng'] || row['Đơn vị sử dụng'] || row['Khoa'] || row['KHOA'];
+                                let tenBo = row['Tên Bộ Dụng Cụ (Khớp với danh mục)'] || row['Tên bộ dụng cụ'] || row['Bộ dụng cụ'] || row['Tên Bộ'];
+                                let maKhay = row['Mã ID Khay Định Danh (Ví dụ: SG-TIEUPHAUKP3)'] || row['Mã ID'] || row['ID'];
+
+                                if (tenKhoa && tenBo) {
+                                    let keyKhoa = String(tenKhoa).trim().toUpperCase();
+                                    let cleanBo = String(tenBo).trim().toUpperCase();
+                                    let cleanMa = maKhay ? String(maKhay).trim().toUpperCase() : "CHUA_CO_ID";
+                                    
+                                    // Định dạng chuẩn của khay trong hệ thống: "TÊN BỘ [ID:MÃ_SỐ]"
+                                    let chuoiDinhDangKhay = `${cleanBo} [ID:${cleanMa}]`;
+
+                                    if (!mapKhoa[keyKhoa]) {
+                                        mapKhoa[keyKhoa] = { ten: keyKhoa, pin: "123", danhSachBo: [] };
+                                    }
+                                    
+                                    if (!mapKhoa[keyKhoa].danhSachBo.includes(chuoiDinhDangKhay)) {
+                                        mapKhoa[keyKhoa].danhSachBo.push(chuoiDinhDangKhay);
+                                    }
+                                }
+                            });
+
+                            updateData.danhSachKhoa = Object.values(mapKhoa);
+                            logs.push(`Cập nhật cơ số mâm cho ${updateData.danhSachKhoa.length} Khoa/Phòng`);
+                        }
+                    }
+
+                    // Đẩy dữ liệu đồng bộ lên Firestore
+                    if (Object.keys(updateData).length === 0) {
+                        return showToast("Không tìm thấy Sheet dữ liệu phù hợp trong file Excel!", "error");
+                    }
+
+                    db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update(updateData)
+                    .then(() => {
                         playSound('success');
-                        showToast(`Nạp thành công ${jsonData.length} dòng cấu hình từ Excel!`, "success");
+                        showToast(`Thành công: ${logs.join(" | ")}!`, "success");
+                        fileInput.value = "";
                         callRender();
                     }).catch(err => {
                         console.error("Lỗi cập nhật Firestore:", err);
-                        showToast("Lỗi khi kết nối Firestore!", "error");
+                        showToast("Lỗi khi đồng bộ dữ liệu lên Cloud Firestore!", "error");
                     });
 
                 } catch (err) {
