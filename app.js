@@ -190,7 +190,8 @@ function switchTab(t) {
         if(!tabsDuocPhep.includes(t)) { return showToast("Tài khoản không có quyền truy cập!", "error"); }
     }
     ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
-        document.getElementById('tab-'+x)?.classList.add('hidden'); document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
+        document.getElementById('tab-'+x)?.classList.add('hidden'); 
+        document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
     }); 
     document.getElementById('tab-'+t)?.classList.remove('hidden'); 
     document.getElementById('menu-'+t)?.classList.add('sidebar-item-active'); 
@@ -974,7 +975,7 @@ function renderTheoTabHienTai() {
         document.getElementById("bangDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh công nợ luân chuyển đồ.</td></tr>`;
         const tbodyChoNhan = document.getElementById("bangChoNhanTaiKhoa"); const badgeChoNhan = document.getElementById("badgeChoNhanKhoa"); const txtNguoiXacNhan = document.getElementById("txtNguoiDungNhanHienTai");
         if(txtNguoiXacNhan) txtNguoiXacNhan.innerText = `PM-ĐD: ${loginUserCode || "Chưa Đăng Nhập"}`;
-        let dsDangVanChuyen = tatCaDonCuaKhoa.filter(x => x.status === "ĐANG_VAN_CHUYEN"); if(badgeChoNhan) badgeChoNhan.innerText = `${dsDangVanChuyen.length} khay`;
+        let dsDangVanChuyen = tatCaDonCuaKhoa.filter(x === "ĐANG_VAN_CHUYEN"); if(badgeChoNhan) badgeChoNhan.innerText = `${dsDangVanChuyen.length} khay`;
         if(tbodyChoNhan) {
             if(dsDangVanChuyen.length === 0) { tbodyChoNhan.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">Hiện không có dụng cụ nào đang chuyển về khoa.</td></tr>`; } 
             else { tbodyChoNhan.innerHTML = dsDangVanChuyen.map(khay => `<tr class="hover:bg-slate-50 transition-colors"><td class="p-2 text-center"><input type="checkbox" value="${khay.firestoreId}" class="w-3.5 h-3.5 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"></td><td class="p-2 font-mono font-bold text-slate-700">${khay.maMacDinh || 'N/A'}</td><td class="p-2 font-semibold text-slate-800">${khay.bo ? String(khay.bo).split(" [ID:")[0] : 'N/A'}</td><td class="p-2 text-slate-500 font-medium">${khay.nvXuatKho || '--'}</td><td class="p-2 text-center"><span class="bg-purple-50 text-purple-700 font-mono text-[10px] px-1.5 py-0.5 rounded font-bold">${khay.batchCode || 'N/A'}</span></td></tr>`).join(''); }
@@ -1210,7 +1211,7 @@ function renderTheoTabHienTai() {
                 let existingTableZone = document.getElementById("vung-ket-qua-tu-dong");
                 if(!existingTableZone) {
                     let tableWrapper = document.createElement("div"); tableWrapper.id = "vung-ket-qua-tu-dong"; tableWrapper.className = "mt-6 bg-white border border-slate-200 rounded-xl p-4 shadow-sm";
-                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng thái</th><th class="p-3 text-center">Mã Lô Hấp</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
+                    tableWrapper.innerHTML = `<h3 class="font-black text-slate-800 text-sm mb-3 text-sky-800"><i class="fa-solid fa-list-check mr-2"></i>DANH SÁCH MÂM DỤNG CỤ TRONG MẺ TRUY VẾT</h3><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-100 text-[11px] font-bold text-slate-600 uppercase border-b"><th class="p-3">Mã ID Khay</th><th class="p-3">Tên Bộ Dụng Cụ</th><th class="p-3">Khoa Sử Dụng</th><th class="p-3">Trạng thái</th><th class="p-3 text-center">Mã Lô Hấu</th><th class="p-3 text-center">Thời Gian Kích Hoạt</th></tr></thead><tbody id="bangLichSuTruyXuatAdmin"></tbody></table></div>`;
                     parentContainer.appendChild(tableWrapper); safeTbody = document.getElementById("bangLichSuTruyXuatAdmin");
                 }
             }
