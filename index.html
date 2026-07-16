@@ -295,7 +295,7 @@
                                         <div class="col-span-2">
                                             <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Hoá chất tiêu hao mẻ này:</label>
                                             <select id="rua_hoaChat" class="w-full px-3 py-2 text-xs font-bold bg-white border border-slate-300 rounded text-sky-800">
-                                                </select>
+                                            </select>
                                         </div>
                                         <div>
                                             <label class="block text-[10px] font-black text-slate-500 uppercase mb-1">Liều lượng (ml/L):</label>
@@ -321,7 +321,7 @@
                                     <i class="fa-solid fa-magnifying-glass text-amber-500"></i> Giám Sát Nghiệm Thu Độ Sạch Mẻ Rửa
                                 </h3>
                             </div>
-                            <div class="mb-3 bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                            <div class="mb-3 bg-slate-50 border border-slate-200 p-3 rounded-xl shadow-inner">
                                 <label class="block text-[11px] font-black text-slate-700 uppercase mb-1.5">
                                     Đánh giá chất lượng rửa (Test chỉ thị Protein/ATP):
                                 </label>
@@ -654,7 +654,7 @@
                                         <th class="p-3 text-center">Thời Gian Ký Gửi</th>
                                     </tr>
                                 </thead>
-                                <tbody id="bangLichSuHap" class="divide-y divide-slate-100 text-slate-600">
+                                <tbody id="bangLichSuHanhTrinhGoc" class="divide-y divide-slate-100 text-slate-600">
                                     <tr><td colspan="7" class="p-4 text-center italic text-slate-400">Đang đồng bộ dòng dữ liệu...</td></tr>
                                 </tbody>
                             </table>
@@ -684,7 +684,7 @@
                             <h4 class="text-xs font-black text-amber-800 uppercase mb-1.5 flex items-center gap-1.5"><i class="fa-solid fa-file-excel text-sm text-amber-600"></i> Nạp Danh Sách Bộ Dụng Cụ Từ Cấu Hình Excel</h4>
                             <p class="text-[11px] text-slate-500 mb-3">Hệ thống tự động biên dịch và phân tích cấu hình chi tiết linh kiện bên trong mâm ngay sau khi anh chọn file.</p>
                             <div class="flex items-center gap-4 bg-white p-3 rounded-lg border border-slate-200">
-                                <input type="file" id="excelFileInput" accept=".xlsx, .xls" onchange="nhanFileExcelDanhMuc(this)" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-black file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
+                                <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-black file:bg-amber-50 file:text-amber-800 hover:file:bg-amber-100 cursor-pointer">
                             </div>
                         </div>
 
@@ -799,7 +799,7 @@
                         </div>
                         <div class="bg-gradient-to-br from-indigo-600 to-purple-700 p-6 rounded-2xl shadow-xl border border-indigo-400/30">
                             <div class="text-xs font-black opacity-90 uppercase tracking-wide text-indigo-100">Mẻ Hấp Hôm Nay</div>
-                            <div id="tv_meHap" class="text-5xl font-black font-mono mt-2 text-white">0</div>
+                            <div id="tv_meHap2" class="text-5xl font-black font-mono mt-2 text-white">0</div>
                             <p class="text-[10px] opacity-70 mt-2 font-medium">Lô tiệt khuẩn đạt chuẩn đã chạy</p>
                         </div>
                         <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex justify-between items-center">
@@ -1027,13 +1027,12 @@
         </div>
     </div>
 
-    <div id="print-zone" class="hidden bg-white p-8 font-serif z-[9999]"></div>
-
-   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
         setInterval(() => {
             const el = document.getElementById('tv_clock');
             if(el) el.innerText = "THỜI GIAN THỰC: " + new Date().toLocaleString('vi-VN');
         }, 1000);
     </script>
+    <script src="app.js"></script>
 </body>
 </html>
