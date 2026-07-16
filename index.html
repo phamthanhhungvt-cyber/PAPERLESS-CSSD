@@ -1029,8 +1029,7 @@
 
     <div id="print-zone" class="hidden bg-white p-8 font-serif z-[9999]"></div>
 
-    <script src="app.js"></script>
-    <script>
+   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
         setInterval(() => {
             const el = document.getElementById('tv_clock');
             if(el) el.innerText = "THỜI GIAN THỰC: " + new Date().toLocaleString('vi-VN');
