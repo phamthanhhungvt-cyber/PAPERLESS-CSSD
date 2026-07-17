@@ -266,7 +266,7 @@ function moPopupKiemDem(id) {
         checklistSoBo = itemsInBo.map(ct => {
             let tenDc = ct['Tên TS chuẩn'] || ct['Tên Dụng Cụ Chi Tiết'] || ct['Tên dụng cụ chi tiết'] || ct['Tên dụng cụ'] || ct['Chi tiết'] || ct['Dụng cụ'] || ct['Tên Chi Tiết'] || ct['NAME'] || "Dụng cụ";
              
-            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số") {
+            if (String(tenDc).trim().toUpperCase() === "NGUYÊN BỘ CẤU HÌNH CƠ SỐ") {
                 tenDc = "Dụng cụ chuẩn mâm";
             }
              
@@ -461,7 +461,7 @@ function xacNhanMeRua() {
 }
 
 function duyetSachMeRuaHangLoat() {
-    let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
+    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked');
     if(checkboxes.length === 0) return showToast("Chọn mâm đã rửa sạch để nghiệm thu!", "error");
     
     let ketQuaTest = document.getElementById("rua_testDoSach").value;
@@ -483,7 +483,7 @@ function duyetSachMeRuaHangLoat() {
 }
 
 function tuChoiMeRuaHangLoat() {
-    let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
+    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked');
     if(checkboxes.length === 0) return showToast("Chọn mâm không đạt!", "error");
     
     let p = [];
@@ -861,7 +861,7 @@ function taiDanhMucLinhKienChuan() {
         gopBoExcel[tenBo].forEach(item => {
             let tenDc = item['Tên TS chuẩn'] || item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ chi tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || item['Dụng cụ'] || item['Tên Chi Tiết'] || "Dụng cụ Chi Tiết";
             
-            if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số") {
+            if (String(tenDc).trim().toUpperCase() === "NGUYÊN BỘ CẤU HÌNH CƠ SỐ") {
                 tenDc = "Dụng cụ chuẩn mâm";
             }
             
@@ -921,7 +921,7 @@ function initSelects() {
     if(document.getElementById("login_khoa")) document.getElementById("login_khoa").innerHTML = opts; 
     if(document.getElementById("khoa_selKhoa")) document.getElementById("khoa_selKhoa").innerHTML = opts; 
     if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
-    
+     
     // Khởi tạo các danh mục hóa chất & máy rửa mẻ
     if (document.getElementById("rua_hoaChat")) {
         document.getElementById("rua_hoaChat").innerHTML = danhMucHoaChatRua.map(hc => `<option value="${hc.ten}">${hc.ten}</option>`).join('');
@@ -933,7 +933,7 @@ function initSelects() {
     }
     if (document.getElementById("rua_loaiRua")) { capNhatDanhSachMaMayRua(); }
     if (document.getElementById("hap_loaiHap")) { capNhatDanhSachMaMay(); }
-    
+     
     const selKhoaTraba = document.getElementById("khoa_selKhoa"); if(selKhoaTraba) { selKhoaTraba.removeEventListener("change", loadBoDungCuTheoKhoa); selKhoaTraba.addEventListener("change", loadBoDungCuTheoKhoa); }
 }
 
@@ -1014,7 +1014,7 @@ function renderTheoTabHienTai() {
                     let tenDc = item['Tên TS chuẩn'] || item['Tên Dụng Cụ Chi Tiết'] || item['Tên dụng cụ chi tiết'] || item['Tên dụng cụ'] || item['Chi tiết'] || "Dụng cụ chi tiết";
                     let sl = item['Số lượng'] || item['SL'] || item['Số Lượng'] || 1;
                     
-                    if (String(tenDc).trim() === "Nguyên bộ cấu hình cơ số") {
+                    if (String(tenDc).trim().toUpperCase() === "NGUYÊN BỘ CẤU HÌNH CƠ SỐ") {
                         tenDc = "Dụng cụ chuẩn mâm";
                     }
 
