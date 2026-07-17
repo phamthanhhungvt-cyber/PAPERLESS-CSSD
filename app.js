@@ -72,7 +72,7 @@ function playSound(type) {
 // =========================================================================
 // 2. REALTIME LISTENER (FIRESTORE SYNC)
 // =========================================================================
-db.collection("heThongDanhMuc").doc("danhMucTongPhuong Nam").onSnapshot(doc => { 
+db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
     try {
         if (doc.exists) { 
             let res = doc.data(); 
@@ -507,7 +507,6 @@ function xacNhanMeRua() {
     });
 }
 
-// FIX: Cập nhật sang class .nghiemthurua-checkbox khớp chính xác với HTML render
 function duyetSachMeRuaHangLoat() {
     let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
     if(checkboxes.length === 0) return showToast("Chọn mâm đã rửa sạch để nghiệm thu!", "error");
@@ -530,7 +529,6 @@ function duyetSachMeRuaHangLoat() {
     });
 }
 
-// FIX: Cập nhật sang class .nghiemthurua-checkbox khớp chính xác với HTML render
 function tuChoiMeRuaHangLoat() {
     let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
     if(checkboxes.length === 0) return showToast("Chọn mâm không đạt!", "error");
@@ -587,7 +585,7 @@ function xacNhanMeHap() {
         let itemData = listGiaoDich.find(x => x.firestoreId === cb.value);
         let thongTinLo = { 
             loaiHap: loaiHap, maMay: maMay, chuKyNhiet: chuKyNhiet, apSuat: apSuat, thoiGianBatDau: bayGio.toLocaleTimeString('vi-VN'), 
-            giamSatChatLuong: { chiThiHoaHoc: "ĐẠT", laMeTest SinhHocGoc: coKemBI, ketQuaSinhHoc: coKemBI ? "ĐANG CHỜ MÁY Ủ ĐỌC BI (20 PHÚT)" : "KẾ THỪA ĐẦU NGÀY" } 
+            giamSatChatLuong: { chiThiHoaHoc: "ĐẠT", laMeTestSinhHocGoc: coKemBI, ketQuaSinhHoc: coKemBI ? "ĐANG CHỜ MÁY Ủ ĐỌC BI (20 PHÚT)" : "KẾ THỪA ĐẦU NGÀY" } 
         };
         p.push(
             db.collection("phieuGiaoNhan").doc(cb.value).update({ 
@@ -816,49 +814,6 @@ function renderBangKhaySuDung() {
             <td class="p-2 text-center"><i class="fa-solid fa-trash-can text-rose-500 cursor-pointer hover:text-rose-700" onclick="xoaKhayKhoiListSuDung(${index})"></i></td>
         </tr>`;
     }).join('');
-}
-
-function xoaKhayKhoiListSuDung(index) {
-    gioKhaySuDungTam.splice(index, 1);
-    renderBangKhaySuDung();
-}
-
-function savePopupSuDung() {
-    const khoaBenhNhan = document.getElementById("sd_khoaBenhNhan")?.value.trim();
-    const yTaPhongMo = document.getElementById("sd_yTaPhongMo")?.value.trim();
-    const searchBN = document.getElementById("sd_searchBN")?.value.trim();
-    const ngaySuDung = document.getElementById("sd_ngaySuDung")?.value;
-    const nhanChung = document.getElementById("sd_nhanChung")?.value;
-    const ghiChu = document.getElementById("sd_ghiChu")?.value.trim();
-
-    if (!khoaBenhNhan || !yTaPhongMo || !searchBN || gioKhaySuDungTam.length === 0) {
-        playSound('error');
-        return showToast("Vui lòng nhập đầy đủ các trường bắt buộc (*) và quét khay liên kết!", "error");
-    }
-
-    let p = [];
-    gioKhaySuDungTam.forEach(khay => {
-        p.push(
-            db.collection("phieuGiaoNhan").doc(khay.firestoreId).update({
-                status: "DA_SU_DUNG",
-                thongTinBenhNhan: {
-                    khoaBenhNhan: khoaBenhNhan,
-                    yTaPhongMo: yTaPhongMo,
-                    thongTinTimKiemBN: searchBN,
-                    ngaySuDung: ngaySuDung,
-                    nhanChungThucHien: nhanChung,
-                    ghiChuLamSang: ghiChu
-                }
-            })
-        );
-    });
-
-    Promise.all(p).then(() => {
-        playSound('success');
-        showToast("Đã liên kết hồ sơ bệnh án thành công!", "success");
-        closePopupSuDung();
-        callRender();
-    });
 }
 
 // =========================================================================
