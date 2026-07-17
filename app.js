@@ -816,6 +816,11 @@ function renderBangKhaySuDung() {
     }).join('');
 }
 
+function xoaKhayKhoiListSuDung(index) {
+    gioKhaySuDungTam.splice(index, 1);
+    renderBangKhaySuDung();
+}
+
 // =========================================================================
 // 11. THIẾT LẬP MÁY IN BIXOLON SLP-TX403 & BIÊN BẢN HÀNG LOẠT
 // =========================================================================
@@ -1173,7 +1178,7 @@ function renderTheoTabHienTai() {
         let bodyChoHap = document.getElementById("bangChoHap");
         if(bodyChoHap) { bodyChoHap.innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join(''); }
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); 
-        if(document.getElementById("bangChoNghiệmThu")) { document.getElementById("bangChoNghiệmThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox" data-hasbi="${i.hasBI ? 'true' : 'false'}" onchange="kiemTraQuyenDuyetMeHap()"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span> ${i.hasBI ? '<span class="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[9px] font-black"><i class="fa-solid fa-flask"></i> CHỜ BI</span>' : ''}</td></tr>`).join(''); }
+        if(document.getElementById("bangChoNghiemThu")) { document.getElementById("bangChoNghiemThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox" data-hasbi="${i.hasBI ? 'true' : 'false'}" onchange="kiemTraQuyenDuyetMeHap()"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span> ${i.hasBI ? '<span class="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[9px] font-black"><i class="fa-solid fa-flask"></i> CHỜ BI</span>' : ''}</td></tr>`).join(''); }
         kiemTraQuyenDuyetMeHap();
         if(document.getElementById("bangLichSuHap")) {
             const homNayMoiStr = getTodayDateStr(); let tatCaMucCoLo = listGiaoDich.filter(x => x.batchCode && (x.ngayHapRealtime === homNayMoiStr || x.ngayTao === homNayMoiStr)); let cacMeHapGop = {};
@@ -1471,9 +1476,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         if (jsonData.length === 0) return;
 
                         const firstRow = jsonData[0];
-                        const keys = Object.keys(firstRow).map(k => k.trim());
+                        const keys = Object.keys(firstRow).map(k => k.trim().toUpperCase());
 
-                        const coCotMaDC = Object.keys(firstRow).some(k => k.trim().toUpperCase() === "MÃ DC");
+                        const coCotMaDC = keys.includes("MÃ DC");
                         if (coCotMaDC) {
                             let mapKhoa = {};
                             danhSachKhoa.forEach(k => {
@@ -1485,8 +1490,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             });
 
                             jsonData.forEach(row => {
-                                let rawKeyKhoa = Object.keys(row).find(k => k.trim() === "Tên TS (i)");
-                                let rawKeyBo = Object.keys(row).find(k => k.trim() === "Tên TS chuẩn");
+                                let rawKeyKhoa = Object.keys(row).find(k => k.trim().toUpperCase() === "TÊN TS (I)");
+                                let rawKeyBo = Object.keys(row).find(k => k.trim().toUpperCase() === "TÊN TS CHUẨN");
                                 let rawKeyMa = Object.keys(row).find(k => k.trim().toUpperCase() === "MÃ DC");
 
                                 let tenKhoa = rawKeyKhoa ? row[rawKeyKhoa] : null;
@@ -1512,7 +1517,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             logs.push(`Cập nhật định biên cơ số cho ${updateData.danhSachKhoa.length} Khoa/Phòng`);
                         }
 
-                        const coCotMaAesculap = Object.keys(firstRow).some(k => k.trim().toUpperCase() === "AB 120/12");
+                        const coCotMaAesculap = keys.includes("AB 120/12");
                         if (coCotMaAesculap) {
                             updateData.databaseExcel = jsonData;
                             logs.push(`Nạp thành công ${jsonData.length} linh kiện chi tiết mâm Aesculap`);
