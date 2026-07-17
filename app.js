@@ -72,7 +72,7 @@ function playSound(type) {
 // =========================================================================
 // 2. REALTIME LISTENER (FIRESTORE SYNC)
 // =========================================================================
-db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").onSnapshot(doc => { 
+db.collection("heThongDanhMuc").doc("danhMucTongPhuong Nam").onSnapshot(doc => { 
     try {
         if (doc.exists) { 
             let res = doc.data(); 
@@ -236,12 +236,11 @@ function renderGioHang() {
     document.getElementById("bangGioHang").innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); 
 }
 
-// HÀNH ĐỘNG 1: GỬI PHIẾU BÁO TRẢ ĐỒ BẨN (Chỉ lập lệnh thu gom, không cần mượn đồ mới)
 function khoaGuiPhieuTraBatches() { 
     const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
     if(!k) return showToast("Vui lòng chọn Khoa trước!"); 
     if(gioHangTam.length === 0) return showToast("Vui lòng quét hoặc chọn mâm bẩn muốn trả trước!", "error"); 
-    
+     
     let p=[]; 
     gioHangTam.forEach((i, idx) => {
         p.push(
@@ -258,7 +257,7 @@ function khoaGuiPhieuTraBatches() {
             })
         );
     }); 
-    
+     
     Promise.all(p).then(() => { 
         clearGioHang(); 
         playSound('success');
@@ -267,7 +266,6 @@ function khoaGuiPhieuTraBatches() {
     }); 
 }
 
-// HÀNH ĐỘNG 2: GỬI PHIẾU ĐĂNG KÝ YÊU CẦU CẤP ĐỒ SẠCH (Độc lập không cần đồ bẩn đi kèm)
 function khoaGuiYeuCauCapPhat() {
     const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value;
     if(!k) return showToast("Vui lòng chọn Khoa/Phòng gửi yêu cầu!", "error");
@@ -283,7 +281,7 @@ function khoaGuiYeuCauCapPhat() {
         time: new Date().toLocaleTimeString('vi-VN'),
         khoa: k,
         bo: tenMâmSạch,
-        maMacDinh: "CHO_CAP_PHAT", // Trạng thái treo chờ CSSD quét khay xuất kho
+        maMacDinh: "CHO_CAP_PHAT", 
         slYeuCau: 1,
         status: "CHO_CAP_PHAT", 
         nvYeuCau: loginUserCode || "Điều dưỡng khoa"
@@ -314,7 +312,6 @@ function moPopupKiemDem(id) {
     document.getElementById('popGhiChu').value = currentKiemDemData.ghiChuLamSang;
     document.getElementById('popGhiChu').classList.remove('border-rose-500', 'ring-2', 'ring-rose-200');
 
-    // Hỗ trợ cả 2 định dạng tiêu đề cột Excel
     let itemsInBo = databaseExcel.filter(x => { 
         let boName = x['Tên TS (i)'] || x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || x['NAME'] || x['name']; 
         return String(boName).trim().toUpperCase() === String(currentKiemDemData.tenBoDungCu).trim().toUpperCase(); 
@@ -431,7 +428,7 @@ async function saveKiemDem() {
 function clearGioHang() { gioHangTam = []; renderGioHang(); }
 
 // =========================================================================
-// 6. MODULE: QUẢN LÝ MẺ RỬA KHỬ KHUẨN (BELIMED WD250)
+// 6. MODULE: QUẢN LÝ MẺ RỬA KHỬ KHUẨN (BELIMED WD250) - ĐÃ VÁ LỖI CHECKBOX
 // =========================================================================
 function toggleSelectAllRua() { let checked = document.getElementById('selectAllRua').checked; document.querySelectorAll('.rua-checkbox').forEach(cb => cb.checked = checked); }
 function toggleSelectAllNghiemThuRua() { let checked = document.getElementById('selectAllNghiemThuRua').checked; document.querySelectorAll('.nghiemthurua-checkbox').forEach(cb => cb.checked = checked); }
@@ -510,8 +507,9 @@ function xacNhanMeRua() {
     });
 }
 
+// FIX: Cập nhật sang class .nghiemthurua-checkbox khớp chính xác với HTML render
 function duyetSachMeRuaHangLoat() {
-    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked');
+    let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
     if(checkboxes.length === 0) return showToast("Chọn mâm đã rửa sạch để nghiệm thu!", "error");
     
     let ketQuaTest = document.getElementById("rua_testDoSach").value;
@@ -532,8 +530,9 @@ function duyetSachMeRuaHangLoat() {
     });
 }
 
+// FIX: Cập nhật sang class .nghiemthurua-checkbox khớp chính xác với HTML render
 function tuChoiMeRuaHangLoat() {
-    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked');
+    let checkboxes = document.querySelectorAll('.nghiemthurua-checkbox:checked');
     if(checkboxes.length === 0) return showToast("Chọn mâm không đạt!", "error");
     
     let p = [];
@@ -588,7 +587,7 @@ function xacNhanMeHap() {
         let itemData = listGiaoDich.find(x => x.firestoreId === cb.value);
         let thongTinLo = { 
             loaiHap: loaiHap, maMay: maMay, chuKyNhiet: chuKyNhiet, apSuat: apSuat, thoiGianBatDau: bayGio.toLocaleTimeString('vi-VN'), 
-            giamSatChatLuong: { chiThiHoaHoc: "ĐẠT", laMeTestSinhHocGoc: coKemBI, ketQuaSinhHoc: coKemBI ? "ĐANG CHỜ MÁY Ủ ĐỌC BI (20 PHÚT)" : "KẾ THỪA ĐẦU NGÀY" } 
+            giamSatChatLuong: { chiThiHoaHoc: "ĐẠT", laMeTest SinhHocGoc: coKemBI, ketQuaSinhHoc: coKemBI ? "ĐANG CHỜ MÁY Ủ ĐỌC BI (20 PHÚT)" : "KẾ THỪA ĐẦU NGÀY" } 
         };
         p.push(
             db.collection("phieuGiaoNhan").doc(cb.value).update({ 
@@ -722,9 +721,7 @@ function xacNhanXuatKhoHangLoat() {
     });
 }
 
-// CẤP PHÁT ĐIỀU PHỐI TẬP TRUNG (Đáp ứng yêu cầu của Lâm Sàng gửi lên)
 function duyetCapPhatTậpTrung(yeuCauId, tenBo, khoaNhan) {
-    // Tìm khay cùng chủng loại mâm đang nhàn rỗi, sẵn sàng xuất trong kho vô khuẩn CSSD
     let khaySẵnCo = listGiaoDich.find(x => x.status === "CHO_XUAT" && x.bo.split(" [ID:")[0].trim().toUpperCase() === tenBo.trim().toUpperCase());
     
     if (!khaySẵnCo) {
@@ -736,7 +733,6 @@ function duyetCapPhatTậpTrung(yeuCauId, tenBo, khoaNhan) {
         let bayGio = new Date();
         let batch = db.batch();
         
-        // 1. Chuyển khay vô khuẩn thực tế sang trạng thái vận chuyển cho khoa yêu cầu
         let refKhay = db.collection("phieuGiaoNhan").doc(khaySẵnCo.firestoreId);
         batch.update(refKhay, {
             status: "ĐANG_VAN_CHUYEN",
@@ -746,7 +742,6 @@ function duyetCapPhatTậpTrung(yeuCauId, tenBo, khoaNhan) {
             nvXuatKho: loginUserCode || "CSSD_CHUNG"
         });
 
-        // 2. Đồng bộ đóng và xóa yêu cầu chờ ban đầu của khoa
         let refYeuCau = db.collection("phieuGiaoNhan").doc(yeuCauId);
         batch.delete(refYeuCau);
 
@@ -1047,7 +1042,6 @@ function renderTheoTabHienTai() {
         // 1. TÍNH TOÁN CÔNG NỢ LUÂN CHUYỂN THỰC TẾ
         let gopCongNo = {};
         tatCaDonCuaKhoa.forEach(x => {
-            // Không tính các phiếu đăng ký mượn/yêu cầu cấp mâm mới vào công nợ thu gom
             if (x.status === "CHO_CAP_PHAT") return;
 
             let tenLoaiMâm = x.bo ? String(x.bo).split(" [ID:")[0] : "Chưa rõ mâm";
@@ -1076,7 +1070,7 @@ function renderTheoTabHienTai() {
             else { tbodyChoNhan.innerHTML = dsDangVanChuyen.map(khay => `<tr class="hover:bg-slate-50 transition-colors"><td class="p-2 text-center"><input type="checkbox" value="${khay.firestoreId}" class="w-3.5 h-3.5 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"></td><td class="p-2 font-mono font-bold text-slate-700">${khay.maMacDinh || 'N/A'}</td><td class="p-2 font-semibold text-slate-800">${khay.bo ? String(khay.bo).split(" [ID:")[0] : 'N/A'}</td><td class="p-2 text-slate-500 font-medium">${khay.nvXuatKho || '--'}</td><td class="p-2 text-center"><span class="bg-purple-50 text-purple-700 font-mono text-[10px] px-1.5 py-0.5 rounded font-bold">${khay.batchCode || 'N/A'}</span></td></tr>`).join(''); }
         }
 
-        // 3. THEO DÕI YÊU CẦU ĐANG CHỜ CSSD CẤP PHÁT (Hình ảnh thực tế Luồng mới)
+        // 3. THEO DÕI YÊU CẦU ĐANG CHỜ CSSD CẤP PHÁT
         let dsChoCapPhat = tatCaDonCuaKhoa.filter(x => x.status === "CHO_CAP_PHAT");
         const tbodyChoCapPhat = document.getElementById("bangChoCapPhatTaiKhoa");
         if (tbodyChoCapPhat) {
@@ -1241,18 +1235,16 @@ function renderTheoTabHienTai() {
         let uniqueKhoaSanCo = [...new Set(listGiaoDich.map(x => x.khoa))].filter(Boolean); const selKhoaXuat = document.getElementById("xuat_selKhoa");
         if(selKhoaXuat) {
             let currentSelected = selKhoaXuat.value; let htmlOpts = '<option value="">-- Chọn Khoa Muốn Trả Đồ --</option>';
-            uniqueKhoaSanCo.forEach(k => { htmlOpts += `<option value="${k}" ${k === currentSelected ? 'selected' : ''}>${k}</option>`; });
+            uniqueKhoaSanCo.forEach(k => { htmlOpts += `<option value="${k}" ${k === currentSelected ? 'selected' : ''}>${k}</option>'; });
             selKhoaXuat.innerHTML = htmlOpts;
         }
 
-        // 1. Render danh sách mâm vô khuẩn đang sẵn có trên kệ CSSD
         let lsXK = listGiaoDich.filter(x => x.status === "CHO_XUAT").sort((a, b) => a.id - b.id); const tbodyKho = document.getElementById("bangKhoVoKhuan");
         if(tbodyKho) {
             if(lsXK.length === 0) { tbodyKho.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400 italic">Kho vô khuẩn hiện tại trống.</td></tr>`; } 
             else { tbodyKho.innerHTML = lsXK.map(i => `<tr class="border-b hover:bg-slate-50 font-medium text-xs"><td class="p-3 font-bold text-slate-800">${i.bo ? String(i.bo).split(" [ID:")[0] : "N/A"}</td><td class="p-3 font-mono text-sky-700 font-bold">${i.maMacDinh}</td><td class="p-3 text-center"><span class="px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold border">${i.khoa || 'Tập trung'}</span></td><td class="p-3 text-center font-bold text-slate-500">Kệ 01</td><td class="p-3 text-center text-[11px] text-emerald-700 font-bold">${i.hsd ? new Date(i.hsd).toLocaleDateString('vi-VN') : 'An toàn'}</td></tr>`).join(''); }
         }
 
-        // 2. TÍCH HỢP HƯỚNG 1: Render danh sách hộp thông báo các yêu cầu cấp phát từ khoa/phòng
         let dsYeuCau = listGiaoDich.filter(x => x.status === "CHO_CAP_PHAT");
         let vungYeuCau = document.getElementById("vungYeuCauCapPhat");
         if (!vungYeuCau) {
@@ -1500,7 +1492,7 @@ function renderAdminInterface() {
 }
 
 // =========================================================================
-// 14. XỬ LÝ ĐỌC FILE EXCEL ĐA SHEET (TỰ ĐỘNG NHẬN DIỆN FILE CHI TIẾT & CƠ SỐ)
+// 14. XỬ LÝ ĐỌC FILE EXCEL ĐA SHEET
 // =========================================================================
 document.addEventListener("DOMContentLoaded", () => {
     const fileInput = document.getElementById("excelFileInput");
@@ -1518,20 +1510,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     let updateData = {};
                     let logs = [];
 
-                    // Duyệt qua tất cả các Sheet trong file được up lên để bóc tách thông minh
                     workbook.SheetNames.forEach(sheetName => {
                         const worksheet = workbook.Sheets[sheetName];
                         const jsonData = XLSX.utils.sheet_to_json(worksheet);
                         if (jsonData.length === 0) return;
 
-                        // Lấy danh sách các tiêu đề cột của dòng đầu tiên để phân tích cấu trúc
                         const firstRow = jsonData[0];
                         const keys = Object.keys(firstRow).map(k => k.trim());
 
-                        // --- TRƯỜNG HỢP A: SHEET CHỨA CƠ SỐ KHOA PHÒNG (Nhận diện qua cột 'MÃ DC' hoặc 'Mã DC') ---
                         const coCotMaDC = Object.keys(firstRow).some(k => k.trim().toUpperCase() === "MÃ DC");
                         if (coCotMaDC) {
-                            // Khởi tạo lại bản đồ gom nhóm khoa phòng từ database hiện tại
                             let mapKhoa = {};
                             danhSachKhoa.forEach(k => {
                                 mapKhoa[k.ten.trim().toUpperCase()] = {
@@ -1542,7 +1530,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             });
 
                             jsonData.forEach(row => {
-                                // Chuẩn hóa đọc key không phân biệt khoảng trắng thừa
                                 let rawKeyKhoa = Object.keys(row).find(k => k.trim() === "Tên TS (i)");
                                 let rawKeyBo = Object.keys(row).find(k => k.trim() === "Tên TS chuẩn");
                                 let rawKeyMa = Object.keys(row).find(k => k.trim().toUpperCase() === "MÃ DC");
@@ -1555,16 +1542,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                     let keyKhoa = String(tenKhoa).trim().toUpperCase();
                                     let cleanBo = String(tenBo).trim().toUpperCase();
                                     let cleanMa = maKhay ? String(maKhay).trim().toUpperCase() : "CHUA_CO_ID";
-                                    
-                                    // Chuyển đổi về định dạng định danh khay chuẩn hóa của hệ thống: "BỘ SANH [ID:SG-SANH]"
                                     let chuoiDinhDangKhay = `${cleanBo} [ID:${cleanMa}]`;
 
-                                    // Nếu khoa phòng này chưa từng tồn tại trên Cloud, tự động tạo mới với PIN mặc định là 123
                                     if (!mapKhoa[keyKhoa]) {
                                         mapKhoa[keyKhoa] = { ten: keyKhoa, pin: "123", danhSachBo: [] };
                                     }
-                                    
-                                    // Đưa mâm vào tủ cơ số của khoa phòng (tránh add trùng lặp)
                                     if (!mapKhoa[keyKhoa].danhSachBo.includes(chuoiDinhDangKhay)) {
                                         mapKhoa[keyKhoa].danhSachBo.push(chuoiDinhDangKhay);
                                     }
@@ -1575,7 +1557,6 @@ document.addEventListener("DOMContentLoaded", () => {
                             logs.push(`Cập nhật định biên cơ số cho ${updateData.danhSachKhoa.length} Khoa/Phòng`);
                         }
 
-                        // --- TRƯỜNG HỢP B: SHEET CHỨA CHI TIẾT LINH KIỆN HÃNG (Nhận diện qua cột mã hãng 'AB 120/12') ---
                         const coCotMaAesculap = Object.keys(firstRow).some(k => k.trim().toUpperCase() === "AB 120/12");
                         if (coCotMaAesculap) {
                             updateData.databaseExcel = jsonData;
@@ -1583,7 +1564,6 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     });
 
-                    // --- TIẾN HÀNH ĐỒNG BỘ REALTIME LÊN CLOUD FIRESTORE ---
                     if (Object.keys(updateData).length === 0) {
                         return showToast("Không tìm thấy cấu trúc dữ liệu phù hợp (Cột 'MÃ DC' hoặc 'AB 120/12') trong file Excel up lên!", "error");
                     }
@@ -1592,7 +1572,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     .then(() => {
                         playSound('success');
                         showToast(`Đồng bộ thành công: ${logs.join(" | ")}!`, "success");
-                        fileInput.value = ""; // Reset cổng chọn file để sẵn sàng cho lần up sau
+                        fileInput.value = ""; 
                         callRender();
                     }).catch(err => {
                         console.error("Lỗi cập nhật Firestore:", err);
