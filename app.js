@@ -586,16 +586,16 @@ function nhapKhoHangLoat() {
         let trangThaiKPI = (soPhutTinhKPI > 30) ? "KHÔNG ĐẠT" : "ĐẠT";
 
         let bgGiamSat = itemData.thongTinLoHap?.giamSatChatLuong || {};
-        let capNhatGiamSat = {
+        let updateGiamSat = {
             ...bgGiamSat,
             ketQuaSinhHoc: coKemBI ? "ÂM TÍNH (ĐẠT)" : "KẾ THỪA ĐẦU NGÀY",
-            minChungAnhBase64: coKemBI ? duLieuAnhBiTamBase64 : (bgGiamSat.minhChungAnhBase64 || "")
+            minhChungAnhBase64: coKemBI ? duLieuAnhBiTamBase64 : (bgGiamSat.minhChungAnhBase64 || "")
         };
 
         p.push(
             db.collection("phieuGiaoNhan").doc(cb.value).update({
                 status: "CHO_XUAT", thoiGianKetLuan: bayGio.toISOString(), thoiGianDocTestBiPhut: soPhutThucTe, 
-                thoiGianTinhKpiPhut: soPhutTinhKPI, ketQuaGiamSatKpi: trangThaiKPI, "thongTinLoHap.giamSatChatLuong": capNhatGiamSat
+                thoiGianTinhKpiPhut: soPhutTinhKPI, ketQuaGiamSatKpi: trangThaiKPI, "thongTinLoHap.giamSatChatLuong": updateGiamSat
             })
         ); 
     }); 
@@ -999,12 +999,13 @@ function renderTheoTabHienTai() {
         if (document.getElementById("badgeSoCho")) document.getElementById("badgeSoCho").innerText = `${lsTG.length} Lệnh`;
         
         document.getElementById("bangChoThuGom").innerHTML = lsTG.map(i => {
-            let tenBo = i.bo ? String(i.bo).split(" [ID:")[0] : ""; 
+            // Cắt bỏ phần [ID:...] để lấy tên mâm nguyên bản (Ví dụ: "TIỂU PHẪU KHOA/PHÒNG 3")
+            let tenBo = i.bo ? String(i.bo).split(" [ID:")[0].trim() : ""; 
             
-            // Tìm các dụng cụ chi tiết của bộ lớn
+            // Đối chiếu tìm linh kiện chi tiết từ databaseExcel
             let itemsInBo = databaseExcel.filter(x => {
                 let boName = x['Tên TS (i)'] || x['Tên Bộ Dụng Cụ'] || x['Bộ dụng cụ'] || x['Dụng cụ'] || x['TÊN BỘ'] || x['Tên Bộ'] || '';
-                return String(boName).trim().toUpperCase() === String(tenBo).trim().toUpperCase();
+                return String(boName).trim().toUpperCase() === String(tenBo).toUpperCase();
             });
             
             let checklistHtml = "";
@@ -1026,7 +1027,8 @@ function renderTheoTabHienTai() {
                 });
                 checklistHtml += `</div>`;
             } else {
-                checklistHtml = `<div class="text-[10px] text-amber-600 bg-amber-50 border border-amber-100 p-1.5 rounded italic mt-1"><i class="fa-solid fa-circle-info mr-1"></i>Mâm vãng lai (Chưa nạp file Excel cấu hình chi tiết linh kiện)</div>`;
+                // Nếu không có linh kiện con, tự nhận diện đây là dụng cụ đơn lẻ, ẩn cảnh báo vàng gây hiểu lầm
+                checklistHtml = `<div class="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-100 p-1.5 rounded font-medium mt-1"><i class="fa-solid fa-circle-check mr-1"></i>Dụng cụ lẻ (Cơ số: 1 chiếc)</div>`;
             }
             
             return `
