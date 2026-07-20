@@ -428,7 +428,7 @@ async function saveKiemDem() {
 function clearGioHang() { gioHangTam = []; renderGioHang(); }
 
 // =========================================================================
-// 6. MODULE: QUẢN LÝ MẺ RỬA KHỬ KHUẨN (BELIMED WD250) - ĐÃ VÁ LỖI CHECKBOX
+// 6. MODULE: QUẢN LÝ MẺ RỬA KHỬ KHUẨN (BELIMED WD250)
 // =========================================================================
 function toggleSelectAllRua() { let checked = document.getElementById('selectAllRua').checked; document.querySelectorAll('.rua-checkbox').forEach(cb => cb.checked = checked); }
 function toggleSelectAllNghiemThuRua() { let checked = document.getElementById('selectAllNghiemThuRua').checked; document.querySelectorAll('.nghiemthurua-checkbox').forEach(cb => cb.checked = checked); }
@@ -559,7 +559,7 @@ function tinhHanSuDung() { let val = document.getElementById("popDG_Loai").value
 function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.getElementById("popDG_Loai").value.split("|")[0]; db.collection("phieuGiaoNhan").doc(idDangDongGoi).update({ status: "CHO_HAP", chatLieu: chatLieuTen, hsd: document.getElementById("popDG_Han").dataset.dateDB }).then(() => { showToast("Đã đóng gói, chuyển chờ hấp!", "success"); closePopupDongGoi(); callRender(); }); }
 
 // =========================================================================
-// 8. TRẠM 5: VẬN HÀNH MẺ HẤP & DUYỆT NHẬP KHO VÔ KHUẨN
+// 8. TRẠM 5: VẬN HÀNH MẺ HẤP & DUYỆT NHẬP KHO VÔ KHUẨN (FIXED LOGIC RENDER)
 // =========================================================================
 function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
 function capNhatDanhSachMaMay() { const loaiHap = document.getElementById("hap_loaiHap")?.value; const selectMay = document.getElementById("hap_maySo"); if (!selectMay || !loaiHap) return; selectMay.innerHTML = ""; if (cauHinhMayHap[loaiHap]) { cauHinhMayHap[loaiHap].forEach(may => { selectMay.innerHTML += `<option value="${may}">${may}</option>`; }); } tuDongTaoMaLoMeHap(); }
@@ -594,6 +594,7 @@ function xacNhanMeHap() {
         ); 
     }); 
     Promise.all(p).then(() => { 
+        playSound('success');
         showToast(`Kích hoạt lò thành công! Lô: ${batchCode}`, "success"); 
         if(document.getElementById("hap_hasBI")) document.getElementById("hap_hasBI").checked = false; 
         duLieuAnhBiTamBase64 = ""; const fileInp = document.getElementById("input_anhBI"); if(fileInp) fileInp.value = ""; 
@@ -614,7 +615,7 @@ function kiemTraQuyenDuyetMeHap() {
         nutDuyetDat.innerHTML = `<i class="fa-solid fa-lock text-slate-400"></i> CHỜ MINH CHỨNG BI (MÁY Ủ ĐỌC 20 PHÚT)`;
     } else {
         nutDuyetDat.disabled = false;
-        nutDuyetDat.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded text-xs shadow-md flex items-center justify-center gap-2";
+        nutDuyetDat.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 rounded text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer";
         nutDuyetDat.innerHTML = `<i class="fa-solid fa-check-double mr-1"></i> DUYỆT ĐẠT & CHO VÀO KHO LƯU TRỮ CHUNG`;
     }
 }
@@ -648,6 +649,7 @@ function nhapKhoHangLoat() {
     }); 
      
     Promise.all(p).then(() => { 
+        playSound('success');
         showToast("Đã duyệt mâm đạt chuẩn Vô Khuẩn!", "success"); 
         duLieuAnhBiTamBase64 = ""; const fileInp = document.getElementById("input_anhBI"); if(fileInp) fileInp.value = ""; 
         callRender(); 
@@ -658,7 +660,7 @@ function tuChoiHapHangLoat() {
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
     let p = []; 
     checkboxes.forEach(cb => { if(cb.id !== 'selectAllNghiemThu') p.push(db.collection("phieuGiaoNhan").doc(cb.value).update({status: "DANG_RUA", ghiChu: "Không đạt hấp, trả về rửa lại"})); }); 
-    Promise.all(p).then(() => { showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); 
+    Promise.all(p).then(() => { playSound('error'); showToast("Đã trả các mâm không đạt về Trạm làm sạch!", "success"); callRender(); }); 
 }
 
 // =========================================================================
@@ -1174,21 +1176,80 @@ function renderTheoTabHienTai() {
         document.getElementById("gridDongGoi").innerHTML = lsDG.map(i => `<div class="bg-white p-3 rounded border border-slate-200 mb-2 flex justify-between items-center"><div class="flex-1"><div class="font-bold text-sky-700 text-[13px]">${i.bo}</div><div class="text-[10px] text-slate-500">Từ khoa: ${i.khoa}</div></div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-sky-50 text-sky-700 border border-sky-300 px-3 py-1.5 rounded text-[11px] font-black">ĐÓNG GÓI</button></div>`).join('');
     }
     else if(activeTab === 'mayhap') {
-        let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); document.getElementById("badgeChoHap").innerText = `${lsCH.length} Mục`;
+        // CỘT 1: HÀNG ĐỢI CHỜ HẤP
+        let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); 
+        if(document.getElementById("badgeChoHap")) document.getElementById("badgeChoHap").innerText = `${lsCH.length} Mục`;
         let bodyChoHap = document.getElementById("bangChoHap");
-        if(bodyChoHap) { bodyChoHap.innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold">${i.bo}</td><td class="p-3 text-right font-mono">${i.maMacDinh}</td></tr>`).join(''); }
+        if(bodyChoHap) { 
+            bodyChoHap.innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold text-xs">${i.bo}</td><td class="p-3 text-right font-mono text-xs font-bold text-sky-700">${i.maMacDinh}</td></tr>`).join(''); 
+        }
+
+        // CỘT 2: PHÊ DUYỆT - CHẤP NHẬN VÔ KHO (Hiển thị các mâm/khay đang ở trạng thái DANG_HAP)
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); 
-        if(document.getElementById("bangChoNghiemThu")) { document.getElementById("bangChoNghiemThu").innerHTML = lsNT.map(i => `<tr class="border-b"><td class="p-2 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox" data-hasbi="${i.hasBI ? 'true' : 'false'}" onchange="kiemTraQuyenDuyetMeHap()"></td><td class="p-2 font-bold text-xs">${i.bo} <span class="text-slate-400 font-normal">(${i.batchCode || 'Chưa có lô'})</span> ${i.hasBI ? '<span class="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[9px] font-black"><i class="fa-solid fa-flask"></i> CHỜ BI</span>' : ''}</td></tr>`).join(''); }
+        let bodyChoNghiemThu = document.getElementById("bangChoNghiemThu");
+        if(bodyChoNghiemThu) { 
+            if (lsNT.length === 0) {
+                bodyChoNghiemThu.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Không có mâm/mẻ nào đang trong lò chờ duyệt.</td></tr>`;
+            } else {
+                bodyChoNghiemThu.innerHTML = lsNT.map(i => {
+                    let tenBoClean = i.bo ? String(i.bo).split(" [ID:")[0] : "Chưa rõ mâm";
+                    return `
+                        <tr class="border-b hover:bg-amber-50/40 transition-colors">
+                            <td class="p-2.5 text-center action-col">
+                                <input type="checkbox" value="${i.firestoreId}" class="nghiemthu-checkbox w-4 h-4 text-amber-600 rounded cursor-pointer" data-hasbi="${i.hasBI ? 'true' : 'false'}" onchange="kiemTraQuyenDuyetMeHap()">
+                            </td>
+                            <td class="p-2 text-xs">
+                                <div class="font-black text-slate-800">${tenBoClean} <span class="text-[10px] font-mono text-sky-700">(${i.maMacDinh || 'N/A'})</span></div>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[10px] font-mono font-bold text-rose-700 bg-rose-50 px-1 rounded border border-rose-100">Lô: ${i.batchCode || 'N/A'}</span>
+                                    ${i.hasBI ? '<span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[9px] font-black border border-amber-300 flex items-center gap-1"><i class="fa-solid fa-flask"></i> CHỜ BI</span>' : ''}
+                                </div>
+                            </td>
+                        </tr>`;
+                }).join(''); 
+            }
+        }
         kiemTraQuyenDuyetMeHap();
+
+        // CỘT 3: NHẬT KÝ VẬN HÀNH LÒ (Gộp nhóm các mẻ hấp hôm nay)
         if(document.getElementById("bangLichSuHap")) {
-            const homNayMoiStr = getTodayDateStr(); let tatCaMucCoLo = listGiaoDich.filter(x => x.batchCode && (x.ngayHapRealtime === homNayMoiStr || x.ngayTao === homNayMoiStr)); let cacMeHapGop = {};
+            const homNayMoiStr = getTodayDateStr(); 
+            let tatCaMucCoLo = listGiaoDich.filter(x => x.batchCode && (x.ngayHapRealtime === homNayMoiStr || x.ngayTao === homNayMoiStr)); 
+            let cacMeHapGop = {};
             tatCaMucCoLo.forEach(x => {
-                if(!cacMeHapGop[x.batchCode]) { cacMeHapGop[x.batchCode] = { batchCode: x.batchCode, loaiHap: x.thongTinLoHap?.loaiHap || "Hấp hơi nước", chuKyNhiet: x.thongTinLoHap?.chuKyNhiet || "134°C - 4 phút", apSuat: x.thongTinLoHap?.apSuat || "2.1", thoiGian: x.thongTinLoHap?.thoiGianBatDau || x.time || "--:--", ngay: x.ngayHapRealtime || x.ngayTao || "", soLuongKhay: 0, trangThaiMe: x.status === "DANG_HAP" ? "Đang chạy lò" : "Đã hoàn thành" }; }
+                if(!cacMeHapGop[x.batchCode]) { 
+                    cacMeHapGop[x.batchCode] = { 
+                        batchCode: x.batchCode, 
+                        loaiHap: x.thongTinLoHap?.loaiHap || "Hấp hơi nước", 
+                        chuKyNhiet: x.thongTinLoHap?.chuKyNhiet || "134°C - 4 phút", 
+                        apSuat: x.thongTinLoHap?.apSuat || "N/A", 
+                        thoiGian: x.thongTinLoHap?.thoiGianBatDau || x.time || "--:--", 
+                        ngay: x.ngayHapRealtime || x.ngayTao || "", 
+                        soLuongKhay: 0, 
+                        trangThaiMe: x.status === "DANG_HAP" ? "ĐANG CHẠY LÒ" : "HOÀN THÀNH" 
+                    }; 
+                }
                 cacMeHapGop[x.batchCode].soLuongKhay += 1;
             });
             let danhSachMeHapSapXep = Object.values(cacMeHapGop).sort((a, b) => String(b.batchCode).localeCompare(String(a.batchCode)));
-            if(danhSachMeHapSapXep.length === 0) { document.getElementById("bangLichSuHap").innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Hôm nay chưa có mẻ hấp nào</td></tr>`; } 
-            else { document.getElementById("bangLichSuHap").innerHTML = danhSachMeHapSapXep.map(me => `<tr class="hover:bg-slate-50 transition-colors"><td class="p-3"><div class="flex items-center gap-2"><span class="font-mono font-black text-rose-700 text-sm tracking-wider">${me.batchCode}</span><span class="px-2 py-0.5 text-[9px] font-black uppercase rounded ${me.trangThaiMe === "Đang chạy lò" ? "text-purple-600 bg-purple-50 border-purple-200" : "text-emerald-600 bg-emerald-50 border-emerald-200"}">${me.trangThaiMe}</span></div><div class="text-[11px] text-slate-500 font-medium mt-1"> ${me.loaiHap} | ${me.chuKyNhiet} | Áp suất: ${me.apSuat} Bar</div><div class="text-[10px] text-slate-400 font-mono mt-0.5"> Bắt đầu: ${me.thoiGian} (${me.ngay})</div></td><td class="p-3 text-right pr-4"><span class="font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-xs">${me.soLuongKhay} khay</span></td></tr>`).join(''); }
+            if(danhSachMeHapSapXep.length === 0) { 
+                document.getElementById("bangLichSuHap").innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Hôm nay chưa có mẻ hấp nào</td></tr>`; 
+            } else { 
+                document.getElementById("bangLichSuHap").innerHTML = danhSachMeHapSapXep.map(me => `
+                    <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
+                        <td class="p-3">
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-black text-rose-700 text-sm tracking-wider">${me.batchCode}</span>
+                                <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded ${me.trangThaiMe === "ĐANG CHẠY LÒ" ? "text-purple-700 bg-purple-100 border border-purple-200 animate-pulse" : "text-emerald-700 bg-emerald-100 border border-emerald-200"}">${me.trangThaiMe}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-600 font-medium mt-1">${me.loaiHap} | ${me.chuKyNhiet} | Áp suất: ${me.apSuat} Bar</div>
+                            <div class="text-[10px] text-slate-400 font-mono mt-0.5">Bắt đầu: ${me.thoiGian} (${me.ngay})</div>
+                        </td>
+                        <td class="p-3 text-right pr-4">
+                            <span class="font-black text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md text-xs">${me.soLuongKhay} khay</span>
+                        </td>
+                    </tr>`).join(''); 
+            }
         }
     }
     else if(activeTab === 'khovokhuan') {
@@ -1296,7 +1357,7 @@ function renderTheoTabHienTai() {
                 else if(x.status === "DA_SU_DUNG") statusBadge = `<span class="px-2 py-0.5 bg-rose-600 text-white font-black rounded text-[10px]">SỬ DỤNG BN</span>`;
                 else if(x.status === "ĐANG_VAN_CHUYEN") statusBadge = `<span class="px-2 py-0.5 bg-purple-500 text-white font-bold rounded text-[10px] animate-pulse">ĐANG VẬN CHUYỂN</span>`;
                 else if(x.status === "DANG_RUA") statusBadge = `<span class="px-2 py-0.5 bg-blue-100 text-blue-700 font-bold rounded text-[10px]">HÀNG ĐỢI RỬA</span>`;
-                else if(x.status === "TRONG_BUONG_RUA") statusBadge = `<span class="px-2 py-0.5 bg-cyan-600 text-white font-bold rounded text-[10px] animate-spin">ĐANG RỬA MÁY</span>`;
+                else if(x.status === "TRONG_BUONG_RUA") statusBadge = `<span class="px-2 py-0.5 bg-cyan-600 text-white font-bold rounded text-[10px]">ĐANG RỬA MÁY</span>`;
                 else if(x.status === "CHO_CAP_PHAT") statusBadge = `<span class="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold rounded text-[10px] border border-amber-200">CHỜ CẤP PHÁT</span>`;
                 
                 let fontColor = ""; let loGoc = listGiaoDich.find(m => m.batchCode === x.batchCode && m.thongTinLoHap?.giamSatChatLuong?.minhChungAnhBase64); 
@@ -1308,7 +1369,7 @@ function renderTheoTabHienTai() {
                 if (x.nguoiKyNhanKhoa) thongTinKemTheo += ` ➔ <span class="text-emerald-700 font-semibold">[ĐD: ${x.nguoiKyNhanKhoa}]</span>`;
                 if (x.status === "DA_SU_DUNG" && x.thongTinBenhNhan) thongTinKemTheo = `<span class="text-teal-700 font-black">BN: ${x.thongTinBenhNhan.thongTinTimKiemBN}</span>`;
 
-                return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors"><td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td><td class="p-3 font-bold text-slate-800">${x.bo ? String(x.bo).split(" [ID:")[0] : 'N/A'}</td><td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td><td class="p-3 text-center">${statusBadge}${kpiHtml}</td><td class="p-3 text-center font-mono font-bold text-rose-700 bg-rose-50/30">${x.batchCode || 'N/A'}${fontColor}</td><td class="p-3 text-center font-bold text-sky-800 bg-sky-50/40">${thongTinKemTheo}</td><td class="p-3 text-center text-slate-400 font-mono text-[11px]">${x.ngayTao || ''} ${x.time || ''}</td></tr>`;
+                return `<tr class="border-b text-xs hover:bg-slate-50 transition-colors"><td class="p-3 font-mono font-bold text-sky-700">${x.maMacDinh || 'N/A'}</td><td class="p-3 font-bold text-slate-800">${x.bo ? String(x.bo).split(" [ID:")[0] : 'N/A'}</td><td class="p-3 font-semibold text-slate-500">${x.khoa || 'N/A'}</td><td class="p-3 text-center">${statusBadge}${kpiHtml}</td><td class="p-3 text-center font-mono font-black text-rose-700 bg-rose-50/30">${x.batchCode || 'N/A'}${fontColor}</td><td class="p-3 text-center font-bold text-sky-800 bg-sky-50/40">${thongTinKemTheo}</td><td class="p-3 text-center text-slate-400 font-mono text-[11px]">${x.ngayTao || ''} ${x.time || ''}</td></tr>`;
             }).join('');
         }
     }
