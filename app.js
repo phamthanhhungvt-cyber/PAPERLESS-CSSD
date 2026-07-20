@@ -559,7 +559,7 @@ function tinhHanSuDung() { let val = document.getElementById("popDG_Loai").value
 function chotDongGoi() { if(!idDangDongGoi) return; let chatLieuTen = document.getElementById("popDG_Loai").value.split("|")[0]; db.collection("phieuGiaoNhan").doc(idDangDongGoi).update({ status: "CHO_HAP", chatLieu: chatLieuTen, hsd: document.getElementById("popDG_Han").dataset.dateDB }).then(() => { showToast("Đã đóng gói, chuyển chờ hấp!", "success"); closePopupDongGoi(); callRender(); }); }
 
 // =========================================================================
-// 8. TRẠM 5: VẬN HÀNH MẺ HẤP & DUYỆT NHẬP KHO VÔ KHUẨN (FIXED LOGIC RENDER)
+// 8. TRẠM 5: VẬN HÀNH MẺ HẤP & DUYỆT NHẬP KHO VÔ KHUẨN
 // =========================================================================
 function toggleSelectAllHap() { let checked = document.getElementById('selectAllHap').checked; document.querySelectorAll('.hap-checkbox').forEach(cb => cb.checked = checked); }
 function capNhatDanhSachMaMay() { const loaiHap = document.getElementById("hap_loaiHap")?.value; const selectMay = document.getElementById("hap_maySo"); if (!selectMay || !loaiHap) return; selectMay.innerHTML = ""; if (cauHinhMayHap[loaiHap]) { cauHinhMayHap[loaiHap].forEach(may => { selectMay.innerHTML += `<option value="${may}">${may}</option>`; }); } tuDongTaoMaLoMeHap(); }
@@ -574,31 +574,59 @@ function tuDongTaoMaLoMeHap() {
 }
 
 function xacNhanMeHap() { 
-    let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
-    let loaiHap = document.getElementById("hap_loaiHap").value; let maMay = document.getElementById("hap_maySo").value; let batchCode = document.getElementById("hap_batchId").value; let chuKyNhiet = document.getElementById("hap_nhietDo").value; let apSuat = document.getElementById("hap_apSuat").value || "N/A"; 
+    let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); 
+    if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
+    
+    let loaiHap = document.getElementById("hap_loaiHap").value; 
+    let maMay = document.getElementById("hap_maySo").value; 
+    let batchCode = document.getElementById("hap_batchId").value; 
+    let chuKyNhiet = document.getElementById("hap_nhietDo").value; 
+    let apSuat = document.getElementById("hap_apSuat").value || "N/A"; 
     let coKemBI = document.getElementById("hap_hasBI") ? document.getElementById("hap_hasBI").checked : false;
-    const ngayHomNay = getTodayDateStr(); let bayGio = new Date(); let thoiGianDuKienXong = new Date(bayGio.getTime() + 45 * 60 * 1000);
+    const ngayHomNay = getTodayDateStr(); 
+    let bayGio = new Date(); 
+    let thoiGianDuKienXong = new Date(bayGio.getTime() + 45 * 60 * 1000);
 
     let p = []; 
     checkboxes.forEach(cb => { 
         if(cb.id === 'selectAllHap') return; 
-        let itemData = listGiaoDich.find(x => x.firestoreId === cb.value);
+        
         let thongTinLo = { 
-            loaiHap: loaiHap, maMay: maMay, chuKyNhiet: chuKyNhiet, apSuat: apSuat, thoiGianBatDau: bayGio.toLocaleTimeString('vi-VN'), 
-            giamSatChatLuong: { chiThiHoaHoc: "ĐẠT", laMeTestSinhHocGoc: coKemBI, ketQuaSinhHoc: coKemBI ? "ĐANG CHỜ MÁY Ủ ĐỌC BI (20 PHÚT)" : "KẾ THỪA ĐẦU NGÀY" } 
+            loaiHap: loaiHap, 
+            maMay: maMay, 
+            chuKyNhiet: chuKyNhiet, 
+            apSuat: apSuat, 
+            thoiGianBatDau: bayGio.toLocaleTimeString('vi-VN'), 
+            giamSatChatLuong: { 
+                chiThiHoaHoc: "ĐẠT", 
+                laMeTestSinhHocGoc: coKemBI, 
+                ketQuaSinhHoc: coKemBI ? "ĐANG CHỜ MÁY Ủ ĐỌC BI (20 PHÚT)" : "KẾ THỪA ĐẦU NGÀY" 
+            } 
         };
+        
         p.push(
             db.collection("phieuGiaoNhan").doc(cb.value).update({ 
-                status: "DANG_HAP", batchCode: batchCode, ngayHapRealtime: ngayHomNay, hasBI: coKemBI, thoiGianKetThucChuTrinh: thoiGianDuKienXong.toISOString(), thongTinLoHap: thongTinLo 
+                status: "DANG_HAP", 
+                batchCode: batchCode, 
+                ngayHapRealtime: ngayHomNay, 
+                hasBI: coKemBI, 
+                thoiGianKetThucChuTrinh: thoiGianDuKienXong.toISOString(), 
+                thongTinLoHap: thongTinLo 
             })
         ); 
     }); 
+
     Promise.all(p).then(() => { 
         playSound('success');
         showToast(`Kích hoạt lò thành công! Lô: ${batchCode}`, "success"); 
         if(document.getElementById("hap_hasBI")) document.getElementById("hap_hasBI").checked = false; 
-        duLieuAnhBiTamBase64 = ""; const fileInp = document.getElementById("input_anhBI"); if(fileInp) fileInp.value = ""; 
-        tuDongTaoMaLoMeHap(); callRender(); 
+        duLieuAnhBiTamBase64 = ""; 
+        const fileInp = document.getElementById("input_anhBI"); 
+        if(fileInp) fileInp.value = ""; 
+        tuDongTaoMaLoMeHap(); 
+        callRender(); 
+    }).catch(err => {
+        showToast("Lỗi khi cập nhật mẻ hấp: " + err.message, "error");
     }); 
 }
 
@@ -1184,9 +1212,10 @@ function renderTheoTabHienTai() {
             bodyChoHap.innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold text-xs">${i.bo}</td><td class="p-3 text-right font-mono text-xs font-bold text-sky-700">${i.maMacDinh}</td></tr>`).join(''); 
         }
 
-        // CỘT 2: PHÊ DUYỆT - CHẤP NHẬN VÔ KHO (Hiển thị các mâm/khay đang ở trạng thái DANG_HAP)
+        // CỘT 2: PHÊ DUYỆT - CHẤP NHẬN VÔ KHO (Khắc phục lỗi lệch ID HTML có dấu / không dấu)
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); 
-        let bodyChoNghiemThu = document.getElementById("bangChoNghiemThu");
+        let bodyChoNghiemThu = document.getElementById("bangChoNghiệmThu") || document.getElementById("bangChoNghiemThu");
+        
         if(bodyChoNghiemThu) { 
             if (lsNT.length === 0) {
                 bodyChoNghiemThu.innerHTML = `<tr><td colspan="2" class="p-4 text-center text-slate-400 italic">Không có mâm/mẻ nào đang trong lò chờ duyệt.</td></tr>`;
