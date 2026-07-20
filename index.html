@@ -183,7 +183,7 @@
                                     <tbody id="bangGioHang" class="divide-y divide-slate-100 text-slate-700 font-medium"></tbody>
                                 </table>
                             </div>
-                            <button id="btnXacNhanGoi" onclick="khoaGuiPhieuTraBatches()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-xl text-xs shadow-md transition-all uppercase tracking-wider"><i class="fa-solid fa-bell mr-1.5"></i> PHÁT LỆNH THU GOM ĐỒ BẨN</button>
+                            <button id="btn-XacNhanGoi" onclick="khoaGuiPhieuTraBatches()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-3 rounded-xl text-xs shadow-md transition-all uppercase tracking-wider"><i class="fa-solid fa-bell mr-1.5"></i> PHÁT LỆNH THU GOM ĐỒ BẨN</button>
                         </div>
                     </div>
 
@@ -426,7 +426,7 @@
                                 <table class="w-full text-left">
                                     <thead class="sticky top-0 bg-amber-100 shadow-sm z-10 border-b border-amber-200">
                                         <tr>
-                                            <th class="p-2.5 w-12 text-center">
+                                            <th class="p-3 w-12 text-center">
                                                 <input type="checkbox" id="selectAllNghiemThuRua" onchange="toggleSelectAllNghiemThuRua()" class="w-4 h-4 text-amber-600 rounded focus:ring-amber-500">
                                             </th>
                                             <th class="p-2 text-xs font-black text-slate-700">Mâm dụng cụ đang trong buồng máy</th>
@@ -1140,9 +1140,15 @@
             }
         }
         
+        // Đồng bộ thời gian thực cho cả đồng hồ TV và đồng hồ Header chính
         setInterval(() => {
-            const el = document.getElementById('tv_clock');
-            if(el) el.innerText = "THỜI GIAN THỰC: " + new Date().toLocaleString('vi-VN');
+            const timeString = new Date().toLocaleString('vi-VN');
+            
+            const tvClock = document.getElementById('tv_clock');
+            if(tvClock) tvClock.innerText = "THỜI GIAN THỰC: " + timeString;
+
+            const mainClock = document.getElementById('clock');
+            if(mainClock) mainClock.innerText = "THỜI GIAN: " + timeString;
         }, 1000);
     </script>
     <script src="app.js"></script>
