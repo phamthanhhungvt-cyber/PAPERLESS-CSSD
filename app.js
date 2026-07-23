@@ -795,7 +795,7 @@ function duyetCapPhatTậpTrung(yeuCauId, tenBo, khoaNhan) {
 }
 
 // =========================================================================
-// XỬ LÝ KÝ CHỮ KÝ ĐIỆN TỬ TRỰC TIẾP TRÊN CANVAS
+// XỬ LÝ KÝ CHỮ KÝ ĐIỆN TỬ TRỰC TIẾP TRÊN CANVAS & CẬP NHẬT KHOA
 // =========================================================================
 function khoiTaoCanvasKyDienTu() {
     canvasSignature = document.getElementById("canvasKyDienTu");
@@ -877,7 +877,7 @@ function khoaKyNhanDoSachDienTu() {
             xoaChuKyCanvas();
         }, 100);
     } else {
-        // Fallback trường hợp chưa thêm popup vào HTML
+        // Fallback trường hợp chưa mở popup
         const khoaDangNhap = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa") ? document.getElementById("khoa_selKhoa").value : "");
         if (confirm(`Xác nhận nhận ${dsIdKhayChoKyNhan.length} mâm về khoa ${khoaDangNhap}?`)) {
             let p = [];
@@ -906,7 +906,18 @@ function luuXacNhanKyNhan() {
     }
 
     const chuoiAnhChuKy = canvasSignature ? canvasSignature.toDataURL("image/png") : "";
+    const currentKhoa = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa")?.value || "KHOA_LAM_SANG");
+    const thoiGianKy = new Date().toLocaleString('vi-VN');
 
+    // 1. Lưu chữ ký gần nhất vào localStorage theo Khoa
+    const dataSignature = {
+        tenNguoiNhan: tenNguoiNhan,
+        chuKyImg: chuoiAnhChuKy,
+        timeKy: thoiGianKy
+    };
+    localStorage.setItem(`signature_${currentKhoa}`, JSON.stringify(dataSignature));
+
+    // 2. Cập nhật trạng thái từng mâm vào Cloud Firestore
     let p = [];
     dsIdKhayChoKyNhan.forEach(idDoc => {
         p.push(
@@ -1097,10 +1108,35 @@ function inTemNghiemThuHangLoat() {
     }, 300); 
 }
 
-// In Biên bản giao nhận khổ A4 máy in văn phòng
+// In Biên bản giao nhận khổ A4 máy in văn phòng (Có hỗ trợ chữ ký điện tử)
 function inHoaDonGiaoNhan() {
-    const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Chọn Khoa trước!", "error");
+    const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
+    if (!k) return showToast("Chọn Khoa trước!", "error");
     
+    // Tìm chữ ký điện tử mới nhất từ Firestore hoặc localStorage
+    const itemKyGầnNhat = listGiaoDich.find(x => x.khoa === k && x.anhChuKyNhanBase64);
+    const savedSignature = JSON.parse(localStorage.getItem(`signature_${k}`) || "null");
+
+    let htmlChuKyDieuDuong = `<p style="font-weight:normal; font-style:italic; color:#64748b; margin-top:60px;">(Ký và ghi rõ họ tên)</p>`;
+    
+    if (itemKyGầnNhat && itemKyGầnNhat.anhChuKyNhanBase64) {
+        htmlChuKyDieuDuong = `
+            <div style="text-align:center; margin-top:10px;">
+                <img src="${itemKyGầnNhat.anhChuKyNhanBase64}" style="max-height:75px; margin:0 auto; display:block;" alt="Chữ ký"/>
+                <p style="font-weight:bold; margin-top:5px; text-transform:uppercase; color:#0f172a;">${itemKyGầnNhat.nguoiKyNhanKhoa}</p>
+                <p style="font-size:10px; color:#64748b; font-weight:normal;">Xác nhận: ${itemKyGầnNhat.ngayKhoaNhanThucTe || ''} ${itemKyGầnNhat.timeKhoaNhanThucTe || ''}</p>
+            </div>
+        `;
+    } else if (savedSignature && savedSignature.chuKyImg) {
+        htmlChuKyDieuDuong = `
+            <div style="text-align:center; margin-top:10px;">
+                <img src="${savedSignature.chuKyImg}" style="max-height:75px; margin:0 auto; display:block;" alt="Chữ ký"/>
+                <p style="font-weight:bold; margin-top:5px; text-transform:uppercase; color:#0f172a;">${savedSignature.tenNguoiNhan}</p>
+                <p style="font-size:10px; color:#64748b; font-weight:normal;">Xác nhận: ${savedSignature.timeKy}</p>
+            </div>
+        `;
+    }
+
     let htmlBang = `
         <table style="width:100%; border-collapse:collapse; margin-top:20px; font-size:13px; text-align:left; font-family:Arial, sans-serif;">
             <thead>
@@ -1142,14 +1178,14 @@ function inHoaDonGiaoNhan() {
                 <p style="margin:8px 0 0 0; font-size:13px; font-weight:bold;">Khoa/Phòng: <span style="text-transform:uppercase; color:#0284c7;">${k}</span> - Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}</p>
             </div>
             ${htmlBang}
-            <div style="margin-top:50px; display:flex; justify-content:space-between; font-size:12px; font-weight:bold; padding:0 30px;">
-                <div style="text-align:center; width:40%;">
-                    <p style="margin-bottom:70px; text-transform:uppercase;">ĐIỀU DƯỠNG LÂM SÀNG</p>
-                    <p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p>
+            <div style="margin-top:40px; display:flex; justify-content:space-between; font-size:12px; font-weight:bold; padding:0 30px;">
+                <div style="text-align:center; width:45%;">
+                    <p style="margin-bottom:10px; text-transform:uppercase;">ĐIỀU DƯỠNG LÂM SÀNG</p>
+                    ${htmlChuKyDieuDuong}
                 </div>
-                <div style="text-align:center; width:40%;">
-                    <p style="margin-bottom:70px; text-transform:uppercase;">CHUYÊN VIÊN CSSD</p>
-                    <p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p>
+                <div style="text-align:center; width:45%;">
+                    <p style="margin-bottom:10px; text-transform:uppercase;">CHUYÊN VIÊN CSSD</p>
+                    <p style="font-weight:normal; font-style:italic; color:#64748b; margin-top:60px;">(Ký và ghi rõ họ tên)</p>
                 </div>
             </div>
         </div>`;
