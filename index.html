@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL</title>
+    <title>PHUONG NAM HOSPITAL - CSSD PLATFORM</title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,7 +17,7 @@
     <!-- JsBarcode & Html5-QRCode Library -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- SheetJS (XLSX) for Excel Reading -->
+    <!-- SheetJS (XLSX) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -35,14 +35,12 @@
             display: none !important;
         }
         
-        /* Cấu hình in ấn chuyên dụng */
         @media print {
             body * { visibility: hidden; }
             #print-zone, #print-zone * { visibility: visible; }
             #print-zone { position: absolute; left: 0; top: 0; width: 100%; }
         }
         
-        /* Cấu hình in tem Bixolon 80mm x 50mm */
         .print-mode-bixolon .bixolon-label {
             width: 80mm;
             height: 50mm;
@@ -53,60 +51,60 @@
             color: #000;
         }
         
-        /* Cấu hình in tài liệu / biên bản A4 */
         .print-mode-doc #print-zone {
             padding: 20px;
             background: #fff;
         }
     </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen">
+<body class="bg-[#1e293b] font-sans text-slate-800 antialiased min-h-screen">
 
     <!-- ========================================================================= -->
-    <!-- 1. MÀN HÌNH ĐĂNG NHẬP -->
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP (KHÔI PHỤC PHONG CÁCH GỐC & THÊM ENTER LOG IN) -->
     <!-- ========================================================================= -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 border border-slate-100">
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sky-100 text-sky-600 mb-3 text-2xl">
-                    <i class="fa-solid fa-hospital-user"></i>
-                </div>
-                <h1 class="text-xl font-black text-slate-800 tracking-tight">PHUONG NAM HOSPITAL</h1>
-                <p class="text-xs font-bold text-sky-600 uppercase tracking-widest mt-0.5">Hệ Thống Số Hóa Quản Lý CSSD</p>
+    <div id="login-screen" class="fixed inset-0 bg-[#252b3b] z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 text-center border border-slate-100">
+            
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-sky-100 text-sky-600 mb-4 text-2xl">
+                <i class="fa-solid fa-hospital-user"></i>
             </div>
+            
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight uppercase mb-1">PHUONG NAM</h1>
+            <p class="text-xs font-bold text-sky-700 uppercase tracking-widest mb-6">CSSD PLATFORM</p>
 
-            <div class="space-y-4">
+            <div class="space-y-4 text-left">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">VAI TRÒ TRUY CẬP</label>
-                    <select id="login_role" onchange="toggleLoginFields()" class="w-full border border-slate-300 rounded-lg p-3 text-sm font-bold focus:ring-2 focus:ring-sky-500 outline-none">
+                    <label class="block text-[11px] font-black text-slate-500 uppercase mb-1">VAI TRÒ TRUY CẬP:</label>
+                    <select id="login_role" onchange="toggleLoginFields()" class="w-full border-2 border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-800 focus:border-sky-500 outline-none">
                         <option value="ADMIN">👑 VAI TRÒ QUANTRI (ADMIN)</option>
                         <option value="CSSD">🧪 NHÂN VIÊN VẬN HÀNH CSSD</option>
-                        <option value="KHOA">🏥 KHOA / PHÒNG LÂM SÀNG</option>
+                        <option value="KHOA">🏥 Điều Dưỡng Lâm Sàng</option>
                         <option value="GUEST">👁️ KHÁCH THAM QUAN (GUEST)</option>
                     </select>
                 </div>
 
                 <div id="field_khoa" class="hidden">
-                    <label class="block text-xs font-bold text-slate-600 mb-1">CHỌN KHOA / PHÒNG</label>
-                    <select id="login_khoa" class="w-full border border-slate-300 rounded-lg p-3 text-sm font-bold focus:ring-2 focus:ring-sky-500 outline-none">
+                    <label class="block text-[11px] font-black text-slate-500 uppercase mb-1">KHOA PHÒNG:</label>
+                    <select id="login_khoa" class="w-full border-2 border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-800 focus:border-sky-500 outline-none">
                         <option value="">-- Chọn Khoa --</option>
                     </select>
                 </div>
 
                 <div id="field_nhanvien_cssd" class="hidden">
-                    <label class="block text-xs font-bold text-slate-600 mb-1">NHÂN VIÊN CSSD KÍCH HOẠT</label>
-                    <select id="login_nv_cssd" class="w-full border border-slate-300 rounded-lg p-3 text-sm font-bold focus:ring-2 focus:ring-sky-500 outline-none">
+                    <label class="block text-[11px] font-black text-slate-500 uppercase mb-1">NHÂN VIÊN CSSD:</label>
+                    <select id="login_nv_cssd" class="w-full border-2 border-slate-200 rounded-xl p-3 text-sm font-bold text-slate-800 focus:border-sky-500 outline-none">
                         <option value="">-- Chọn KTV CSSD --</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">MÃ PIN XÁC THỰC</label>
-                    <input type="password" id="login_pass" placeholder="••••••••" class="w-full border border-slate-300 rounded-lg p-3 text-sm font-mono font-bold focus:ring-2 focus:ring-sky-500 outline-none">
+                    <label class="block text-[11px] font-black text-slate-500 uppercase mb-1">MÃ PIN XÁC THỰC:</label>
+                    <!-- Thêm event listener Enter tại đây -->
+                    <input type="password" id="login_pass" onkeydown="if(event.key==='Enter') checkLogin()" placeholder="••••" class="w-full border-2 border-slate-200 rounded-xl p-3 text-center text-lg font-mono font-bold focus:border-sky-500 outline-none">
                 </div>
 
-                <button onclick="checkLogin()" class="w-full bg-sky-600 hover:bg-sky-700 active:scale-[0.99] text-white font-black py-3 rounded-lg shadow-lg text-sm tracking-wider uppercase transition-all mt-2">
-                    Xác Nhận Đăng Nhập
+                <button onclick="checkLogin()" class="w-full bg-[#0284c7] hover:bg-sky-700 active:scale-[0.98] text-white font-black py-3.5 rounded-xl shadow-lg text-sm tracking-wider uppercase transition-all mt-2">
+                    TRUY CẬP
                 </button>
             </div>
         </div>
@@ -115,15 +113,14 @@
     <!-- ========================================================================= -->
     <!-- 2. GIAO DIỆN CHÍNH UNIFIED APPLICATION -->
     <!-- ========================================================================= -->
-    <div id="main-app" class="hidden min-h-screen flex flex-col md:flex-row">
+    <div id="main-app" class="hidden min-h-screen flex flex-col md:flex-row bg-slate-100">
         
-        <!-- Sidebar Navigation -->
-        <aside id="sidebar_menu" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out flex flex-col justify-between shadow-2xl">
+        <!-- Sidebar Navigation (Nền tối chuẩn Dark Theme gốc) -->
+        <aside id="sidebar_menu" class="fixed inset-y-0 left-0 z-40 w-64 bg-[#0f172a] text-slate-300 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out flex flex-col justify-between shadow-2xl">
             <div>
-                <!-- Brand Banner -->
                 <div class="p-4 border-b border-slate-800 flex items-center justify-between">
                     <div>
-                        <div class="text-xs font-black text-sky-400 tracking-wider">PN HOSPITAL</div>
+                        <div class="text-[11px] font-black text-sky-400 tracking-wider">PN HOSPITAL</div>
                         <div class="text-sm font-extrabold text-white">CSSD DIGITAL WORKFLOW</div>
                     </div>
                     <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white">
@@ -131,15 +128,12 @@
                     </button>
                 </div>
 
-                <!-- Navigation Links -->
                 <nav class="p-3 space-y-1 text-xs font-semibold overflow-y-auto max-h-[calc(100vh-140px)]">
-                    <!-- Section: Cổng Lâm Sàng -->
                     <div id="header-lamsang" class="text-[10px] font-black text-slate-500 uppercase px-3 pt-3 pb-1">Cổng Lâm Sàng</div>
                     <button id="menu-khoaphong" onclick="switchTab('khoaphong')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-hospital-user w-4 text-sky-400"></i><span>Cổng Báo Trả & Nhận Đồ</span>
                     </button>
 
-                    <!-- Section: Vận Hành CSSD -->
                     <div id="header-vanhanh" class="text-[10px] font-black text-slate-500 uppercase px-3 pt-3 pb-1">Trạm Vận Hành CSSD</div>
                     <button id="menu-thugom" onclick="switchTab('thugom')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-truck-pickup w-4 text-sky-400"></i><span>Xe Thu Gom & Đổi Soát</span>
@@ -157,7 +151,6 @@
                         <i class="fa-solid fa-warehouse w-4 text-sky-400"></i><span>Kho Vô Khuẩn & Xuất Đồ</span>
                     </button>
 
-                    <!-- Section: Dữ Liệu & Giám Sát -->
                     <div id="header-dulieu" class="text-[10px] font-black text-slate-500 uppercase px-3 pt-3 pb-1">Dữ Liệu & Báo Cáo</div>
                     <button id="menu-quanlykho" onclick="switchTab('quanlykho')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-800 transition-colors">
                         <i class="fa-solid fa-boxes-stacked w-4 text-sky-400"></i><span>Tồn Kho Toàn Viện</span>
@@ -180,11 +173,10 @@
                 </nav>
             </div>
 
-            <!-- User Info Footer -->
             <div class="p-3 border-t border-slate-800 bg-slate-950">
                 <div class="flex items-center justify-between">
                     <div class="truncate">
-                        <div class="text-[10px] text-slate-500 font-bold uppercase">Đang Đăng Nhập</div>
+                        <div class="text-[10px] text-slate-500 font-bold uppercase">ĐANG ĐĂNG NHẬP</div>
                         <div id="nav_user_info" class="text-xs font-black text-sky-400 truncate">ADMINISTRATOR</div>
                     </div>
                     <button onclick="location.reload()" class="p-2 text-slate-400 hover:text-rose-400 transition-colors" title="Đăng xuất">
@@ -197,7 +189,6 @@
         <!-- Main Content Zone -->
         <main class="flex-1 md:ml-64 p-4 sm:p-6 lg:p-8">
             
-            <!-- Mobile Topbar Header -->
             <div class="md:hidden mb-4 flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-slate-200">
                 <button onclick="toggleMobileMenu()" class="p-2 text-slate-700">
                     <i class="fa-solid fa-bars text-lg"></i>
@@ -206,9 +197,7 @@
                 <span class="w-8"></span>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 1: KHOA PHÒNG LÂM SÀNG -->
-            <!-- ========================================================================= -->
+            <!-- TAB 1: KHOA PHÒNG -->
             <div id="tab-khoaphong" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b">
@@ -227,11 +216,10 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Quét Mâm Bẩn -->
                         <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <h3 class="font-black text-xs text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-barcode mr-1.5 text-sky-600"></i>Nhập / Quét Mã Mâm Bẩn</h3>
                             <div class="flex gap-2">
-                                <input type="text" id="khoa_inpMaBo" list="listBoDungCu" placeholder="Chọn hoặc quét mã mâm..." class="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs font-bold uppercase focus:ring-2 focus:ring-sky-500 outline-none">
+                                <input type="text" id="khoa_inpMaBo" list="listBoDungCu" onkeydown="if(event.key==='Enter') themVaoGio()" placeholder="Chọn hoặc quét mã mâm..." class="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs font-bold uppercase focus:ring-2 focus:ring-sky-500 outline-none">
                                 <datalist id="listBoDungCu"></datalist>
                                 <button onclick="moCamera('khoa_inpMaBo')" class="bg-sky-600 text-white p-2.5 rounded-lg hover:bg-sky-700" title="Quét Cam">
                                     <i class="fa-solid fa-camera"></i>
@@ -246,7 +234,6 @@
                                 </button>
                             </div>
 
-                            <!-- Giỏ hàng tạm -->
                             <div id="khuVucGioHang" class="hidden pt-3 border-t border-slate-200">
                                 <div class="flex justify-between items-center mb-2">
                                     <span class="text-xs font-bold text-slate-600">Giỏ Báo Trả Tạm:</span>
@@ -261,7 +248,6 @@
                             </div>
                         </div>
 
-                        <!-- Bảng Công Nợ Luân Chuyển -->
                         <div class="lg:col-span-2 space-y-4">
                             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                                 <div class="bg-slate-800 text-white p-3 text-xs font-black uppercase tracking-wider flex justify-between items-center">
@@ -285,9 +271,7 @@
                         </div>
                     </div>
 
-                    <!-- Danh Sách Chờ Nhận Vô Khuẩn & Yêu Cầu Cấp Phát -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t">
-                        <!-- Xe Trung Chuyển Giao Lên -->
                         <div class="bg-purple-50/50 border border-purple-200 p-4 rounded-xl space-y-3">
                             <div class="flex justify-between items-center">
                                 <h3 class="font-black text-xs text-purple-900 uppercase"><i class="fa-solid fa-truck-ramp-box mr-1.5"></i>Đang Vận Chuyển Về Khoa</h3>
@@ -313,7 +297,6 @@
                             </button>
                         </div>
 
-                        <!-- Yêu Cầu Cấp Phát Đang Chờ -->
                         <div class="bg-amber-50/50 border border-amber-200 p-4 rounded-xl space-y-3">
                             <h3 class="font-black text-xs text-amber-900 uppercase"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i>Trạng Thái Yêu Cầu Cấp Mới</h3>
                             <div class="overflow-x-auto bg-white rounded-lg border border-amber-200 max-h-56">
@@ -334,9 +317,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 2: XE THU GOM & ĐỐI SOÁT KIỂM ĐẾM -->
-            <!-- ========================================================================= -->
+            <!-- TAB 2: THU GOM -->
             <div id="tab-thugom" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b">
@@ -368,9 +349,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 3: QUẢN LÝ MẺ RỬA BELIMED WD250 -->
-            <!-- ========================================================================= -->
+            <!-- TAB 3: MÁY RỬA -->
             <div id="tab-mayrua" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b">
@@ -382,7 +361,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Cấu hình chạy mẻ rửa -->
                         <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <h3 class="font-black text-xs text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-sliders mr-1 text-sky-600"></i>Cấu Hình Mẻ Máy Rửa</h3>
                             <div>
@@ -430,7 +408,6 @@
                             </button>
                         </div>
 
-                        <!-- Danh sách mâm chờ xếp buồng rửa -->
                         <div class="lg:col-span-2 space-y-4">
                             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                                 <div class="bg-slate-800 text-white p-3 text-xs font-black uppercase flex justify-between items-center">
@@ -453,7 +430,6 @@
                                 </div>
                             </div>
 
-                            <!-- Nghiệm thu mẻ rửa đang chạy -->
                             <div class="bg-sky-50/50 border border-sky-200 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-black text-xs text-sky-900 uppercase"><i class="fa-solid fa-check-double mr-1"></i>Nghiệm Thu Mẻ Đang Trong Buồng Rửa</h3>
@@ -480,7 +456,6 @@
                         </div>
                     </div>
 
-                    <!-- Nhật ký mẻ rửa trong ngày -->
                     <div class="pt-4 border-t">
                         <h3 class="font-black text-xs text-slate-700 uppercase mb-3"><i class="fa-solid fa-receipt mr-1"></i>Mẻ Rửa Đã Chạy Trong Ngày</h3>
                         <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -492,9 +467,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 4: LÀM SẠCH VÀ ĐÓNG GÓI -->
-            <!-- ========================================================================= -->
+            <!-- TAB 4: ĐÓNG GÓI -->
             <div id="tab-donggoi" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -509,9 +482,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 5: VẬN HÀNH MẺ HẤP & DUYỆT NHẬP KHO -->
-            <!-- ========================================================================= -->
+            <!-- TAB 5: MÁY HẤP -->
             <div id="tab-mayhap" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b">
@@ -523,7 +494,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Cấu hình lò tiệt trùng -->
                         <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
                             <h3 class="font-black text-xs text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-fire-burner mr-1 text-sky-600"></i>Thông Số Thiết Bị Hấp</h3>
                             <div>
@@ -575,7 +545,6 @@
                             </div>
                         </div>
 
-                        <!-- Hàng đợi chờ đóng lò & Nghiệm thu -->
                         <div class="lg:col-span-2 space-y-4">
                             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
                                 <div class="bg-slate-800 text-white p-3 text-xs font-black uppercase flex justify-between items-center">
@@ -591,7 +560,6 @@
                                 </div>
                             </div>
 
-                            <!-- Nghiệm Thu Mẻ Hấp Hoàn Tất -->
                             <div class="bg-purple-50/50 border border-purple-200 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-black text-xs text-purple-900 uppercase"><i class="fa-solid fa-vial-circle-check mr-1"></i>Nghiệm Thu Mẻ Hấp Đang Chạy Lò</h3>
@@ -626,7 +594,6 @@
                         </div>
                     </div>
 
-                    <!-- Lịch sử các mẻ hấp trong ngày -->
                     <div class="pt-4 border-t">
                         <h3 class="font-black text-xs text-slate-700 uppercase mb-3"><i class="fa-solid fa-clock-history mr-1"></i>Nhật Ký Các Mẻ Hấp Trong Ngày</h3>
                         <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -638,9 +605,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 6: KHO VÔ KHUẨN & PHỐI HỢP CẤP PHÁT -->
-            <!-- ========================================================================= -->
+            <!-- TAB 6: KHO VÔ KHUẨN -->
             <div id="tab-khovokhuan" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b">
@@ -653,14 +618,13 @@
                                 <option value="">-- Chọn Khoa Muốn Trả Đồ --</option>
                             </select>
                             <div class="flex gap-1">
-                                <input type="text" id="xuat_inpMaBo" placeholder="Quét/Nhập mã khay xuất..." class="border border-slate-300 rounded-lg p-2 text-xs font-mono font-bold uppercase outline-none">
+                                <input type="text" id="xuat_inpMaBo" onkeydown="if(event.key==='Enter') xuatKhoXoayVong()" placeholder="Quét/Nhập mã khay xuất..." class="border border-slate-300 rounded-lg p-2 text-xs font-mono font-bold uppercase outline-none">
                                 <button onclick="xuatKhoXoayVong()" class="bg-sky-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-sky-700">Xuất</button>
                                 <button onclick="moCamera('xuat_inpMaBo')" class="bg-slate-800 text-white p-2 rounded-lg" title="Quét Cam"><i class="fa-solid fa-camera"></i></button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Bảng Kho Vô Khuẩn Hiện Tại -->
                     <div class="overflow-x-auto border border-slate-200 rounded-xl">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -679,9 +643,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 7: TỒN KHO TOÀN VIỆN -->
-            <!-- ========================================================================= -->
+            <!-- TAB 7: TỒN KHO -->
             <div id="tab-quanlykho" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -712,9 +674,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 8: DANH MỤC CƠ SỐ LINH KIỆN MÂM -->
-            <!-- ========================================================================= -->
+            <!-- TAB 8: DANH MỤC LINH KIỆN -->
             <div id="tab-danhmuc" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -758,9 +718,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 9: NHẬT KÝ LUÂN CHUYỂN TOÀN VIỆN -->
-            <!-- ========================================================================= -->
+            <!-- TAB 9: NHẬT KÝ LUÂN CHUYỂN -->
             <div id="tab-lichsuluanchuyen" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -789,9 +747,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 10: TRUY XUẤT MẺ HẤP TIỆT TRÙNG (TRACEABILITY) -->
-            <!-- ========================================================================= -->
+            <!-- TAB 10: TRUY XUẤT -->
             <div id="tab-tracuu" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b">
@@ -802,7 +758,7 @@
                     </div>
 
                     <div class="flex gap-2 max-w-xl mb-6">
-                        <input type="text" id="inp_searchBatch" placeholder="Nhập mã lô hấp (VD: A1260328_01)..." class="flex-1 border border-slate-300 rounded-lg p-3 text-xs font-mono font-bold uppercase focus:ring-2 focus:ring-sky-500 outline-none">
+                        <input type="text" id="inp_searchBatch" onkeydown="if(event.key==='Enter') truyVetTheoMaBatch()" placeholder="Nhập mã lô hấp (VD: A1260328_01)..." class="flex-1 border border-slate-300 rounded-lg p-3 text-xs font-mono font-bold uppercase focus:ring-2 focus:ring-sky-500 outline-none">
                         <button onclick="truyVetTheoMaBatch()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-5 py-3 rounded-lg text-xs uppercase shadow">
                             Tra Cứu Khẩn Cấp
                         </button>
@@ -829,9 +785,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 11: HIỆU SUẤT KPI ĐỌC BI 30 PHÚT -->
-            <!-- ========================================================================= -->
+            <!-- TAB 11: PERFORMANCE KPI -->
             <div id="tab-performance" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b">
@@ -857,9 +811,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- TAB 12: DASHBOARD TIVI TRUNG TÂM -->
-            <!-- ========================================================================= -->
+            <!-- TAB 12: DASHBOARD TV -->
             <div id="tab-dashboard_tv" class="space-y-6 hidden">
                 <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-2xl space-y-6">
                     <div class="flex justify-between items-center pb-4 border-b border-slate-800">
@@ -908,9 +860,7 @@
                 </div>
             </div>
 
-            <!-- ========================================================================= -->
-            <!-- CẤU HÌNH ADMIN MODULE (SUBTAB SYSTEM & SECURITY) -->
-            <!-- ========================================================================= -->
+            <!-- ADMIN SUBTAB MODULE -->
             <div id="tab-admin" class="space-y-6 hidden">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex border-b border-slate-200 mb-6 gap-6 text-sm font-bold">
@@ -918,7 +868,6 @@
                         <button id="subbtn-security" onclick="switchAdminSubtab('security')" class="pb-2 text-slate-600">Cấu Hình PIN & Phân Quyền</button>
                     </div>
 
-                    <!-- Subtab 1: Nạp Excel -->
                     <div id="subtab-database" class="space-y-4">
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                             <h3 class="font-black text-xs text-slate-700 uppercase">Nạp File Cấu Hình Định Biên & Linh Kiện Aesculap (.xlsx)</h3>
@@ -937,9 +886,7 @@
                         </div>
                     </div>
 
-                    <!-- Subtab 2: Security & Permissions -->
                     <div id="subtab-security" class="space-y-6 hidden">
-                        <!-- Đổi PIN -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="p-3 bg-slate-50 border rounded-lg space-y-2">
                                 <label class="block text-xs font-bold">PIN Administrator</label>
@@ -964,7 +911,6 @@
                             </div>
                         </div>
 
-                        <!-- Ma trận phân quyền -->
                         <div>
                             <h3 class="font-black text-xs text-slate-700 uppercase mb-2">Ma Trận Cấu Hình Truy Cập Tab</h3>
                             <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -982,7 +928,6 @@
                             </div>
                         </div>
 
-                        <!-- Quản lý KTV CSSD & PIN Khoa -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
                             <div>
                                 <div class="flex justify-between items-center mb-2">
@@ -1010,14 +955,11 @@
         </main>
     </div>
 
-    <!-- Overlay Mobile Navigation -->
+    <!-- Overlay Mobile -->
     <div id="mobile-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden"></div>
 
-    <!-- ========================================================================= -->
-    <!-- MODALS & POPUPS HE THONG -->
-    <!-- ========================================================================= -->
-
-    <!-- Modal 1: Kiểm Đếm Chi Tiết Linh Kiện (Thu Gom) -->
+    <!-- POPUPS -->
+    <!-- Popup 1: Kiểm Đếm -->
     <div id="popupKiemDem" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-6 space-y-4 border border-slate-100 max-h-[90vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b">
@@ -1030,7 +972,6 @@
                 </button>
             </div>
 
-            <!-- List Linh Kiện Checkbox -->
             <div id="popKiemDemChecklist" class="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100"></div>
 
             <div class="space-y-2 pt-2 border-t">
@@ -1049,7 +990,7 @@
         </div>
     </div>
 
-    <!-- Modal 2: Popup Đóng Gói -->
+    <!-- Popup 2: Đóng Gói -->
     <div id="popupDongGoi" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-100">
             <div class="flex justify-between items-center pb-3 border-b">
@@ -1085,7 +1026,7 @@
         </div>
     </div>
 
-    <!-- Modal 3: Ký Chữ Ký Điện Tử Trên Canvas -->
+    <!-- Popup 3: Ký Điện Tử -->
     <div id="popupKyDienTu" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-100">
             <div class="flex justify-between items-center pb-2 border-b">
@@ -1123,7 +1064,7 @@
         </div>
     </div>
 
-    <!-- Modal 4: Quét Camera Barcode / QR Code -->
+    <!-- Popup 4: Scanner -->
     <div id="popupScanner" class="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4 text-center">
             <div class="flex justify-between items-center pb-2 border-b">
@@ -1141,10 +1082,9 @@
         </div>
     </div>
 
-    <!-- Zone In Ấn Ẩn (Bixolon Label & A4 Report) -->
+    <!-- Zone In Ấn -->
     <div id="print-zone" class="hidden"></div>
 
-    <!-- File app.js chứa logic xử lý -->
     <script src="app.js"></script>
 </body>
 </html>
