@@ -1028,7 +1028,7 @@ function inTemBixolonChuan(itemData) {
     const tenKhoa = itemData.khoa || "TẬP TRUNG";
 
     pZone.innerHTML = `
-        <div class="bixolon-label" style="font-family: Arial, sans-serif;">
+        <div class="bixolon-label" style="font-family: Arial, sans-serif; color: #000000; width: 80mm; height: 50mm; padding: 2.5mm 4mm; box-sizing: border-box; text-align: center;">
             <div style="text-align: center; border-bottom: 1.5px solid #000; padding-bottom: 2px;">
                 <div style="font-size: 10px; font-weight: bold; text-transform: uppercase;">PHUONG NAM HOSPITAL - CSSD</div>
                 <div style="font-size: 12px; font-weight: 900; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${tenBo}</div>
@@ -1038,14 +1038,17 @@ function inTemBixolonChuan(itemData) {
                 <svg id="bixolon-single-barcode"></svg>
             </div>
 
-            <div style="font-size: 9px; border-top: 1px dashed #000; padding-top: 2px;">
-                <div style="display: flex; justify-content: space-between; font-weight: bold;">
-                    <span>LÔ: ${maBatch}</span>
-                    <span>KHOA: ${tenKhoa}</span>
+            <div style="font-size: 9.5px; border-top: 1px solid #000; padding-top: 3px; margin-top: 2px;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 2px;">
+                    <span>SL: ${itemData.slThucTe || 1}</span>
+                    <span style="font-weight: 900;">[ĐẠT VÔ KHUẨN]</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 1px;">
+                <div style="display: flex; justify-content: space-between; font-weight: bold;">
                     <span>NSX: ${ngayNSX}</span>
-                    <span style="font-size: 10px; font-weight: 900;">HSD: ${ngayHSD}</span>
+                    <span>HSD: ${ngayHSD}</span>
+                </div>
+                <div style="text-align: center; font-size: 8.5px; font-weight: bold; font-family: monospace; margin-top: 2px;">
+                    BATCH: ${maBatch}
                 </div>
             </div>
         </div>
@@ -1080,8 +1083,24 @@ function inTemTongHangLoat() {
     checkboxes.forEach((cb) => { 
         let item = listGiaoDich.find(x => x.firestoreId === cb.value); 
         if(item) { 
-            let cleanBo = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; 
-            container.innerHTML += `<div class="bixolon-label" style="font-family: Arial; font-size: 11px; color: #000; background: #fff;"><div style="text-align: center; font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanBo}</div><div style="text-align: center; margin: 2px 0;"><svg id="barcode-lo-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span></div><div style="display: flex; justify-content: space-between; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px; margin-top: 2px;"><span>NSX: ${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 9px; font-family: monospace; font-weight: bold; margin-top: 1px;">Lô: ${batchCode}</div></div>`; 
+            let cleanBo = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A"; 
+            let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); 
+            let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; 
+            
+            container.innerHTML += `
+                <div class="bixolon-label" style="font-family: Arial; font-size: 11px; color: #000; background: #fff; width: 80mm; height: 50mm; padding: 2.5mm 4mm; box-sizing: border-box; text-align: center;">
+                    <div style="text-align: center; font-size: 9px; font-weight: bold; letter-spacing: 0.5px;">PN HOSPITAL - CSSD</div>
+                    <div style="text-align: center; font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanBo}</div>
+                    <div style="text-align: center; margin: 2px 0;"><svg id="barcode-lo-${item.firestoreId}"></svg></div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;">
+                        <span>SL: ${item.slThucTe || 1}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid #000; padding-top: 3px; font-size: 10px; margin-top: 2px; font-weight: bold;">
+                        <span>NSX: ${dateHapStr}</span>
+                        <span>HSD: ${dateHsdStr}</span>
+                    </div>
+                    <div style="text-align: center; font-size: 8.5px; font-family: monospace; font-weight: bold; margin-top: 2px;">BATCH: ${batchCode}</div>
+                </div>`; 
         } 
     }); 
 
@@ -1102,26 +1121,74 @@ function inTemTongHangLoat() {
     }, 300); 
 }
 
+// 🛑 HÀM ĐÃ ĐƯỢC CHỈNH TÁCH NGUYÊN KHỎANG TRẮNG & MÀU CHỮ IN NHIỆT ĐEN
 function inTemNghiemThuHangLoat() { 
-    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
-    let container = document.createElement('div'); container.className = "print-label-container"; container.style.width = "100%"; 
+    let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); 
+    if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
+    
+    let container = document.createElement('div'); 
+    container.className = "print-label-container"; 
+    container.style.width = "100%"; 
 
     checkboxes.forEach((cb) => { 
         let item = listGiaoDich.find(x => x.firestoreId === cb.value); 
         if(item) { 
-            let cleanBo = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; 
-            container.innerHTML += `<div class="bixolon-label" style="font-family: Arial; font-size: 11px; color: #000; background: #fff;"><div style="text-align: center; font-size: 9px; font-weight: bold; letter-spacing: 0.5px;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanBo}</div><div style="text-align: center; margin: 2px 0;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; border-top: 1px solid #000; padding-top: 3px; font-size: 10px; margin-top: 2px;"><span>NSX: ${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; font-family: monospace; margin-top: 1px;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; 
+            let cleanBo = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A"; 
+            let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); 
+            let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; 
+            
+            container.innerHTML += `
+                <div class="bixolon-label" style="font-family: Arial, sans-serif; font-size: 11px; color: #000000; background: #ffffff; width: 80mm; height: 50mm; padding: 2.5mm 4mm; box-sizing: border-box;">
+                    <div style="text-align: center; font-size: 9px; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;">
+                        PN HOSPITAL - CSSD
+                    </div>
+                    
+                    <div style="text-align: center; font-weight: 900; font-size: 13px; text-transform: uppercase; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                        ${cleanBo}
+                    </div>
+                    
+                    <div style="text-align: center; margin: 1px 0; width: 100%; display: flex; justify-content: center;">
+                        <svg id="barcode-nt-${item.firestoreId}"></svg>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px; width: 100%; color: #000000;">
+                        <span>SL: ${item.slThucTe || 1}</span>
+                        <span style="font-weight: 900;">[ĐẠT VÔ KHUẨN]</span>
+                    </div>
+                    
+                    <div style="width: 100%; border-top: 1px solid #000000; padding-top: 2px; margin-top: 1px; display: flex; justify-content: space-between; font-size: 10px; font-weight: bold; color: #000000;">
+                        <span>NSX: ${dateHapStr}</span>
+                        <span>HSD: ${dateHsdStr}</span>
+                    </div>
+                    
+                    <div style="text-align: center; font-size: 8.5px; font-weight: bold; font-family: monospace; margin-top: 1px; color: #000000;">
+                        BATCH: ${item.batchCode || 'N/A'}
+                    </div>
+                </div>`; 
         } 
     }); 
 
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); 
+    const pZone = document.getElementById("print-zone"); 
+    pZone.innerHTML = ""; 
+    pZone.appendChild(container); 
+    
     document.body.classList.remove("print-mode-doc");
     document.body.classList.add("print-mode-bixolon");
     pZone.classList.remove("hidden"); 
 
     checkboxes.forEach(cb => { 
         let item = listGiaoDich.find(x => x.firestoreId === cb.value); 
-        if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.4, height: 32, displayValue: true, fontSize: 10, margin: 2 }); } 
+        if(item) { 
+            let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; 
+            JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { 
+                format: "CODE128", 
+                width: 1.4, 
+                height: 32, 
+                displayValue: true, 
+                fontSize: 10, 
+                margin: 2 
+            }); 
+        } 
     }); 
 
     setTimeout(() => { 
