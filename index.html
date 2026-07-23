@@ -797,7 +797,7 @@
                                     <th class="p-3 text-center w-16">STT</th>
                                     <th class="p-3">Mã KTV</th>
                                     <th class="p-3">Họ Và Tên Kỹ Thuật Viên</th>
-                                    <th class="p-3 text-center">Tỷ Lệ Đạt KPI (< 30 Phút)</th>
+                                    <th class="p-3 text-center">Tỷ Lệ Đạt KPI (&lt; 30 Phút)</th>
                                 </tr>
                             </thead>
                             <tbody id="bangHieuSuatKTV"></tbody>
@@ -985,7 +985,7 @@
         </div>
     </div>
 
-    <!-- Popup 2: Đóng Gói -->
+    <!-- Popup 2: Đóng Gói (ĐÃ CẬP NHẬT QUY ĐỊNH VẬT LIỆU & HSD NỘI BỘ) -->
     <div id="popupDongGoi" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 border border-slate-200">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -999,9 +999,11 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">Loại Vật Liệu Bao Bọc</label>
                     <select id="popDG_Loai" onchange="tinhHanSuDung()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs font-bold outline-none bg-slate-50/50">
-                        <option value="Túi ép tiệt trùng Tyvek|180">Túi ép Tyvek (Hạn 180 Ngày)</option>
-                        <option value="Giấy gói tiệt trùng không dệt|30">Giấy gói không dệt SMS (Hạn 30 Ngày)</option>
-                        <option value="Container kim loại vô khuẩn|365">Container kim loại khóa Filter (Hạn 365 Ngày)</option>
+                        <option value="Vải (Hạn 7 Ngày)|7">a. Vải (Hạn 7 ngày)</option>
+                        <option value="Túi ép nhiệt độ cao (Hạn 30 Ngày)|30">b. Túi ép nhiệt độ cao (Hạn 30 ngày)</option>
+                        <option value="Hộp chuyên dụng (Hạn 90 Ngày)|90">c. Hộp chuyên dụng (Hạn 90 ngày)</option>
+                        <option value="Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 Ngày)|90">d. Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 ngày)</option>
+                        <option value="Giấy gói chuyên dụng (vải không dệt) (Hạn 30 Ngày)|30" selected>e. Giấy gói chuyên dụng (vải không dệt) (Hạn 30 ngày)</option>
                     </select>
                 </div>
                 <div class="p-3 bg-sky-50/60 border border-sky-200/80 rounded-lg flex justify-between items-center">
