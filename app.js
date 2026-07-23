@@ -14,11 +14,14 @@ const db = firebase.firestore();
 
 let thongTinMatKhauAdmin = { adminPIN: "admin2026", cssdPIN: "cssd2026", guestPIN: "guest2026" };
 let cauHinhGiaoDien = {
-    "ADMIN": ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'],
+    "ADMIN": ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv','admin'],
     "CSSD": ['thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','dashboard_tv'], 
     "KHOA": ['khoaphong','quanlykho','lichsuluanchuyen','tracuu'], 
     "GUEST": ['quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv']
 };
+
+// Danh sách tất cả các ID Tab trong hệ thống
+const ALL_SYSTEM_TABS = ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv','admin'];
 
 let currentRole = "", loginUserCode = "";
 let danhSachKhoa = [], listGiaoDich = [], gioHangTam = [], danhSachKtvCssd = [], databaseExcel = [];
@@ -167,7 +170,8 @@ function anTatCaHeadersVaMenus() {
     document.getElementById('header-lamsang')?.classList.add('hidden');
     document.getElementById('header-vanhanh')?.classList.add('hidden');
     document.getElementById('header-dulieu')?.classList.add('hidden');
-    ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => {
+    document.getElementById('header-hethong')?.classList.add('hidden');
+    ALL_SYSTEM_TABS.forEach(x => {
         document.getElementById('menu-' + x)?.classList.add('hidden');
     });
 }
@@ -175,12 +179,13 @@ function anTatCaHeadersVaMenus() {
 function apDungPhanQuyenGiaoDien(role) {
     anTatCaHeadersVaMenus();
     if (role === "ADMIN") {
-        ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(tab => {
+        ALL_SYSTEM_TABS.forEach(tab => {
             document.getElementById('menu-' + tab)?.classList.remove('hidden');
         });
         document.getElementById('header-lamsang')?.classList.remove('hidden');
         document.getElementById('header-vanhanh')?.classList.remove('hidden');
         document.getElementById('header-dulieu')?.classList.remove('hidden');
+        document.getElementById('header-hethong')?.classList.remove('hidden');
         return;
     }
     let tabsDuocPhep = cauHinhGiaoDien[role] || [];
@@ -188,19 +193,38 @@ function apDungPhanQuyenGiaoDien(role) {
     if (tabsDuocPhep.includes('khoaphong')) document.getElementById('header-lamsang')?.classList.remove('hidden');
     if (['thugom','mayrua','donggoi','mayhap','khovokhuan'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-vanhanh')?.classList.remove('hidden');
     if (['quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].some(t => tabsDuocPhep.includes(t))) document.getElementById('header-dulieu')?.classList.remove('hidden');
+    if (tabsDuocPhep.includes('admin')) document.getElementById('header-hethong')?.classList.remove('hidden');
 }
 
+// =========================================================================
+// CHUYỂN TAB & SỬA LỖI 2 THANH ACTIVE MÀU XANH
+// =========================================================================
 function switchTab(t) { 
     if (currentRole !== "ADMIN") {
         let tabsDuocPhep = cauHinhGiaoDien[currentRole] || [];
         if(!tabsDuocPhep.includes(t)) { return showToast("Tài khoản không có quyền truy cập!", "error"); }
     }
-    ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'].forEach(x => { 
-        document.getElementById('tab-'+x)?.classList.add('hidden'); 
-        document.getElementById('menu-'+x)?.classList.remove('sidebar-item-active'); 
-    }); 
-    document.getElementById('tab-'+t)?.classList.remove('hidden'); 
-    document.getElementById('menu-'+t)?.classList.add('sidebar-item-active'); 
+    
+    // 1. Ẩn toàn bộ các khu vực nội dung màn hình Tab
+    const allTabElements = document.querySelectorAll('[id^="tab-"]');
+    allTabElements.forEach(tabEl => tabEl.classList.add('hidden'));
+
+    // 2. Gỡ bỏ class 'sidebar-item-active' khỏi TẤT CẢ các nút Menu trên Sidebar
+    const allMenuButtons = document.querySelectorAll('#sidebar_menu button, #sidebar_menu a');
+    allMenuButtons.forEach(btn => btn.classList.remove('sidebar-item-active')); 
+
+    // 3. Hiển thị đúng Tab nội dung được chọn
+    const targetTabEl = document.getElementById('tab-' + t);
+    if (targetTabEl) {
+        targetTabEl.classList.remove('hidden');
+    }
+
+    // 4. Kích hoạt đúng 1 thanh active màu xanh cho nút Menu được chọn
+    const targetMenuBtn = document.getElementById('menu-' + t);
+    if (targetMenuBtn) {
+        targetMenuBtn.classList.add('sidebar-item-active');
+    }
+
     activeTab = t; 
     if (t === 'mayrua') { setTimeout(() => { capNhatDanhSachMaMayRua(); }, 50); }
     if (t === 'mayhap') { setTimeout(() => { tuDongTaoMaLoMeHap(); }, 50); }
@@ -1831,7 +1855,6 @@ function renderAdminInterface() {
     
     const MatrixRoles = ["CSSD", "KHOA", "GUEST"];
     
-    // Đã loại bỏ hoàn toàn các số thứ tự 1., 2., 3.... khỏi tên tab
     const MatrixTabs = [
         { id: "khoaphong", name: "Cổng Báo Trả Đồ" },
         { id: "thugom", name: "Xe Thu Gom" },
@@ -1842,9 +1865,10 @@ function renderAdminInterface() {
         { id: "quanlykho", name: "Tồn Kho Toàn Viện" },
         { id: "danhmuc", name: "Giám Sát Tuổi Thọ Dụng Cụ" },
         { id: "lichsuluanchuyen", name: "Nhật Ký Luân Chuyển" },
-        { id: "tracuu", name: "Truy xuất mẻ hấp" },
+        { id: "tracuu", name: "Truy xuất mẻ tiệt trùng" },
         { id: "performance", name: "Hiệu Suất KPI" },
-        { id: "dashboard_tv", name: "Màn Hình Tivi" }
+        { id: "dashboard_tv", name: "Màn Hình Tivi" },
+        { id: "admin", name: "Quản Trị Hệ Thống" }
     ];
     
     let htmlMatrix = "";
