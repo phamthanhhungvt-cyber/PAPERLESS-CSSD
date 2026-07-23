@@ -15,9 +15,9 @@ const db = firebase.firestore();
 let thongTinMatKhauAdmin = { adminPIN: "admin2026", cssdPIN: "cssd2026", guestPIN: "guest2026" };
 let cauHinhGiaoDien = {
     "ADMIN": ['khoaphong','thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv'],
-    "CSSD": ['thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','dashboard_tv'], 
-    "KHOA": ['khoaphong','quanlykho','lichsuluanchuyen'], 
-    "GUEST": ['quanlykho','danhmuc','lichsuluanchuyen','performance','dashboard_tv']
+    "CSSD": ['thugom','mayrua','donggoi','mayhap','khovokhuan','quanlykho','danhmuc','lichsuluanchuyen','tracuu','dashboard_tv'], 
+    "KHOA": ['khoaphong','quanlykho','lichsuluanchuyen','tracuu'], 
+    "GUEST": ['quanlykho','danhmuc','lichsuluanchuyen','tracuu','performance','dashboard_tv']
 };
 
 let currentRole = "", loginUserCode = "";
@@ -877,7 +877,6 @@ function khoaKyNhanDoSachDienTu() {
             xoaChuKyCanvas();
         }, 100);
     } else {
-        // Fallback trường hợp chưa mở popup
         const khoaDangNhap = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa") ? document.getElementById("khoa_selKhoa").value : "");
         if (confirm(`Xác nhận nhận ${dsIdKhayChoKyNhan.length} mâm về khoa ${khoaDangNhap}?`)) {
             let p = [];
@@ -1829,10 +1828,25 @@ function renderAdminInterface() {
     if (document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
     if (document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
     if (document.getElementById("cfg_pinGuest")) document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "";
+    
     const MatrixRoles = ["CSSD", "KHOA", "GUEST"];
+    
+    // Đã loại bỏ hoàn toàn các số thứ tự 1., 2., 3.... khỏi tên tab
     const MatrixTabs = [
-        { id: "khoaphong", name: "1. Cổng Báo Trả Đồ" }, { id: "thugom", name: "2. Xe Thu Gom" }, { id: "mayrua", name: "3. Quản Lý Mẻ Rửa" }, { id: "donggoi", name: "4. Làm Sạch & Gói" }, { id: "mayhap", name: "5. Quản Lý Mẻ Hấp" }, { id: "khovokhuan", name: "6. Kho Vô Khuẩn" }, { id: "quanlykho", name: "7. Tồn Kho Toàn Viện" }, { id: "danhmuc", name: "8. Giám Sát Tuổi Thọ" }, { id: "lichsuluanchuyen", name: "9. Nhật Ký Luân Chuyển" }, { id: "tracuu", name: "10. Cấu Hình Hệ Thống" }, { id: "performance", name: "11. Hiệu Suất KPI" }, { id: "dashboard_tv", name: "12. Màn Hình Tivi" }
+        { id: "khoaphong", name: "Cổng Báo Trả Đồ" },
+        { id: "thugom", name: "Xe Thu Gom" },
+        { id: "mayrua", name: "Quản Lý Mẻ Rửa" },
+        { id: "donggoi", name: "Làm Sạch & Đóng Gói" },
+        { id: "mayhap", name: "Quản Lý Mẻ Hấp" },
+        { id: "khovokhuan", name: "Kho Vô Khuẩn" },
+        { id: "quanlykho", name: "Tồn Kho Toàn Viện" },
+        { id: "danhmuc", name: "Giám Sát Tuổi Thọ Dụng Cụ" },
+        { id: "lichsuluanchuyen", name: "Nhật Ký Luân Chuyển" },
+        { id: "tracuu", name: "Truy xuất mẻ hấp" },
+        { id: "performance", name: "Hiệu Suất KPI" },
+        { id: "dashboard_tv", name: "Màn Hình Tivi" }
     ];
+    
     let htmlMatrix = "";
     MatrixTabs.forEach(tab => {
         htmlMatrix += `<tr class="border-b font-medium text-xs hover:bg-slate-50"><td class="p-3 font-bold text-slate-700">${tab.name}</td>`;
