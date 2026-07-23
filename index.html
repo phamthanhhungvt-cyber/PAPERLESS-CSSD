@@ -5,8 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL</title>
     
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Cấu hình Tailwind nhận Font Inter làm mặc định toàn trang
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
     <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     
@@ -20,43 +38,8 @@
     <!-- SheetJS (XLSX) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <style>
-        .sidebar-item-active {
-            background-color: #0284c7 !important;
-            color: #ffffff !important;
-            font-weight: 700;
-        }
-        .admin-subtab-active {
-            border-bottom: 2px solid #0284c7;
-            color: #0284c7;
-            font-weight: 700;
-        }
-        body.guest-mode .action-col {
-            display: none !important;
-        }
-        
-        /* Cấu hình in ấn chuyên dụng */
-        @media print {
-            body * { visibility: hidden; }
-            #print-zone, #print-zone * { visibility: visible; }
-            #print-zone { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-        
-        .print-mode-bixolon .bixolon-label {
-            width: 80mm;
-            height: 50mm;
-            padding: 4mm;
-            box-sizing: border-box;
-            page-break-after: always;
-            background: #fff;
-            color: #000;
-        }
-        
-        .print-mode-doc #print-zone {
-            padding: 20px;
-            background: #fff;
-        }
-    </style>
+    <!-- LIÊN KẾT FILE CSS CHỦ CHỐT (Đã bao gồm Scrollbar mỏng & Font Inter) -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-100 font-sans text-slate-700 antialiased min-h-screen">
 
@@ -116,7 +99,7 @@
     <!-- ========================================================================= -->
     <div id="main-app" class="hidden min-h-screen flex flex-col md:flex-row">
         
-        <!-- Sidebar Navigation (Đã sửa Drawer trượt thông minh cho Điện thoại/Tablet) -->
+        <!-- Sidebar Navigation -->
         <aside id="sidebar_menu" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-800 text-slate-300 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl md:shadow-lg">
             <div>
                 <!-- Brand Banner -->
@@ -125,7 +108,6 @@
                         <div class="text-[10px] font-black text-sky-400 tracking-wider uppercase">Phuong Nam Hospital</div>
                         <div class="text-xs font-extrabold text-white tracking-wide">CSSD DIGITAL WORKFLOW</div>
                     </div>
-                    <!-- Nút đóng Menu trên Mobile/Tablet -->
                     <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white p-2">
                         <i class="fa-solid fa-xmark text-xl"></i>
                     </button>
@@ -191,10 +173,10 @@
             </div>
         </aside>
 
-        <!-- Main Content Zone (Đã tối ưu lề cho Tablet/Mobile) -->
+        <!-- Main Content Zone -->
         <main class="flex-1 md:ml-64 p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">
             
-            <!-- Mobile/Tablet Top Bar (Bật Menu) -->
+            <!-- Mobile/Tablet Top Bar -->
             <div class="md:hidden mb-4 flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-slate-200 sticky top-2 z-20">
                 <button onclick="toggleMobileMenu()" class="p-2 text-slate-700 hover:text-sky-600 transition-colors flex items-center gap-2">
                     <i class="fa-solid fa-bars text-xl"></i>
@@ -964,7 +946,7 @@
         </main>
     </div>
 
-    <!-- Overlay Mobile/Tablet (Bấm nền tối để đóng Menu) -->
+    <!-- Overlay Mobile/Tablet -->
     <div id="mobile-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden transition-opacity"></div>
 
     <!-- POPUPS -->
