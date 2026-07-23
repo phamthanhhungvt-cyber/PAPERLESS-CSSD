@@ -28,6 +28,12 @@ let duLieuAnhBiTamBase64 = ""; let maLoTruyVetToanCuc = "";
 let gioHangXuatKho = []; let gioKhaySuDungTam = []; 
 let currentKiemDemData = null;
 
+// Biến hỗ trợ vẽ chữ ký điện tử
+let canvasSignature = null;
+let ctxSignature = null;
+let isDrawingSignature = false;
+let dsIdKhayChoKyNhan = [];
+
 // Cấu hình máy hấp & máy rửa (Belimed WD250)
 const cauHinhMayHap = { "Hấp hơi nước": ["A1", "A2", "A3", "A4"], "Hấp H2O2 (Plasma)": ["P1", "P2"], "Khử khuẩn EO": ["EO1", "EO2"] };
 const cauHinhMayRua = {
@@ -788,25 +794,138 @@ function duyetCapPhatTậpTrung(yeuCauId, tenBo, khoaNhan) {
     }
 }
 
-function khoaKyNhanDoSachDienTu() {
-    const khoaDangNhap = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa") ? document.getElementById("khoa_selKhoa").value : "");
-    const nameNguoiDung = loginUserCode || "Điều dưỡng khoa";
-    const checkboxes = document.querySelectorAll("#bangChoNhanTaiKhoa input[type='checkbox']:checked");
-    const dsIdDuocChon = []; checkboxes.forEach(chk => dsIdDuocChon.push(chk.value));
+// =========================================================================
+// XỬ LÝ KÝ CHỮ KÝ ĐIỆN TỬ TRỰC TIẾP TRÊN CANVAS
+// =========================================================================
+function khoiTaoCanvasKyDienTu() {
+    canvasSignature = document.getElementById("canvasKyDienTu");
+    if (!canvasSignature) return;
+    ctxSignature = canvasSignature.getContext("2d");
 
-    if (dsIdDuocChon.length === 0) { playSound('error'); return showToast("Vui lòng tích chọn khay để nhận!", "error"); }
+    const rect = canvasSignature.getBoundingClientRect();
+    canvasSignature.width = rect.width || 380;
+    canvasSignature.height = rect.height || 160;
 
-    if (confirm(`Xác nhận ký điện tử nhận ${dsIdDuocChon.length} mâm về khoa ${khoaDangNhap}?`)) {
-        let p = [];
-        dsIdDuocChon.forEach(idDoc => {
-            p.push(
-                db.collection("phieuGiaoNhan").doc(idDoc).update({
-                    status: "HOAN_TAT", nguoiKyNhanKhoa: nameNguoiDung, timeKhoaNhanThucTe: new Date().toLocaleTimeString('vi-VN'), ngayKhoaNhanThucTe: getTodayDateStr()
-                })
-            );
-        });
-        Promise.all(p).then(() => { playSound('success'); showToast(`Đã nhận đồ vô khuẩn vào tủ khoa!`, "success"); callRender(); });
+    ctxSignature.lineWidth = 2.5;
+    ctxSignature.lineCap = "round";
+    ctxSignature.strokeStyle = "#0284c7";
+
+    // Chuột
+    canvasSignature.onmousedown = (e) => {
+        isDrawingSignature = true;
+        ctxSignature.beginPath();
+        const pos = getCanvasPos(e);
+        ctxSignature.moveTo(pos.x, pos.y);
+    };
+    canvasSignature.onmousemove = (e) => {
+        if (!isDrawingSignature) return;
+        const pos = getCanvasPos(e);
+        ctxSignature.lineTo(pos.x, pos.y);
+        ctxSignature.stroke();
+    };
+    canvasSignature.onmouseup = () => { isDrawingSignature = false; };
+
+    // Cảm ứng Tablet/Phone
+    canvasSignature.ontouchstart = (e) => {
+        isDrawingSignature = true;
+        ctxSignature.beginPath();
+        const pos = getCanvasPos(e.touches[0]);
+        ctxSignature.moveTo(pos.x, pos.y);
+    };
+    canvasSignature.ontouchmove = (e) => {
+        if (!isDrawingSignature) return;
+        e.preventDefault();
+        const pos = getCanvasPos(e.touches[0]);
+        ctxSignature.lineTo(pos.x, pos.y);
+        ctxSignature.stroke();
+    };
+    canvasSignature.ontouchend = () => { isDrawingSignature = false; };
+}
+
+function getCanvasPos(evt) {
+    const rect = canvasSignature.getBoundingClientRect();
+    return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+    };
+}
+
+function xoaChuKyCanvas() {
+    if (ctxSignature && canvasSignature) {
+        ctxSignature.clearRect(0, 0, canvasSignature.width, canvasSignature.height);
     }
+}
+
+function khoaKyNhanDoSachDienTu() {
+    const checkboxes = document.querySelectorAll("#bangChoNhanTaiKhoa input[type='checkbox']:checked");
+    dsIdKhayChoKyNhan = [];
+    checkboxes.forEach(chk => dsIdKhayChoKyNhan.push(chk.value));
+
+    if (dsIdKhayChoKyNhan.length === 0) {
+        playSound('error');
+        return showToast("Vui lòng tích chọn ít nhất 1 khay để ký nhận!", "error");
+    }
+
+    const inpName = document.getElementById("ky_tenNguoiNhan");
+    if (inpName) inpName.value = loginUserCode || "";
+
+    const pop = document.getElementById("popupKyDienTu");
+    if (pop) {
+        pop.classList.remove("hidden");
+        setTimeout(() => {
+            khoiTaoCanvasKyDienTu();
+            xoaChuKyCanvas();
+        }, 100);
+    } else {
+        // Fallback trường hợp chưa thêm popup vào HTML
+        const khoaDangNhap = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa") ? document.getElementById("khoa_selKhoa").value : "");
+        if (confirm(`Xác nhận nhận ${dsIdKhayChoKyNhan.length} mâm về khoa ${khoaDangNhap}?`)) {
+            let p = [];
+            dsIdKhayChoKyNhan.forEach(idDoc => {
+                p.push(
+                    db.collection("phieuGiaoNhan").doc(idDoc).update({
+                        status: "HOAN_TAT", nguoiKyNhanKhoa: loginUserCode || "Điều dưỡng khoa", timeKhoaNhanThucTe: new Date().toLocaleTimeString('vi-VN'), ngayKhoaNhanThucTe: getTodayDateStr()
+                    })
+                );
+            });
+            Promise.all(p).then(() => { playSound('success'); showToast(`Đã tiếp nhận vào tủ khoa thành công!`, "success"); callRender(); });
+        }
+    }
+}
+
+function dongPopupKyDienTu() {
+    document.getElementById("popupKyDienTu")?.classList.add("hidden");
+    dsIdKhayChoKyNhan = [];
+}
+
+function luuXacNhanKyNhan() {
+    const tenNguoiNhan = document.getElementById("ky_tenNguoiNhan")?.value.trim();
+    if (!tenNguoiNhan) {
+        playSound('error');
+        return showToast("Vui lòng nhập tên người nhận!", "error");
+    }
+
+    const chuoiAnhChuKy = canvasSignature ? canvasSignature.toDataURL("image/png") : "";
+
+    let p = [];
+    dsIdKhayChoKyNhan.forEach(idDoc => {
+        p.push(
+            db.collection("phieuGiaoNhan").doc(idDoc).update({
+                status: "HOAN_TAT",
+                nguoiKyNhanKhoa: tenNguoiNhan,
+                anhChuKyNhanBase64: chuoiAnhChuKy,
+                timeKhoaNhanThucTe: new Date().toLocaleTimeString('vi-VN'),
+                ngayKhoaNhanThucTe: getTodayDateStr()
+            })
+        );
+    });
+
+    Promise.all(p).then(() => {
+        playSound('success');
+        showToast(`Đã ký nhận thành công ${dsIdKhayChoKyNhan.length} mâm vào tủ khoa!`, "success");
+        dongPopupKyDienTu();
+        callRender();
+    });
 }
 
 // =========================================================================
@@ -862,7 +981,7 @@ function xoaKhayKhoiListSuDung(index) {
 // 11. THIẾT LẬP MÁY IN BIXOLON SLP-TX403 (80mm x 50mm) & BIÊN BẢN HÀNG LOẠT
 // =========================================================================
 
-// Hàm in tem chuẩn Bixolon SLP-TX403 khổ 80mm x 50mm cho 1 item
+// In tem đơn Bixolon 80mm x 50mm
 function inTemBixolonChuan(itemData) {
     const pZone = document.getElementById("print-zone");
     if (!pZone) return;
@@ -908,10 +1027,14 @@ function inTemBixolonChuan(itemData) {
         margin: 0
     });
 
+    document.body.classList.remove("print-mode-doc");
+    document.body.classList.add("print-mode-bixolon");
     pZone.classList.remove("hidden");
+
     setTimeout(() => {
         window.print();
         pZone.classList.add("hidden");
+        document.body.classList.remove("print-mode-bixolon");
     }, 250);
 }
 
@@ -919,62 +1042,127 @@ function inTemTongHangLoat() {
     let checkboxes = document.querySelectorAll('.hap-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn ít nhất 1 mâm!", "error"); 
     let batchCode = document.getElementById("hap_batchId")?.value || "A1000000_01"; 
     let container = document.createElement('div'); container.className = "print-label-container"; container.style.width = "100%"; 
-    let stylePrint = document.createElement('style'); 
-    stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 80mm; margin: 0; padding: 0; background: white; } @page { size: 80mm 50mm; margin: 0; } .single-tem { width: 80mm !important; height: 50mm !important; page-break-inside: avoid; break-inside: avoid; page-break-after: always; margin: 0 !important; padding: 3mm 4mm !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; } }`; 
-    container.appendChild(stylePrint); 
 
     checkboxes.forEach((cb) => { 
         let item = listGiaoDich.find(x => x.firestoreId === cb.value); 
         if(item) { 
             let cleanBo = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; 
-            container.innerHTML += `<div class="single-tem" style="font-family: Arial; font-size: 11px; color: #000; background: #fff; border: 1px solid #000;"><div style="text-align: center; font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanBo}</div><div style="text-align: center; margin: 2px 0;"><svg id="barcode-lo-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span></div><div style="display: flex; justify-content: space-between; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px; margin-top: 2px;"><span>NSX: ${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 9px; font-family: monospace; font-weight: bold; margin-top: 1px;">Lô: ${batchCode}</div></div>`; 
+            container.innerHTML += `<div class="bixolon-label" style="font-family: Arial; font-size: 11px; color: #000; background: #fff;"><div style="text-align: center; font-weight: bold; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanBo}</div><div style="text-align: center; margin: 2px 0;"><svg id="barcode-lo-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span></div><div style="display: flex; justify-content: space-between; border-top: 1px dashed #000; padding-top: 3px; font-size: 10px; margin-top: 2px;"><span>NSX: ${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 9px; font-family: monospace; font-weight: bold; margin-top: 1px;">Lô: ${batchCode}</div></div>`; 
         } 
     }); 
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); 
+
+    const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); 
+    document.body.classList.remove("print-mode-doc");
+    document.body.classList.add("print-mode-bixolon");
+    pZone.classList.remove("hidden"); 
+
     checkboxes.forEach(cb => { 
         let item = listGiaoDich.find(x => x.firestoreId === cb.value); 
         if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-lo-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.4, height: 32, displayValue: true, fontSize: 10, margin: 2 }); } 
     }); 
-    setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); 
+
+    setTimeout(() => { 
+        window.print(); 
+        pZone.classList.add("hidden"); 
+        document.body.classList.remove("print-mode-bixolon");
+    }, 300); 
 }
 
 function inTemNghiemThuHangLoat() { 
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
     let container = document.createElement('div'); container.className = "print-label-container"; container.style.width = "100%"; 
-    let stylePrint = document.createElement('style'); 
-    stylePrint.innerHTML = `@media print { body * { visibility: hidden; } #print-zone, #print-zone * { visibility: visible; } #print-zone { position: absolute; left: 0; top: 0; width: 80mm; margin: 0; padding: 0; background: white; } @page { size: 80mm 50mm; margin: 0; } .single-tem { width: 80mm !important; height: 50mm !important; page-break-inside: avoid; break-inside: avoid; page-break-after: always; margin: 0 !important; padding: 3mm 4mm !important; box-sizing: border-box !important; display: flex !important; flex-direction: column !important; justify-content: space-between !important; } }`; 
-    container.appendChild(stylePrint); 
 
     checkboxes.forEach((cb) => { 
         let item = listGiaoDich.find(x => x.firestoreId === cb.value); 
         if(item) { 
             let cleanBo = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A"; let dateHapStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '-'); let dateHsdStr = item.hsd ? new Date(item.hsd).toLocaleDateString('vi-VN').replace(/\//g, '-') : dateHapStr; 
-            container.innerHTML += `<div class="single-tem" style="font-family: Arial; font-size: 11px; color: #000; background: #fff; border: 1px solid #000;"><div style="text-align: center; font-size: 9px; font-weight: bold; letter-spacing: 0.5px;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanBo}</div><div style="text-align: center; margin: 2px 0;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; border-top: 1px solid #000; padding-top: 3px; font-size: 10px; margin-top: 2px;"><span>NSX: ${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; font-family: monospace; margin-top: 1px;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; 
+            container.innerHTML += `<div class="bixolon-label" style="font-family: Arial; font-size: 11px; color: #000; background: #fff;"><div style="text-align: center; font-size: 9px; font-weight: bold; letter-spacing: 0.5px;">PN HOSPITAL - CSSD</div><div style="text-align: center; font-weight: bold; font-size: 12px; margin: 1px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cleanBo}</div><div style="text-align: center; margin: 2px 0;"><svg id="barcode-nt-${item.firestoreId}"></svg></div><div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 10px;"><span>SL: ${item.slThucTe || 1}</span><span style="color: green;">ĐẠT VÔ KHUẨN</span></div><div style="display: flex; justify-content: space-between; border-top: 1px solid #000; padding-top: 3px; font-size: 10px; margin-top: 2px;"><span>NSX: ${dateHapStr}</span><strong>HSD: ${dateHsdStr}</strong></div><div style="text-align: center; font-size: 8px; font-weight: bold; font-family: monospace; margin-top: 1px;">BATCH: ${item.batchCode || 'N/A'}</div></div>`; 
         } 
     }); 
-    const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); pZone.classList.remove("hidden"); 
+
+    const pZone = document.getElementById("print-zone"); pZone.innerHTML = ""; pZone.appendChild(container); 
+    document.body.classList.remove("print-mode-doc");
+    document.body.classList.add("print-mode-bixolon");
+    pZone.classList.remove("hidden"); 
+
     checkboxes.forEach(cb => { 
         let item = listGiaoDich.find(x => x.firestoreId === cb.value); 
         if(item) { let cleanId = item.maMacDinh ? item.maMacDinh.replace(/[^a-zA-Z0-9]/g, "") : "0000"; JsBarcode(`#barcode-nt-${item.firestoreId}`, cleanId, { format: "CODE128", width: 1.4, height: 32, displayValue: true, fontSize: 10, margin: 2 }); } 
     }); 
-    setTimeout(() => { window.print(); pZone.classList.add("hidden"); }, 300); 
+
+    setTimeout(() => { 
+        window.print(); 
+        pZone.classList.add("hidden"); 
+        document.body.classList.remove("print-mode-bixolon");
+    }, 300); 
 }
 
+// In Biên bản giao nhận khổ A4 máy in văn phòng
 function inHoaDonGiaoNhan() {
     const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; if (!k) return showToast("Chọn Khoa trước!", "error");
-    let htmlBang = `<table style="width:100%; border-collapse:collapse; margin-top:15px; font-size:12px; text-align:left; font-family:Arial, sans-serif;"><thead><tr style="background-color:#f8fafc; border:1px solid #000;"><th style="padding:8px; border:1px solid #000; width:40%;">PHÂN LOẠI MÂM / LOẠI DỤNG CỤ</th><th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">ĐÃ TRẢ BẨN</th><th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">ĐÃ NHẬN SẠCH</th><th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">NHẬN VÔ KHUẨN</th><th style="padding:8px; border:1px solid #000; text-align:center; width:15%;">CSSD NỢ KHOA</th></tr></thead><tbody>`;
+    
+    let htmlBang = `
+        <table style="width:100%; border-collapse:collapse; margin-top:20px; font-size:13px; text-align:left; font-family:Arial, sans-serif;">
+            <thead>
+                <tr style="background-color:#f1f5f9;">
+                    <th style="padding:10px; border:1px solid #334155; width:35%; text-align:left; color:#0f172a;">PHÂN LOẠI MÂM / LOẠI DỤNG CỤ</th>
+                    <th style="padding:10px; border:1px solid #334155; text-align:center; width:15%; color:#0f172a;">ĐÃ TRẢ BẨN</th>
+                    <th style="padding:10px; border:1px solid #334155; text-align:center; width:15%; color:#0f172a;">ĐÃ NHẬN SẠCH</th>
+                    <th style="padding:10px; border:1px solid #334155; text-align:center; width:15%; color:#0f172a;">NHẬN VÔ KHUẨN</th>
+                    <th style="padding:10px; border:1px solid #334155; text-align:center; width:20%; color:#0f172a;">CSSD NỢ KHOA</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
     const rows = document.querySelectorAll('#bangDonGiaoNhan tr');
-    if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) { htmlBang += `<tr><td colspan="5" style="padding:12px; border:1px solid #000; text-align:center; font-style:italic;">Không có dữ liệu công nợ.</td></tr>`; } 
-    else {
+    if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) { 
+        htmlBang += `<tr><td colspan="5" style="padding:15px; border:1px solid #334155; text-align:center; font-style:italic;">Không có dữ liệu công nợ.</td></tr>`; 
+    } else {
         rows.forEach(row => {
             const cells = row.cells;
-            if (cells.length >= 4) { htmlBang += `<tr style="border:1px solid #000;"><td style="padding:8px; border:1px solid #000; font-weight:bold;">${cells[0].innerText}</td><td style="padding:8px; border:1px solid #000; text-align:center; color:#e11d48;">${cells[1].innerText}</td><td style="padding:8px; border:1px solid #000; text-align:center; color:#0284c7;">${cells[2].innerText}</td><td style="padding:8px; border:1px solid #000; text-align:center; color:#7c3aed;">${cells[3].innerText}</td><td style="padding:8px; border:1px solid #000; text-align:center; font-weight:bold; color:#d97706;">${cells[4].innerText}</td></tr>`; }
+            if (cells.length >= 5) { 
+                htmlBang += `
+                    <tr>
+                        <td style="padding:10px; border:1px solid #334155; font-weight:bold; color:#0f172a;">${cells[0].innerText}</td>
+                        <td style="padding:10px; border:1px solid #334155; text-align:center; font-weight:bold; color:#e11d48;">${cells[1].innerText}</td>
+                        <td style="padding:10px; border:1px solid #334155; text-align:center; font-weight:bold; color:#0284c7;">${cells[2].innerText}</td>
+                        <td style="padding:10px; border:1px solid #334155; text-align:center; font-weight:bold; color:#7c3aed;">${cells[3].innerText}</td>
+                        <td style="padding:10px; border:1px solid #334155; text-align:center; font-weight:bold; color:#d97706;">${cells[4].innerText}</td>
+                    </tr>`; 
+            }
         });
     }
     htmlBang += `</tbody></table>`;
+
     const pZone = document.getElementById("print-zone");
-    pZone.innerHTML = `<div style="width:100%; font-family:Arial, sans-serif; padding:10px; color:#000;"><div style="text-align:center; margin-bottom:20px;"><h2 style="margin:0; font-size:16px; font-weight:900; text-transform:uppercase;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2><p style="margin:5px 0 0 0; font-size:12px; font-weight:bold;">Khoa/Phòng: <span style="text-transform:uppercase;">${k}</span> - Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}</p></div>${htmlBang}<div style="margin-top:40px; display:flex; justify-content:space-between; font-size:11px; font-weight:bold; padding:0 20px;"><div style="text-align:center; width:45%;"><p style="margin-bottom:60px; text-transform:uppercase;">ĐIỀU DƯỠNG LÂM SÀNG</p><p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p></div><div style="text-align:center; width:45%;"><p style="margin-bottom:60px; text-transform:uppercase;">CHUYÊN VIÊN CSSD</p><p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p></div></div></div>`;
-    pZone.classList.remove("hidden"); window.print(); pZone.classList.add("hidden");
+    pZone.innerHTML = `
+        <div style="width:100%; font-family:Arial, sans-serif; padding:10px; color:#000;">
+            <div style="text-align:center; margin-bottom:25px;">
+                <h2 style="margin:0; font-size:18px; font-weight:900; text-transform:uppercase;">BIÊN BẢN GIAO NHẬN DỤNG CỤ CSSD</h2>
+                <p style="margin:8px 0 0 0; font-size:13px; font-weight:bold;">Khoa/Phòng: <span style="text-transform:uppercase; color:#0284c7;">${k}</span> - Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}</p>
+            </div>
+            ${htmlBang}
+            <div style="margin-top:50px; display:flex; justify-content:space-between; font-size:12px; font-weight:bold; padding:0 30px;">
+                <div style="text-align:center; width:40%;">
+                    <p style="margin-bottom:70px; text-transform:uppercase;">ĐIỀU DƯỠNG LÂM SÀNG</p>
+                    <p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p>
+                </div>
+                <div style="text-align:center; width:40%;">
+                    <p style="margin-bottom:70px; text-transform:uppercase;">CHUYÊN VIÊN CSSD</p>
+                    <p style="font-weight:normal; font-style:italic; color:#64748b;">(Ký và ghi rõ họ tên)</p>
+                </div>
+            </div>
+        </div>`;
+
+    document.body.classList.remove("print-mode-bixolon");
+    document.body.classList.add("print-mode-doc");
+    pZone.classList.remove("hidden");
+
+    setTimeout(() => { 
+        window.print(); 
+        pZone.classList.add("hidden"); 
+        document.body.classList.remove("print-mode-doc");
+    }, 200);
 }
 
 // =========================================================================
@@ -1054,7 +1242,6 @@ function initSelects() {
     if(document.getElementById("khoa_selKhoa")) document.getElementById("khoa_selKhoa").innerHTML = opts; 
     if(document.getElementById("login_nv_cssd")) document.getElementById("login_nv_cssd").innerHTML = '<option value="">-- Chọn KTV CSSD --</option>' + danhSachKtvCssd.map(k=>`<option value="${k.code}">${k.code} - ${k.ten}</option>`).join(''); 
      
-    // Khởi tạo các danh mục hóa chất & máy rửa mẻ
     if (document.getElementById("rua_hoaChat")) {
         document.getElementById("rua_hoaChat").innerHTML = danhMucHoaChatRua.map(hc => `<option value="${hc.ten}">${hc.ten}</option>`).join('');
         document.getElementById("rua_lieuLuong").value = danhMucHoaChatRua[0].lieuLuong;
@@ -1274,7 +1461,6 @@ function renderTheoTabHienTai() {
         }
     }
     else if(activeTab === 'mayhap') {
-        // CỘT 1: HÀNG ĐỢI CHỜ HẤP
         let lsCH = listGiaoDich.filter(x => x.status === "CHO_HAP"); 
         if(document.getElementById("badgeChoHap")) document.getElementById("badgeChoHap").innerText = `${lsCH.length} Mục`;
         let bodyChoHap = document.getElementById("bangChoHap");
@@ -1282,7 +1468,6 @@ function renderTheoTabHienTai() {
             bodyChoHap.innerHTML = lsCH.map(i => `<tr class="border-b"><td class="p-3 text-center action-col"><input type="checkbox" value="${i.firestoreId}" class="hap-checkbox"></td><td class="p-3 font-bold text-xs">${i.bo}</td><td class="p-3 text-right font-mono text-xs font-bold text-sky-700">${i.maMacDinh}</td></tr>`).join(''); 
         }
 
-        // CỘT 2: PHÊ DUYỆT - CHẤP NHẬN VÔ KHO
         let lsNT = listGiaoDich.filter(x => x.status === "DANG_HAP"); 
         let bodyChoNghiemThu = document.getElementById("bangChoNghiệmThu") || document.getElementById("bangChoNghiemThu");
         
@@ -1310,7 +1495,6 @@ function renderTheoTabHienTai() {
         }
         kiemTraQuyenDuyetMeHap();
 
-        // CỘT 3: NHẬT KÝ VẬN HÀNH LÒ
         if(document.getElementById("bangLichSuHap")) {
             const homNayMoiStr = getTodayDateStr(); 
             let tatCaMucCoLo = listGiaoDich.filter(x => x.batchCode && (x.ngayHapRealtime === homNayMoiStr || x.ngayTao === homNayMoiStr)); 
@@ -1377,7 +1561,7 @@ function renderTheoTabHienTai() {
         
         if (vungYeuCau) {
             if (dsYeuCau.length === 0) {
-                vungYeuCau.innerHTML = `<h3 class="font-black text-amber-950 text-xs flex items-center gap-1.5"><i class="fa-solid fa-bell-slash"></i> HIỆN KHÔNG CÓ YÊU CẦU CẤP PHÁT ĐANG CHỜ</h3>`;
+                vungYeuCau.innerHTML = `<h3 class="font-black text-amber-950 text-xs flex items-center gap-1.5"><i class="fa-solid fa-bell-slash"></i> HIỆN KHÔNG CÓ YÊU CẤP PHÁT ĐANG CHỜ</h3>`;
             } else {
                 vungYeuCau.innerHTML = `
                     <h3 class="font-black text-amber-900 text-xs mb-2.5 flex items-center gap-1.5 animate-pulse">
@@ -1438,7 +1622,7 @@ function renderTheoTabHienTai() {
             else if (viTriCode === "ĐANG_VAN_CHUYEN") { viTriText = `Đang đi đường`; viTriColor = "bg-purple-100 text-purple-800"; }
             else if (viTriCode !== "CHO_XUAT") { viTriText = "Xử lý tại CSSD"; viTriColor = "bg-amber-100 text-amber-800"; }
             let chuKyLo = listGiaoDich.filter(x => x.maMacDinh === ma && (x.status === "CHO_XUAT" || x.status === "HOAN_TAT" || x.status === "DA_SU_DUNG" || x.status === "ĐANG_VAN_CHUYEN")).length;
-            arrHtml.push(`<tr class="border-b border-slate-100 font-medium"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${currentTrans.bo ? String(currentTrans.bo).split(" [ID:")[0] : "N/A"}</td><td class="p-3 text-center"><span class="px-2.5 py-0.5 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-black text-amber-700 bg-amber-50/50">${chuKyLo} lần</td></tr>`);
+            arrHtml.push(`<tr class="border-b border-slate-100 font-medium"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${currentTrans.bo ? String(currentTrans.bo).split(" [ID:")[0] : "N/A"}</td><td class="p-3 text-center"><span class="px-2.5 py-0.5 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-black text-amber-700 bg-amber-50/50">${chuKyLo} lần lễ</td></tr>`);
         });
         tbody.innerHTML = arrHtml.join('');
     }
@@ -1494,7 +1678,6 @@ function renderTheoTabHienTai() {
     else if(activeTab === 'dashboard_tv') { renderDashboardTiviRealtime(); }
 }
 
-// Cập nhật hàm render bảng Kho Vô Khuẩn hỗ trợ cảm ứng Tablet
 function renderKhoVoKhuan(listData) {
     const tbody = document.getElementById("bangKhoVoKhuan");
     if (!tbody) return;
