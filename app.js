@@ -295,30 +295,75 @@ function dongModalXemAnhCauHinh() {
 // =========================================================================
 // 4. TRẠM 1: CỔNG LÂM SÀNG & HÀNH ĐỘNG ĐỘC LẬP (TRẢ ĐỒ BẨN / YÊU CẦU ĐỒ SẠCH)
 // =========================================================================
+
+// CẢI TIẾN: Hiển thị Tên Dụng Cụ Thuần Túy gọn gàng (Lọc bỏ ID rườm rà)
 function loadBoDungCuTheoKhoa() { 
-    let k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
+    let k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa")?.value; 
     let list = document.getElementById("listBoDungCu"); 
-    if(!list) return; list.innerHTML = ""; 
+    if(!list) return; 
+    list.innerHTML = ""; 
+
     let f = danhSachKhoa.find(x => (x.ten || "").toString().trim().toUpperCase() === (k || "").toString().trim().toUpperCase()); 
     if (f && f.danhSachBo) {
-        let htmlOptions = "";
+        let setTenThuan = new Set();
+
         f.danhSachBo.forEach(x => {
-            if (x) {
-                let chuoiX = String(x);
-                let tenBoThuanTuy = chuoiX.includes(" [ID:") ? chuoiX.split(" [ID:")[0] : chuoiX;
-                htmlOptions += `<option value="${chuoiX}"><option value="${tenBoThuanTuy}">`;
-            }
+            if (!x) return;
+            let chuoiX = String(x).trim();
+            // Lấy tên gốc thuần túy (loại bỏ phần [ID:...])
+            let tenGoc = chuoiX.includes(" [ID:") ? chuoiX.split(" [ID:")[0].trim() : chuoiX;
+            if (tenGoc) setTenThuan.add(tenGoc);
+        });
+
+        // Tạo danh sách Option chỉ hiển thị tên bộ thuần túy
+        let htmlOptions = "";
+        setTenThuan.forEach(ten => {
+            htmlOptions += `<option value="${ten}">`;
         });
         list.innerHTML = htmlOptions; 
     }
 }
 
+// CẢI TIẾN: Thêm vào giỏ & Tự động cấp ID Số XOAY VÒNG độc nhất
 function themVaoGio() { 
-    let val = document.getElementById("khoa_inpMaBo").value.trim().toUpperCase(); if(!val) return; 
-    if (gioHangTam.some(x => x.maMacDinh === val)) { document.getElementById("khoa_inpMaBo").value = ""; return showToast("Mã này đã có trong danh sách chờ!", "error"); } 
-    let tenGoc = val.includes("[ID:") ? val.split(" [ID:")[0] : val; 
-    gioHangTam.push({bo: tenGoc, maMacDinh: val, slYeuCau: 1}); 
-    document.getElementById("khoa_inpMaBo").value = ""; 
+    let inpEl = document.getElementById("khoa_inpMaBo");
+    let val = inpEl ? inpEl.value.trim().toUpperCase() : ""; 
+    if(!val) return; 
+
+    let tenBoGoc = "";
+    let maIdKhay = "";
+
+    // Trường hợp 1: Quét Barcode đã có ID chuẩn (ví dụ: MÂM INOX [ID:10001])
+    if (val.includes("[ID:")) {
+        let parts = val.split(" [ID:");
+        tenBoGoc = parts[0].trim();
+        maIdKhay = parts[1].replace("]", "").trim();
+    } 
+    // Trường hợp 2: Điều dưỡng chọn Tên Bộ thuần túy (vd: MÂM INOX)
+    else {
+        tenBoGoc = val;
+        // Tự động sinh ID Số độc nhất tăng dần dạng: [ID-NgàyGiờPhútGiây] (VD: ID-24111245)
+        const now = new Date();
+        const autoSeq = String(now.getDate()).padStart(2,'0') + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
+        maIdKhay = `ID-${autoSeq}`;
+    }
+
+    let maMacDinhDinhDang = `${tenBoGoc} [ID:${maIdKhay}]`;
+
+    // Kiểm tra xem mã ID này đã nằm trong giỏ chờ trả chưa
+    if (gioHangTam.some(x => x.maMacDinh === maMacDinhDinhDang || (x.bo === tenBoGoc && x.maIdOnly === maIdKhay))) { 
+        inpEl.value = ""; 
+        return showToast("Mã mâm/dụng cụ này đã có trong danh sách chờ trả!", "error"); 
+    } 
+
+    gioHangTam.push({
+        bo: tenBoGoc, 
+        maMacDinh: maMacDinhDinhDang, 
+        maIdOnly: maIdKhay,
+        slYeuCau: 1
+    }); 
+
+    inpEl.value = ""; 
     renderGioHang(); 
 }
 
@@ -326,7 +371,7 @@ function renderGioHang() {
     let khuVuc = document.getElementById("khuVucGioHang"); if(khuVuc) khuVuc.classList.toggle("hidden", gioHangTam.length===0); 
     let bHang = document.getElementById("bangGioHang");
     if(bHang) {
-        bHang.innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.bo}</td></tr>`).join(''); 
+        bHang.innerHTML = gioHangTam.map(i => `<tr><td class="p-2.5 font-bold text-sky-700 text-[11px]">${i.maMacDinh || i.bo}</td></tr>`).join(''); 
     }
     let badge = document.getElementById("badgeGioHang");
     if(badge) badge.innerText = `${gioHangTam.length} món`;
