@@ -677,6 +677,9 @@
                             <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-list-check mr-2 text-sky-600"></i>CẤU HÌNH CƠ SỐ DỤNG CỤ CHI TIẾT & TUỔI THỌ</h2>
                             <p class="text-xs text-slate-500 mt-0.5">Tra cứu cơ số linh kiện chuẩn mâm Aesculap nạp từ file Excel hệ thống</p>
                         </div>
+                        <button onclick="moModalXemAnhCauHinh()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-image"></i> Xem Nhanh Sơ Đồ Cấu Hình
+                        </button>
                     </div>
 
                     <div class="space-y-6">
@@ -1076,6 +1079,39 @@
             <button onclick="dongCamera()" class="w-full bg-slate-700 text-white font-bold py-2 rounded-lg text-xs">
                 Đóng Camera
             </button>
+        </div>
+    </div>
+
+    <!-- Popup 5: Modal Xem Ảnh Cấu Hình Mâm -->
+    <div id="popupXemAnhCauHinh" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-5 space-y-4 border border-slate-200 max-h-[92vh] flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div>
+                    <h3 id="popCauHinh_Title" class="text-base font-extrabold text-slate-800 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-image text-sky-600"></i> SƠ ĐỒ CẤU HÌNH CƠ SỐ MÂM DỤNG CỤ
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Hình ảnh sắp xếp linh kiện tiêu chuẩn Aesculap</p>
+                </div>
+                <button onclick="dongModalXemAnhCauHinh()" class="text-slate-400 hover:text-rose-500 text-xl p-1 transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto bg-slate-900/95 rounded-xl border border-slate-800 p-2 flex items-center justify-center min-h-[300px]">
+                <img id="img_viewCauHinh" src="" alt="Sơ đồ cấu hình mâm" class="max-w-full max-h-[65vh] object-contain rounded shadow-lg transition-transform duration-200">
+            </div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 pt-2 border-t border-slate-100">
+                <span class="text-xs font-semibold text-slate-500">Mẹo: Bạn có thể click chuột phải hoặc mở ảnh tab mới để xem độ phân giải gốc.</span>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <a id="btn_downloadCauHinh" href="" download="SoDo_CauHinh_Mam.png" target="_blank" class="flex-1 sm:flex-none bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-lg text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all">
+                        <i class="fa-solid fa-download"></i> Tải Ảnh
+                    </a>
+                    <button onclick="dongModalXemAnhCauHinh()" class="flex-1 sm:flex-none bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs transition-colors">
+                        Đóng
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
