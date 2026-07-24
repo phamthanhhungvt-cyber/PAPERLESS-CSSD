@@ -197,7 +197,7 @@ function apDungPhanQuyenGiaoDien(role) {
 }
 
 // =========================================================================
-// CHUYỂN TAB & SỬA LỖI 2 THANH ACTIVE MÀU XANH
+// CHUYỂN TAB & SỬA LỖI 2 THANH ACTIVE MÀU XANH + AUTO FOCUS
 // =========================================================================
 function switchTab(t) { 
     if (currentRole !== "ADMIN") {
@@ -228,7 +228,68 @@ function switchTab(t) {
     activeTab = t; 
     if (t === 'mayrua') { setTimeout(() => { capNhatDanhSachMaMayRua(); }, 50); }
     if (t === 'mayhap') { setTimeout(() => { tuDongTaoMaLoMeHap(); }, 50); }
+    
+    // 5. Tự động nét (Focus) con trỏ vào ô nhập liệu chính để phục vụ quét Barcode
+    setTimeout(() => {
+        if (t === 'khoaphong') document.getElementById('khoa_inpMaBo')?.focus();
+        else if (t === 'khovokhuan') document.getElementById('xuat_inpMaBo')?.focus();
+        else if (t === 'tracuu') document.getElementById('inp_searchBatch')?.focus();
+    }, 100);
+
     callRender(); 
+}
+
+// =========================================================================
+// MODULE: MODAL XEM SƠ ĐỒ CẤU HÌNH MÂM DỤNG CỤ
+// =========================================================================
+function moModalXemAnhCauHinh(maBo, customTitle = '') {
+    const modal = document.getElementById('popupXemAnhCauHinh');
+    const imgElement = document.getElementById('img_viewCauHinh');
+    const titleElement = document.getElementById('popCauHinh_Title');
+    const btnDownload = document.getElementById('btn_downloadCauHinh');
+
+    if (!modal || !imgElement) return;
+
+    let tenBo = maBo || 'Bộ dụng cụ';
+    let urlAnh = '';
+
+    // Tìm thông tin mâm từ danh mục Excel đã nạp
+    if (databaseExcel && Array.isArray(databaseExcel)) {
+        const item = databaseExcel.find(d => {
+            let boName = d['Tên TS (i)'] || d['Tên Bộ Dụng Cụ'] || d['Bộ dụng cụ'] || d['Dụng cụ'] || d['TÊN BỘ'] || '';
+            return String(boName).trim().toUpperCase() === String(maBo).trim().toUpperCase();
+        });
+        if (item && (item.hinhAnh || item['Hình Ảnh'] || item['URL_HinhAnh'])) {
+            urlAnh = item.hinhAnh || item['Hình Ảnh'] || item['URL_HinhAnh'];
+        }
+    }
+
+    // Nếu không có URL riêng, tự động ghép theo đường dẫn ảnh chuẩn local
+    if (!urlAnh) {
+        urlAnh = maBo 
+            ? `assets/sodo_mam/${maBo}.png` 
+            : 'https://placehold.co/800x600/1e293b/e2e8f0?text=Chua+Co+So+Do+Hinh+Anh';
+    }
+
+    // Fallback image nếu file không tồn tại
+    imgElement.onerror = function() {
+        this.onerror = null;
+        this.src = 'https://placehold.co/800x600/1e293b/e2e8f0?text=Chua+Cap+Nhat+Anh+So+Do';
+    };
+
+    titleElement.innerHTML = `<i class="fa-solid fa-image text-sky-600"></i> ${customTitle || 'SƠ ĐỒ CẤU HÌNH:'} ${tenBo.toUpperCase()}`;
+    imgElement.src = urlAnh;
+    if (btnDownload) {
+        btnDownload.href = urlAnh;
+        btnDownload.download = `SoDo_CauHinh_${maBo || 'DungCu'}.png`;
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function dongModalXemAnhCauHinh() {
+    const modal = document.getElementById('popupXemAnhCauHinh');
+    if (modal) modal.classList.add('hidden');
 }
 
 // =========================================================================
@@ -1121,7 +1182,6 @@ function inTemTongHangLoat() {
     }, 300); 
 }
 
-// 🛑 HÀM ĐÃ ĐƯỢC CHỈNH TÁCH NGUYÊN KHỎANG TRẮNG & MÀU CHỮ IN NHIỆT ĐEN
 function inTemNghiemThuHangLoat() { 
     let checkboxes = document.querySelectorAll('.nghiemthu-checkbox:checked'); 
     if(checkboxes.length === 0) return showToast("Chọn mâm dụng cụ!", "error"); 
@@ -1203,7 +1263,6 @@ function inHoaDonGiaoNhan() {
     const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
     if (!k) return showToast("Chọn Khoa trước!", "error");
     
-    // Tìm chữ ký điện tử mới nhất từ Firestore hoặc localStorage
     const itemKyGầnNhat = listGiaoDich.find(x => x.khoa === k && x.anhChuKyNhanBase64);
     const savedSignature = JSON.parse(localStorage.getItem(`signature_${k}`) || "null");
 
@@ -1651,7 +1710,36 @@ function renderTheoTabHienTai() {
         if(document.getElementById("badgeDongGoi")) document.getElementById("badgeDongGoi").innerText = lsDG.length;
         let gDongGoi = document.getElementById("gridDongGoi");
         if(gDongGoi) {
-            gDongGoi.innerHTML = lsDG.map(i => `<div class="bg-white p-3 rounded border border-slate-200 mb-2 flex justify-between items-center"><div class="flex-1"><div class="font-bold text-sky-700 text-[13px]">${i.bo}</div><div class="text-[10px] text-slate-500">Từ khoa: ${i.khoa}</div></div><button onclick="moPopupDongGoi('${i.firestoreId}')" class="bg-sky-50 text-sky-700 border border-sky-300 px-3 py-1.5 rounded text-[11px] font-black">ĐÓNG GÓI</button></div>`).join('');
+            if (lsDG.length === 0) {
+                gDongGoi.innerHTML = `<div class="col-span-full p-8 text-center text-slate-400 italic bg-white rounded-xl border border-slate-200">Hiện không có mâm nào đang chờ đóng gói.</div>`;
+            } else {
+                gDongGoi.innerHTML = lsDG.map(i => {
+                    let tenBoClean = i.bo ? String(i.bo).split(" [ID:")[0] : "Bộ dụng cụ";
+                    return `
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-800 uppercase">${tenBoClean}</h4>
+                                <p class="text-[11px] font-mono font-bold text-sky-600">ID: ${i.maMacDinh || 'N/A'}</p>
+                            </div>
+                            <button onclick="moModalXemAnhCauHinh('${tenBoClean}')" 
+                                    class="bg-sky-50 hover:bg-sky-100 text-sky-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-sky-200 flex items-center gap-1 transition-colors"
+                                    title="Xem sơ đồ xếp mâm">
+                                <i class="fa-solid fa-image"></i> Sơ đồ
+                            </button>
+                        </div>
+
+                        <div class="text-[11px] text-slate-500">
+                            Từ Khoa: <span class="font-bold text-slate-700">${i.khoa || 'CSSD'}</span>
+                        </div>
+
+                        <button onclick="moPopupDongGoi('${i.firestoreId}')" 
+                                class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 rounded-lg text-xs uppercase shadow-sm transition-all">
+                            📦 Tiến Hành Đóng Gói
+                        </button>
+                    </div>`;
+                }).join('');
+            }
         }
     }
     else if(activeTab === 'mayhap') {
