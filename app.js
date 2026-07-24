@@ -1343,9 +1343,79 @@ function switchAdminSubtab(sub) {
 }
 
 function saveAdminPIN(type) { let newVal = document.getElementById(`cfg_pin${type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()}`).value.trim(); if(type === 'ADMIN') thongTinMatKhauAdmin.adminPIN = newVal; if(type === 'CSSD') thongTinMatKhauAdmin.cssdPIN = newVal; if(type === 'GUEST') thongTinMatKhauAdmin.guestPIN = newVal; db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ thongTinMatKhauAdmin: thongTinMatKhauAdmin }).then(() => showToast("Đã lưu PIN!", "success")); }
-function themKtvCssd() { let code = prompt("Mã NV:"); let ten = prompt("Tên:"); let pin = prompt("PIN:"); if(code && ten && pin) { danhSachKtvCssd.push({ code: code.toUpperCase(), ten: ten, pin: pin }); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
-function xaoKtvCssd(code) { if(confirm("Xóa?")) { danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }); } }
-function themKhoaThuCong() { let t = prompt("Nhập Tên Khoa/Phòng:"); if(t) { danhSachKhoa.push({ ten: t.toUpperCase(), pin: "123", danhSachBo: [] }); db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => showToast("Thêm Khoa thành công!", "success")); } }
+
+function themKtvCssd() { 
+    let code = prompt("Nhập Mã NV:"); 
+    let ten = prompt("Nhập Họ & Tên:"); 
+    let pin = prompt("Nhập PIN cài đặt:"); 
+    if(code && ten && pin) { 
+        danhSachKtvCssd.push({ code: code.toUpperCase().trim(), ten: ten.trim(), pin: pin.trim() }); 
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => {
+            showToast("Thêm KTV CSSD thành công!", "success");
+            callRender();
+        }); 
+    } 
+}
+
+function xaoKtvCssd(code) { 
+    if(confirm(`Anh Hùng có chắc chắn muốn XÓA nhân viên [${code}]?`)) { 
+        danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code); 
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => {
+            showToast(`Đã xóa nhân viên ${code} thành công!`, "success");
+            callRender();
+        }); 
+    } 
+}
+
+function updatePinKtvCssd(idx, code) {
+    let p = document.getElementById(`pin-ktv-${idx}`) ? document.getElementById(`pin-ktv-${idx}`).value.trim() : "";
+    if(p) {
+        let target = danhSachKtvCssd.find(x => x.code === code);
+        if(target) {
+            target.pin = p;
+            db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => {
+                showToast(`Đổi PIN thành công cho NV ${code}!`, "success");
+                callRender();
+            });
+        }
+    } else {
+        showToast("Vui lòng nhập PIN mới cho KTV CSSD!", "error");
+    }
+}
+
+function themKhoaThuCong() { 
+    let t = prompt("Nhập Tên Khoa/Phòng:"); 
+    if(t) { 
+        danhSachKhoa.push({ ten: t.toUpperCase().trim(), pin: "123", danhSachBo: [] }); 
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => showToast("Thêm Khoa thành công!", "success")); 
+    } 
+}
+
+function xoaKhoaThuCong(tenKhoa) {
+    if(confirm(`Anh Hùng có chắc chắn muốn XÓA Khoa "${tenKhoa}" khỏi hệ thống?`)) {
+        danhSachKhoa = danhSachKhoa.filter(x => x.ten !== tenKhoa);
+        db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => {
+            showToast(`Đã xóa Khoa ${tenKhoa} thành công!`, "success");
+            callRender();
+        });
+    }
+}
+
+function updatePINTrựcTiep(idx, tenKhoa) { 
+    let p = document.getElementById(`pin-khoa-${idx}`) ? document.getElementById(`pin-khoa-${idx}`).value.trim() : ""; 
+    if(p) { 
+        let target = danhSachKhoa.find(x => x.ten === tenKhoa);
+        if(target) {
+            target.pin = p; 
+            db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => {
+                showToast(`Đổi PIN thành công cho Khoa ${tenKhoa}!`, "success");
+                callRender();
+            }); 
+        }
+    } else {
+        showToast("Vui lòng nhập PIN mới cho Khoa!", "error");
+    }
+}
 
 function khaiSinhKhayVangLai() {
     if(danhSachKhoa.length === 0) return showToast("Hệ thống chưa có Khoa nào!", "error");
@@ -1359,8 +1429,6 @@ function khaiSinhKhayVangLai() {
     khoaChon.danhSachBo.push(chuoiKhayDinhDang);
     db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => { showToast(`Khai sinh khay ${maId} thành công!`, "success"); callRender(); });
 }
-
-function updatePINTrựcTiep(idx, tenKhoa) { let p = document.getElementById(`pin-khoa-${idx}`).value.trim(); if(p) { danhSachKhoa.find(x => x.ten === tenKhoa).pin = p; db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => showToast("Đổi PIN thành công", "success")); } }
 
 function initSelects() { 
     let opts = '<option value="">-- Chọn Khoa --</option>' + danhSachKhoa.map(k=>`<option value="${k.ten}">${k.ten}</option>`).join('');
@@ -1915,13 +1983,16 @@ function renderDashboardTiviRealtime() {
     if (document.getElementById('tv_canhBaoHsd')) document.getElementById('tv_canhBaoHsd').innerText = quaHan;
 }
 
+// =========================================================================
+// RENDER GIAO DIỆN ADMIN TƯƠNG ĐỒNG 100% CẢ 2 BẢNG (KTV CSSD & KHOA LÂM SÀNG)
+// =========================================================================
 function renderAdminInterface() {
     if (document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
     if (document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
     if (document.getElementById("cfg_pinGuest")) document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "";
     
+    // 1. Render Ma trận phân quyền Tab
     const MatrixRoles = ["CSSD", "KHOA", "GUEST"];
-    
     const MatrixTabs = [
         { id: "khoaphong", name: "Cổng Báo Trả Đồ" },
         { id: "thugom", name: "Xe Thu Gom" },
@@ -1948,15 +2019,50 @@ function renderAdminInterface() {
         htmlMatrix += `</tr>`;
     });
     const tbodyMatrix = document.getElementById("bodyMaTranGiaoDien"); if (tbodyMatrix) tbodyMatrix.innerHTML = htmlMatrix;
-    const trKhoa = document.getElementById("bangPhanQuyenKhoa");
-    if(trKhoa) {
-        if(danhSachKhoa.length === 0) { trKhoa.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa trống.</td></tr>`; } 
-        else { trKhoa.innerHTML = danhSachKhoa.map((k, index) => `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-black text-slate-700 text-[11px]">${k.ten}</td><td class="p-3 text-center border-x border-slate-200 font-mono font-black text-rose-600 text-sm bg-rose-50/50">${k.pin || '123'}</td><td class="p-3 text-center"><div class="flex items-center justify-center gap-2"><input type="text" id="pin-khoa-${index}" placeholder="PIN" class="w-24 p-1.5 text-center border border-slate-300 rounded text-xs font-bold"><button onclick="updatePINTrựcTiep(${index}, '${k.ten}')" class="bg-sky-600 text-white font-bold py-1.5 px-3 rounded shadow text-[10px]">ĐỔI PIN</button></div></td></tr>`).join(''); }
-    }
+
+    // 2. Render Bảng DANH SÁCH NHÂN VIÊN CSSD (Đã có Đổi PIN + Ô Nhập + Xóa đồng bộ)
     const tbKtv = document.getElementById("bangNhanVienCssd");
     if(tbKtv) {
-        if(danhSachKtvCssd.length === 0) { tbKtv.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Chưa có Nhân viên.</td></tr>`; }
-        else { tbKtv.innerHTML = danhSachKtvCssd.map((nv, index) => `<tr class="border-b hover:bg-slate-50"><td class="p-3 font-black text-sky-700 text-xs">${nv.code}</td><td class="p-3 font-bold text-slate-700 text-[11px]">${nv.ten}</td><td class="p-3 text-center border-x border-slate-200 font-mono font-black text-sky-600 text-sm bg-sky-50/50">${nv.pin}</td><td class="p-3 text-center"><button onclick="xaoKtvCssd('${nv.code}')" class="text-rose-600 font-bold text-[10px]"><i class="fa-solid fa-trash-can mr-1"></i>XÓA</button></td></tr>`).join(''); }
+        if(danhSachKtvCssd.length === 0) { 
+            tbKtv.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">Chưa có Nhân viên CSSD.</td></tr>`; 
+        } else { 
+            tbKtv.innerHTML = danhSachKtvCssd.map((nv, index) => `
+                <tr class="border-b hover:bg-slate-50 transition-colors">
+                    <td class="p-2.5 font-black text-sky-700 text-xs">${nv.code}</td>
+                    <td class="p-2.5 font-bold text-slate-700 text-[11px]">${nv.ten}</td>
+                    <td class="p-2.5 text-center font-mono font-black text-sky-600 text-xs bg-sky-50/50">${nv.pin}</td>
+                    <td class="p-2.5 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <input type="text" id="pin-ktv-${index}" placeholder="PIN MỚI" class="w-20 p-1 text-center border border-slate-300 rounded text-xs font-bold focus:ring-2 focus:ring-sky-200">
+                            <button onclick="updatePinKtvCssd(${index}, '${nv.code}')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-1 px-2.5 rounded shadow-sm text-[10px] uppercase transition-colors">ĐỔI PIN</button>
+                            <button onclick="xaoKtvCssd('${nv.code}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 font-bold py-1 px-2 rounded text-[10px] uppercase transition-colors ml-1"><i class="fa-solid fa-trash-can mr-1"></i>XÓA</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join(''); 
+        }
+    }
+
+    // 3. Render Bảng PIN KHOA / PHÒNG LÂM SÀNG (Đồng bộ Đổi PIN + Ô Nhập + Nút XÓA)
+    const trKhoa = document.getElementById("bangPhanQuyenKhoa");
+    if(trKhoa) {
+        if(danhSachKhoa.length === 0) { 
+            trKhoa.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-rose-500 font-bold italic">Danh sách Khoa trống.</td></tr>`; 
+        } else { 
+            trKhoa.innerHTML = danhSachKhoa.map((k, index) => `
+                <tr class="border-b hover:bg-slate-50 transition-colors">
+                    <td class="p-2.5 font-black text-slate-700 text-[11px]">${k.ten}</td>
+                    <td class="p-2.5 text-center font-mono font-black text-rose-600 text-xs bg-rose-50/50">${k.pin || '123'}</td>
+                    <td class="p-2.5 text-center">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <input type="text" id="pin-khoa-${index}" placeholder="PIN MỚI" class="w-20 p-1 text-center border border-slate-300 rounded text-xs font-bold focus:ring-2 focus:ring-sky-200">
+                            <button onclick="updatePINTrựcTiep(${index}, '${k.ten}')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold py-1 px-2.5 rounded shadow-sm text-[10px] uppercase transition-colors">ĐỔI PIN</button>
+                            <button onclick="xoaKhoaThuCong('${k.ten}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 font-bold py-1 px-2 rounded text-[10px] uppercase transition-colors ml-1"><i class="fa-solid fa-trash-can mr-1"></i>XÓA</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join(''); 
+        }
     }
 }
 
