@@ -37,8 +37,42 @@
     <!-- SheetJS (XLSX) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <!-- Stylesheet -->
+    <!-- Stylesheet Nội bộ & Print Config -->
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Cấu hình chuyên dụng cho Máy In Tem Bixolon (80mm x 50mm) & Biên bản A4 */
+        @media print {
+            body { background: #ffffff !important; color: #000000 !important; }
+            #main-app, #login-screen, .action-col, aside, main > div:not(#print-zone) { display: none !important; }
+            #print-zone { display: block !important; }
+            
+            body.print-mode-bixolon {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            body.print-mode-bixolon @page {
+                size: 80mm 50mm;
+                margin: 0;
+            }
+            .bixolon-label {
+                page-break-after: always;
+                width: 80mm;
+                height: 50mm;
+                overflow: hidden;
+            }
+            
+            body.print-mode-doc @page {
+                size: A4 portrait;
+                margin: 15mm;
+            }
+        }
+        .sidebar-item-active {
+            background-color: rgba(51, 65, 85, 0.8) !important;
+            border-left: 4px solid #38bdf8 !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-700 antialiased min-h-screen">
 
@@ -121,7 +155,7 @@
 
                     <div id="header-vanhanh" class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Trạm Vận Hành CSSD</div>
                     <button id="menu-thugom" onclick="switchTab('thugom')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 transition-colors">
-                        <i class="fa-solid fa-truck-pickup w-4 text-sky-400"></i><span>Xe Thu Gom & Đổi Soát</span>
+                        <i class="fa-solid fa-truck-pickup w-4 text-sky-400"></i><span>Xe Thu Gom & Đối Soát</span>
                     </button>
                     <button id="menu-mayrua" onclick="switchTab('mayrua')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 transition-colors">
                         <i class="fa-solid fa-soap w-4 text-sky-400"></i><span>Mẻ Rửa Belimed WD250</span>
@@ -141,7 +175,7 @@
                         <i class="fa-solid fa-boxes-stacked w-4 text-sky-400"></i><span>Tồn Kho Toàn Viện</span>
                     </button>
                     <button id="menu-danhmuc" onclick="switchTab('danhmuc')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 transition-colors">
-                        <i class="fa-solid fa-list-check w-4 text-sky-400"></i><span>Cơ Số Linh Kiện chuẩn</span>
+                        <i class="fa-solid fa-list-check w-4 text-sky-400"></i><span>Cơ Số Linh Kiện Chuẩn</span>
                     </button>
                     <button id="menu-lichsuluanchuyen" onclick="switchTab('lichsuluanchuyen')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 transition-colors">
                         <i class="fa-solid fa-clock-rotate-left w-4 text-sky-400"></i><span>Nhật Ký Luân Chuyển</span>
@@ -156,7 +190,7 @@
                         <i class="fa-solid fa-tv w-4 text-sky-400"></i><span>Dashboard Tivi Trung Tâm</span>
                     </button>
 
-                    <div id="header-quantri" class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Hệ Thống</div>
+                    <div id="header-hethong" class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Hệ Thống</div>
                     <button id="menu-admin" onclick="switchTab('admin')" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 transition-colors text-amber-400">
                         <i class="fa-solid fa-user-shield w-4"></i><span>Quản Trị Hệ Thống</span>
                     </button>
@@ -202,6 +236,9 @@
                             <select id="khoa_selKhoa" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-sky-800 bg-slate-50 focus:ring-2 focus:ring-sky-500 outline-none flex-1 sm:flex-none">
                                 <option value="">-- Chọn Khoa --</option>
                             </select>
+                            <button onclick="moPopupSuDungBoDungCu()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-bed-pulse"></i> Dùng Cho BN
+                            </button>
                             <button onclick="inHoaDonGiaoNhan()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-print"></i> Biên Bản Công Nợ
                             </button>
@@ -689,7 +726,7 @@
                                     <tr class="bg-slate-700 text-white text-[11px] font-bold uppercase">
                                         <th class="p-3 w-1/4">Tên Bộ Dụng Cụ Standard</th>
                                         <th class="p-3 w-2/4">Linh Kiện Chi Tiết & Giới Hạn Mẻ Hấp Max</th>
-                                        <th class="p-3 text-center w-1/4">Tổng Cơ Số chiếc</th>
+                                        <th class="p-3 text-center w-1/4">Tổng Cơ Số Chiếc</th>
                                     </tr>
                                 </thead>
                                 <tbody id="bangDanhMucLinhKien"></tbody>
@@ -728,13 +765,11 @@
 
                     <!-- Thanh Công Cụ Xuất Báo Cáo Excel -->
                     <div class="flex flex-wrap items-center gap-2 my-4">
-                        <!-- Nút 1: Xuất Luân Chuyển & KPI -->
                         <button onclick="xuatBaoCaoExcelLuanChuyen()" 
                                 class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-lg shadow-md text-xs uppercase flex items-center gap-2 transition-all cursor-pointer">
                             <i class="fa-solid fa-file-excel text-sm"></i> Xuất Báo Cáo Luân Chuyển & KPI
                         </button>
 
-                        <!-- Nút 2: Xuất Nhật Ký Mẻ Rửa -->
                         <button onclick="xuatBaoCaoExcelMeRua()" 
                                 class="bg-sky-600 hover:bg-sky-700 text-white font-black px-4 py-2.5 rounded-lg shadow-md text-xs uppercase flex items-center gap-2 transition-all cursor-pointer">
                             <i class="fa-solid fa-soap text-sm"></i> Xuất Nhật Ký Mẻ Rửa (Belimed)
@@ -971,7 +1006,7 @@
     <!-- Overlay Mobile/Tablet -->
     <div id="mobile-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden transition-opacity"></div>
 
-    <!-- POPUPS -->
+    <!-- POPUPS HỆ THỐNG -->
     <!-- Popup 1: Kiểm Đếm -->
     <div id="popupKiemDem" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6 space-y-4 border border-slate-200 max-h-[90vh] flex flex-col">
@@ -1079,7 +1114,7 @@
         </div>
     </div>
 
-    <!-- Popup 4: Scanner -->
+    <!-- Popup 4: Scanner Camera Barcode -->
     <div id="popupScanner" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5 space-y-4 text-center">
             <div class="flex justify-between items-center pb-2 border-b border-slate-100">
@@ -1097,7 +1132,7 @@
         </div>
     </div>
 
-    <!-- Popup 5: Modal Xem Ảnh Cấu Hình Mâm -->
+    <!-- Popup 5: Modal Xem Ảnh Cấu Hình Sơ Đồ Mâm Dụng Cụ -->
     <div id="popupXemAnhCauHinh" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl p-5 space-y-4 border border-slate-200 max-h-[92vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
@@ -1130,7 +1165,89 @@
         </div>
     </div>
 
-    <!-- Zone In Ấn -->
+    <!-- Popup 6: Bệnh Nhân Sử Dụng Dụng Cụ (Surgical Patient Logging) -->
+    <div id="popupSuDungBoDungCu" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4 border border-slate-200 max-h-[92vh] flex flex-col">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base font-extrabold text-teal-800 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-bed-pulse text-teal-600"></i> GHI NHẬN MÂM DỤNG CỤ SỬ DỤNG TRÊN BỆNH NHÂN
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Khóa truy xuất vòng đời khay tiệt trùng trực tiếp vào Hồ sơ bệnh án</p>
+                </div>
+                <button onclick="closePopupSuDung()" class="text-slate-400 hover:text-rose-500 text-xl p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 flex-1 overflow-y-auto pr-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Mã BN / Tên Bệnh Nhân</label>
+                        <input type="text" id="sd_searchBN" placeholder="Nhập Họ tên hoặc Mã BN..." class="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Khoa / Phòng Thực Hiện</label>
+                        <input type="text" id="sd_khoaBenhNhan" placeholder="VD: Khoa Phẫu Thuật Gây Mê" class="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold outline-none focus:ring-2 focus:ring-teal-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Điều Dưỡng Vòng Trong</label>
+                        <input type="text" id="sd_yTaPhongMo" placeholder="Tên ĐĐ Dụng cụ..." class="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Điều Dưỡng Vòng Ngoài</label>
+                        <input type="text" id="sd_yTaVongNgoai" placeholder="Tên ĐĐ Chạy ngoài..." class="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ngày Sử Dụng</label>
+                        <input type="date" id="sd_ngaySuDung" class="w-full border border-slate-300 rounded-lg p-2 text-xs font-bold outline-none bg-slate-50">
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100">
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1.5 uppercase">Quét Hoặc Nhập Mã Khay Vô Khuẩn Sử Dụng</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="sd_maKhayInp" onkeydown="if(event.key==='Enter') scanKhayVaoSuDung()" placeholder="Nhập mã ID khay (VD: KD-102938)..." class="flex-1 border border-slate-300 rounded-lg p-2.5 text-xs font-mono font-bold uppercase focus:ring-2 focus:ring-teal-500 outline-none">
+                        <button onclick="scanKhayVaoSuDung()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2 rounded-lg text-xs uppercase shadow-sm">Thêm Khay</button>
+                        <button onclick="moCamera('sd_maKhayInp')" class="bg-slate-700 text-white p-2.5 rounded-lg" title="Quét Barcode"><i class="fa-solid fa-camera"></i></button>
+                    </div>
+                </div>
+
+                <div class="border rounded-xl overflow-hidden max-h-40 overflow-y-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase border-b">
+                                <th class="p-2 text-center w-8">#</th>
+                                <th class="p-2">Mã Khay</th>
+                                <th class="p-2">Tên Mâm Dụng Cụ</th>
+                                <th class="p-2 text-center">Mã Lô Hấp</th>
+                                <th class="p-2 text-center">Trạng Thái</th>
+                                <th class="p-2 text-center w-10">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sd_bangKhayChon"></tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">Ghi chú bổ sung / Ca phẫu thuật</label>
+                    <input type="text" id="sd_ghiChu" placeholder="VD: Ca mổ nội soi ruột thừa..." class="w-full border border-slate-300 rounded-lg p-2 text-xs font-medium outline-none">
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2 border-t border-slate-100">
+                <button onclick="closePopupSuDung()" class="flex-1 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm tracking-wider">
+                    <i class="fa-solid fa-circle-check mr-1"></i> Khóa Hồ Sơ & Đóng Mâm
+                </button>
+                <button onclick="closePopupSuDung()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-lg text-xs">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone In Ấn Temp Rendering -->
     <div id="print-zone" class="hidden"></div>
 
     <script src="app.js"></script>
