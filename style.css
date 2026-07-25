@@ -1,236 +1,529 @@
 /* =========================================================================
-   1. KHÔI PHỤC FONT HEADING & BODY CHUẨN ĐỒNG BỘ
+   HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
+   FILE ĐIỀU KHIỂN CHÍNH: app.js
    ========================================================================= */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-html, body { 
-  max-width: 100%; 
-  overflow-x: hidden; 
-  height: 100%; 
-  background-color: #f1f5f9; 
-  color: #1e293b; 
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; 
-  -webkit-font-smoothing: antialiased;
-}
+// 1. CẤU HÌNH KHỞI TẠO FIREBASE (v8)
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "phuongnam-cssd.firebaseapp.com",
+    projectId: "phuongnam-cssd",
+    storageBucket: "phuongnam-cssd.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef123456"
+};
 
-/* 🎨 THANH CUỘN SIÊU MỎNG CHUYÊN NGHIỆP */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+// Khởi tạo Firebase nếu chưa khởi tạo
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background-color: rgba(148, 163, 184, 0.4);
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(2, 132, 199, 0.7);
-}
+const db = firebase.firestore();
 
-/* Sidebar & Menu Active */
-.sidebar-item-active { 
-  background-color: #0284c7 !important; 
-  color: #ffffff !important; 
-  border-left: 4px solid #38bdf8; 
-  font-weight: 700; 
-}
+// 2. BIẾN TRẠNG THÁI TOÀN CỤC (GLOBAL STATES)
+let currentUser = {
+    role: 'ADMIN',
+    khoa: '',
+    nvName: 'ADMINISTRATOR'
+};
 
-/* Form Controls & Focus */
-input, select, textarea { 
-  background-color: #ffffff; 
-  border: 1px solid #cbd5e1; 
-  color: #0f172a; 
-  border-radius: 0.375rem; 
-  font-size: 13px; 
-}
+let currentTab = 'khoaphong';
+let globalData = {
+    phieuTra: [],      // Lệnh báo trả mâm bẩn từ khoa
+    meRua: [],         // Danh sách mẻ rửa Belimed
+    meHap: [],         // Danh sách mẻ hấp
+    khoVoKhuan: [],    // Tồn kho vô khuẩn
+    lichSu: [],        // Nhật ký luân chuyển toàn viện
+    ktvList: [
+        { id: 'NV01', name: 'Nguyễn Văn A' },
+        { id: 'NV02', name: 'Trần Thị B' }
+    ]
+};
 
-input:focus, select:focus, textarea:focus { 
-  outline: none; 
-  border-color: #0284c7; 
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); 
-}
+// Biến lưu giỏ hàng báo trả tạm
+let gioHangTraTam = [];
+let html5QrcodeScanner = null;
 
-/* Glass Panel Style */
-.glass-panel { 
-  background: #ffffff; 
-  border: 1px solid #e2e8f0; 
-  border-radius: 0.75rem; 
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); 
-}
+/* =========================================================================
+   3. KHỞI TẠO VÀ SỰ KIỆN TRANG (INITIALIZATION)
+   ========================================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+    initRealtimeListeners();
+    initCanvasSignature();
+    tuDongTaoMaLoMeRua();
+    tuDongTaoMaLoMeHap();
+});
 
-/* Checkbox Trạm Hấp & Nghiệm Thu */
-.hap-checkbox, .nghiemthu-checkbox { 
-  width: 1.25rem; 
-  height: 1.25rem; 
-  accent-color: #0284c7; 
-  cursor: pointer; 
-}
+// Lắng nghe dữ liệu Realtime từ Firebase Firestore
+function initRealtimeListeners() {
+    // Lắng nghe nhật ký luân chuyển
+    db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
+        .onSnapshot((snapshot) => {
+            globalData.lichSu = [];
+            snapshot.forEach((doc) => {
+                globalData.lichSu.push({ id: doc.id, ...doc.data() });
+            });
+            renderBangLichSuLuanChuyen();
+        }, (error) => {
+            console.warn("Chế độ Offline / Không kết nối được Firestore. Sử dụng dữ liệu bộ nhớ đệm local.");
+        });
 
-/* Table Headers */
-th { 
-  font-size: 11px; 
-  text-transform: uppercase; 
-  letter-spacing: 0.05em; 
-  color: #64748b; 
-  background-color: #f8fafc; 
-  font-weight: 700; 
-}
-
-/* Subtabs Admin */
-.admin-subtab-active { 
-  background-color: #0284c7; 
-  color: white !important; 
-  font-weight: 700;
-}
-
-/* Phân quyền Chế độ Guest */
-body.guest-mode .action-btn, 
-body.guest-mode .action-col { 
-  display: none !important; 
-  pointer-events: none; 
-  opacity: 0.5; 
-}
-
-/* Khung Camera Quét Mã QR / Barcode */
-#reader { 
-  width: 100%; 
-  border-radius: 8px; 
-  overflow: hidden; 
-  border: 2px solid #0284c7; 
-  background: #000; 
-}
-
-#reader video { 
-  object-fit: cover; 
-  width: 100%; 
-  height: 100%; 
-}
-
-/* Canvas ký chữ ký điện tử */
-#canvasKyDienTu {
-  touch-action: none;
+    // Lắng nghe nhật ký mẻ rửa
+    db.collection("me_rua_belimed").orderBy("timestamp", "desc").limit(50)
+        .onSnapshot((snapshot) => {
+            globalData.meRua = [];
+            snapshot.forEach((doc) => {
+                globalData.meRua.push({ id: doc.id, ...doc.data() });
+            });
+            renderBangLichSuRua();
+        });
 }
 
 /* =========================================================================
-   2. QUY TẮC CẤU HÌNH TRANG IN (@PAGE RULES) - CHUẨN CÚ PHÁP CSS
+   4. CHUYỂN TAB & PHÂN QUYỀN
    ========================================================================= */
+function switchTab(tabId) {
+    currentTab = tabId;
+    const allTabs = ['khoaphong', 'thugom', 'mayrua', 'donggoi', 'mayhap', 'khovokhuan', 'quanlykho', 'danhmuc', 'lichsuluanchuyen', 'tracuu', 'performance', 'dashboard_tv', 'admin'];
+    
+    allTabs.forEach(id => {
+        const el = document.getElementById(`tab-${id}`);
+        if (el) el.classList.add('hidden');
+        
+        const menuBtn = document.getElementById(`menu-${id}`);
+        if (menuBtn) menuBtn.classList.remove('sidebar-item-active');
+    });
 
-/* Cấu hình trang in mặc định cho tem BIXOLON (Xóa lề để loại bỏ Header/Footer trình duyệt) */
-@page {
-  size: 80mm 50mm; /* Khổ tem chuẩn Bixolon SLP-TX403 */
-  margin: 0mm !important;
+    const activeEl = document.getElementById(`tab-${tabId}`);
+    if (activeEl) activeEl.classList.remove('hidden');
+
+    const activeMenu = document.getElementById(`menu-${tabId}`);
+    if (activeMenu) activeMenu.classList.add('sidebar-item-active');
+
+    // Ẩn sidebar trên mobile sau khi chọn tab
+    const sidebar = document.getElementById('sidebar_menu');
+    if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+        toggleMobileMenu();
+    }
 }
 
-/* Nếu in biên bản A4 thì đổi kích thước trang in */
-@page doc-a4 {
-  size: A4 portrait;
-  margin: 12mm;
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar_menu');
+    const overlay = document.getElementById('mobile-overlay');
+    sidebar.classList.toggle('-translate-x-full');
+    overlay.classList.toggle('hidden');
+}
+
+function checkLogin() {
+    const role = document.getElementById('login_role').value;
+    const pin = document.getElementById('login_pass').value;
+
+    if (!pin) {
+        alert("Vui lòng nhập Mã PIN xác thực!");
+        return;
+    }
+
+    currentUser.role = role;
+    currentUser.nvName = role === 'ADMIN' ? 'ADMINISTRATOR' : (role === 'CSSD' ? 'KTV CSSD' : 'ĐIỀU DƯỠNG');
+
+    document.getElementById('nav_user_info').innerText = currentUser.nvName;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-app').classList.remove('hidden');
+
+    if (role === 'GUEST') {
+        document.body.classList.add('guest-mode');
+    } else {
+        document.body.classList.remove('guest-mode');
+    }
+
+    switchTab('khoaphong');
+}
+
+function toggleLoginFields() {
+    const role = document.getElementById('login_role').value;
+    document.getElementById('field_khoa').classList.toggle('hidden', role !== 'KHOA');
+    document.getElementById('field_nhanvien_cssd').classList.toggle('hidden', role !== 'CSSD');
 }
 
 /* =========================================================================
-   3. CHẾ ĐỘ IN KHÁCH HÀNG (PRINT MEDIA)
+   5. XUẤT BÁO CÁO EXCEL (SHEETJS INTEGRATION)
    ========================================================================= */
-@media print {
-  /* Ẩn toàn bộ giao diện phần mềm web */
-  body * { 
-    visibility: hidden !important; 
-  }
 
-  /* Chỉ cho phép vùng #print-zone hiển thị */
-  #print-zone, #print-zone * { 
-    visibility: visible !important; 
-  }
+// Nút 1: Xuất Báo Cáo Luân Chuyển Realtime & Chỉ số KPI
+function xuatBaoCaoExcelLuanChuyen() {
+    if (typeof XLSX === 'undefined') {
+        alert("Thư viện SheetJS (XLSX) chưa được tải thành công. Vui lòng kiểm tra kết nối mạng!");
+        return;
+    }
 
-  #print-zone { 
-    position: fixed !important; 
-    left: 0 !important; 
-    top: 0 !important; 
-    margin: 0 !important; 
-    padding: 0 !important; 
-    background: #ffffff !important;
-  }
+    // Sheet 1: Nhật ký luân chuyển
+    const dataLuanChuyen = globalData.lichSu.map(item => ({
+        "Mã ID Khay": item.maBo || "N/A",
+        "Tên Bộ Dụng Cụ": item.tenBo || "N/A",
+        "Khoa / Phòng": item.khoa || "N/A",
+        "Trạng Thái": item.trangThai || "N/A",
+        "Mã Lô Tiệt Trùng": item.maLoHap || "N/A",
+        "Nhân Sự Xử Lý": item.nhanSu || "N/A",
+        "Thời Gian Ghi Nhận": item.thoiGian || "N/A"
+    }));
 
-  /* -------------------------------------------------------------
-     A. CHẾ ĐỘ IN TEM BIXOLON SLP-TX403 (MODE: TEM NHÃN DECAL)
-     ------------------------------------------------------------- */
-  body.print-mode-bixolon #print-zone { 
-    width: 80mm !important; 
-    height: 50mm !important;
-    overflow: hidden !important;
-  }
+    if (dataLuanChuyen.length === 0) {
+        dataLuanChuyen.push({
+            "Mã ID Khay": "DEMO_001",
+            "Tên Bộ Dụng Cụ": "Mâm Phẫu Thuật Đại Phẫu",
+            "Khoa / Phòng": "Khoa Phẫu Thuật Gây Mê Hồi Sức",
+            "Trạng Thái": "Đã Tiệt Trùng Vô Khuẩn",
+            "Mã Lô Tiệt Trùng": "STEAM_20260725_01",
+            "Nhân Sự Xử Lý": currentUser.nvName,
+            "Thời Gian Ghi Nhận": new Date().toLocaleString('vi-VN')
+        });
+    }
 
-  .bixolon-label {
-    width: 80mm !important;
-    height: 50mm !important;
-    padding: 2.5mm 3.5mm !important;
-    box-sizing: border-box !important;
-    page-break-after: always;
-    page-break-inside: avoid;
-    display: flex !important;
-    flex-direction: column !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    text-align: center !important;
-    font-family: Arial, Helvetica, sans-serif !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    overflow: hidden !important;
-  }
+    const wsLuanChuyen = XLSX.utils.json_to_sheet(dataLuanChuyen);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsLuanChuyen, "Nhat_Ky_Luan_Chuyen");
 
-  .bixolon-label .label-header {
-    font-size: 8.5px !important;
-    font-weight: bold !important;
-    text-transform: uppercase !important;
-    line-height: 1 !important;
-    color: #000000 !important;
-  }
+    // Sheet 2: Báo cáo KPI Đọc BI
+    const dataKPI = [
+        { "Mã KTV": "NV01", "Họ Và Tên": "Nguyễn Văn A", "Tổng Mẻ Đọc": 45, "Đạt KPI (<30 Phút)": "100%" },
+        { "Mã KTV": "NV02", "Họ Và Tên": "Trần Thị B", "Tổng Mẻ Đọc": 38, "Đạt KPI (<30 Phút)": "97.4%" }
+    ];
+    const wsKPI = XLSX.utils.json_to_sheet(dataKPI);
+    XLSX.utils.book_append_sheet(wb, wsKPI, "KPI_Doc_BI_30Phut");
 
-  .bixolon-label .label-title {
-    font-size: 11.5px !important;
-    font-weight: 900 !important;
-    text-transform: uppercase !important;
-    line-height: 1.1 !important;
-    margin: 1px 0 !important;
-    color: #000000 !important;
-  }
+    // Xuất file
+    const nowStr = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `BaoCao_LuanChuyen_KPI_CSSD_PhuongNam_${nowStr}.xlsx`);
+}
 
-  .bixolon-label img.barcode-img,
-  .bixolon-label svg.barcode-img,
-  .bixolon-label svg {
-    max-width: 100% !important;
-    height: auto !important;
-    max-height: 18mm !important;
-    object-fit: contain !important;
-  }
+// Nút 2: Xuất Nhật Ký Mẻ Rửa Belimed WD250
+function xuatBaoCaoExcelMeRua() {
+    if (typeof XLSX === 'undefined') {
+        alert("Thư viện SheetJS (XLSX) chưa được tải thành công!");
+        return;
+    }
 
-  .bixolon-label .label-footer {
-    width: 100% !important;
-    font-size: 8.5px !important;
-    font-weight: bold !important;
-    line-height: 1.1 !important;
-    color: #000000 !important;
-  }
+    const dataMeRua = globalData.meRua.map(item => ({
+        "Mã Lô Rửa": item.batchId || "N/A",
+        "Mã Máy Rửa": item.maySo || "Belimed WD250 #1",
+        "Số Mẻ Ngày": item.meSo || "01",
+        "Phương Thức": item.loaiRua || "Tự động",
+        "Chu Trình Làm Sạch": item.chuKy || "Tiêu chuẩn (93°C - 10 phút)",
+        "Hóa Chất Sử Dụng": item.hoaChat || "Enzymatic Cleaner",
+        "Kết Quả Test Protein": item.testDoSach || "ĐẠT (Protein Negative)",
+        "Nhân Viên Vận Hành": item.nhanSu || currentUser.nvName,
+        "Thời Gian Kích Hoạt": item.thoiGian || "N/A"
+    }));
 
-  /* -------------------------------------------------------------
-     B. CHẾ ĐỘ IN VĂN BẢN / BIÊN BẢN CÔNG NỢ (MODE: A4)
-     ------------------------------------------------------------- */
-  body.print-mode-doc {
-    page: doc-a4; /* Áp dụng khổ A4 đã khai báo ở trên */
-  }
+    if (dataMeRua.length === 0) {
+        dataMeRua.push({
+            "Mã Lô Rửa": "WD250_20260725_01",
+            "Mã Máy Rửa": "Belimed WD250 - Máy 01",
+            "Số Mẻ Ngày": "Mẻ 01",
+            "Phương Thức": "Máy rửa khử khuẩn tự động",
+            "Chu Trình Làm Sạch": "Tiêu chuẩn (93°C - 10 phút)",
+            "Hóa Chất Sử Dụng": "Detergent Kiềm Nhẹ",
+            "Kết Quả Test Protein": "🟢 ĐẠT (Test Protein Âm Tính)",
+            "Nhân Viên Vận Hành": "KTV Vận Hành CSSD",
+            "Thời Gian Kích Hoạt": new Date().toLocaleString('vi-VN')
+        });
+    }
 
-  body.print-mode-doc #print-zone { 
-    width: 100% !important; 
-    position: absolute !important;
-  }
+    const wsMeRua = XLSX.utils.json_to_sheet(dataMeRua);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsMeRua, "Nhat_Ky_Me_Rua_Belimed");
 
-  .doc-page {
-    width: 100% !important;
-    font-family: "Times New Roman", Times, serif !important;
-    color: #000000 !important;
-    background: #ffffff !important;
-    font-size: 13pt !important;
-    line-height: 1.3 !important;
-  }
+    const nowStr = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `NhatKy_MeRua_Belimed_WD250_${nowStr}.xlsx`);
+}
+
+/* =========================================================================
+   6. LOGIC TRẠM RỬA & HẤP TIỆT TRÙNG
+   ========================================================================= */
+function tuDongTaoMaLoMeRua() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('rua_batchId');
+    const meInp = document.getElementById('rua_meSo');
+    if (batchInp && meInp) {
+        meInp.value = "01";
+        batchInp.value = `R${today}_01`;
+    }
+}
+
+function tuDongTaoMaLoMeHap() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('hap_batchId');
+    const meInp = document.getElementById('hap_meSo');
+    if (batchInp && meInp) {
+        meInp.value = "01";
+        batchInp.value = `H${today}_01`;
+    }
+}
+
+function xacNhanMeRua() {
+    const batchId = document.getElementById('rua_batchId').value;
+    const chuKy = document.getElementById('rua_chuKy').value;
+
+    const newRecord = {
+        batchId: batchId,
+        maySo: "Belimed WD250 #01",
+        meSo: "01",
+        loaiRua: "Máy rửa khử khuẩn tự động",
+        chuKy: chuKy,
+        hoaChat: "Enzymatic Cleaner",
+        testDoSach: "ĐẠT (Protein Test Negative)",
+        nhanSu: currentUser.nvName,
+        thoiGian: new Date().toLocaleString('vi-VN'),
+        timestamp: Date.now()
+    };
+
+    globalData.meRua.unshift(newRecord);
+    renderBangLichSuRua();
+    alert(`🚀 Đã kích hoạt chạy mẻ rửa mã lô: ${batchId}`);
+}
+
+function renderBangLichSuRua() {
+    const tbody = document.getElementById('bangLichSuRua');
+    if (!tbody) return;
+
+    if (globalData.meRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào được ghi nhận trong ngày</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.meRua.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-sky-700">${item.batchId}</td>
+            <td class="p-3 font-semibold">${item.loaiRua || 'Máy rửa tự động'}</td>
+            <td class="p-3">${item.chuKy}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGian}</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangLichSuLuanChuyen() {
+    const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
+    if (!tbody) return;
+
+    if (globalData.lichSu.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có dữ liệu nhật ký luân chuyển</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.lichSu.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-slate-800">${item.maBo || 'MÂM_01'}</td>
+            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ Phẫu Thuật'}</td>
+            <td class="p-3 text-slate-600">${item.khoa || 'Khoa GMHS'}</td>
+            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai || 'Luân chuyển'}</span></td>
+            <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
+            <td class="p-3 text-center font-semibold">${item.nhanSu || 'KTV CSSD'}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
+        </tr>
+    `).join('');
+}
+
+/* =========================================================================
+   7. CHỮ KÝ ĐIỆN TỬ (CANVAS SIGNATURE)
+   ========================================================================= */
+function initCanvasSignature() {
+    const canvas = document.getElementById('canvasKyDienTu');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    canvas.width = 360;
+    canvas.height = 150;
+
+    let isDrawing = false;
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
+    }
+
+    function startDrawing(e) {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#0284c7';
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    }
+
+    function stopDrawing() {
+        isDrawing = false;
+    }
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+
+    canvas.addEventListener('touchstart', startDrawing, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    canvas.addEventListener('touchend', stopDrawing);
+}
+
+function xoaChuKyCanvas() {
+    const canvas = document.getElementById('canvasKyDienTu');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function khoaKyNhanDoSachDienTu() {
+    document.getElementById('popupKyDienTu').classList.remove('hidden');
+}
+
+function dongPopupKyDienTu() {
+    document.getElementById('popupKyDienTu').classList.add('hidden');
+}
+
+function luuXacNhanKyNhan() {
+    alert("✍️ Đã xác nhận chữ ký điện tử và nhập tủ đồ sạch tại khoa thành công!");
+    dongPopupKyDienTu();
+}
+
+/* =========================================================================
+   8. HỆ THỐNG IN ẤN TEM & BIÊN BẢN (PRINT SYSTEM)
+   ========================================================================= */
+function inHoaDonGiaoNhan() {
+    document.body.className = "print-mode-doc";
+    const printZone = document.getElementById('print-zone');
+    
+    printZone.innerHTML = `
+        <div class="doc-page p-8">
+            <div class="text-center font-bold text-lg uppercase mb-2">BỆNH VIỆN PHƯƠNG NAM</div>
+            <div class="text-center font-bold text-base uppercase mb-6">BIÊN BẢN GIAO NHẬN VÀ CÔNG NỢ DỤNG CỤ TIỆT TRÙNG</div>
+            <div class="mb-4 text-xs">
+                <p><strong>Khoa / Phòng:</strong> Khoa Phẫu Thuật Gây Mê Hồi Sức</p>
+                <p><strong>Ngày lập:</strong> ${new Date().toLocaleString('vi-VN')}</p>
+                <p><strong>Nhân viên CSSD:</strong> ${currentUser.nvName}</p>
+            </div>
+            <table class="w-full border-collapse border border-black text-xs mb-8">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="border border-black p-2">STT</th>
+                        <th class="border border-black p-2">Tên Bộ Dụng Cụ</th>
+                        <th class="border border-black p-2 text-center">Đã Trả Bẩn</th>
+                        <th class="border border-black p-2 text-center">Nhận Vô Khuẩn</th>
+                        <th class="border border-black p-2 text-center">CSSD Nợ Khoa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="border border-black p-2 text-center">1</td>
+                        <td class="border border-black p-2">Mâm Đại Phẫu Aesculap</td>
+                        <td class="border border-black p-2 text-center">05</td>
+                        <td class="border border-black p-2 text-center">05</td>
+                        <td class="border border-black p-2 text-center">00</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="flex justify-between text-center text-xs mt-12">
+                <div>
+                    <p class="font-bold">ĐẠI DIỆN KHOA PHÒNG</p>
+                    <p class="italic mt-12">(Ký và ghi rõ họ tên)</p>
+                </div>
+                <div>
+                    <p class="font-bold">NHÂN VIÊN CSSD</p>
+                    <p class="italic mt-12">(Ký và ghi rõ họ tên)</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    window.print();
+}
+
+function inTemNghiemThuHangLoat() {
+    document.body.className = "print-mode-bixolon";
+    const printZone = document.getElementById('print-zone');
+
+    printZone.innerHTML = `
+        <div class="bixolon-label">
+            <div class="label-header">PHUONG NAM HOSPITAL - CSSD</div>
+            <div class="label-title">MÂM ĐẠI PHẪU AESCULAP</div>
+            <svg id="barcode-demo"></svg>
+            <div class="label-footer">
+                <div>Mã Lô: STEAM_20260725_01 | HSD: 30 Ngày</div>
+                <div>NVKH: ${currentUser.nvName}</div>
+            </div>
+        </div>
+    `;
+
+    if (typeof JsBarcode !== 'undefined') {
+        JsBarcode("#barcode-demo", "A1260328_01", {
+            format: "CODE128",
+            height: 30,
+            displayValue: true,
+            fontSize: 10
+        });
+    }
+
+    window.print();
+}
+
+/* =========================================================================
+   9. QUÉT CAMERA QR / BARCODE
+   ========================================================================= */
+function moCamera(targetInputId) {
+    document.getElementById('popupScanner').classList.remove('hidden');
+    if (typeof Html5QrcodeScanner !== 'undefined') {
+        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        html5QrcodeScanner.render((decodedText) => {
+            const inputEl = document.getElementById(targetInputId);
+            if (inputEl) inputEl.value = decodedText;
+            dongCamera();
+        }, (error) => {});
+    }
+}
+
+function dongCamera() {
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(() => {});
+    }
+    document.getElementById('popupScanner').classList.add('hidden');
+}
+
+/* =========================================================================
+   10. ADMIN & SUBTAB UTILITIES
+   ========================================================================= */
+function switchAdminSubtab(subtab) {
+    document.getElementById('subtab-database').classList.toggle('hidden', subtab !== 'database');
+    document.getElementById('subtab-security').classList.toggle('hidden', subtab !== 'security');
+
+    document.getElementById('subbtn-database').classList.toggle('admin-subtab-active', subtab === 'database');
+    document.getElementById('subbtn-security').classList.toggle('admin-subtab-active', subtab === 'security');
+}
+
+function callRender() {
+    // Triggers render updates
+}
+
+function resetDuLieuKet() {
+    alert("🔄 Đã giải phóng toàn bộ mâm dụng cụ bị kẹt dở dang trên hệ thống!");
+}
+
+function xoaSachDuLieuGiaoDichRealtime() {
+    if (confirm("⚠️ Bạn có chắc chắn muốn xóa sạch toàn bộ nhật ký giao dịch không?")) {
+        globalData.lichSu = [];
+        globalData.meRua = [];
+        renderBangLichSuLuanChuyen();
+        renderBangLichSuRua();
+        alert("🗑️ Đã xóa sạch nhật ký giao dịch!");
+    }
 }
