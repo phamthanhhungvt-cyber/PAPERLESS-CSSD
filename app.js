@@ -1401,7 +1401,7 @@ function inHoaDonGiaoNhan() {
 }
 
 // =========================================================================
-// 12. HÀM XUẤT BÁO CÁO EXCEL CHUYÊN SÂU (TÍCH HỢP MỚI)
+// 12. HÀM XUẤT BÁO CÁO EXCEL CHUYÊN SÂU
 // =========================================================================
 
 // 12.1. XUẤT BÁO CÁO EXCEL LUÂN CHUYỂN DỤNG CỤ VÀ KPI TIỆT TRÙNG
@@ -1553,7 +1553,7 @@ function themKtvCssd() {
 }
 
 function xaoKtvCssd(code) { 
-    if(confirm(`Anh Hùng có chắc chắn muốn XÓA nhân viên [${code}]?`)) { 
+    if(confirm(`Có chắc chắn muốn XÓA nhân viên [${code}]?`)) { 
         danhSachKtvCssd = danhSachKtvCssd.filter(x => x.code !== code); 
         db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKtvCssd: danhSachKtvCssd }).then(() => {
             showToast(`Đã xóa nhân viên ${code} thành công!`, "success");
@@ -1587,7 +1587,7 @@ function themKhoaThuCong() {
 }
 
 function xoaKhoaThuCong(tenKhoa) {
-    if(confirm(`Anh Hùng có chắc chắn muốn XÓA Khoa "${tenKhoa}" khỏi hệ thống?`)) {
+    if(confirm(`Có chắc chắn muốn XÓA Khoa "${tenKhoa}" khỏi hệ thống?`)) {
         danhSachKhoa = danhSachKhoa.filter(x => x.ten !== tenKhoa);
         db.collection("heThongDanhMuc").doc("danhMucTongPhuongNam").update({ danhSachKhoa: danhSachKhoa }).then(() => {
             showToast(`Đã xóa Khoa ${tenKhoa} thành công!`, "success");
@@ -2140,7 +2140,7 @@ function clearTruyVetBatch() {
 }
 
 function resetDuLieuKet() {
-    if (confirm("Anh Hùng có chắc chắn muốn giải phóng các mâm đang xử lý dở dang (chưa Hoàn tất / Chưa dùng) về trạng thái Chờ thu gom?")) {
+    if (confirm("Có chắc chắn muốn giải phóng các mâm đang xử lý dở dang (chưa Hoàn tất / Chưa dùng) về trạng thái Chờ thu gom?")) {
         let p = [];
         listGiaoDich.forEach(x => {
             if (x.status !== "HOAN_TAT" && x.status !== "DA_SU_DUNG") {
