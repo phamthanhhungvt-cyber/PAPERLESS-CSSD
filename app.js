@@ -197,7 +197,7 @@ function apDungPhanQuyenGiaoDien(role) {
 }
 
 // =========================================================================
-// CHUYỂN TAB & SỬA LỖI 2 THANH ACTIVE MÀU XANH + AUTO FOCUS
+// CHUYỂN TAB & AUTO FOCUS
 // =========================================================================
 function switchTab(t) { 
     if (currentRole !== "ADMIN") {
@@ -253,7 +253,6 @@ function moModalXemAnhCauHinh(maBo, customTitle = '') {
     let tenBo = maBo || 'Bộ dụng cụ';
     let urlAnh = '';
 
-    // Tìm thông tin mâm từ danh mục Excel đã nạp
     if (databaseExcel && Array.isArray(databaseExcel)) {
         const item = databaseExcel.find(d => {
             let boName = d['Tên TS (i)'] || d['Tên Bộ Dụng Cụ'] || d['Bộ dụng cụ'] || d['Dụng cụ'] || d['TÊN BỘ'] || '';
@@ -264,14 +263,12 @@ function moModalXemAnhCauHinh(maBo, customTitle = '') {
         }
     }
 
-    // Nếu không có URL riêng, tự động ghép theo đường dẫn ảnh chuẩn local
     if (!urlAnh) {
         urlAnh = maBo 
             ? `assets/sodo_mam/${maBo}.png` 
             : 'https://placehold.co/800x600/1e293b/e2e8f0?text=Chua+Co+So+Do+Hinh+Anh';
     }
 
-    // Fallback image nếu file không tồn tại
     imgElement.onerror = function() {
         this.onerror = null;
         this.src = 'https://placehold.co/800x600/1e293b/e2e8f0?text=Chua+Cap+Nhat+Anh+So+Do';
@@ -293,10 +290,8 @@ function dongModalXemAnhCauHinh() {
 }
 
 // =========================================================================
-// 4. TRẠM 1: CỔNG LÂM SÀNG & HÀNH ĐỘNG ĐỘC LẬP (TRẢ ĐỒ BẨN / YÊU CẦU ĐỒ SẠCH)
+// 4. TRẠM 1: CỔNG LÂM SÀNG & HÀNH ĐỘNG ĐỘC LẬP
 // =========================================================================
-
-// CẢI TIẾN: Hiển thị Tên Dụng Cụ Thuần Túy gọn gàng (Lọc bỏ ID rườm rà)
 function loadBoDungCuTheoKhoa() { 
     let k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa")?.value; 
     let list = document.getElementById("listBoDungCu"); 
@@ -310,12 +305,10 @@ function loadBoDungCuTheoKhoa() {
         f.danhSachBo.forEach(x => {
             if (!x) return;
             let chuoiX = String(x).trim();
-            // Lấy tên gốc thuần túy (loại bỏ phần [ID:...])
             let tenGoc = chuoiX.includes(" [ID:") ? chuoiX.split(" [ID:")[0].trim() : chuoiX;
             if (tenGoc) setTenThuan.add(tenGoc);
         });
 
-        // Tạo danh sách Option chỉ hiển thị tên bộ thuần túy
         let htmlOptions = "";
         setTenThuan.forEach(ten => {
             htmlOptions += `<option value="${ten}">`;
@@ -324,7 +317,7 @@ function loadBoDungCuTheoKhoa() {
     }
 }
 
-// CẢI TIẾN: Thêm vào giỏ & Tự động cấp ID Số XOAY VÒNG độc nhất
+// LOGIC CỦA ANH HÙNG: LUÂN CHUYỂN XOAY VÒNG - MÃ ID CỐ ĐỊNH HOẶC TỰ SINH KD-XXXXXX
 function themVaoGio() { 
     let inpEl = document.getElementById("khoa_inpMaBo");
     let val = inpEl ? inpEl.value.trim().toUpperCase() : ""; 
@@ -333,27 +326,35 @@ function themVaoGio() {
     let tenBoGoc = "";
     let maIdKhay = "";
 
-    // Trường hợp 1: Quét Barcode đã có ID chuẩn (ví dụ: MÂM INOX [ID:10001])
+    // 1. Quét hoặc chọn mâm có Mã ID cố định chuẩn (VD: BỘ THAY BẰNG [ID:TB-001])
     if (val.includes("[ID:")) {
         let parts = val.split(" [ID:");
         tenBoGoc = parts[0].trim();
         maIdKhay = parts[1].replace("]", "").trim();
     } 
-    // Trường hợp 2: Điều dưỡng chọn Tên Bộ thuần túy (vd: MÂM INOX)
+    // 2. Nhập tên thuần túy -> Tìm trong Tổng danh mục mâm cố định toàn viện
     else {
         tenBoGoc = val;
-        // Tự động sinh ID Số độc nhất tăng dần dạng: [ID-NgàyGiờPhútGiây] (VD: ID-24111245)
-        const now = new Date();
-        const autoSeq = String(now.getDate()).padStart(2,'0') + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
-        maIdKhay = `ID-${autoSeq}`;
+        let khayTimThao = null;
+        danhSachKhoa.forEach(k => {
+            let found = k.danhSachBo?.find(b => b.startsWith(tenBoGoc));
+            if (found) khayTimThao = found;
+        });
+
+        if (khayTimThao && khayTimThao.includes("[ID:")) {
+            maIdKhay = khayTimThao.split("[ID:")[1].replace("]", "").trim();
+        } else {
+            // Nếu là mâm hoàn toàn mới chưa khai sinh mã cố định -> Tự sinh ID cố định mới dạng KD-xxxxxx
+            const autoSeq = String(Date.now()).slice(-6);
+            maIdKhay = `KD-${autoSeq}`;
+        }
     }
 
     let maMacDinhDinhDang = `${tenBoGoc} [ID:${maIdKhay}]`;
 
-    // Kiểm tra xem mã ID này đã nằm trong giỏ chờ trả chưa
-    if (gioHangTam.some(x => x.maMacDinh === maMacDinhDinhDang || (x.bo === tenBoGoc && x.maIdOnly === maIdKhay))) { 
+    if (gioHangTam.some(x => x.maMacDinh === maMacDinhDinhDang)) { 
         inpEl.value = ""; 
-        return showToast("Mã mâm/dụng cụ này đã có trong danh sách chờ trả!", "error"); 
+        return showToast(`Khay ${maIdKhay} đã được đưa vào danh sách trả!`, "error"); 
     } 
 
     gioHangTam.push({
@@ -841,12 +842,24 @@ function xuatKhoXoayVong(maTrucTiep) {
     
     if(!k) { playSound('error'); return showToast("Vui lòng Chọn Khoa nhận trước khi xuất!", "error"); } 
     if(!ma) return;
-    if(gioHangXuatKho.some(x => x.maMacDinh === ma)) { playSound('error'); if(document.getElementById("xuat_inpMaBo")) document.getElementById("xuat_inpMaBo").value = ""; return showToast("Mã này đã có trong danh sách xuất!", "error"); }
+
+    if(gioHangXuatKho.some(x => x.maMacDinh === ma)) { 
+        playSound('error'); 
+        if(document.getElementById("xuat_inpMaBo")) document.getElementById("xuat_inpMaBo").value = ""; 
+        return showToast("Mã này đã có trong danh sách xuất!", "error"); 
+    }
     
     let khayThucTe = listGiaoDich.find(x => x.maMacDinh === ma && x.status === "CHO_XUAT"); 
-    if(!khayThucTe) { playSound('error'); if(document.getElementById("xuat_inpMaBo")) document.getElementById("xuat_inpMaBo").value = ""; return showToast(`Mã ID ${ma} không sẵn sàng ở Kho Vô Khuẩn.`, "error"); } 
+    if(!khayThucTe) { 
+        playSound('error'); 
+        if(document.getElementById("xuat_inpMaBo")) document.getElementById("xuat_inpMaBo").value = ""; 
+        return showToast(`Mã ID ${ma} không sẵn sàng ở Kho Vô Khuẩn.`, "error"); 
+    } 
     
-    gioHangXuatKho.push(khayThucTe); playSound('success'); if(document.getElementById("xuat_inpMaBo")) document.getElementById("xuat_inpMaBo").value = ""; renderGioHangXuat();
+    gioHangXuatKho.push(khayThucTe); 
+    playSound('success'); 
+    if(document.getElementById("xuat_inpMaBo")) document.getElementById("xuat_inpMaBo").value = ""; 
+    renderGioHangXuat();
 }
 
 function renderGioHangXuat() {
@@ -925,7 +938,7 @@ function duyetCapPhatTậpTrung(yeuCauId, tenBo, khoaNhan) {
 }
 
 // =========================================================================
-// XỬ LÝ KÝ CHỮ KÝ ĐIỆN TỬ TRỰC TIẾP TRÊN CANVAS & CẬP NHẬT KHOA
+// XỬ LÝ KÝ CHỮ KÝ ĐIỆN TỬ TRỰC TIẾP TRÊN CANVAS
 // =========================================================================
 function khoiTaoCanvasKyDienTu() {
     canvasSignature = document.getElementById("canvasKyDienTu");
@@ -940,7 +953,6 @@ function khoiTaoCanvasKyDienTu() {
     ctxSignature.lineCap = "round";
     ctxSignature.strokeStyle = "#0284c7";
 
-    // Chuột
     canvasSignature.onmousedown = (e) => {
         isDrawingSignature = true;
         ctxSignature.beginPath();
@@ -955,7 +967,6 @@ function khoiTaoCanvasKyDienTu() {
     };
     canvasSignature.onmouseup = () => { isDrawingSignature = false; };
 
-    // Cảm ứng Tablet/Phone
     canvasSignature.ontouchstart = (e) => {
         isDrawingSignature = true;
         ctxSignature.beginPath();
@@ -1038,7 +1049,6 @@ function luuXacNhanKyNhan() {
     const currentKhoa = currentRole === "KHOA" ? loginUserCode : (document.getElementById("khoa_selKhoa")?.value || "KHOA_LAM_SANG");
     const thoiGianKy = new Date().toLocaleString('vi-VN');
 
-    // 1. Lưu chữ ký gần nhất vào localStorage theo Khoa
     const dataSignature = {
         tenNguoiNhan: tenNguoiNhan,
         chuKyImg: chuoiAnhChuKy,
@@ -1046,7 +1056,6 @@ function luuXacNhanKyNhan() {
     };
     localStorage.setItem(`signature_${currentKhoa}`, JSON.stringify(dataSignature));
 
-    // 2. Cập nhật trạng thái từng mâm vào Cloud Firestore
     let p = [];
     dsIdKhayChoKyNhan.forEach(idDoc => {
         p.push(
@@ -1118,10 +1127,8 @@ function xoaKhayKhoiListSuDung(index) {
 }
 
 // =========================================================================
-// 11. THIẾT LẬP MÁY IN BIXOLON SLP-TX403 (80mm x 50mm) & BIÊN BẢN HÀNG LOẠT
+// 11. IN TEM BIXOLON SLP-TX403 & BIÊN BẢN HÀNG LOẠT A4
 // =========================================================================
-
-// In tem đơn Bixolon 80mm x 50mm
 function inTemBixolonChuan(itemData) {
     const pZone = document.getElementById("print-zone");
     if (!pZone) return;
@@ -1131,7 +1138,6 @@ function inTemBixolonChuan(itemData) {
     const ngayNSX = itemData.ngayHapRealtime || itemData.ngayTao || getTodayDateStr();
     const ngayHSD = itemData.hsd ? new Date(itemData.hsd).toLocaleDateString('vi-VN') : "Theo quy định";
     const maBatch = itemData.batchCode || itemData.batchId || "N/A";
-    const tenKhoa = itemData.khoa || "TẬP TRUNG";
 
     pZone.innerHTML = `
         <div class="bixolon-label" style="font-family: Arial, sans-serif; color: #000000; width: 80mm; height: 50mm; padding: 2.5mm 4mm; box-sizing: border-box; text-align: center;">
@@ -1303,7 +1309,6 @@ function inTemNghiemThuHangLoat() {
     }, 300); 
 }
 
-// In Biên bản giao nhận khổ A4 máy in văn phòng (Có hỗ trợ chữ ký điện tử)
 function inHoaDonGiaoNhan() {
     const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value; 
     if (!k) return showToast("Chọn Khoa trước!", "error");
@@ -1396,7 +1401,93 @@ function inHoaDonGiaoNhan() {
 }
 
 // =========================================================================
-// 12. HÀM PHỤ TRỢ: CHỨC NĂNG QUẢN TRỊ ADMIN & TIỆN ÍCH
+// 12. HÀM XUẤT BÁO CÁO EXCEL CHUYÊN SÂU (TÍCH HỢP MỚI)
+// =========================================================================
+
+// 12.1. XUẤT BÁO CÁO EXCEL LUÂN CHUYỂN DỤNG CỤ VÀ KPI TIỆT TRÙNG
+function xuatBaoCaoExcelLuanChuyen() {
+    if (!listGiaoDich || listGiaoDich.length === 0) {
+        return showToast("Không có dữ liệu giao dịch để xuất báo cáo!", "error");
+    }
+
+    let dataExport = listGiaoDich.map((item, index) => {
+        let tenBoClean = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A";
+        return {
+            "STT": index + 1,
+            "Mã ID Khay": item.maMacDinh || 'N/A',
+            "Tên Bộ Dụng Cụ": tenBoClean,
+            "Khoa/Phòng": item.khoa || 'CSSD',
+            "Trạng Thái Hiện Tại": item.status || 'N/A',
+            "Mã Lô Hấp (Batch)": item.batchCode || 'N/A',
+            "Có Test BI": item.hasBI ? "CÓ" : "KHÔNG",
+            "KPI 30P Đọc BI": item.ketQuaGiamSatKpi || 'N/A',
+            "Thời Gian Đọc (Phút)": item.thoiGianTinhKpiPhut !== undefined ? item.thoiGianTinhKpiPhut : 'N/A',
+            "Mã Lô Rửa": item.rua_batchCode || 'N/A',
+            "KTV Thu Gom": item.ktvThuGom || 'N/A',
+            "NV Xuất Kho": item.nvXuatKho || 'N/A',
+            "Người Ký Nhận Khoa": item.nguoiKyNhanKhoa || 'N/A',
+            "Ngày Tạo": item.ngayTao || '',
+            "Giờ Tạo": item.time || '',
+            "Ngày Nhận Thực Tế": item.ngayKhoaNhanThucTe || '',
+            "Giờ Nhận Thực Tế": item.timeKhoaNhanThucTe || ''
+        };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "LuanChuyen_KPI");
+
+    worksheet["!cols"] = [
+        { wch: 5 }, { wch: 18 }, { wch: 25 }, { wch: 20 }, { wch: 18 }, 
+        { wch: 18 }, { wch: 12 }, { wch: 15 }, { wch: 18 }, { wch: 18 }, 
+        { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, 
+        { wch: 15 }, { wch: 15 }
+    ];
+
+    const todayStr = getTodayDateStr();
+    XLSX.writeFile(workbook, `PN_CSSD_BaoCaoLuanChuyen_${todayStr}.xlsx`);
+    playSound('success');
+    showToast("Đã xuất Báo cáo Luân chuyển & KPI thành công!", "success");
+}
+
+// 12.2. XUẤT BÁO CÁO EXCEL NHẬT KÝ MẺ RỬA MÁY BELIMED WD250
+function xuatBaoCaoExcelMeRua() {
+    let dsCoLoRua = listGiaoDich.filter(x => x.rua_batchCode);
+    if (dsCoLoRua.length === 0) {
+        return showToast("Chưa có dữ liệu mẻ rửa nào để xuất báo cáo!", "error");
+    }
+
+    let dataExport = dsCoLoRua.map((item, index) => {
+        let tenBoClean = item.bo ? String(item.bo).split(" [ID:")[0] : "N/A";
+        return {
+            "STT": index + 1,
+            "Mã Lô Rửa": item.rua_batchCode,
+            "Máy Rửa": item.rua_mayRua || "Belimed WD250",
+            "Mã ID Khay": item.maMacDinh || 'N/A',
+            "Tên Bộ Dụng Cụ": tenBoClean,
+            "Khoa": item.khoa || 'N/A',
+            "Chu Kỳ Rửa": item.rua_chuKy || "Chuẩn",
+            "Hóa Chất": item.rua_hoaChat || "Smeg",
+            "Liều Lượng": item.rua_lieuLuong || "Standard",
+            "Test Độ Sạch": item.rua_ketQuaTestSach || "ĐẠT",
+            "Giờ Bắt Đầu": item.rua_timeBatDau || '--:--',
+            "Giờ Kết Thúc": item.rua_timeKetThuc || '--:--',
+            "Ngày Rửa": item.rua_ngayRua || item.ngayTao || ''
+        };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(dataExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKy_MeRua");
+
+    const todayStr = getTodayDateStr();
+    XLSX.writeFile(workbook, `PN_CSSD_NhatKyMeRua_${todayStr}.xlsx`);
+    playSound('success');
+    showToast("Đã xuất Báo cáo Nhật ký Mẻ rửa thành công!", "success");
+}
+
+// =========================================================================
+// 13. HÀM PHỤ TRỢ: CHỨC NĂNG QUẢN TRỊ ADMIN & TIỆN ÍCH
 // =========================================================================
 function taiDanhMucLinhKienChuan() {
     const tbody = document.getElementById("bangDanhMucLinhKien"); if (!tbody) return; tbody.innerHTML = "";
@@ -1568,14 +1659,13 @@ function docAnhBiUpTaiCho(inputElement) {
 }
 
 // =========================================================================
-// 13. HÀM CORE RENDER DỮ LIỆU ĐA TAB LUỒNG HỆ THỐNG
+// 14. HÀM CORE RENDER DỮ LIỆU ĐA TAB LUỒNG HỆ THỐNG
 // =========================================================================
 function renderTheoTabHienTai() {
     if(activeTab === 'khoaphong') {
         const k = currentRole === "KHOA" ? loginUserCode : document.getElementById("khoa_selKhoa").value;
         let tatCaDonCuaKhoa = listGiaoDich.filter(x => (x.khoa || "").toString().trim().toUpperCase() === (k || "").toString().trim().toUpperCase());
         
-        // 1. TÍNH TOÁN CÔNG NỢ LUÂN CHUYỂN THỰC TẾ
         let gopCongNo = {};
         tatCaDonCuaKhoa.forEach(x => {
             if (x.status === "CHO_CAP_PHAT") return;
@@ -1598,7 +1688,6 @@ function renderTheoTabHienTai() {
             document.getElementById("bangDonGiaoNhan").innerHTML = arrHtml.length ? arrHtml.join('') : `<tr><td colspan="5" class="p-8 text-center text-slate-400 italic">Khoa chưa phát sinh công nợ luân chuyển đồ.</td></tr>`;
         }
         
-        // 2. DANH SÁCH CHỜ NHẬN ĐỒ SẠCH (Từ xe trung chuyển CSSD bàn giao lên)
         const tbodyChoNhan = document.getElementById("bangChoNhanTaiKhoa"); const badgeChoNhan = document.getElementById("badgeChoNhanKhoa"); const txtNguoiXacNhan = document.getElementById("txtNguoiDungNhanHienTai");
         if(txtNguoiXacNhan) txtNguoiXacNhan.innerText = `PM-ĐD: ${loginUserCode || "Chưa Đăng Nhập"}`;
         
@@ -1608,7 +1697,6 @@ function renderTheoTabHienTai() {
             else { tbodyChoNhan.innerHTML = dsDangVanChuyen.map(khay => `<tr class="hover:bg-slate-50 transition-colors"><td class="p-2 text-center"><input type="checkbox" value="${khay.firestoreId}" class="w-3.5 h-3.5 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"></td><td class="p-2 font-mono font-bold text-slate-700">${khay.maMacDinh || 'N/A'}</td><td class="p-2 font-semibold text-slate-800">${khay.bo ? String(khay.bo).split(" [ID:")[0] : 'N/A'}</td><td class="p-2 text-slate-500 font-medium">${khay.nvXuatKho || '--'}</td><td class="p-2 text-center"><span class="bg-purple-50 text-purple-700 font-mono text-[10px] px-1.5 py-0.5 rounded font-bold">${khay.batchCode || 'N/A'}</span></td></tr>`).join(''); }
         }
 
-        // 3. THEO DÕI YÊU CẦU ĐANG CHỜ CSSD CẤP PHÁT
         let dsChoCapPhat = tatCaDonCuaKhoa.filter(x => x.status === "CHO_CAP_PHAT");
         const tbodyChoCapPhat = document.getElementById("bangChoCapPhatTaiKhoa");
         if (tbodyChoCapPhat) {
@@ -1949,7 +2037,6 @@ function renderTheoTabHienTai() {
             else if (viTriCode === "ĐANG_VAN_CHUYEN") { viTriText = `Đang đi đường`; viTriColor = "bg-purple-100 text-purple-800"; }
             else if (viTriCode !== "CHO_XUAT") { viTriText = "Xử lý tại CSSD"; viTriColor = "bg-amber-100 text-amber-800"; }
             let chuKyLo = listGiaoDich.filter(x => x.maMacDinh === ma && (x.status === "CHO_XUAT" || x.status === "HOAN_TAT" || x.status === "DA_SU_DUNG" || x.status === "ĐANG_VAN_CHUYEN")).length;
-            // ĐÃ SỬA LỖI "lần lễ" -> "lần"
             arrHtml.push(`<tr class="border-b border-slate-100 font-medium"><td class="p-3 font-mono text-sky-700 font-bold">${ma}</td><td class="p-3 font-bold text-slate-800">${currentTrans.bo ? String(currentTrans.bo).split(" [ID:")[0] : "N/A"}</td><td class="p-3 text-center"><span class="px-2.5 py-0.5 rounded text-[10px] font-bold ${viTriColor}">${viTriText}</span></td><td class="p-3 text-center font-black text-amber-700 bg-amber-50/50">${chuKyLo} lần</td></tr>`);
         });
         tbody.innerHTML = arrHtml.join('');
@@ -2034,7 +2121,7 @@ function renderKhoVoKhuan(listData) {
 }
 
 // =========================================================================
-// VÁ LỖI CÁC HÀM TRUY VẾT & ĐỒNG BỘ HIỆU SUẤT TV MÀN HÌNH
+// TRUY VẾT & ĐỒNG BỘ HIỆU SUẤT TV MÀN HÌNH
 // =========================================================================
 function truyVetTheoMaBatch() {
     const inp = document.getElementById("inp_searchBatch");
@@ -2118,14 +2205,13 @@ function renderDashboardTiviRealtime() {
 }
 
 // =========================================================================
-// RENDER GIAO DIỆN ADMIN TƯƠNG ĐỒNG 100% CẢ 2 BẢNG (KTV CSSD & KHOA LÂM SÀNG)
+// RENDER GIAO DIỆN ADMIN (KTV CSSD & KHOA LÂM SÀNG)
 // =========================================================================
 function renderAdminInterface() {
     if (document.getElementById("cfg_pinAdmin")) document.getElementById("cfg_pinAdmin").value = thongTinMatKhauAdmin.adminPIN || "";
     if (document.getElementById("cfg_pinCSSD")) document.getElementById("cfg_pinCSSD").value = thongTinMatKhauAdmin.cssdPIN || "";
     if (document.getElementById("cfg_pinGuest")) document.getElementById("cfg_pinGuest").value = thongTinMatKhauAdmin.guestPIN || "";
     
-    // 1. Render Ma trận phân quyền Tab
     const MatrixRoles = ["CSSD", "KHOA", "GUEST"];
     const MatrixTabs = [
         { id: "khoaphong", name: "Cổng Báo Trả Đồ" },
@@ -2154,7 +2240,6 @@ function renderAdminInterface() {
     });
     const tbodyMatrix = document.getElementById("bodyMaTranGiaoDien"); if (tbodyMatrix) tbodyMatrix.innerHTML = htmlMatrix;
 
-    // 2. Render Bảng DANH SÁCH NHÂN VIÊN CSSD (Đã có Đổi PIN + Ô Nhập + Xóa đồng bộ)
     const tbKtv = document.getElementById("bangNhanVienCssd");
     if(tbKtv) {
         if(danhSachKtvCssd.length === 0) { 
@@ -2177,7 +2262,6 @@ function renderAdminInterface() {
         }
     }
 
-    // 3. Render Bảng PIN KHOA / PHÒNG LÂM SÀNG (Đồng bộ Đổi PIN + Ô Nhập + Nút XÓA)
     const trKhoa = document.getElementById("bangPhanQuyenKhoa");
     if(trKhoa) {
         if(danhSachKhoa.length === 0) { 
@@ -2201,7 +2285,7 @@ function renderAdminInterface() {
 }
 
 // =========================================================================
-// 14. XỬ LÝ ĐỌC FILE EXCEL ĐA SHEET
+// 15. XỬ LÝ ĐỌC FILE EXCEL ĐA SHEET
 // =========================================================================
 document.addEventListener("DOMContentLoaded", () => {
     const fileInput = document.getElementById("excelFileInput");
