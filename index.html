@@ -952,92 +952,85 @@
                 </div>
             </div>
 
-            <!-- TAB 13: ADMIN SUBTAB MODULE (QUẢN TRỊ) -->
+            <!-- TAB 13: ADMIN SUBTAB MODULE (QUẢN TRỊ NÂNG CẤP) -->
             <div id="tab-admin" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
+                    <!-- Thanh Chuyển Subtab Admin -->
                     <div class="flex border-b border-slate-200 mb-6 gap-6 text-sm font-bold">
-                        <button id="subbtn-database" onclick="switchAdminSubtab('database')" class="pb-2 admin-subtab-active">Nạp Cơ Sở Dữ Liệu Excel</button>
-                        <button id="subbtn-security" onclick="switchAdminSubtab('security')" class="pb-2 text-slate-600">Cấu Hình PIN & Phân Quyền</button>
+                        <button id="subbtn-database" onclick="switchAdminSubtab('database')" class="pb-2 text-sky-600 border-b-2 border-sky-600 admin-subtab-active">
+                            <i class="fa-solid fa-file-excel mr-2"></i>Nạp Cơ Sở Dữ Liệu Excel
+                        </button>
+                        <button id="subbtn-security" onclick="switchAdminSubtab('security')" class="pb-2 text-slate-600 hover:text-sky-600">
+                            <i class="fa-solid fa-user-shield mr-2"></i>Cấu Hình PIN & Phân Quyền
+                        </button>
                     </div>
 
+                    <!-- SUBTAB 1: NẠP DATABASE EXCEL -->
                     <div id="subtab-database" class="space-y-4">
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                            <h3 class="font-bold text-xs text-slate-700 uppercase">Nạp File Cấu Hình Định Biên & Linh Kiện Aesculap (.xlsx)</h3>
+                            <h3 class="font-bold text-xs text-slate-700 uppercase"><i class="fa-solid fa-upload mr-1 text-sky-600"></i>Nạp File Cấu Hình Định Biên & Linh Kiện Aesculap (.xlsx)</h3>
                             <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sky-600 file:text-white hover:file:bg-sky-700 cursor-pointer">
                         </div>
                         <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-2 pt-2">
-                            <button onclick="khaiSinhKhayVangLai()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm">
-                                + Khai Sinh Khay Vãng Lai Thủ Công
+                            <button onclick="khaiSinhKhayVangLai()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow-sm transition-all">
+                                <i class="fa-solid fa-plus mr-1"></i> + Khai Sinh Khay Vãng Lai Thủ Công
                             </button>
-                            <button onclick="resetDuLieuKet()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm">
-                                🔄 Giải Phóng Mâm Kẹt Dở Dang
+                            <button onclick="resetDuLieuKet()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow-sm transition-all">
+                                <i class="fa-solid fa-rotate mr-1"></i> Giải Phóng Mâm Kẹt Dở Dang
                             </button>
-                            <button onclick="xoaSachDuLieuGiaoDichRealtime()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm">
-                                🗑️ Xóa Sạch Nhật Ký Giao Dịch
+                            <button onclick="xoaSachDuLieuGiaoDichRealtime()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2.5 rounded-lg text-xs shadow-sm transition-all">
+                                <i class="fa-solid fa-trash mr-1"></i> Xóa Sạch Nhật Ký Giao Dịch
                             </button>
                         </div>
                     </div>
 
+                    <!-- SUBTAB 2: CẤU HÌNH PIN & PHÂN QUYỀN (RESTORED FULL UI) -->
                     <div id="subtab-security" class="space-y-6 hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="p-3 bg-slate-50 border rounded-lg space-y-2">
-                                <label class="block text-xs font-bold">PIN Administrator</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="cfg_pinAdmin" class="flex-1 border rounded p-1.5 text-xs font-bold text-center">
-                                    <button onclick="saveAdminPIN('ADMIN')" class="bg-sky-600 text-white text-[10px] font-bold px-2.5 rounded">Lưu</button>
-                                </div>
+                        <!-- Form Thêm Nhân Sự Mới -->
+                        <div class="bg-sky-50/70 border border-sky-200/80 p-4 rounded-xl space-y-3">
+                            <h4 class="text-xs font-bold text-sky-800 uppercase flex items-center gap-2">
+                                <i class="fa-solid fa-user-plus text-sky-600"></i> Thêm Nhân Sự / KTV Mới Vào Hệ Thống
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                                <input type="text" id="admin_add_nv_id" placeholder="Mã NV (VD: NV03)" class="border border-slate-300 rounded-lg p-2 text-xs font-mono font-bold bg-white outline-none focus:ring-2 focus:ring-sky-500">
+                                <input type="text" id="admin_add_nv_name" placeholder="Họ và Tên Nhân Sự" class="border border-slate-300 rounded-lg p-2 text-xs font-semibold bg-white outline-none focus:ring-2 focus:ring-sky-500">
+                                <input type="password" id="admin_add_nv_pin" placeholder="Mã PIN (Mặc định 1234)" class="border border-slate-300 rounded-lg p-2 text-xs text-center font-mono font-bold bg-white outline-none focus:ring-2 focus:ring-sky-500">
+                                <select id="admin_add_nv_role" class="border border-slate-300 rounded-lg p-2 text-xs font-bold bg-white outline-none focus:ring-2 focus:ring-sky-500">
+                                    <option value="CSSD">🧪 KTV Vận Hành CSSD</option>
+                                    <option value="KHOA">🏥 Điều Dưỡng Lâm Sàng</option>
+                                    <option value="ADMIN">👑 Administrator</option>
+                                    <option value="GUEST">👁️ Khách (Guest)</option>
+                                </select>
                             </div>
-                            <div class="p-3 bg-slate-50 border rounded-lg space-y-2">
-                                <label class="block text-xs font-bold">PIN Backup CSSD</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="cfg_pinCSSD" class="flex-1 border rounded p-1.5 text-xs font-bold text-center">
-                                    <button onclick="saveAdminPIN('CSSD')" class="bg-sky-600 text-white text-[10px] font-bold px-2.5 rounded">Lưu</button>
-                                </div>
-                            </div>
-                            <div class="p-3 bg-slate-50 border rounded-lg space-y-2">
-                                <label class="block text-xs font-bold">PIN Khách Tham Quan</label>
-                                <div class="flex gap-2">
-                                    <input type="text" id="cfg_pinGuest" class="flex-1 border rounded p-1.5 text-xs font-bold text-center">
-                                    <button onclick="saveAdminPIN('GUEST')" class="bg-sky-600 text-white text-[10px] font-bold px-2.5 rounded">Lưu</button>
-                                </div>
-                            </div>
+                            <button onclick="themNhanSuMoiAdmin()" class="bg-sky-700 hover:bg-sky-800 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-check"></i> Xác Nhận Thêm Nhân Sự
+                            </button>
                         </div>
 
-                        <div>
-                            <h3 class="font-bold text-xs text-slate-700 uppercase mb-2">Ma Trận Cấu Hình Truy Cập Tab</h3>
-                            <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                                <table class="w-full text-left border-collapse min-w-[400px]">
+                        <!-- Bảng Danh Sách & Chỉnh Sửa PIN -->
+                        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <div class="p-3 bg-slate-100 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                                <span class="text-xs font-bold uppercase text-slate-700 flex items-center gap-2">
+                                    <i class="fa-solid fa-users-gear text-sky-600"></i> Danh Sách Tài Khoản & Cấu Hình Quyền Truy Cập
+                                </span>
+                                <input type="text" id="search_pin_admin" onkeyup="renderDanhSachPinAdmin()" placeholder="Tìm tên hoặc Mã NV..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-xs bg-white w-full sm:w-56 outline-none focus:ring-2 focus:ring-sky-500">
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse min-w-[600px]">
                                     <thead>
-                                        <tr class="bg-slate-700 text-white text-[10px] font-bold uppercase">
-                                            <th class="p-2.5">Tab Giao Diện</th>
-                                            <th class="p-2.5 text-center">CSSD</th>
-                                            <th class="p-2.5 text-center">Khoa Lâm Sàng</th>
-                                            <th class="p-2.5 text-center">Khách (Guest)</th>
+                                        <tr class="bg-slate-700 text-white text-[11px] font-bold uppercase">
+                                            <th class="p-3 text-center w-12">STT</th>
+                                            <th class="p-3 w-28">Mã NV</th>
+                                            <th class="p-3">Họ Và Tên</th>
+                                            <th class="p-3 text-center w-36">Mã PIN Xác Thực</th>
+                                            <th class="p-3 text-center w-44">Vai Trò (Role)</th>
+                                            <th class="p-3 text-center w-28">Tác Vụ</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="bodyMaTranGiaoDien"></tbody>
+                                    <tbody id="bangCauHinhPinAdmin">
+                                        <!-- Dữ liệu KTV render động từ app.js -->
+                                    </tbody>
                                 </table>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <h3 class="font-bold text-xs text-slate-700 uppercase">Danh Sách Nhân Viên CSSD</h3>
-                                    <button onclick="themKtvCssd()" class="bg-sky-600 text-white px-2.5 py-1 rounded text-[10px] font-bold">+ Thêm KTV</button>
-                                </div>
-                                <div class="border rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                                    <table class="w-full text-left"><tbody id="bangNhanVienCssd"></tbody></table>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <h3 class="font-bold text-xs text-slate-700 uppercase">PIN Khoa / Phòng Lâm Sàng</h3>
-                                    <button onclick="themKhoaThuCong()" class="bg-sky-600 text-white px-2.5 py-1 rounded text-[10px] font-bold">+ Thêm Khoa</button>
-                                </div>
-                                <div class="border rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                                    <table class="w-full text-left"><tbody id="bangPhanQuyenKhoa"></tbody></table>
-                                </div>
                             </div>
                         </div>
                     </div>
