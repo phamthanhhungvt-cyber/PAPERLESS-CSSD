@@ -17,6 +17,24 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
+// DỮ LIỆU CẤU HÌNH GỐC & DANH MỤC DỤNG CỤ
+let databaseCoSo = [
+    { maBo: "KD-101", tenBo: "Bộ Mâm Phẫu Thuật Đại Phẫu", khoa: "Khoa Phẫu Thuật GMHS", trangThai: "Sẵn sàng (Vô khuẩn)", maLoHap: "STEAM_20260725_01", hanDung: "30/08/2026", tongMe: 12 },
+    { maBo: "KD-102", tenBo: "Bộ Mâm Phẫu Thuật Đại Phẫu", khoa: "Khoa Phẫu Thuật GMHS", trangThai: "Sẵn sàng (Vô khuẩn)", maLoHap: "STEAM_20260725_01", hanDung: "30/08/2026", tongMe: 15 },
+    { maBo: "KD-103", tenBo: "Bộ Mâm Phẫu Thuật Đại Phẫu", khoa: "Khoa Phẫu Thuật GMHS", trangThai: "Chờ rửa (Mâm bẩn)", maLoHap: "---", hanDung: "---", tongMe: 8 },
+    { maBo: "TP-201", tenBo: "Bộ Mâm Phẫu Thuật Tiểu Phẫu", khoa: "Khoa Cấp Cứu", trangThai: "Sẵn sàng (Vô khuẩn)", maLoHap: "STEAM_20260726_02", hanDung: "26/08/2026", tongMe: 22 },
+    { maBo: "TP-202", tenBo: "Bộ Mâm Phẫu Thuật Tiểu Phẫu", khoa: "Khoa Cấp Cứu", trangThai: "Chờ hấp tiệt trùng", maLoHap: "---", hanDung: "---", tongMe: 19 },
+    { maBo: "NS-301", tenBo: "Bộ Dụng Cụ Phẫu Thuật Nội Soi", khoa: "Khoa Ngoại Tổng Hợp", trangThai: "Sẵn sàng (Vô khuẩn)", maLoHap: "PLASMA_20260727_01", hanDung: "27/10/2026", tongMe: 5 },
+    { maBo: "CT-401", tenBo: "Bộ Dụng Cụ Chấn Thương Chỉnh Hình", khoa: "Khoa Phẫu Thuật GMHS", trangThai: "Đang trong buồng rửa", maLoHap: "---", hanDung: "---", tongMe: 31 }
+];
+
+let databaseLinhKienAesculap = [
+    { tenBo: "Bộ Mâm Phẫu Thuật Đại Phẫu", chiTiet: "Cán dao #4 (2), Kéo Mayo 17cm (1), Kéo Metzenbaum (1), Pince Hemostatic (12), Nhíp có răng/không răng (4)", tongCoSo: 5, gioiHanMeMax: 500 },
+    { tenBo: "Bộ Mâm Phẫu Thuật Tiểu Phẫu", chiTiet: "Cán dao #3 (1), Kéo cắt chỉ (1), Pince Halstead Mosquito (6), Kẹp mang kim (1), Nhíp phẫu thuật (2)", tongCoSo: 8, gioiHanMeMax: 300 },
+    { tenBo: "Bộ Dụng Cụ Phẫu Thuật Nội Soi", chiTiet: "Trocar 10mm/5mm (4), Kìm kẹp kim nội soi (2), Kéo nội soi (1), Ống nhòm Laparoscope 10mm 30 deg (1)", tongCoSo: 3, gioiHanMeMax: 200 },
+    { tenBo: "Bộ Dụng Cụ Chấn Thương Chỉnh Hình", chiTiet: "Đục xương các cỡ (4), Búa đục xương (1), Kìm tuốt màng xương (2), Kìm cắt xương Heavy (1)", tongCoSo: 4, gioiHanMeMax: 600 }
+];
+
 let currentUser = {
     role: 'ADMIN',
     khoa: '',
@@ -41,11 +59,13 @@ let globalData = {
 let gioHangTraTam = [];
 let html5QrcodeScanner = null;
 
+// KHỞI TẠO HỆ THỐNG
 document.addEventListener('DOMContentLoaded', () => {
     initRealtimeListeners();
     initCanvasSignature();
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
+    renderAllData(); // Render toàn bộ dữ liệu ban đầu
 
     window.addEventListener('afterprint', () => {
         document.body.classList.remove('print-mode-doc', 'print-mode-bixolon');
@@ -79,6 +99,60 @@ function initRealtimeListeners() {
         });
 }
 
+// HÀM RENDER TẤT CẢ CÁC BẢNG DỤNG CỤ
+function renderAllData() {
+    renderBangLinhKien();
+    renderBangDanhMucTong();
+    renderBangTonKho();
+    renderDataListOption();
+}
+
+function renderBangLinhKien() {
+    const tbody = document.getElementById('bangDanhMucLinhKien');
+    if (!tbody) return;
+    tbody.innerHTML = databaseLinhKienAesculap.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-bold text-teal-800">${item.tenBo}</td>
+            <td class="p-3 text-slate-600">${item.chiTiet} <br><span class="text-[10px] text-amber-700 font-bold">(Hạn mức mẻ hấp: ${item.gioiHanMeMax} mẻ)</span></td>
+            <td class="p-3 text-center font-extrabold text-slate-800">${item.tongCoSo} Bộ</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangDanhMucTong() {
+    const tbody = document.getElementById('bangDanhMucTong');
+    if (!tbody) return;
+    tbody.innerHTML = databaseCoSo.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-slate-800">${item.maBo}</td>
+            <td class="p-3 font-bold">${item.tenBo}</td>
+            <td class="p-3 text-center"><span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai}</span></td>
+            <td class="p-3 text-center font-mono font-bold text-purple-700">${item.tongMe} Mẻ</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangTonKho() {
+    const tbody = document.getElementById('bangTonKhoTe');
+    if (!tbody) return;
+    tbody.innerHTML = databaseCoSo.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-teal-800">${item.maBo}</td>
+            <td class="p-3 font-bold text-slate-800">${item.tenBo}</td>
+            <td class="p-3 text-slate-600 font-medium">${item.khoa}</td>
+            <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full font-bold text-[10px]">${item.trangThai}</span></td>
+            <td class="p-3 text-center font-mono text-xs font-bold text-slate-700">${item.maLoHap}</td>
+            <td class="p-3 text-center font-bold text-slate-600">${item.hanDung}</td>
+        </tr>
+    `).join('');
+}
+
+function renderDataListOption() {
+    const list = document.getElementById('listBoDungCu');
+    if (!list) return;
+    list.innerHTML = databaseCoSo.map(item => `<option value="${item.maBo}">${item.tenBo} - (${item.khoa})</option>`).join('');
+}
+
 // 1. HÀM CHUYỂN TAB MAIN CHÍNH
 function switchTab(tabId) {
     currentTab = tabId;
@@ -104,27 +178,21 @@ function switchTab(tabId) {
     }
 }
 
-// 2. HÀM CHUYỂN SUBTAB NGANG TRONG WORKLIST (BẤM MÁY TÍNH & ĐIỆN THOẠI ĐỀU ĂN)
+// 2. HÀM CHUYỂN SUBTAB NGANG TRONG WORKLIST
 function switchWorklistSubtab(subId) {
     currentWorklistSubtab = subId;
     const allSubtabs = ['baotra', 'thugom', 'mayrua', 'mayhap', 'khovokhuan', 'nhatky', 'tv'];
 
     allSubtabs.forEach(id => {
         const subEl = document.getElementById(`worksub-${id}`);
-        if (subEl) {
-            subEl.classList.add('hidden');
-        }
+        if (subEl) subEl.classList.add('hidden');
 
         const btnEl = document.getElementById(`workbtn-${id}`);
-        if (btnEl) {
-            btnEl.classList.remove('subtab-active');
-        }
+        if (btnEl) btnEl.classList.remove('subtab-active');
     });
 
     const activeSub = document.getElementById(`worksub-${subId}`);
-    if (activeSub) {
-        activeSub.classList.remove('hidden');
-    }
+    if (activeSub) activeSub.classList.remove('hidden');
 
     const activeBtn = document.getElementById(`workbtn-${subId}`);
     if (activeBtn) {
