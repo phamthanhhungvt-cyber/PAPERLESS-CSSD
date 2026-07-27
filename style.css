@@ -14,10 +14,10 @@ const firebaseConfig = {
 };
 
 // Khởi tạo Firebase nếu chưa khởi tạo
-if (!firebase.apps.length) {
+if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
-const db = firebase.firestore();
+const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
 // 2. BIẾN TRẠNG THÁI TOÀN CỤC (GLOBAL STATES)
 let currentUser = {
@@ -51,10 +51,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initCanvasSignature();
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
+
+    // Tự động dọn dẹp class in ấn khi đóng/hoàn tất cửa sổ in (Print Dialog)
+    window.addEventListener('afterprint', () => {
+        document.body.classList.remove('print-mode-doc', 'print-mode-bixolon');
+        const printZone = document.getElementById('print-zone');
+        if (printZone) {
+            printZone.classList.add('hidden');
+            printZone.innerHTML = '';
+        }
+    });
 });
 
 // Lắng nghe dữ liệu Realtime từ Firebase Firestore
 function initRealtimeListeners() {
+    if (!db) {
+        console.warn("Chế độ Offline / Chưa cấu hình Firestore. Sử dụng dữ liệu bộ nhớ đệm local.");
+        return;
+    }
+
     // Lắng nghe nhật ký luân chuyển
     db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
         .onSnapshot((snapshot) => {
@@ -64,7 +79,7 @@ function initRealtimeListeners() {
             });
             renderBangLichSuLuanChuyen();
         }, (error) => {
-            console.warn("Chế độ Offline / Không kết nối được Firestore. Sử dụng dữ liệu bộ nhớ đệm local.");
+            console.warn("Chế độ Offline / Không kết nối được Firestore. Sử dụng dữ liệu local.");
         });
 
     // Lắng nghe nhật ký mẻ rửa
@@ -109,13 +124,16 @@ function switchTab(tabId) {
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar_menu');
     const overlay = document.getElementById('mobile-overlay');
-    sidebar.classList.toggle('-translate-x-full');
-    overlay.classList.toggle('hidden');
+    if (sidebar) sidebar.classList.toggle('-translate-x-full');
+    if (overlay) overlay.classList.toggle('hidden');
 }
 
 function checkLogin() {
-    const role = document.getElementById('login_role').value;
-    const pin = document.getElementById('login_pass').value;
+    const roleEl = document.getElementById('login_role');
+    const passEl = document.getElementById('login_pass');
+    
+    const role = roleEl ? roleEl.value : 'ADMIN';
+    const pin = passEl ? passEl.value : '';
 
     if (!pin) {
         alert("Vui lòng nhập Mã PIN xác thực!");
@@ -125,9 +143,14 @@ function checkLogin() {
     currentUser.role = role;
     currentUser.nvName = role === 'ADMIN' ? 'ADMINISTRATOR' : (role === 'CSSD' ? 'KTV CSSD' : 'ĐIỀU DƯỠNG');
 
-    document.getElementById('nav_user_info').innerText = currentUser.nvName;
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('main-app').classList.remove('hidden');
+    const userInfoEl = document.getElementById('nav_user_info');
+    if (userInfoEl) userInfoEl.innerText = currentUser.nvName;
+
+    const loginScreen = document.getElementById('login-screen');
+    const mainApp = document.getElementById('main-app');
+    
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (mainApp) mainApp.classList.remove('hidden');
 
     if (role === 'GUEST') {
         document.body.classList.add('guest-mode');
@@ -139,9 +162,15 @@ function checkLogin() {
 }
 
 function toggleLoginFields() {
-    const role = document.getElementById('login_role').value;
-    document.getElementById('field_khoa').classList.toggle('hidden', role !== 'KHOA');
-    document.getElementById('field_nhanvien_cssd').classList.toggle('hidden', role !== 'CSSD');
+    const roleEl = document.getElementById('login_role');
+    if (!roleEl) return;
+    const role = roleEl.value;
+    
+    const fieldKhoa = document.getElementById('field_khoa');
+    const fieldNv = document.getElementById('field_nhanvien_cssd');
+    
+    if (fieldKhoa) fieldKhoa.classList.toggle('hidden', role !== 'KHOA');
+    if (fieldNv) fieldNv.classList.toggle('hidden', role !== 'CSSD');
 }
 
 /* =========================================================================
@@ -260,8 +289,11 @@ function tuDongTaoMaLoMeHap() {
 }
 
 function xacNhanMeRua() {
-    const batchId = document.getElementById('rua_batchId').value;
-    const chuKy = document.getElementById('rua_chuKy').value;
+    const batchInp = document.getElementById('rua_batchId');
+    const chuKyInp = document.getElementById('rua_chuKy');
+    
+    const batchId = batchInp ? batchInp.value : `R${Date.now()}`;
+    const chuKy = chuKyInp ? chuKyInp.value : "Tiêu chuẩn (93°C - 10 phút)";
 
     const newRecord = {
         batchId: batchId,
@@ -385,11 +417,13 @@ function xoaChuKyCanvas() {
 }
 
 function khoaKyNhanDoSachDienTu() {
-    document.getElementById('popupKyDienTu').classList.remove('hidden');
+    const popup = document.getElementById('popupKyDienTu');
+    if (popup) popup.classList.remove('hidden');
 }
 
 function dongPopupKyDienTu() {
-    document.getElementById('popupKyDienTu').classList.add('hidden');
+    const popup = document.getElementById('popupKyDienTu');
+    if (popup) popup.classList.add('hidden');
 }
 
 function luuXacNhanKyNhan() {
@@ -400,65 +434,95 @@ function luuXacNhanKyNhan() {
 /* =========================================================================
    8. HỆ THỐNG IN ẤN TEM & BIÊN BẢN (PRINT SYSTEM)
    ========================================================================= */
+
+// Hàm in Biên bản A4
 function inHoaDonGiaoNhan() {
     document.body.className = "print-mode-doc";
     const printZone = document.getElementById('print-zone');
-    
+    if (!printZone) return;
+
+    printZone.classList.remove('hidden');
     printZone.innerHTML = `
-        <div class="doc-page p-8">
-            <div class="text-center font-bold text-lg uppercase mb-2">BỆNH VIỆN PHƯƠNG NAM</div>
-            <div class="text-center font-bold text-base uppercase mb-6">BIÊN BẢN GIAO NHẬN VÀ CÔNG NỢ DỤNG CỤ TIỆT TRÙNG</div>
-            <div class="mb-4 text-xs">
-                <p><strong>Khoa / Phòng:</strong> Khoa Phẫu Thuật Gây Mê Hồi Sức</p>
-                <p><strong>Ngày lập:</strong> ${new Date().toLocaleString('vi-VN')}</p>
-                <p><strong>Nhân viên CSSD:</strong> ${currentUser.nvName}</p>
+        <div style="font-family: 'Inter', sans-serif; color: #000; padding: 10px;">
+            <div style="text-align: center; font-weight: 800; font-size: 16px; text-transform: uppercase; margin-bottom: 4px;">
+                BỆNH VIỆN PHƯƠNG NAM
             </div>
-            <table class="w-full border-collapse border border-black text-xs mb-8">
+            <div style="text-align: center; font-weight: 700; font-size: 14px; text-transform: uppercase; margin-bottom: 20px;">
+                BIÊN BẢN GIAO NHẬN VÀ CÔNG NỢ DỤNG CỤ TIỆT TRÙNG
+            </div>
+            
+            <div style="font-size: 12px; margin-bottom: 15px; line-height: 1.6;">
+                <p style="margin: 0;"><strong>Khoa / Phòng:</strong> Khoa Phẫu Thuật Gây Mê Hồi Sức</p>
+                <p style="margin: 0;"><strong>Ngày lập:</strong> ${new Date().toLocaleString('vi-VN')}</p>
+                <p style="margin: 0;"><strong>Nhân viên CSSD lập phiếu:</strong> ${currentUser.nvName}</p>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 12px;">
                 <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border border-black p-2">STT</th>
-                        <th class="border border-black p-2">Tên Bộ Dụng Cụ</th>
-                        <th class="border border-black p-2 text-center">Đã Trả Bẩn</th>
-                        <th class="border border-black p-2 text-center">Nhận Vô Khuẩn</th>
-                        <th class="border border-black p-2 text-center">CSSD Nợ Khoa</th>
+                    <tr style="background-color: #f3f4f6;">
+                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 40px;">STT</th>
+                        <th style="border: 1px solid #000; padding: 8px; text-align: left;">Tên Bộ Dụng Cụ</th>
+                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 90px;">Đã Trả Bẩn</th>
+                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100px;">Nhận Vô Khuẩn</th>
+                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100px;">CSSD Nợ Khoa</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="border border-black p-2 text-center">1</td>
-                        <td class="border border-black p-2">Mâm Đại Phẫu Aesculap</td>
-                        <td class="border border-black p-2 text-center">05</td>
-                        <td class="border border-black p-2 text-center">05</td>
-                        <td class="border border-black p-2 text-center">00</td>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">1</td>
+                        <td style="border: 1px solid #000; padding: 8px; font-weight: 600;">Mâm Phẫu Thuật Đại Phẫu Aesculap</td>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">05</td>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">05</td>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">00</td>
+                    </tr>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">2</td>
+                        <td style="border: 1px solid #000; padding: 8px; font-weight: 600;">Mâm Phẫu Thuật Nội Soi Ổ Bụng</td>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">02</td>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">02</td>
+                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">00</td>
                     </tr>
                 </tbody>
             </table>
-            <div class="flex justify-between text-center text-xs mt-12">
-                <div>
-                    <p class="font-bold">ĐẠI DIỆN KHOA PHÒNG</p>
-                    <p class="italic mt-12">(Ký và ghi rõ họ tên)</p>
+
+            <div style="display: flex; justify-content: space-between; text-align: center; font-size: 12px; margin-top: 40px;">
+                <div style="width: 45%;">
+                    <p style="font-weight: 700; text-transform: uppercase; margin-bottom: 60px;">ĐẠI DIỆN KHOA PHÒNG</p>
+                    <p style="font-style: italic; color: #555;">(Ký và ghi rõ họ tên)</p>
                 </div>
-                <div>
-                    <p class="font-bold">NHÂN VIÊN CSSD</p>
-                    <p class="italic mt-12">(Ký và ghi rõ họ tên)</p>
+                <div style="width: 45%;">
+                    <p style="font-weight: 700; text-transform: uppercase; margin-bottom: 60px;">NHÂN VIÊN CSSD</p>
+                    <p style="font-style: italic; color: #555;">(Ký và ghi rõ họ tên)</p>
                 </div>
             </div>
         </div>
     `;
 
-    window.print();
+    // Gọi hộp thoại in của trình duyệt
+    setTimeout(() => {
+        window.print();
+    }, 100);
 }
 
+// Hàm in Tem Bixolon (80mm x 50mm)
 function inTemNghiemThuHangLoat() {
     document.body.className = "print-mode-bixolon";
     const printZone = document.getElementById('print-zone');
+    if (!printZone) return;
 
+    printZone.classList.remove('hidden');
     printZone.innerHTML = `
-        <div class="bixolon-label">
-            <div class="label-header">PHUONG NAM HOSPITAL - CSSD</div>
-            <div class="label-title">MÂM ĐẠI PHẪU AESCULAP</div>
-            <svg id="barcode-demo"></svg>
-            <div class="label-footer">
+        <div class="bixolon-label" style="padding: 5px; text-align: center; font-family: sans-serif;">
+            <div style="font-size: 10px; font-weight: 800; border-bottom: 1px solid #000; padding-bottom: 2px;">
+                PHUONG NAM HOSPITAL - CSSD
+            </div>
+            <div style="font-size: 12px; font-weight: 800; margin: 4px 0;">
+                MÂM ĐẠI PHẪU AESCULAP
+            </div>
+            <div style="display: flex; justify-content: center; margin: 2px 0;">
+                <svg id="barcode-demo"></svg>
+            </div>
+            <div style="font-size: 9px; font-weight: 600; line-height: 1.3;">
                 <div>Mã Lô: STEAM_20260725_01 | HSD: 30 Ngày</div>
                 <div>NVKH: ${currentUser.nvName}</div>
             </div>
@@ -468,20 +532,25 @@ function inTemNghiemThuHangLoat() {
     if (typeof JsBarcode !== 'undefined') {
         JsBarcode("#barcode-demo", "A1260328_01", {
             format: "CODE128",
-            height: 30,
+            height: 28,
             displayValue: true,
-            fontSize: 10
+            fontSize: 9,
+            margin: 0
         });
     }
 
-    window.print();
+    setTimeout(() => {
+        window.print();
+    }, 100);
 }
 
 /* =========================================================================
    9. QUÉT CAMERA QR / BARCODE
    ========================================================================= */
 function moCamera(targetInputId) {
-    document.getElementById('popupScanner').classList.remove('hidden');
+    const popup = document.getElementById('popupScanner');
+    if (popup) popup.classList.remove('hidden');
+
     if (typeof Html5QrcodeScanner !== 'undefined') {
         html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
         html5QrcodeScanner.render((decodedText) => {
@@ -496,18 +565,24 @@ function dongCamera() {
     if (html5QrcodeScanner) {
         html5QrcodeScanner.clear().catch(() => {});
     }
-    document.getElementById('popupScanner').classList.add('hidden');
+    const popup = document.getElementById('popupScanner');
+    if (popup) popup.classList.add('hidden');
 }
 
 /* =========================================================================
-   10. ADMIN & SUBTAB UTILITIES
+   10. ADMIN & SUBTAB UTILITIES & POPUP BỆNH NHÂN
    ========================================================================= */
 function switchAdminSubtab(subtab) {
-    document.getElementById('subtab-database').classList.toggle('hidden', subtab !== 'database');
-    document.getElementById('subtab-security').classList.toggle('hidden', subtab !== 'security');
+    const subDb = document.getElementById('subtab-database');
+    const subSec = document.getElementById('subtab-security');
+    const btnDb = document.getElementById('subbtn-database');
+    const btnSec = document.getElementById('subbtn-security');
 
-    document.getElementById('subbtn-database').classList.toggle('admin-subtab-active', subtab === 'database');
-    document.getElementById('subbtn-security').classList.toggle('admin-subtab-active', subtab === 'security');
+    if (subDb) subDb.classList.toggle('hidden', subtab !== 'database');
+    if (subSec) subSec.classList.toggle('hidden', subtab !== 'security');
+
+    if (btnDb) btnDb.classList.toggle('admin-subtab-active', subtab === 'database');
+    if (btnSec) btnSec.classList.toggle('admin-subtab-active', subtab === 'security');
 }
 
 function callRender() {
@@ -526,4 +601,39 @@ function xoaSachDuLieuGiaoDichRealtime() {
         renderBangLichSuRua();
         alert("🗑️ Đã xóa sạch nhật ký giao dịch!");
     }
+}
+
+// Logic Popup Dùng Cho Bệnh Nhân
+function moPopupSuDungBoDungCu() {
+    const pop = document.getElementById('popupSuDungBoDungCu');
+    if (pop) pop.classList.remove('hidden');
+}
+
+function closePopupSuDung() {
+    const pop = document.getElementById('popupSuDungBoDungCu');
+    if (pop) pop.classList.add('hidden');
+}
+
+function scanKhayVaoSuDung() {
+    const inp = document.getElementById('sd_maKhayInp');
+    if (!inp || !inp.value.trim()) return;
+
+    const maKhay = inp.value.trim().toUpperCase();
+    const tbody = document.getElementById('sd_bangKhayChon');
+
+    if (tbody) {
+        const rowCount = tbody.rows.length + 1;
+        const tr = document.createElement('tr');
+        tr.className = "border-b text-xs hover:bg-slate-50";
+        tr.innerHTML = `
+            <td class="p-2 text-center font-bold text-slate-500">${rowCount}</td>
+            <td class="p-2 font-mono font-bold text-sky-700">${maKhay}</td>
+            <td class="p-2 font-semibold">Mâm Dụng Cụ Tiệt Trùng</td>
+            <td class="p-2 text-center font-mono">STEAM_20260725_01</td>
+            <td class="p-2 text-center"><span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Vô Khuẩn</span></td>
+            <td class="p-2 text-center"><button onclick="this.closest('tr').remove()" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+    inp.value = '';
 }
