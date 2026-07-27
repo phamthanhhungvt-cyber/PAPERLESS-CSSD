@@ -2,15 +2,13 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL</title>
     
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -32,14 +30,11 @@
         }
     </script>
 
-    <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     
-    <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <!-- Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -77,10 +72,27 @@
             font-weight: 700 !important;
         }
 
+        .subtab-btn {
+            position: relative;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
         .subtab-active {
             border-bottom: 3px solid #0d9488 !important;
             color: #0d9488 !important;
-            font-weight: 700 !important;
+            font-weight: 800 !important;
+            background-color: #f0fdfa !important;
+        }
+
+        /* Tối ưu cuộn ngón tay mượt trên mobile */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
     </style>
 </head>
@@ -214,7 +226,7 @@
                             <p class="text-xs text-slate-500 mt-0.5">Khai báo cấu hình chi tiết linh kiện Aesculap và tuổi thọ mẻ tiệt trùng</p>
                         </div>
                         <button onclick="moModalXemAnhCauHinh()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold px-3.5 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 transition-all">
-                            <i class="fa-solid fa-image"></i> Xem Nhanh Sơ Đồ Cấu Hình
+                            <i class="fa-solid fa-image"></i> Xem Sơ Đồ
                         </button>
                     </div>
 
@@ -267,7 +279,6 @@
                         </div>
                     </div>
 
-                    <!-- Thanh Tra Cứu Mã Lô Khẩn Cấp -->
                     <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 mb-6 flex flex-col sm:flex-row gap-2 items-center">
                         <span class="text-xs font-bold text-slate-700 uppercase whitespace-nowrap"><i class="fa-solid fa-magnifying-glass mr-1 text-teal-700"></i> Tra Cứu Mã Lô:</span>
                         <input type="text" id="inp_searchBatch" onkeydown="if(event.key==='Enter') truyVetTheoMaBatch()" placeholder="Nhập mã lô hấp (VD: A1260328_01)..." class="flex-1 border border-slate-300 rounded-lg p-2 text-xs font-mono font-bold uppercase outline-none bg-white">
@@ -293,19 +304,35 @@
                 </div>
             </div>
 
-            <!-- TAB 3: CSSD - DANH MỤC CÔNG VIỆC (GOM CÁC TÍNH NĂNG VẬN HÀNH VÀO SUBTABS) -->
+            <!-- TAB 3: CSSD - DANH MỤC CÔNG VIỆC (ĐÃ TỐI ƯU CẢM ỨNG TRÊN MOBILE) -->
             <div id="tab-worklist" class="space-y-6 hidden">
-                <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     
-                    <!-- SUBTAB NAVIGATION BAR (Giao diện chuẩn AA) -->
-                    <div class="flex border-b border-slate-200 mb-6 overflow-x-auto text-xs font-bold gap-2 sm:gap-6">
-                        <button id="workbtn-baotra" onclick="switchWorklistSubtab('baotra')" class="pb-3 px-2 subtab-active whitespace-nowrap"><i class="fa-solid fa-hospital-user mr-1.5"></i>YÊU CẦU & BÁO TRẢ KHOA</button>
-                        <button id="workbtn-thugom" onclick="switchWorklistSubtab('thugom')" class="pb-3 px-2 text-slate-600 whitespace-nowrap"><i class="fa-solid fa-truck-pickup mr-1.5"></i>THU GOM & ĐỐI SOÁT</button>
-                        <button id="workbtn-mayrua" onclick="switchWorklistSubtab('mayrua')" class="pb-3 px-2 text-slate-600 whitespace-nowrap"><i class="fa-solid fa-soap mr-1.5"></i>BELIMED & ĐÓNG GÓI</button>
-                        <button id="workbtn-mayhap" onclick="switchWorklistSubtab('mayhap')" class="pb-3 px-2 text-slate-600 whitespace-nowrap"><i class="fa-solid fa-temperature-arrow-up mr-1.5"></i>MẺ HẤP TIỆT TRÙNG</button>
-                        <button id="workbtn-khovokhuan" onclick="switchWorklistSubtab('khovokhuan')" class="pb-3 px-2 text-slate-600 whitespace-nowrap"><i class="fa-solid fa-warehouse mr-1.5"></i>XUẤT KHO VÔ KHUẨN</button>
-                        <button id="workbtn-nhatky" onclick="switchWorklistSubtab('nhatky')" class="pb-3 px-2 text-slate-600 whitespace-nowrap"><i class="fa-solid fa-clock-rotate-left mr-1.5"></i>NHẬT KÝ & KPI</button>
-                        <button id="workbtn-tv" onclick="switchWorklistSubtab('tv')" class="pb-3 px-2 text-slate-600 whitespace-nowrap"><i class="fa-solid fa-tv mr-1.5"></i>DASHBOARD TV</button>
+                    <!-- THANH SUBTAB CHO ĐIỆN THOẠI (DẠNG KHAY TRƯỘT TOUCH MOBLIE) -->
+                    <div class="relative mb-6">
+                        <div id="subtabContainer" class="flex border-b-2 border-slate-200 overflow-x-auto no-scrollbar scroll-smooth gap-1 sm:gap-2 pb-1 text-xs font-bold touch-pan-x">
+                            <button id="workbtn-baotra" onclick="switchWorklistSubtab('baotra')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all subtab-active">
+                                <i class="fa-solid fa-hospital-user mr-1.5"></i>YÊU CẦU & BÁO TRẢ
+                            </button>
+                            <button id="workbtn-thugom" onclick="switchWorklistSubtab('thugom')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                                <i class="fa-solid fa-truck-pickup mr-1.5"></i>THU GOM
+                            </button>
+                            <button id="workbtn-mayrua" onclick="switchWorklistSubtab('mayrua')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                                <i class="fa-solid fa-soap mr-1.5"></i>BELIMED & ĐÓNG GÓI
+                            </button>
+                            <button id="workbtn-mayhap" onclick="switchWorklistSubtab('mayhap')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                                <i class="fa-solid fa-temperature-arrow-up mr-1.5"></i>MẺ HẤP TIỆT TRÙNG
+                            </button>
+                            <button id="workbtn-khovokhuan" onclick="switchWorklistSubtab('khovokhuan')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                                <i class="fa-solid fa-warehouse mr-1.5"></i>XUẤT KHO VÔ KHUẨN
+                            </button>
+                            <button id="workbtn-nhatky" onclick="switchWorklistSubtab('nhatky')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                                <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>NHẬT KÝ & KPI
+                            </button>
+                            <button id="workbtn-tv" onclick="switchWorklistSubtab('tv')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                                <i class="fa-solid fa-tv mr-1.5"></i>DASHBOARD TV
+                            </button>
+                        </div>
                     </div>
 
                     <!-- SUBTAB 1: BÁO TRẢ & YÊU CẦU KHOA PHÒNG -->
@@ -530,7 +557,6 @@
                             </div>
                         </div>
 
-                        <!-- Trạm Đóng Gói -->
                         <div class="pt-4 border-t border-slate-200 space-y-4">
                             <div class="flex justify-between items-center">
                                 <h4 class="font-bold text-xs text-slate-800 uppercase"><i class="fa-solid fa-box-open mr-1 text-teal-700"></i>Trạm Đóng Gói Vật Liệu Bao Bọc Dụng Cụ</h4>
@@ -691,7 +717,6 @@
                             </table>
                         </div>
 
-                        <!-- KPI Đọc BI 30 Phút -->
                         <div class="pt-4 border-t space-y-3">
                             <h4 class="font-bold text-xs text-slate-800 uppercase"><i class="fa-solid fa-chart-line mr-1 text-teal-700"></i>Giám Sát KPI Đọc Kết Quả BI Trong 30 Phút</h4>
                             <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -745,7 +770,7 @@
                 </div>
             </div>
 
-            <!-- TAB 4: SỬ DỤNG BỘ DỤNG CỤ (GHI NHẬN LÊN BỆNH NHÂN) -->
+            <!-- TAB 4: SỬ DỤNG BỘ DỤNG CỤ -->
             <div id="tab-sudung" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
@@ -814,7 +839,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: QUẢN TRỊ HỆ THỐNG (ADMINISTRATOR - BẢO TOÀN TRỌN VẸN 100%) -->
+            <!-- TAB 5: QUẢN TRỊ HỆ THỐNG -->
             <div id="tab-admin" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
@@ -829,7 +854,6 @@
                         <button id="subbtn-security" onclick="switchAdminSubtab('security')" class="pb-2 text-slate-600">Cấu Hình PIN & Phân Quyền</button>
                     </div>
 
-                    <!-- Subtab Admin 1: Nạp Dữ Liệu -->
                     <div id="subtab-database" class="space-y-4">
                         <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                             <h4 class="font-bold text-xs text-slate-700 uppercase">Nạp File Cấu Hình Định Biên & Linh Kiện Aesculap (.xlsx)</h4>
@@ -842,7 +866,6 @@
                         </div>
                     </div>
 
-                    <!-- Subtab Admin 2: Bảo Mật & Ma Trận Phân Quyền -->
                     <div id="subtab-security" class="space-y-6 hidden">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="p-3 bg-slate-50 border rounded-lg space-y-2">
@@ -915,7 +938,7 @@
     <!-- Overlay Mobile -->
     <div id="mobile-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden transition-opacity"></div>
 
-    <!-- POPUPS HỆ THỐNG -->
+    <!-- POPUPS -->
     <!-- Popup 1: Kiểm Đếm -->
     <div id="popupKiemDem" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6 space-y-4 border border-slate-200 max-h-[90vh] flex flex-col">
@@ -1028,7 +1051,6 @@
         </div>
     </div>
 
-    <!-- Zone In Ấn Render -->
     <div id="print-zone" class="hidden"></div>
 
     <script src="app.js"></script>
