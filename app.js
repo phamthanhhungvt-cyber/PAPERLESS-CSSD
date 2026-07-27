@@ -36,7 +36,13 @@ let globalData = {
     ktvList: [
         { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
         { id: 'NV02', name: 'Trần Thị B', pin: '5678', role: 'CSSD' },
-        { id: 'ADMIN', name: 'ADMINISTRATOR', pin: '9999', role: 'ADMIN' }
+        { id: 'ADMIN', name: 'ADMINISTRATOR', pin: '9999', role: 'ADMIN' },
+        { id: 'GUEST', name: 'Khách Tham Quan', pin: '0000', role: 'GUEST' }
+    ],
+    khoaList: [
+        { id: 'K01', name: 'Khoa Phẫu Thuật Gây Mê Hồi Sức', pin: '1111' },
+        { id: 'K02', name: 'Khoa Cấp Cứu', pin: '2222' },
+        { id: 'K03', name: 'Khoa Sanh - Phụ Sản', pin: '3333' }
     ]
 };
 
@@ -51,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRealtimeListeners();
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
-    renderDanhSachPinAdmin(); // Render danh sách PIN Admin ban đầu
+    renderDanhSachPinAdmin(); 
 
     // Tự động dọn dẹp class in ấn khi đóng/hoàn tất cửa sổ in (Print Dialog)
     window.addEventListener('afterprint', () => {
@@ -509,7 +515,7 @@ function inHoaDonGiaoNhan() {
     }, 100);
 }
 
-// Hàm in Tem Bixolon Dộng (80mm x 50mm)
+// Hàm in Tem Bixolon Động (80mm x 50mm)
 function inTemNghiemThuHangLoat(tenBo = "MÂM ĐẠI PHẪU AESCULAP", maLo = "STEAM_20260725_01", maBarcode = "A1260328_01") {
     document.body.className = "print-mode-bixolon";
     const printZone = document.getElementById('print-zone');
@@ -596,28 +602,41 @@ function switchAdminSubtab(subtab) {
     }
 }
 
-// Render danh sách nhân viên và PIN cấu hình trong Tab Admin
+// Render danh sách nhân viên và PIN cấu hình trong Tab Admin (Có kèm lọc theo từ khóa search)
 function renderDanhSachPinAdmin() {
     const tbody = document.getElementById('bangCauHinhPinAdmin');
     if (!tbody) return;
 
-    tbody.innerHTML = globalData.ktvList.map((ktv, index) => `
+    const searchInp = document.getElementById('search_pin_admin');
+    const keyword = searchInp ? searchInp.value.trim().toLowerCase() : '';
+
+    const filteredList = globalData.ktvList.filter(ktv => 
+        ktv.name.toLowerCase().includes(keyword) || ktv.id.toLowerCase().includes(keyword)
+    );
+
+    if (filteredList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không tìm thấy tài khoản nhân sự phù hợp!</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filteredList.map((ktv, index) => `
         <tr class="border-b hover:bg-slate-50 text-xs">
             <td class="p-3 text-center font-bold text-slate-500">${index + 1}</td>
             <td class="p-3 font-mono font-bold text-sky-700">${ktv.id}</td>
             <td class="p-3 font-semibold text-slate-800">${ktv.name}</td>
             <td class="p-3 text-center font-mono">
-                <input type="password" id="pin_input_${ktv.id}" value="${ktv.pin || '1234'}" class="w-20 text-center border rounded px-2 py-1 bg-white font-bold">
+                <input type="password" id="pin_input_${ktv.id}" value="${ktv.pin || '1234'}" class="w-24 text-center border border-slate-300 rounded p-1 text-xs font-bold bg-white focus:ring-2 focus:ring-sky-500 outline-none">
             </td>
             <td class="p-3 text-center">
-                <select id="role_select_${ktv.id}" class="border rounded px-2 py-1 text-xs bg-white font-semibold">
-                    <option value="CSSD" ${ktv.role === 'CSSD' ? 'selected' : ''}>KTV CSSD</option>
-                    <option value="KHOA" ${ktv.role === 'KHOA' ? 'selected' : ''}>Điều Dưỡng Khoa</option>
-                    <option value="ADMIN" ${ktv.role === 'ADMIN' ? 'selected' : ''}>Administrator</option>
+                <select id="role_select_${ktv.id}" class="border border-slate-300 rounded px-2 py-1 text-xs bg-white font-semibold outline-none">
+                    <option value="CSSD" ${ktv.role === 'CSSD' ? 'selected' : ''}>🧪 KTV CSSD</option>
+                    <option value="KHOA" ${ktv.role === 'KHOA' ? 'selected' : ''}>🏥 Điều Dưỡng Khoa</option>
+                    <option value="ADMIN" ${ktv.role === 'ADMIN' ? 'selected' : ''}>👑 Administrator</option>
+                    <option value="GUEST" ${ktv.role === 'GUEST' ? 'selected' : ''}>👁️ Khách (Guest)</option>
                 </select>
             </td>
             <td class="p-3 text-center">
-                <button onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold transition">
+                <button onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold transition-all shadow-sm">
                     <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu
                 </button>
             </td>
@@ -672,6 +691,19 @@ function themNhanSuMoiAdmin() {
     alert(`➕ Đã thêm nhân sự [${newKtv.name}] vào hệ thống thành công!`);
 }
 
+function saveAdminPIN(roleType) {
+    let inpId = 'cfg_pinAdmin';
+    if (roleType === 'CSSD') inpId = 'cfg_pinCSSD';
+    if (roleType === 'GUEST') inpId = 'cfg_pinGuest';
+
+    const inp = document.getElementById(inpId);
+    if (inp && inp.value.trim()) {
+        alert(`🔑 Đã lưu cấu hình Mã PIN dùng chung cho nhóm [${roleType}]: ${inp.value.trim()}`);
+    } else {
+        alert("Vui lòng nhập mã PIN hợp lệ!");
+    }
+}
+
 function resetDuLieuKet() {
     alert("🔄 Đã giải phóng toàn bộ mâm dụng cụ bị kẹt dở dang trên hệ thống!");
 }
@@ -686,8 +718,15 @@ function xoaSachDuLieuGiaoDichRealtime() {
     }
 }
 
+function khaiSinhKhayVangLai() {
+    const maKhay = prompt("Nhập Mã Khay Vãng Lai Cần Khai Sinh (VD: KVL_8899):");
+    if (maKhay && maKhay.trim()) {
+        alert(`✨ Đã khởi tạo khay vãng lai [${maKhay.trim().toUpperCase()}] thành công trên hệ thống!`);
+    }
+}
+
 /* =========================================================================
-   11. LOGIC POPUP SỬ DỤNG BỆNH NHÂN
+   11. LOGIC POPUP SỬ DỤNG BỆNH NHÂN & TRA CỨU MẺ TIỆT TRÙNG
    ========================================================================= */
 function moPopupSuDungBoDungCu() {
     const pop = document.getElementById('popupSuDungBoDungCu');
@@ -721,4 +760,37 @@ function scanKhayVaoSuDung() {
         tbody.appendChild(tr);
     }
     inp.value = '';
+}
+
+function truyVetTheoMaBatch() {
+    const inp = document.getElementById('inp_searchBatch');
+    if (!inp || !inp.value.trim()) {
+        alert("Vui lòng nhập Mã Lô Hấp Cần Tra Cứu!");
+        return;
+    }
+    alert(`🔍 Đang thực hiện truy vết khẩn cấp cho mã lô: ${inp.value.trim().toUpperCase()}`);
+}
+
+function clearTruyVetBatch() {
+    const inp = document.getElementById('inp_searchBatch');
+    if (inp) inp.value = '';
+}
+
+/* =========================================================================
+   12. SƠ ĐỒ CẤU HÌNH MÂM DỤNG CỤ & ĐỌC ẢNH BI
+   ========================================================================= */
+function moModalXemAnhCauHinh() {
+    const pop = document.getElementById('popupXemAnhCauHinh');
+    if (pop) pop.classList.remove('hidden');
+}
+
+function dongModalXemAnhCauHinh() {
+    const pop = document.getElementById('popupXemAnhCauHinh');
+    if (pop) pop.classList.add('hidden');
+}
+
+function docAnhBiUpTaiCho(inputEl) {
+    if (inputEl.files && inputEl.files[0]) {
+        alert("📸 Đã nạp ảnh minh chứng kết quả đọc Chỉ Thị Sinh Học (BI) thành công!");
+    }
 }
