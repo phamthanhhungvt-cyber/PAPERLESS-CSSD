@@ -73,8 +73,7 @@
         }
 
         .subtab-btn {
-            position: relative;
-            cursor: pointer;
+            cursor: pointer !important;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
         }
@@ -86,14 +85,8 @@
             background-color: #f0fdfa !important;
         }
 
-        /* Tối ưu cuộn ngón tay mượt trên mobile */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-700 antialiased min-h-screen">
@@ -146,13 +139,12 @@
         </div>
     </div>
 
-    <!-- 2. GIAO DIỆN CHÍNH UNIFIED APPLICATION -->
+    <!-- 2. GIAO DIỆN CHÍNH -->
     <div id="main-app" class="hidden min-h-screen flex flex-col md:flex-row">
         
-        <!-- Sidebar Navigation Thu Gọn 4-5 Tab Chuẩn -->
+        <!-- Sidebar Navigation -->
         <aside id="sidebar_menu" class="fixed inset-y-0 left-0 z-40 w-64 bg-teal-900 text-slate-200 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl md:shadow-lg">
             <div>
-                <!-- Header Banner -->
                 <div class="p-4 border-b border-teal-800/80 flex items-center justify-between bg-teal-950/50">
                     <div>
                         <div class="text-[10px] font-black text-teal-300 tracking-wider uppercase">Bệnh viện Đa khoa Phương Nam</div>
@@ -163,7 +155,6 @@
                     </button>
                 </div>
 
-                <!-- 4 MAIN TABS MENU -->
                 <nav class="p-3 space-y-1 text-xs font-semibold">
                     <div class="text-[10px] font-bold text-teal-300 uppercase px-3 pt-3 pb-1 tracking-wider">Hệ Thống CSSD</div>
                     
@@ -190,7 +181,6 @@
                 </nav>
             </div>
 
-            <!-- User Footer -->
             <div class="p-3 border-t border-teal-800/80 bg-teal-950/60">
                 <div class="flex items-center justify-between">
                     <div class="truncate">
@@ -207,7 +197,6 @@
         <!-- Main Content Area -->
         <main class="flex-1 md:ml-64 p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">
             
-            <!-- Mobile Top Bar -->
             <div class="md:hidden mb-4 flex items-center justify-between bg-white p-3 rounded-xl shadow-sm border border-slate-200 sticky top-2 z-20">
                 <button onclick="toggleMobileMenu()" class="p-2 text-slate-700 hover:text-teal-700 transition-colors flex items-center gap-2">
                     <i class="fa-solid fa-bars text-xl"></i>
@@ -264,7 +253,7 @@
                 </div>
             </div>
 
-            <!-- TAB 2: TỒN KHO BỘ DỤNG CỤ & TRUY XUẤT -->
+            <!-- TAB 2: TỒN KHO BỘ DỤNG CỤ -->
             <div id="tab-tonkho" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
@@ -304,32 +293,32 @@
                 </div>
             </div>
 
-            <!-- TAB 3: CSSD - DANH MỤC CÔNG VIỆC (ĐÃ TỐI ƯU CẢM ỨNG TRÊN MOBILE) -->
-            <div id="tab-worklist" class="space-y-6 hidden">
+            <!-- TAB 3: CSSD - DANH MỤC CÔNG VIỆC -->
+            <div id="tab-worklist" class="space-y-6">
                 <div class="bg-white p-3 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     
-                    <!-- THANH SUBTAB CHO ĐIỆN THOẠI (DẠNG KHAY TRƯỘT TOUCH MOBLIE) -->
+                    <!-- THANH CHUYỂN SUBTAB NGANG -->
                     <div class="relative mb-6">
                         <div id="subtabContainer" class="flex border-b-2 border-slate-200 overflow-x-auto no-scrollbar scroll-smooth gap-1 sm:gap-2 pb-1 text-xs font-bold touch-pan-x">
-                            <button id="workbtn-baotra" onclick="switchWorklistSubtab('baotra')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all subtab-active">
+                            <button id="workbtn-baotra" type="button" onclick="switchWorklistSubtab('baotra')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all subtab-active">
                                 <i class="fa-solid fa-hospital-user mr-1.5"></i>YÊU CẦU & BÁO TRẢ
                             </button>
-                            <button id="workbtn-thugom" onclick="switchWorklistSubtab('thugom')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                            <button id="workbtn-thugom" type="button" onclick="switchWorklistSubtab('thugom')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
                                 <i class="fa-solid fa-truck-pickup mr-1.5"></i>THU GOM
                             </button>
-                            <button id="workbtn-mayrua" onclick="switchWorklistSubtab('mayrua')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                            <button id="workbtn-mayrua" type="button" onclick="switchWorklistSubtab('mayrua')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
                                 <i class="fa-solid fa-soap mr-1.5"></i>BELIMED & ĐÓNG GÓI
                             </button>
-                            <button id="workbtn-mayhap" onclick="switchWorklistSubtab('mayhap')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                            <button id="workbtn-mayhap" type="button" onclick="switchWorklistSubtab('mayhap')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
                                 <i class="fa-solid fa-temperature-arrow-up mr-1.5"></i>MẺ HẤP TIỆT TRÙNG
                             </button>
-                            <button id="workbtn-khovokhuan" onclick="switchWorklistSubtab('khovokhuan')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                            <button id="workbtn-khovokhuan" type="button" onclick="switchWorklistSubtab('khovokhuan')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
                                 <i class="fa-solid fa-warehouse mr-1.5"></i>XUẤT KHO VÔ KHUẨN
                             </button>
-                            <button id="workbtn-nhatky" onclick="switchWorklistSubtab('nhatky')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                            <button id="workbtn-nhatky" type="button" onclick="switchWorklistSubtab('nhatky')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
                                 <i class="fa-solid fa-clock-rotate-left mr-1.5"></i>NHẬT KÝ & KPI
                             </button>
-                            <button id="workbtn-tv" onclick="switchWorklistSubtab('tv')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
+                            <button id="workbtn-tv" type="button" onclick="switchWorklistSubtab('tv')" class="subtab-btn pb-3 px-3.5 py-2 rounded-t-lg text-slate-600 hover:bg-slate-50 whitespace-nowrap transition-all">
                                 <i class="fa-solid fa-tv mr-1.5"></i>DASHBOARD TV
                             </button>
                         </div>
