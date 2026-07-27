@@ -40,32 +40,76 @@
     <!-- Stylesheet Nội bộ & Print Config -->
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Cấu hình chuyên dụng cho Máy In Tem Bixolon (80mm x 50mm) & Biên bản A4 */
+        /* ==========================================================================
+           CẤU HÌNH CHUYÊN DỤNG CHO CHẾ ĐỘ IN ÂN (PRINT CONFIG)
+           ========================================================================== */
         @media print {
-            body { background: #ffffff !important; color: #000000 !important; }
-            #main-app, #login-screen, .action-col, aside, main > div:not(#print-zone) { display: none !important; }
-            #print-zone { display: block !important; }
-            
-            body.print-mode-bixolon {
+            /* 1. Reset nền và ẩn toàn bộ giao diện ứng dụng web */
+            html, body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Ẩn triệt để tất cả khung màn hình, menu, nút bấm, modal */
+            #main-app, 
+            #login-screen, 
+            #sidebar_menu, 
+            #mobile-overlay, 
+            .action-col, 
+            aside, 
+            button, 
+            input, 
+            select, 
+            .md\:hidden {
+                display: none !important;
+            }
+
+            /* Chỉ cho phép hiển thị duy nhất vùng chứa dữ liệu in */
+            #print-zone {
+                display: block !important;
+                width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
+
+            /* 2. CHẾ ĐỘ 1: IN TEM BIXOLON (80mm x 50mm) */
             body.print-mode-bixolon @page {
                 size: 80mm 50mm;
                 margin: 0;
             }
-            .bixolon-label {
+            body.print-mode-bixolon .bixolon-label {
                 page-break-after: always;
                 width: 80mm;
                 height: 50mm;
                 overflow: hidden;
             }
-            
+
+            /* 3. CHẾ ĐỘ 2: IN BIÊN BẢN GIAO NHẬN A4 (PRINT MODE DOC) */
             body.print-mode-doc @page {
                 size: A4 portrait;
                 margin: 15mm;
             }
+            body.print-mode-doc #print-zone {
+                font-family: 'Inter', 'Times New Roman', serif;
+                color: #000000 !important;
+            }
+            body.print-mode-doc #print-zone table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 10px !important;
+            }
+            body.print-mode-doc #print-zone th, 
+            body.print-mode-doc #print-zone td {
+                border: 1px solid #000000 !important;
+                padding: 6px 8px !important;
+                font-size: 12px !important;
+            }
         }
+
         .sidebar-item-active {
             background-color: rgba(51, 65, 85, 0.8) !important;
             border-left: 4px solid #38bdf8 !important;
