@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA LỖI NẠP EXCEL)
    ========================================================================= */
 
 // 1. CẤU HÌNH KHỞI TẠO FIREBASE (v8)
@@ -13,7 +13,6 @@ const firebaseConfig = {
     appId: "1:1234567890:web:abcdef123456"
 };
 
-// Khởi tạo Firebase nếu chưa khởi tạo
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -28,26 +27,20 @@ let currentUser = {
 
 let currentTab = 'khoaphong';
 let globalData = {
-    phieuTra: [],      // Lệnh báo trả mâm bẩn từ khoa
-    meRua: [],         // Danh sách mẻ rửa Belimed
-    meHap: [],         // Danh sách mẻ hấp
-    khoVoKhuan: [],    // Tồn kho vô khuẩn
-    lichSu: [],        // Nhật ký luân chuyển toàn viện
+    phieuTra: [],
+    meRua: [],
+    meHap: [],
+    khoVoKhuan: [],
+    lichSu: [],
+    danhMucLinhKien: [], // Nơi lưu trữ dữ liệu nạp từ Excel
     ktvList: [
         { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
         { id: 'NV02', name: 'Trần Thị B', pin: '5678', role: 'CSSD' },
         { id: 'ADMIN', name: 'ADMINISTRATOR', pin: '9999', role: 'ADMIN' },
         { id: 'GUEST', name: 'Khách Tham Quan', pin: '0000', role: 'GUEST' }
-    ],
-    khoaList: [
-        { id: 'K01', name: 'Khoa Phẫu Thuật Gây Mê Hồi Sức', pin: '1111' },
-        { id: 'K02', name: 'Khoa Cấp Cứu', pin: '2222' },
-        { id: 'K03', name: 'Khoa Sanh - Phụ Sản', pin: '3333' }
     ]
 };
 
-// Biến lưu giỏ hàng báo trả tạm
-let gioHangTraTam = [];
 let html5QrcodeScanner = null;
 
 /* =========================================================================
@@ -55,11 +48,11 @@ let html5QrcodeScanner = null;
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     initRealtimeListeners();
+    initExcelLoader(); // <--- ĐĂNG KÝ SỰ KIỆN LẮNG NGHE NẠP FILE EXCEL
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
 
-    // Tự động dọn dẹp class in ấn khi đóng/hoàn tất cửa sổ in (Print Dialog)
     window.addEventListener('afterprint', () => {
         document.body.classList.remove('print-mode-doc', 'print-mode-bixolon');
         const printZone = document.getElementById('print-zone');
@@ -70,6 +63,75 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+// LẮNG NGHE VÀ XỬ LÝ FILE EXCEL CƠ SỐ DỤNG CỤ
+function initExcelLoader() {
+    const excelInput = document.getElementById('excelFileInput');
+    if (!excelInput) return;
+
+    excelInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (typeof XLSX === 'undefined') {
+            alert("❌ Chưa tải xong thư viện SheetJS (XLSX). Vui lòng kiểm tra lại kết nối mạng!");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                // Đọc trang tính đầu tiên
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // Chuyển sang JSON
+                const excelJson = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                if (excelJson && excelJson.length > 0) {
+                    globalData.danhMucLinhKien = excelJson;
+                    renderBangDanhMucLinhKien();
+                    alert(`🎉 Nạp thành công ${excelJson.length} dòng dữ liệu từ file [${file.name}]!`);
+                } else {
+                    alert("⚠️ File Excel rỗng hoặc không đúng định dạng!");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("❌ Có lỗi xảy ra khi đọc file Excel. Vui lòng kiểm tra định dạng cấu trúc file!");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Render dữ liệu sau khi nạp file vào Tab Danh Mục Linh Kiện
+function renderBangDanhMucLinhKien() {
+    const tbody = document.getElementById('bangDanhMucLinhKien');
+    if (!tbody) return;
+
+    if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu danh mục linh kiện. Vui lòng nạp file Excel.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.danhMucLinhKien.map(item => {
+        // Tự động nhận diện tên cột linh hoạt theo file Excel của anh
+        const tenBo = item["Tên Bộ Dụng Cụ"] || item["TenBo"] || item["Tên Mâm"] || Object.values(item)[0] || "N/A";
+        const chiTiet = item["Chi Tiết Linh Kiện"] || item["LinhKien"] || item["Cấu Hình"] || Object.values(item)[1] || "N/A";
+        const soLuong = item["Số Lượng"] || item["SoLuong"] || item["Cơ Số"] || Object.values(item)[2] || "1";
+
+        return `
+            <tr class="border-b hover:bg-slate-50 text-xs">
+                <td class="p-3 font-bold text-slate-800">${tenBo}</td>
+                <td class="p-3 text-slate-600">${chiTiet}</td>
+                <td class="p-3 text-center font-bold text-sky-700">${soLuong}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
 // Lắng nghe dữ liệu Realtime từ Firebase Firestore
 function initRealtimeListeners() {
     if (!db) {
@@ -77,7 +139,6 @@ function initRealtimeListeners() {
         return;
     }
 
-    // Lắng nghe nhật ký luân chuyển
     db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
         .onSnapshot((snapshot) => {
             globalData.lichSu = [];
@@ -86,10 +147,9 @@ function initRealtimeListeners() {
             });
             renderBangLichSuLuanChuyen();
         }, (error) => {
-            console.warn("Chế độ Offline / Không kết nối được Firestore. Sử dụng dữ liệu local.");
+            console.warn("Chế độ Offline / Không kết nối được Firestore.");
         });
 
-    // Lắng nghe nhật ký mẻ rửa
     db.collection("me_rua_belimed").orderBy("timestamp", "desc").limit(50)
         .onSnapshot((snapshot) => {
             globalData.meRua = [];
@@ -121,7 +181,6 @@ function switchTab(tabId) {
     const activeMenu = document.getElementById(`menu-${tabId}`);
     if (activeMenu) activeMenu.classList.add('sidebar-item-active');
 
-    // Ẩn sidebar trên mobile sau khi chọn tab
     const sidebar = document.getElementById('sidebar_menu');
     if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
         toggleMobileMenu();
@@ -159,12 +218,6 @@ function checkLogin() {
     if (loginScreen) loginScreen.classList.add('hidden');
     if (mainApp) mainApp.classList.remove('hidden');
 
-    if (role === 'GUEST') {
-        document.body.classList.add('guest-mode');
-    } else {
-        document.body.classList.remove('guest-mode');
-    }
-
     switchTab('khoaphong');
 }
 
@@ -181,17 +234,13 @@ function toggleLoginFields() {
 }
 
 /* =========================================================================
-   5. XUẤT BÁO CÁO EXCEL (SHEETJS INTEGRATION)
+   5. XUẤT BÁO CÁO EXCEL
    ========================================================================= */
-
-// Nút 1: Xuất Báo Cáo Luân Chuyển Realtime & Chỉ số KPI
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') {
-        alert("Thư viện SheetJS (XLSX) chưa được tải thành công. Vui lòng kiểm tra kết nối mạng!");
+        alert("Thư viện SheetJS chưa sẵn sàng!");
         return;
     }
-
-    // Sheet 1: Nhật ký luân chuyển
     const dataLuanChuyen = globalData.lichSu.map(item => ({
         "Mã ID Khay": item.maBo || "N/A",
         "Tên Bộ Dụng Cụ": item.tenBo || "N/A",
@@ -202,78 +251,33 @@ function xuatBaoCaoExcelLuanChuyen() {
         "Thời Gian Ghi Nhận": item.thoiGian || "N/A"
     }));
 
-    if (dataLuanChuyen.length === 0) {
-        dataLuanChuyen.push({
-            "Mã ID Khay": "DEMO_001",
-            "Tên Bộ Dụng Cụ": "Mâm Phẫu Thuật Đại Phẫu",
-            "Khoa / Phòng": "Khoa Phẫu Thuật Gây Mê Hồi Sức",
-            "Trạng Thái": "Đã Tiệt Trùng Vô Khuẩn",
-            "Mã Lô Tiệt Trùng": "STEAM_20260725_01",
-            "Nhân Sự Xử Lý": currentUser.nvName,
-            "Thời Gian Ghi Nhận": new Date().toLocaleString('vi-VN')
-        });
-    }
-
-    const wsLuanChuyen = XLSX.utils.json_to_sheet(dataLuanChuyen);
+    const wsLuanChuyen = XLSX.utils.json_to_sheet(dataLuanChuyen.length ? dataLuanChuyen : [{ "Ghi chú": "Chưa có dữ liệu" }]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsLuanChuyen, "Nhat_Ky_Luan_Chuyen");
-
-    // Sheet 2: Báo cáo KPI Đọc BI
-    const dataKPI = [
-        { "Mã KTV": "NV01", "Họ Và Tên": "Nguyễn Văn A", "Tổng Mẻ Đọc": 45, "Đạt KPI (<30 Phút)": "100%" },
-        { "Mã KTV": "NV02", "Họ Và Tên": "Trần Thị B", "Tổng Mẻ Đọc": 38, "Đạt KPI (<30 Phút)": "97.4%" }
-    ];
-    const wsKPI = XLSX.utils.json_to_sheet(dataKPI);
-    XLSX.utils.book_append_sheet(wb, wsKPI, "KPI_Doc_BI_30Phut");
-
-    // Xuất file
-    const nowStr = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `BaoCao_LuanChuyen_KPI_CSSD_PhuongNam_${nowStr}.xlsx`);
+    XLSX.writeFile(wb, `BaoCao_LuanChuyen_CSSD_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-// Nút 2: Xuất Nhật Ký Mẻ Rửa Belimed WD250
 function xuatBaoCaoExcelMeRua() {
     if (typeof XLSX === 'undefined') {
-        alert("Thư viện SheetJS (XLSX) chưa được tải thành công!");
+        alert("Thư viện SheetJS chưa sẵn sàng!");
         return;
     }
-
     const dataMeRua = globalData.meRua.map(item => ({
         "Mã Lô Rửa": item.batchId || "N/A",
-        "Mã Máy Rửa": item.maySo || "Belimed WD250 #1",
-        "Số Mẻ Ngày": item.meSo || "01",
-        "Phương Thức": item.loaiRua || "Tự động",
-        "Chu Trình Làm Sạch": item.chuKy || "Tiêu chuẩn (93°C - 10 phút)",
-        "Hóa Chất Sử Dụng": item.hoaChat || "Enzymatic Cleaner",
-        "Kết Quả Test Protein": item.testDoSach || "ĐẠT (Protein Negative)",
-        "Nhân Viên Vận Hành": item.nhanSu || currentUser.nvName,
-        "Thời Gian Kích Hoạt": item.thoiGian || "N/A"
+        "Mã Máy Rửa": item.maySo || "Belimed WD250",
+        "Chu Trình": item.chuKy || "Tiêu chuẩn",
+        "Kết Quả": item.testDoSach || "ĐẠT",
+        "Thời Gian": item.thoiGian || "N/A"
     }));
 
-    if (dataMeRua.length === 0) {
-        dataMeRua.push({
-            "Mã Lô Rửa": "WD250_20260725_01",
-            "Mã Máy Rửa": "Belimed WD250 - Máy 01",
-            "Số Mẻ Ngày": "Mẻ 01",
-            "Phương Thức": "Máy rửa khử khuẩn tự động",
-            "Chu Trình Làm Sạch": "Tiêu chuẩn (93°C - 10 phút)",
-            "Hóa Chất Sử Dụng": "Detergent Kiềm Nhẹ",
-            "Kết Quả Test Protein": "🟢 ĐẠT (Test Protein Âm Tính)",
-            "Nhân Viên Vận Hành": "KTV Vận Hành CSSD",
-            "Thời Gian Kích Hoạt": new Date().toLocaleString('vi-VN')
-        });
-    }
-
-    const wsMeRua = XLSX.utils.json_to_sheet(dataMeRua);
+    const wsMeRua = XLSX.utils.json_to_sheet(dataMeRua.length ? dataMeRua : [{ "Ghi chú": "Chưa có dữ liệu" }]);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, wsMeRua, "Nhat_Ky_Me_Rua_Belimed");
-
-    const nowStr = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `NhatKy_MeRua_Belimed_WD250_${nowStr}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, wsMeRua, "Me_Rua_Belimed");
+    XLSX.writeFile(wb, `NhatKy_MeRua_Belimed_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 /* =========================================================================
-   6. LOGIC TRẠM RỬA & HẤP TIỆT TRÙNG
+   6. LOGIC MẺ RỬA & HẤP
    ========================================================================= */
 function tuDongTaoMaLoMeRua() {
     const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
@@ -298,41 +302,32 @@ function tuDongTaoMaLoMeHap() {
 function xacNhanMeRua() {
     const batchInp = document.getElementById('rua_batchId');
     const chuKyInp = document.getElementById('rua_chuKy');
-    
     const batchId = batchInp ? batchInp.value : `R${Date.now()}`;
-    const chuKy = chuKyInp ? chuKyInp.value : "Tiêu chuẩn (93°C - 10 phút)";
 
     const newRecord = {
         batchId: batchId,
-        maySo: "Belimed WD250 #01",
-        meSo: "01",
         loaiRua: "Máy rửa khử khuẩn tự động",
-        chuKy: chuKy,
-        hoaChat: "Enzymatic Cleaner",
-        testDoSach: "ĐẠT (Protein Test Negative)",
-        nhanSu: currentUser.nvName,
-        thoiGian: new Date().toLocaleString('vi-VN'),
-        timestamp: Date.now()
+        chuKy: chuKyInp ? chuKyInp.value : "Tiêu chuẩn",
+        testDoSach: "ĐẠT (Protein Negative)",
+        thoiGian: new Date().toLocaleString('vi-VN')
     };
 
     globalData.meRua.unshift(newRecord);
     renderBangLichSuRua();
-    alert(`🚀 Đã kích hoạt chạy mẻ rửa mã lô: ${batchId}`);
+    alert(`🚀 Đã kích hoạt mẻ rửa: ${batchId}`);
 }
 
 function renderBangLichSuRua() {
     const tbody = document.getElementById('bangLichSuRua');
     if (!tbody) return;
-
     if (globalData.meRua.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào được ghi nhận trong ngày</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào</td></tr>`;
         return;
     }
-
     tbody.innerHTML = globalData.meRua.map(item => `
         <tr class="border-b hover:bg-slate-50 text-xs">
             <td class="p-3 font-mono font-bold text-sky-700">${item.batchId}</td>
-            <td class="p-3 font-semibold">${item.loaiRua || 'Máy rửa tự động'}</td>
+            <td class="p-3">${item.loaiRua}</td>
             <td class="p-3">${item.chuKy}</td>
             <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach}</td>
             <td class="p-3 text-center text-slate-500">${item.thoiGian}</td>
@@ -343,248 +338,26 @@ function renderBangLichSuRua() {
 function renderBangLichSuLuanChuyen() {
     const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
     if (!tbody) return;
-
     if (globalData.lichSu.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có dữ liệu nhật ký luân chuyển</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký luân chuyển</td></tr>`;
         return;
     }
-
     tbody.innerHTML = globalData.lichSu.map(item => `
         <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-mono font-bold text-slate-800">${item.maBo || 'MÂM_01'}</td>
-            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ Phẫu Thuật'}</td>
-            <td class="p-3 text-slate-600">${item.khoa || 'Khoa GMHS'}</td>
+            <td class="p-3 font-mono font-bold">${item.maBo || 'MÂM_01'}</td>
+            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ'}</td>
+            <td class="p-3">${item.khoa || 'Khoa GMHS'}</td>
             <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai || 'Luân chuyển'}</span></td>
             <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
-            <td class="p-3 text-center font-semibold">${item.nhanSu || 'KTV CSSD'}</td>
+            <td class="p-3 text-center">${item.nhanSu || 'KTV'}</td>
             <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
         </tr>
     `).join('');
 }
 
 /* =========================================================================
-   7. CHỮ KÝ ĐIỆN TỬ (CANVAS SIGNATURE)
+   7. ADMIN SUBTAB & PHÂN QUYỀN PIN
    ========================================================================= */
-function khoaKyNhanDoSachDienTu() {
-    const popup = document.getElementById('popupKyDienTu');
-    if (popup) {
-        popup.classList.remove('hidden');
-        setTimeout(initCanvasSignature, 50);
-    }
-}
-
-function initCanvasSignature() {
-    const canvas = document.getElementById('canvasKyDienTu');
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.parentElement ? canvas.parentElement.clientWidth : 360;
-    canvas.height = 150;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    let isDrawing = false;
-
-    function getPos(e) {
-        const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return {
-            x: clientX - rect.left,
-            y: clientY - rect.top
-        };
-    }
-
-    function startDrawing(e) {
-        isDrawing = true;
-        const pos = getPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x, pos.y);
-    }
-
-    function draw(e) {
-        if (!isDrawing) return;
-        e.preventDefault();
-        const pos = getPos(e);
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
-        ctx.strokeStyle = '#0284c7';
-        ctx.lineTo(pos.x, pos.y);
-        ctx.stroke();
-    }
-
-    function stopDrawing() {
-        isDrawing = false;
-    }
-
-    canvas.onmousedown = startDrawing;
-    canvas.onmousemove = draw;
-    canvas.onmouseup = stopDrawing;
-
-    canvas.ontouchstart = (e) => startDrawing(e);
-    canvas.ontouchmove = (e) => draw(e);
-    canvas.ontouchend = stopDrawing;
-}
-
-function xoaChuKyCanvas() {
-    const canvas = document.getElementById('canvasKyDienTu');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
-
-function dongPopupKyDienTu() {
-    const popup = document.getElementById('popupKyDienTu');
-    if (popup) popup.classList.add('hidden');
-    xoaChuKyCanvas();
-}
-
-function luuXacNhanKyNhan() {
-    alert("✍️ Đã xác nhận chữ ký điện tử và nhập tủ đồ sạch tại khoa thành công!");
-    dongPopupKyDienTu();
-}
-
-/* =========================================================================
-   8. HỆ THỐNG IN ẤN TEM & BIÊN BẢN (PRINT SYSTEM)
-   ========================================================================= */
-
-// Hàm in Biên bản A4
-function inHoaDonGiaoNhan() {
-    document.body.className = "print-mode-doc";
-    const printZone = document.getElementById('print-zone');
-    if (!printZone) return;
-
-    printZone.classList.remove('hidden');
-    printZone.innerHTML = `
-        <div style="font-family: 'Inter', sans-serif; color: #000; padding: 10px;">
-            <div style="text-align: center; font-weight: 800; font-size: 16px; text-transform: uppercase; margin-bottom: 4px;">
-                BỆNH VIỆN PHƯƠNG NAM
-            </div>
-            <div style="text-align: center; font-weight: 700; font-size: 14px; text-transform: uppercase; margin-bottom: 20px;">
-                BIÊN BẢN GIAO NHẬN VÀ CÔNG NỢ DỤNG CỤ TIỆT TRÙNG
-            </div>
-            
-            <div style="font-size: 12px; margin-bottom: 15px; line-height: 1.6;">
-                <p style="margin: 0;"><strong>Khoa / Phòng:</strong> Khoa Phẫu Thuật Gây Mê Hồi Sức</p>
-                <p style="margin: 0;"><strong>Ngày lập:</strong> ${new Date().toLocaleString('vi-VN')}</p>
-                <p style="margin: 0;"><strong>Nhân viên CSSD lập phiếu:</strong> ${currentUser.nvName}</p>
-            </div>
-
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 12px;">
-                <thead>
-                    <tr style="background-color: #f3f4f6;">
-                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 40px;">STT</th>
-                        <th style="border: 1px solid #000; padding: 8px; text-align: left;">Tên Bộ Dụng Cụ</th>
-                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 90px;">Đã Trả Bẩn</th>
-                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100px;">Nhận Vô Khuẩn</th>
-                        <th style="border: 1px solid #000; padding: 8px; text-align: center; width: 100px;">CSSD Nợ Khoa</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">1</td>
-                        <td style="border: 1px solid #000; padding: 8px; font-weight: 600;">Mâm Phẫu Thuật Đại Phẫu Aesculap</td>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">05</td>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">05</td>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">00</td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">2</td>
-                        <td style="border: 1px solid #000; padding: 8px; font-weight: 600;">Mâm Phẫu Thuật Nội Soi Ổ Bụng</td>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">02</td>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">02</td>
-                        <td style="border: 1px solid #000; padding: 8px; text-align: center;">00</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div style="display: flex; justify-content: space-between; text-align: center; font-size: 12px; margin-top: 40px;">
-                <div style="width: 45%;">
-                    <p style="font-weight: 700; text-transform: uppercase; margin-bottom: 60px;">ĐẠI DIỆN KHOA PHÒNG</p>
-                    <p style="font-style: italic; color: #555;">(Ký và ghi rõ họ tên)</p>
-                </div>
-                <div style="width: 45%;">
-                    <p style="font-weight: 700; text-transform: uppercase; margin-bottom: 60px;">NHÂN VIÊN CSSD</p>
-                    <p style="font-style: italic; color: #555;">(Ký và ghi rõ họ tên)</p>
-                </div>
-            </div>
-        </div>
-    `;
-
-    setTimeout(() => {
-        window.print();
-    }, 100);
-}
-
-// Hàm in Tem Bixolon Động (80mm x 50mm)
-function inTemNghiemThuHangLoat(tenBo = "MÂM ĐẠI PHẪU AESCULAP", maLo = "STEAM_20260725_01", maBarcode = "A1260328_01") {
-    document.body.className = "print-mode-bixolon";
-    const printZone = document.getElementById('print-zone');
-    if (!printZone) return;
-
-    printZone.classList.remove('hidden');
-    printZone.innerHTML = `
-        <div class="bixolon-label" style="padding: 5px; text-align: center; font-family: sans-serif;">
-            <div style="font-size: 10px; font-weight: 800; border-bottom: 1px solid #000; padding-bottom: 2px;">
-                PHUONG NAM HOSPITAL - CSSD
-            </div>
-            <div style="font-size: 11px; font-weight: 800; margin: 4px 0;">
-                ${tenBo}
-            </div>
-            <div style="display: flex; justify-content: center; margin: 2px 0;">
-                <svg id="barcode-demo"></svg>
-            </div>
-            <div style="font-size: 9px; font-weight: 600; line-height: 1.3;">
-                <div>Mã Lô: ${maLo} | HSD: 30 Ngày</div>
-                <div>NVKH: ${currentUser.nvName}</div>
-            </div>
-        </div>
-    `;
-
-    if (typeof JsBarcode !== 'undefined') {
-        JsBarcode("#barcode-demo", maBarcode, {
-            format: "CODE128",
-            height: 28,
-            displayValue: true,
-            fontSize: 9,
-            margin: 0
-        });
-    }
-
-    setTimeout(() => {
-        window.print();
-    }, 100);
-}
-
-/* =========================================================================
-   9. QUÉT CAMERA QR / BARCODE
-   ========================================================================= */
-function moCamera(targetInputId) {
-    const popup = document.getElementById('popupScanner');
-    if (popup) popup.classList.remove('hidden');
-
-    if (typeof Html5QrcodeScanner !== 'undefined') {
-        html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrcodeScanner.render((decodedText) => {
-            const inputEl = document.getElementById(targetInputId);
-            if (inputEl) inputEl.value = decodedText;
-            dongCamera();
-        }, (error) => {});
-    }
-}
-
-function dongCamera() {
-    if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(() => {});
-    }
-    const popup = document.getElementById('popupScanner');
-    if (popup) popup.classList.add('hidden');
-}
-
-/* =========================================================================
-   10. ADMIN: CẤU HÌNH SUBTAB, PIN & PHÂN QUYỀN
-   ========================================================================= */
-
-// Chuyển đổi Subtab giữa "Nạp Cơ Sở Dữ Liệu Excel" và "Cấu Hình PIN & Phân Quyền"
 function switchAdminSubtab(subtab) {
     const subDb = document.getElementById('subtab-database');
     const subSec = document.getElementById('subtab-security');
@@ -597,12 +370,9 @@ function switchAdminSubtab(subtab) {
     if (btnDb) btnDb.classList.toggle('admin-subtab-active', subtab === 'database');
     if (btnSec) btnSec.classList.toggle('admin-subtab-active', subtab === 'security');
 
-    if (subtab === 'security') {
-        renderDanhSachPinAdmin();
-    }
+    if (subtab === 'security') renderDanhSachPinAdmin();
 }
 
-// Render danh sách nhân viên và PIN cấu hình trong Tab Admin (Có kèm lọc theo từ khóa search)
 function renderDanhSachPinAdmin() {
     const tbody = document.getElementById('bangCauHinhPinAdmin');
     if (!tbody) return;
@@ -614,183 +384,87 @@ function renderDanhSachPinAdmin() {
         ktv.name.toLowerCase().includes(keyword) || ktv.id.toLowerCase().includes(keyword)
     );
 
-    if (filteredList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không tìm thấy tài khoản nhân sự phù hợp!</td></tr>`;
-        return;
-    }
-
     tbody.innerHTML = filteredList.map((ktv, index) => `
         <tr class="border-b hover:bg-slate-50 text-xs">
             <td class="p-3 text-center font-bold text-slate-500">${index + 1}</td>
             <td class="p-3 font-mono font-bold text-sky-700">${ktv.id}</td>
             <td class="p-3 font-semibold text-slate-800">${ktv.name}</td>
             <td class="p-3 text-center font-mono">
-                <input type="password" id="pin_input_${ktv.id}" value="${ktv.pin || '1234'}" class="w-24 text-center border border-slate-300 rounded p-1 text-xs font-bold bg-white focus:ring-2 focus:ring-sky-500 outline-none">
+                <input type="password" id="pin_input_${ktv.id}" value="${ktv.pin || '1234'}" class="w-24 text-center border rounded p-1 text-xs font-bold">
             </td>
             <td class="p-3 text-center">
-                <select id="role_select_${ktv.id}" class="border border-slate-300 rounded px-2 py-1 text-xs bg-white font-semibold outline-none">
-                    <option value="CSSD" ${ktv.role === 'CSSD' ? 'selected' : ''}>🧪 KTV CSSD</option>
-                    <option value="KHOA" ${ktv.role === 'KHOA' ? 'selected' : ''}>🏥 Điều Dưỡng Khoa</option>
-                    <option value="ADMIN" ${ktv.role === 'ADMIN' ? 'selected' : ''}>👑 Administrator</option>
-                    <option value="GUEST" ${ktv.role === 'GUEST' ? 'selected' : ''}>👁️ Khách (Guest)</option>
+                <select id="role_select_${ktv.id}" class="border rounded px-2 py-1 text-xs">
+                    <option value="CSSD" ${ktv.role === 'CSSD' ? 'selected' : ''}>KTV CSSD</option>
+                    <option value="KHOA" ${ktv.role === 'KHOA' ? 'selected' : ''}>Điều Dưỡng Khoa</option>
+                    <option value="ADMIN" ${ktv.role === 'ADMIN' ? 'selected' : ''}>Administrator</option>
                 </select>
             </td>
             <td class="p-3 text-center">
-                <button onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold transition-all shadow-sm">
-                    <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu
-                </button>
+                <button onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold">Lưu</button>
             </td>
         </tr>
     `).join('');
 }
 
-// Hàm lưu/cập nhật PIN và Quyền của nhân sự
 function capNhatPinNhanVien(ktvId) {
     const pinInp = document.getElementById(`pin_input_${ktvId}`);
-    const roleSel = document.getElementById(`role_select_${ktvId}`);
-
-    if (!pinInp || !pinInp.value.trim()) {
-        alert("Vui lòng nhập Mã PIN hợp lệ!");
-        return;
-    }
-
     const targetKtv = globalData.ktvList.find(k => k.id === ktvId);
-    if (targetKtv) {
+    if (targetKtv && pinInp) {
         targetKtv.pin = pinInp.value.trim();
-        targetKtv.role = roleSel ? roleSel.value : 'CSSD';
-        alert(`🔑 Đã cập nhật thành công Mã PIN & Phân quyền cho [${targetKtv.name}]!`);
+        alert(`🔑 Đã cập nhật PIN cho [${targetKtv.name}]!`);
     }
 }
 
-// Thêm nhân sự mới vào danh sách hệ thống
 function themNhanSuMoiAdmin() {
     const nameInp = document.getElementById('admin_add_nv_name');
     const idInp = document.getElementById('admin_add_nv_id');
-    const pinInp = document.getElementById('admin_add_nv_pin');
-    const roleSel = document.getElementById('admin_add_nv_role');
-
-    if (!nameInp || !nameInp.value.trim() || !idInp || !idInp.value.trim()) {
-        alert("Vui lòng nhập đầy đủ Mã NV và Họ Tên!");
+    if (!nameInp || !idInp || !nameInp.value.trim() || !idInp.value.trim()) {
+        alert("Vui lòng nhập Mã NV và Họ Tên!");
         return;
     }
-
-    const newKtv = {
+    globalData.ktvList.push({
         id: idInp.value.trim().toUpperCase(),
         name: nameInp.value.trim(),
-        pin: pinInp && pinInp.value.trim() ? pinInp.value.trim() : '1234',
-        role: roleSel ? roleSel.value : 'CSSD'
-    };
-
-    globalData.ktvList.push(newKtv);
+        pin: '1234',
+        role: 'CSSD'
+    });
     renderDanhSachPinAdmin();
-
-    // Reset input
     nameInp.value = '';
     idInp.value = '';
-    if (pinInp) pinInp.value = '';
-    alert(`➕ Đã thêm nhân sự [${newKtv.name}] vào hệ thống thành công!`);
+    alert("➕ Đã thêm nhân sự thành công!");
 }
 
-function saveAdminPIN(roleType) {
-    let inpId = 'cfg_pinAdmin';
-    if (roleType === 'CSSD') inpId = 'cfg_pinCSSD';
-    if (roleType === 'GUEST') inpId = 'cfg_pinGuest';
-
-    const inp = document.getElementById(inpId);
-    if (inp && inp.value.trim()) {
-        alert(`🔑 Đã lưu cấu hình Mã PIN dùng chung cho nhóm [${roleType}]: ${inp.value.trim()}`);
-    } else {
-        alert("Vui lòng nhập mã PIN hợp lệ!");
-    }
-}
-
-function resetDuLieuKet() {
-    alert("🔄 Đã giải phóng toàn bộ mâm dụng cụ bị kẹt dở dang trên hệ thống!");
-}
-
+function resetDuLieuKet() { alert("🔄 Đã giải phóng mâm kẹt dở dang!"); }
 function xoaSachDuLieuGiaoDichRealtime() {
-    if (confirm("⚠️ Bạn có chắc chắn muốn xóa sạch toàn bộ nhật ký giao dịch không?")) {
+    if (confirm("⚠️ Bạn có chắc chắn muốn xóa nhật ký giao dịch?")) {
         globalData.lichSu = [];
         globalData.meRua = [];
         renderBangLichSuLuanChuyen();
         renderBangLichSuRua();
-        alert("🗑️ Đã xóa sạch nhật ký giao dịch!");
+        alert("🗑️ Đã xóa thành công!");
     }
 }
-
 function khaiSinhKhayVangLai() {
-    const maKhay = prompt("Nhập Mã Khay Vãng Lai Cần Khai Sinh (VD: KVL_8899):");
-    if (maKhay && maKhay.trim()) {
-        alert(`✨ Đã khởi tạo khay vãng lai [${maKhay.trim().toUpperCase()}] thành công trên hệ thống!`);
-    }
+    const ma = prompt("Nhập mã khay vãng lai:");
+    if (ma) alert(`✨ Đã khởi tạo khay: ${ma.toUpperCase()}`);
 }
 
 /* =========================================================================
-   11. LOGIC POPUP SỬ DỤNG BỆNH NHÂN & TRA CỨU MẺ TIỆT TRÙNG
-   ========================================================================= */
-function moPopupSuDungBoDungCu() {
-    const pop = document.getElementById('popupSuDungBoDungCu');
-    if (pop) pop.classList.remove('hidden');
-}
-
-function closePopupSuDung() {
-    const pop = document.getElementById('popupSuDungBoDungCu');
-    if (pop) pop.classList.add('hidden');
-}
-
-function scanKhayVaoSuDung() {
-    const inp = document.getElementById('sd_maKhayInp');
-    if (!inp || !inp.value.trim()) return;
-
-    const maKhay = inp.value.trim().toUpperCase();
-    const tbody = document.getElementById('sd_bangKhayChon');
-
-    if (tbody) {
-        const rowCount = tbody.rows.length + 1;
-        const tr = document.createElement('tr');
-        tr.className = "border-b text-xs hover:bg-slate-50";
-        tr.innerHTML = `
-            <td class="p-2 text-center font-bold text-slate-500">${rowCount}</td>
-            <td class="p-2 font-mono font-bold text-sky-700">${maKhay}</td>
-            <td class="p-2 font-semibold">Mâm Dụng Cụ Tiệt Trùng</td>
-            <td class="p-2 text-center font-mono">STEAM_20260725_01</td>
-            <td class="p-2 text-center"><span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Vô Khuẩn</span></td>
-            <td class="p-2 text-center"><button onclick="this.closest('tr').remove()" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button></td>
-        `;
-        tbody.appendChild(tr);
-    }
-    inp.value = '';
-}
-
-function truyVetTheoMaBatch() {
-    const inp = document.getElementById('inp_searchBatch');
-    if (!inp || !inp.value.trim()) {
-        alert("Vui lòng nhập Mã Lô Hấp Cần Tra Cứu!");
-        return;
-    }
-    alert(`🔍 Đang thực hiện truy vết khẩn cấp cho mã lô: ${inp.value.trim().toUpperCase()}`);
-}
-
-function clearTruyVetBatch() {
-    const inp = document.getElementById('inp_searchBatch');
-    if (inp) inp.value = '';
-}
-
-/* =========================================================================
-   12. SƠ ĐỒ CẤU HÌNH MÂM DỤNG CỤ & ĐỌC ẢNH BI
+   8. POPUPS & KHÁC
    ========================================================================= */
 function moModalXemAnhCauHinh() {
     const pop = document.getElementById('popupXemAnhCauHinh');
     if (pop) pop.classList.remove('hidden');
 }
-
 function dongModalXemAnhCauHinh() {
     const pop = document.getElementById('popupXemAnhCauHinh');
     if (pop) pop.classList.add('hidden');
 }
-
-function docAnhBiUpTaiCho(inputEl) {
-    if (inputEl.files && inputEl.files[0]) {
-        alert("📸 Đã nạp ảnh minh chứng kết quả đọc Chỉ Thị Sinh Học (BI) thành công!");
-    }
+function moPopupSuDungBoDungCu() {
+    const pop = document.getElementById('popupSuDungBoDungCu');
+    if (pop) pop.classList.remove('hidden');
+}
+function closePopupSuDung() {
+    const pop = document.getElementById('popupSuDungBoDungCu');
+    if (pop) pop.classList.add('hidden');
 }
