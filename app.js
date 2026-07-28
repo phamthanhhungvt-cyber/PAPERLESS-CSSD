@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA LỖI NẠP EXCEL)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA LỖI HIỂN THỊ CƠ SỐ LINH KIỆN)
    ========================================================================= */
 
 // 1. CẤU HÌNH KHỞI TẠO FIREBASE (v8)
@@ -48,7 +48,7 @@ let html5QrcodeScanner = null;
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     initRealtimeListeners();
-    initExcelLoader(); // <--- ĐĂNG KÝ SỰ KIỆN LẮNG NGHE NẠP FILE EXCEL
+    initExcelLoader(); // Đăng ký sự kiện nạp file Excel
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
@@ -92,7 +92,10 @@ function initExcelLoader() {
 
                 if (excelJson && excelJson.length > 0) {
                     globalData.danhMucLinhKien = excelJson;
+                    
+                    // VẼ VÀ HIỂN THỊ DỮ LIỆU NGAY LẬP TỨC
                     renderBangDanhMucLinhKien();
+                    
                     alert(`🎉 Nạp thành công ${excelJson.length} dòng dữ liệu từ file [${file.name}]!`);
                 } else {
                     alert("⚠️ File Excel rỗng hoặc không đúng định dạng!");
@@ -106,30 +109,54 @@ function initExcelLoader() {
     });
 }
 
-// Render dữ liệu sau khi nạp file vào Tab Danh Mục Linh Kiện
+// RENDER DỮ LIỆU BẢNG CƠ SỐ LINH KIỆN
 function renderBangDanhMucLinhKien() {
     const tbody = document.getElementById('bangDanhMucLinhKien');
-    if (!tbody) return;
+    const tbodyTong = document.getElementById('bangDanhMucTong');
 
-    if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu danh mục linh kiện. Vui lòng nạp file Excel.</td></tr>`;
-        return;
+    if (tbody) {
+        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu danh mục linh kiện. Vui lòng nạp file Excel tại mục Quản Trị Hệ Thống.</td></tr>`;
+        } else {
+            tbody.innerHTML = globalData.danhMucLinhKien.map(item => {
+                // Tự động quét và lấy giá trị cột theo nhiều cách đặt tên khác nhau trong Excel
+                const keys = Object.keys(item);
+                const tenBo = item["Tên Bộ Dụng Cụ"] || item["TenBo"] || item["Tên Mâm"] || item["Bộ Dụng Cụ"] || item[keys[0]] || "N/A";
+                const chiTiet = item["Chi Tiết Linh Kiện"] || item["LinhKien"] || item["Cấu Hình"] || item["Linh Kiện"] || item[keys[1]] || "N/A";
+                const soLuong = item["Số Lượng"] || item["SoLuong"] || item["Cơ Số"] || item["Số lượng"] || item[keys[2]] || "1";
+
+                return `
+                    <tr class="border-b hover:bg-slate-50 text-xs">
+                        <td class="p-3 font-bold text-slate-800">${tenBo}</td>
+                        <td class="p-3 text-slate-600">${chiTiet}</td>
+                        <td class="p-3 text-center font-bold text-sky-700">${soLuong}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
     }
 
-    tbody.innerHTML = globalData.danhMucLinhKien.map(item => {
-        // Tự động nhận diện tên cột linh hoạt theo file Excel của anh
-        const tenBo = item["Tên Bộ Dụng Cụ"] || item["TenBo"] || item["Tên Mâm"] || Object.values(item)[0] || "N/A";
-        const chiTiet = item["Chi Tiết Linh Kiện"] || item["LinhKien"] || item["Cấu Hình"] || Object.values(item)[1] || "N/A";
-        const soLuong = item["Số Lượng"] || item["SoLuong"] || item["Cơ Số"] || Object.values(item)[2] || "1";
+    // Render Bảng Vòng Đời Khay
+    if (tbodyTong) {
+        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
+            tbodyTong.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu khay dụng cụ</td></tr>`;
+        } else {
+            tbodyTong.innerHTML = globalData.danhMucLinhKien.map((item, index) => {
+                const keys = Object.keys(item);
+                const tenBo = item["Tên Bộ Dụng Cụ"] || item["TenBo"] || item[keys[0]] || "Mâm Dụng Cụ";
+                const maKhay = item["Mã Khay"] || item["MaKhay"] || `KD-${1000 + index}`;
 
-        return `
-            <tr class="border-b hover:bg-slate-50 text-xs">
-                <td class="p-3 font-bold text-slate-800">${tenBo}</td>
-                <td class="p-3 text-slate-600">${chiTiet}</td>
-                <td class="p-3 text-center font-bold text-sky-700">${soLuong}</td>
-            </tr>
-        `;
-    }).join('');
+                return `
+                    <tr class="border-b hover:bg-slate-50 text-xs">
+                        <td class="p-3 font-mono font-bold text-sky-700">${maKhay}</td>
+                        <td class="p-3 font-bold text-slate-800">${tenBo}</td>
+                        <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">Sẵn Sàng</span></td>
+                        <td class="p-3 text-center font-bold text-slate-700">0</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+    }
 }
 
 // Lắng nghe dữ liệu Realtime từ Firebase Firestore
@@ -180,6 +207,11 @@ function switchTab(tabId) {
 
     const activeMenu = document.getElementById(`menu-${tabId}`);
     if (activeMenu) activeMenu.classList.add('sidebar-item-active');
+
+    // NẾU CHUYỂN SANG TAB DANH MỤC -> TỰ ĐỘNG LÀM MỚI BẢNG
+    if (tabId === 'danhmuc') {
+        renderBangDanhMucLinhKien();
+    }
 
     const sidebar = document.getElementById('sidebar_menu');
     if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
