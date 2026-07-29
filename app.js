@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ FIX TỰ ĐỘNG NHẬN DIỆN MỌI FILE EXCEL)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (SỬA LỖI ĐỔ DỮ LIỆU SANG KHOA/PHÒNG)
    ========================================================================= */
 
 // 1. CẤU HÌNH KHỞI TẠO FIREBASE (v8)
@@ -32,7 +32,8 @@ let globalData = {
     meHap: [],
     khoVoKhuan: [],
     lichSu: [],
-    danhMucLinhKien: [], // Lưu dữ liệu nạp từ Excel đã qua chuẩn hóa
+    danhMucLinhKien: [], // Dữ liệu nạp từ Excel
+    danhSachKhoa: [],    // Danh sách Khoa/Phòng trích xuất từ Excel
     ktvList: [
         { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
         { id: 'NV02', name: 'Trần Thị B', pin: '5678', role: 'CSSD' },
@@ -48,7 +49,7 @@ let html5QrcodeScanner = null;
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     initRealtimeListeners();
-    initExcelLoader(); // Đăng ký đọc Excel thông minh
+    initExcelLoader(); 
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// XỬ LÝ ĐỌC FILE EXCEL THÔNG MINH (SMART PARSER)
+// ĐỌC VÀ XỬ LÝ FILE EXCEL CƠ SỐ DỤNG CỤ
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -73,7 +74,7 @@ function initExcelLoader() {
         if (!file) return;
 
         if (typeof XLSX === 'undefined') {
-            alert("❌ Chưa tải thư viện SheetJS (XLSX). Vui lòng kiểm tra lại kết nối mạng!");
+            alert("❌ Chưa tải thư viện SheetJS (XLSX). Vui lòng kiểm tra kết nối mạng!");
             return;
         }
 
@@ -83,7 +84,7 @@ function initExcelLoader() {
                 const data = new Uint8Array(evt.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
-                // 1. Tự động chọn Sheet có nhiều dòng dữ liệu nhất (vd: 'Data chi tiết')
+                // Tự động tìm Sheet chứa nhiều dòng nhất
                 let bestSheetName = workbook.SheetNames[0];
                 let maxRows = 0;
 
@@ -105,16 +106,14 @@ function initExcelLoader() {
                     return;
                 }
 
-                // 2. Kiểm tra dòng 0 xem có phải Header hay không
                 const row0 = rawRows[0] || [];
                 const row0Str = row0.map(v => String(v).toLowerCase()).join(' ');
-                
                 const hasHeader = row0Str.includes('stt') || row0Str.includes('tên') || row0Str.includes('mã') || row0Str.includes('số lượng') || row0Str.includes('khoa');
 
                 let parsedList = [];
+                let setKhoa = new Set();
 
                 if (hasHeader) {
-                    // Có tiêu đề cột (như CƠ SỐ DC KP.xlsx - sheet 'Data chi tiết')
                     const headerRow = row0.map(v => String(v).trim());
                     
                     let idxKhoa = headerRow.findIndex(h => h.includes('Tên TS (i)') || h.includes('Khoa') || h.includes('Phòng'));
@@ -132,55 +131,100 @@ function initExcelLoader() {
                         if (!r || r.length === 0) continue;
                         const ten = r[idxTen] ? String(r[idxTen]).trim() : "";
                         const ma = r[idxMa] ? String(r[idxMa]).trim() : "";
-                        const khoa = r[idxKhoa] ? String(r[idxKhoa]).trim() : "Toàn viện";
+                        const khoa = r[idxKhoa] ? String(r[idxKhoa]).trim() : "PHÒNG SANH";
                         const sl = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
 
                         if (ten || ma) {
-                            parsedList.push({
-                                khoa: khoa,
-                                maBo: ma || `MA_${i}`,
-                                tenBo: ten || "Bộ Dụng Cụ",
-                                soLuong: sl
-                            });
+                            parsedList.push({ khoa, maBo: ma || `MA_${i}`, tenBo: ten || "Bộ Dụng Cụ", soLuong: sl });
+                            if (khoa) setKhoa.add(khoa);
                         }
                     }
                 } else {
-                    // Không có tiêu đề cột (như IMPORT-CƠ SỐ.xlsx) -> [0: Khoa, 1: Mã, 2: Tên, 3: Số Lượng]
                     for (let i = 0; i < rawRows.length; i++) {
                         const r = rawRows[i];
                         if (!r || r.length < 3) continue;
 
-                        const khoa = r[0] ? String(r[0]).trim() : "Toàn viện";
+                        const khoa = r[0] ? String(r[0]).trim() : "PHÒNG SANH";
                         const ma = r[1] ? String(r[1]).trim() : `MA_${i+1}`;
                         const ten = r[2] ? String(r[2]).trim() : "";
                         const sl = r[3] !== "" && r[3] !== undefined ? Number(r[3]) || 1 : 1;
 
                         if (ten || ma) {
-                            parsedList.push({
-                                khoa: khoa,
-                                maBo: ma,
-                                tenBo: ten || "Bộ Dụng Cụ",
-                                soLuong: sl
-                            });
+                            parsedList.push({ khoa, maBo: ma, tenBo: ten || "Bộ Dụng Cụ", soLuong: sl });
+                            if (khoa) setKhoa.add(khoa);
                         }
                     }
                 }
 
                 if (parsedList.length > 0) {
                     globalData.danhMucLinhKien = parsedList;
-                    renderBangDanhMucLinhKien();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ từ file [${file.name}] (Sheet: '${bestSheetName}')!`);
+                    globalData.danhSachKhoa = Array.from(setKhoa);
+                    
+                    // ĐỒ DỮ LIỆU ĐỒNG BỘ TOÀN BỘ CÁC TRẠM
+                    capNhatGiaoDienSauKhiNapExcel();
+                    
+                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ thuộc ${globalData.danhSachKhoa.length} Khoa/Phòng!`);
                 } else {
-                    alert("⚠️ Không tìm thấy dữ liệu bộ dụng cụ hợp lệ trong file Excel!");
+                    alert("⚠️ Không tìm thấy dữ liệu hợp lệ trong file Excel!");
                 }
 
             } catch (err) {
                 console.error(err);
-                alert("❌ Lỗi khi đọc file Excel. Vui lòng kiểm tra lại định dạng file!");
+                alert("❌ Lỗi khi đọc file Excel. Vui lòng kiểm tra định dạng file!");
             }
         };
         reader.readAsArrayBuffer(file);
     });
+}
+
+// HÀM TỰ ĐỘNG ĐỔ DỮ LIỆU SANG CÁC DROPDOWN VÀ BẢNG TẠI CÁC TRẠM
+function capNhatGiaoDienSauKhiNapExcel() {
+    // 1. Đổ danh sách Khoa/Phòng vào tất cả các thẻ select
+    const selectIds = ['login_khoa', 'khoa_selKhoa', 'filterKhoaThuGom', 'xuat_selKhoa', 'inv_filterKhoa'];
+    selectIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            const firstOption = el.options[0] ? el.options[0].outerHTML : '<option value="">-- Chọn Khoa --</option>';
+            el.innerHTML = firstOption + globalData.danhSachKhoa.map(k => `<option value="${k}">${k}</option>`).join('');
+        }
+    });
+
+    // 2. Đổ danh sách Mâm Dụng Cụ vào datalist gợi ý (listBoDungCu)
+    const datalist = document.getElementById('listBoDungCu');
+    if (datalist) {
+        datalist.innerHTML = globalData.danhMucLinhKien.map(item => 
+            `<option value="${item.maBo}">${item.tenBo} (${item.khoa})</option>`
+        ).join('');
+    }
+
+    // 3. Render các bảng dữ liệu
+    renderBangDanhMucLinhKien();
+    renderBangCongNoKhoa();
+}
+
+// Render Bảng Công Nợ Dụng Cụ tại Trạm Khoa/Phòng
+function renderBangCongNoKhoa() {
+    const tbody = document.getElementById('bangDonGiaoNhan');
+    const selKhoa = document.getElementById('khoa_selKhoa');
+    if (!tbody) return;
+
+    const selectedKhoa = selKhoa ? selKhoa.value : "";
+    const items = selectedKhoa ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) : globalData.danhMucLinhKien;
+
+    if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem công nợ dụng cụ.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.slice(0, 15).map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-bold text-slate-800">${item.tenBo} <span class="text-[10px] text-sky-600 block font-mono">${item.maBo}</span></td>
+            <td class="p-3 text-center font-bold text-slate-600">0</td>
+            <td class="p-3 text-center font-bold text-slate-600">0</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.soLuong}</td>
+            <td class="p-3 text-center font-bold text-rose-600">0</td>
+        </tr>
+    `).join('');
 }
 
 // RENDER BẢNG DANH MỤC LINH KIỆN & CƠ SỐ
@@ -188,35 +232,25 @@ function renderBangDanhMucLinhKien() {
     const tbody = document.getElementById('bangDanhMucLinhKien');
     const tbodyTong = document.getElementById('bangDanhMucTong');
 
-    const searchInp = document.getElementById('search_danhmuc_inp');
-    const keyword = searchInp ? searchInp.value.trim().toLowerCase() : "";
-
-    const filtered = (globalData.danhMucLinhKien || []).filter(item => {
-        return item.tenBo.toLowerCase().includes(keyword) || 
-               item.maBo.toLowerCase().includes(keyword) || 
-               item.khoa.toLowerCase().includes(keyword);
-    });
-
     if (tbody) {
-        if (!filtered || filtered.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu cơ số dụng cụ. Vui lòng nạp file Excel tại Quản Trị Hệ Thống.</td></tr>`;
+        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu cơ số dụng cụ. Vui lòng nạp file Excel tại Quản Trị Hệ Thống.</td></tr>`;
         } else {
-            tbody.innerHTML = filtered.map((item, idx) => `
+            tbody.innerHTML = globalData.danhMucLinhKien.map(item => `
                 <tr class="border-b hover:bg-slate-50 text-xs">
-                    <td class="p-3 font-mono font-bold text-sky-700">${item.maBo}</td>
-                    <td class="p-3 font-bold text-slate-800">${item.tenBo}</td>
+                    <td class="p-3 font-bold text-slate-800">${item.tenBo} <span class="text-[10px] text-sky-600 block font-mono">${item.maBo}</span></td>
                     <td class="p-3 text-slate-600">${item.khoa}</td>
-                    <td class="p-3 text-center font-bold text-emerald-600 bg-emerald-50 rounded">${item.soLuong}</td>
+                    <td class="p-3 text-center font-bold text-sky-700 bg-sky-50 rounded">${item.soLuong}</td>
                 </tr>
             `).join('');
         }
     }
 
     if (tbodyTong) {
-        if (!filtered || filtered.length === 0) {
+        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
             tbodyTong.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có dữ liệu khay dụng cụ</td></tr>`;
         } else {
-            tbodyTong.innerHTML = filtered.map(item => `
+            tbodyTong.innerHTML = globalData.danhMucLinhKien.map(item => `
                 <tr class="border-b hover:bg-slate-50 text-xs">
                     <td class="p-3 font-mono font-bold text-sky-700">${item.maBo}</td>
                     <td class="p-3 font-bold text-slate-800">${item.tenBo}</td>
@@ -275,10 +309,8 @@ function switchTab(tabId) {
     const activeMenu = document.getElementById(`menu-${tabId}`);
     if (activeMenu) activeMenu.classList.add('sidebar-item-active');
 
-    // Tự động làm mới bảng khi chọn Tab Danh Mục Linh Kiện Chuẩn
-    if (tabId === 'danhmuc') {
-        renderBangDanhMucLinhKien();
-    }
+    if (tabId === 'danhmuc') renderBangDanhMucLinhKien();
+    if (tabId === 'khoaphong') renderBangCongNoKhoa();
 
     const sidebar = document.getElementById('sidebar_menu');
     if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
