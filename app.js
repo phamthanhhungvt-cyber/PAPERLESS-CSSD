@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ CẬP NHẬT TỰ ĐỘNG LỌC KHOA CÓ LỆNH THU GOM)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA LỖI NÚT BÁO TRẢ CSSD)
    ========================================================================= */
 
 // 1. CẤU HÌNH KHỞI TẠO FIREBASE (v8)
@@ -199,7 +199,7 @@ function capNhatGiaoDienSauKhiNapExcel() {
 }
 
 /* =========================================================================
-   4. LOGIC TẠI TRẠM KHOA/PHÒNG & GIỎ HÀNG BÁO TRẢ
+   4. LOGIC TRẠM KHOA/PHÒNG & GIỎ HÀNG BÁO TRẢ (FIX LỖI NÚT BÁO TRẢ)
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -210,13 +210,12 @@ function themVaoGio() {
     }
 
     const maBoInput = inp.value.trim().toUpperCase();
-    const khoaSelect = selKhoa ? selKhoa.value : "KHOA CHƯA CHỌN";
+    const khoaSelect = selKhoa ? selKhoa.value : "";
 
-    // Tìm thông tin mâm từ danh mục
     const item = globalData.danhMucLinhKien.find(i => i.maBo.toUpperCase() === maBoInput) || {
         maBo: maBoInput,
         tenBo: "Mâm Dụng Cụ Bẩn",
-        khoa: khoaSelect
+        khoa: khoaSelect || "PHÒNG SANH"
     };
 
     gioHangTraTam.push(item);
@@ -247,14 +246,19 @@ function renderGioHangTam() {
     }
 }
 
-// Khoa gửi lệnh báo trả -> Tạo lệnh sang Trạm Thu Gom
+// HÀM XỬ LÝ CHÍNH KHI BẤM NÚT BÁO TRẢ CSSD
 function khoaGuiPhieuTraBatches() {
-    const selKhoa = document.getElementById('khoa_selKhoa');
-    const tenKhoa = selKhoa && selKhoa.value ? selKhoa.value : "KHOA LÂM SÀNG";
-
     if (gioHangTraTam.length === 0) {
         alert("Giỏ hàng báo trả trống!");
         return;
+    }
+
+    const selKhoa = document.getElementById('khoa_selKhoa');
+    let tenKhoa = selKhoa && selKhoa.value ? selKhoa.value : "";
+
+    // Tự động lấy Khoa từ mâm dụng cụ trong giỏ nếu chưa chọn ô Dropdown
+    if (!tenKhoa && gioHangTraTam.length > 0) {
+        tenKhoa = gioHangTraTam[0].khoa || "PHÒNG SANH";
     }
 
     const newPhieu = {
@@ -269,12 +273,19 @@ function khoaGuiPhieuTraBatches() {
     gioHangTraTam = [];
     renderGioHangTam();
 
-    alert(`🚀 Đã gửi thông báo đến Xe Thu Gom CSSD thành công! (${newPhieu.items.length} món)`);
+    alert(`🚀 Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn đến Xe Thu Gom CSSD thành công!`);
+    
+    // Tự động cập nhật bảng ở Xe thu gom
     renderBangChoThuGom();
 }
 
+// ĐỒNG BỘ CÁC TÊN HÀM NÚT BẤM (BẢO ĐẢM TƯƠNG THÍCH HOÀN HẢO VỚI INDEX.HTML)
+function guiBaoTra() { khoaGuiPhieuTraBatches(); }
+function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
+function xacNhanGuiPhieuTra() { khoaGuiPhieuTraBatches(); }
+
 /* =========================================================================
-   5. LOGIC TRẠM XE THU GOM & ĐỐI SOÁT (HIỂN THỊ LỆNH TỪ KHOA)
+   5. LOGIC TRẠM XE THU GOM & ĐỐI SOÁT
    ========================================================================= */
 function renderBangChoThuGom() {
     const tbody = document.getElementById('bangChoThuGom');
@@ -283,7 +294,6 @@ function renderBangChoThuGom() {
 
     if (!tbody) return;
 
-    // 1. Cập nhật Dropdown lọc Khoa theo các Khoa HIỆN CÓ LỆNH GỬI
     if (filterSelect) {
         const khoasWithOrders = Array.from(new Set(globalData.phieuTra.map(p => p.khoa)));
         const currentValue = filterSelect.value;
@@ -297,7 +307,6 @@ function renderBangChoThuGom() {
         filterSelect.innerHTML = optionsHtml;
     }
 
-    // 2. Lọc dữ liệu theo lựa chọn Dropdown
     const selectedKhoa = filterSelect ? filterSelect.value : "";
     const filteredPhieu = selectedKhoa 
         ? globalData.phieuTra.filter(p => p.khoa === selectedKhoa)
@@ -336,7 +345,6 @@ function renderBangChoThuGom() {
     `).join('');
 }
 
-// Mở Popup Kiểm đếm linh kiện cho lệnh thu gom
 function moPopupKiemDemThuGom(idx) {
     const phieu = globalData.phieuTra[idx];
     if (!phieu) return;
@@ -374,7 +382,7 @@ function closePopupKiemDem() {
 function saveKiemDem() {
     alert("✅ Đã chốt kiểm đếm đối soát thành công! Chuyển các mâm sang Trạm Belimed WD250.");
     closePopupKiemDem();
-    globalData.phieuTra.shift(); // Xóa lệnh đã xử lý
+    globalData.phieuTra.shift();
     renderBangChoThuGom();
 }
 
