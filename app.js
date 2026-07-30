@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA TRIỆT ĐỂ LỖI ĐƠ NÚT BÁO TRẢ)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ FIX TỰ ĐỘNG BẮT LỆNH CLICK NÚT BÁO TRẢ)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -38,7 +38,7 @@ let globalData = {
 let gioHangTraTam = [];
 
 /* =========================================================================
-   3. KHỞI TẠO VÀ ÉP BẮT SỰ KIỆN NÚT BẤM (AUTO-ATTACH EVENT LISTENERS)
+   3. KHỞI TẠO VÀ BẮT SỰ KIỆN CLICK TOÀN CỤC (KHÔNG CẦN SỬA HTML)
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     initRealtimeListeners();
@@ -47,24 +47,24 @@ document.addEventListener('DOMContentLoaded', () => {
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
 
-    // BẮT SỰ KIỆN TRỰC TIẾP CHO NÚT BÁO TRẢ (BẢO ĐẢM KHÔNG BỊ ĐƠ)
-    setTimeout(() => {
-        ganSuKienNutBaoTra();
-    }, 500);
-});
-
-// Hàm ép gán sự kiện Click vào bất kỳ nút nào có chữ "BÁO CSSD"
-function ganSuKienNutBaoTra() {
-    const allButtons = document.querySelectorAll('button');
-    allButtons.forEach(btn => {
-        if (btn.innerText.includes('BÁO CSSD') || btn.innerText.includes('Thu Gom') || btn.id === 'btnGuiBaoTra') {
-            btn.onclick = function(e) {
+    // CHIÊU CUỐI: "CAMERA GIÁM SÁT" BẮT CLICK TOÀN MÀN HÌNH
+    // Hễ click vào vùng có chữ "BÁO CSSD" là ép chạy hàm gửi!
+    document.body.addEventListener('click', function(e) {
+        let el = e.target;
+        while (el && el !== document.body) {
+            let txt = el.innerText ? el.innerText.toUpperCase() : "";
+            let onclickAttr = el.getAttribute('onclick') || "";
+            
+            if (txt.includes('BÁO CSSD') || onclickAttr.includes('guiBaoTra') || onclickAttr.includes('khoaGuiPhieuTraBatches')) {
                 e.preventDefault();
+                e.stopPropagation(); // Chặn đứng mọi lỗi từ HTML ngăn cản nút
                 khoaGuiPhieuTraBatches();
-            };
+                return; // Dừng vòng lặp sau khi đã xử lý xong
+            }
+            el = el.parentNode;
         }
     });
-}
+});
 
 // NẠP VÀ XỬ LÝ FILE EXCEL
 function initExcelLoader() {
@@ -236,9 +236,6 @@ function renderGioHangTam() {
             </tr>
         `).join('');
     }
-
-    // Ép lại sự kiện cho nút màu xanh
-    ganSuKienNutBaoTra();
 }
 
 // HÀM XỬ LÝ CHÍNH KHI BẤM NÚT BÁO TRẢ CSSD
@@ -274,7 +271,7 @@ function khoaGuiPhieuTraBatches() {
     renderBangChoThuGom();
 }
 
-// Đồng bộ tên hàm nút
+// Đồng bộ tên hàm nút để gọi tay từ Console nếu cần
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 function xacNhanGuiPhieuTra() { khoaGuiPhieuTraBatches(); }
