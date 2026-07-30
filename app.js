@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ FIX TỰ ĐỘNG BẮT LỆNH CLICK NÚT BÁO TRẢ)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA LỖI MẤT DỮ LIỆU & NÚT GỬI)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -38,17 +38,19 @@ let globalData = {
 let gioHangTraTam = [];
 
 /* =========================================================================
-   3. KHỞI TẠO VÀ BẮT SỰ KIỆN CLICK TOÀN CỤC (KHÔNG CẦN SỬA HTML)
+   3. KHỞI TẠO VÀ NẠP DỮ LIỆU TỪ LOCALSTORAGE (GIỮ DỮ LIỆU KHI ĐĂNG XUẤT)
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
+    // Nạp lại dữ liệu Excel đã lưu từ trước trong localStorage (nếu có)
+    docDuLieuLuuTruLocalStorage();
+
     initRealtimeListeners();
     initExcelLoader(); 
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
 
-    // CHIÊU CUỐI: "CAMERA GIÁM SÁT" BẮT CLICK TOÀN MÀN HÌNH
-    // Hễ click vào vùng có chữ "BÁO CSSD" là ép chạy hàm gửi!
+    // Bắt click toàn màn hình hỗ trợ cho nút Báo trả
     document.body.addEventListener('click', function(e) {
         let el = e.target;
         while (el && el !== document.body) {
@@ -57,16 +59,35 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (txt.includes('BÁO CSSD') || onclickAttr.includes('guiBaoTra') || onclickAttr.includes('khoaGuiPhieuTraBatches')) {
                 e.preventDefault();
-                e.stopPropagation(); // Chặn đứng mọi lỗi từ HTML ngăn cản nút
+                e.stopPropagation();
                 khoaGuiPhieuTraBatches();
-                return; // Dừng vòng lặp sau khi đã xử lý xong
+                return;
             }
             el = el.parentNode;
         }
     });
 });
 
-// NẠP VÀ XỬ LÝ FILE EXCEL
+// Đọc dữ liệu bền vững từ LocalStorage
+function docDuLieuLuuTruLocalStorage() {
+    try {
+        const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
+        const savedKhoa = localStorage.getItem('cssd_danhSachKhoa');
+        const savedPhieuTra = localStorage.getItem('cssd_phieuTra');
+
+        if (savedLinhKien) globalData.danhMucLinhKien = JSON.parse(savedLinhKien);
+        if (savedKhoa) globalData.danhSachKhoa = JSON.parse(savedKhoa);
+        if (savedPhieuTra) globalData.phieuTra = JSON.parse(savedPhieuTra);
+
+        if (globalData.danhMucLinhKien.length > 0) {
+            capNhatGiaoDienSauKhiNapExcel();
+        }
+    } catch (err) {
+        console.error("Lỗi khi đọc localStorage:", err);
+    }
+}
+
+// NẠP VÀ XỬ LÝ FILE EXCEL -> LƯU VÀO LOCALSTORAGE
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -76,7 +97,7 @@ function initExcelLoader() {
         if (!file) return;
 
         if (typeof XLSX === 'undefined') {
-            alert("❌ Chưa tải thư viện SheetJS (XLSX). Kiếm tra kết nối mạng!");
+            alert("❌ Chưa tải thư viện SheetJS (XLSX). Vui lòng kiểm tra lại kết nối mạng!");
             return;
         }
 
@@ -156,8 +177,13 @@ function initExcelLoader() {
                 if (parsedList.length > 0) {
                     globalData.danhMucLinhKien = parsedList;
                     globalData.danhSachKhoa = Array.from(setKhoa);
+
+                    // LƯU BỀN VỮNG VÀO LOCALSTORAGE
+                    localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                    localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ!`);
+                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã được lưu bền vững vào hệ thống.`);
                 }
 
             } catch (err) {
@@ -191,7 +217,7 @@ function capNhatGiaoDienSauKhiNapExcel() {
 }
 
 /* =========================================================================
-   4. LOGIC GIỎ HÀNG BÁO TRẢ (FIX LOẠI BỎ CHỐT CHẶN CHỌN KHOA)
+   4. LOGIC GIỎ HÀNG BÁO TRẢ
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -220,7 +246,7 @@ function renderGioHangTam() {
     const tbody = document.getElementById('bangGioHang');
     const badge = document.getElementById('badgeGioHang');
 
-    if (khuvuc) khuvuc.classList.remove('hidden'); // Giữ nguyên khu vực giỏ hàng
+    if (khuvuc) khuvuc.classList.remove('hidden');
     if (badge) badge.innerText = `${gioHangTraTam.length} món`;
 
     if (tbody) {
@@ -229,7 +255,7 @@ function renderGioHangTam() {
                 <td class="p-2 font-mono font-bold text-sky-700">${item.maBo}</td>
                 <td class="p-2 font-semibold">${item.tenBo}</td>
                 <td class="p-2 text-right">
-                    <button onclick="gioHangTraTam.splice(${idx},1); renderGioHangTam();" class="text-rose-600 hover:text-rose-800 p-1">
+                    <button type="button" onclick="gioHangTraTam.splice(${idx},1); renderGioHangTam();" class="text-rose-600 hover:text-rose-800 p-1">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -248,7 +274,6 @@ function khoaGuiPhieuTraBatches() {
     const selKhoa = document.getElementById('khoa_selKhoa');
     let tenKhoa = selKhoa && selKhoa.value ? selKhoa.value : "";
 
-    // Nếu chưa chọn Khoa ở góc phải -> Tự động lấy tên Khoa từ mâm dụng cụ
     if (!tenKhoa && gioHangTraTam.length > 0) {
         tenKhoa = gioHangTraTam[0].khoa || "PHÒNG SANH";
     }
@@ -265,19 +290,19 @@ function khoaGuiPhieuTraBatches() {
     gioHangTraTam = [];
     renderGioHangTam();
 
+    // LƯU DỮ LIỆU PHIẾU TRẢ VÀO LOCALSTORAGE
+    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
+
     alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn của Khoa [${tenKhoa}] sang Xe Thu Gom!`);
     
-    // Tự động chuyển cập nhật bảng ở Xe thu gom
     renderBangChoThuGom();
 }
 
-// Đồng bộ tên hàm nút để gọi tay từ Console nếu cần
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
-function xacNhanGuiPhieuTra() { khoaGuiPhieuTraBatches(); }
 
 /* =========================================================================
-   5. LOGIC TRẠM XE THU GOM & ĐỐI SOÁT
+   5. LOGIC XE THU GOM & ĐỐI SOÁT
    ========================================================================= */
 function renderBangChoThuGom() {
     const tbody = document.getElementById('bangChoThuGom');
@@ -329,7 +354,7 @@ function renderBangChoThuGom() {
             </td>
             <td class="p-3 text-center font-bold text-slate-600">${phieu.thoiGian}</td>
             <td class="p-3 text-center action-col">
-                <button onclick="moPopupKiemDemThuGom(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition-all whitespace-nowrap">
+                <button type="button" onclick="moPopupKiemDemThuGom(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition-all whitespace-nowrap">
                     <i class="fa-solid fa-clipboard-check mr-1"></i> Kiểm Đếm & Nhận
                 </button>
             </td>
@@ -375,6 +400,7 @@ function saveKiemDem() {
     alert("✅ Đã chốt kiểm đếm đối soát thành công! Chuyển các mâm sang Trạm Belimed WD250.");
     closePopupKiemDem();
     globalData.phieuTra.shift();
+    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
     renderBangChoThuGom();
 }
 
@@ -691,7 +717,7 @@ function renderDanhSachPinAdmin() {
                 </select>
             </td>
             <td class="p-3 text-center">
-                <button onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold">Lưu</button>
+                <button type="button" onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold">Lưu</button>
             </td>
         </tr>
     `).join('');
@@ -730,8 +756,11 @@ function xoaSachDuLieuGiaoDichRealtime() {
     if (confirm("⚠️ Bạn có chắc chắn muốn xóa nhật ký giao dịch?")) {
         globalData.lichSu = [];
         globalData.meRua = [];
+        globalData.phieuTra = [];
+        localStorage.removeItem('cssd_phieuTra');
         renderBangLichSuLuanChuyen();
         renderBangLichSuRua();
+        renderBangChoThuGom();
         alert("🗑️ Đã xóa thành công!");
     }
 }
