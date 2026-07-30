@@ -423,18 +423,19 @@
                 </div>
             </div>
 
-            <!-- TAB 3: MÁY RỬA -->
+            <!-- TAB 3: MÁY RỬA (BELIMED WD250 & CÁC THIẾT BỊ RỬA) -->
             <div id="tab-mayrua" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
                         <div>
                             <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-soap mr-2 text-sky-600"></i>VẬN HÀNH MẺ RỬA KHỬ KHUẨN (BELIMED WD250)</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Thiết lập tham số chu trình và nghiệm thu hiệu quả làm sạch</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Thiết lập tham số chu trình, quản lý lô rửa và nghiệm thu hiệu quả làm sạch</p>
                         </div>
                         <span id="badgeChoRua" class="bg-sky-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">0 Mục</span>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Cột 1: Cấu Hình Mẻ Rửa -->
                         <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
                             <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-sliders mr-1 text-sky-600"></i>Cấu Hình Mẻ Máy Rửa</h3>
                             <div>
@@ -482,7 +483,9 @@
                             </button>
                         </div>
 
+                        <!-- Cột 2 & 3: Hàng Đợi & Nghiệm Thu Mẻ Rửa -->
                         <div class="lg:col-span-2 space-y-4">
+                            <!-- Hàng Đợi Chờ Xếp Rửa -->
                             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                                 <div class="bg-slate-700 text-white p-3 text-xs font-bold uppercase flex justify-between items-center">
                                     <span>Hàng Đợi Xếp Vào Buồng Rửa</span>
@@ -504,6 +507,7 @@
                                 </div>
                             </div>
 
+                            <!-- Nghiệm Thu Mẻ Rửa (Grouped theo Batch Rửa) -->
                             <div class="bg-sky-50/40 border border-sky-200/80 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-bold text-xs text-sky-900 uppercase"><i class="fa-solid fa-check-double mr-1"></i>Nghiệm Thu Mẻ Đang Trong Buồng Rửa</h3>
@@ -525,13 +529,16 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div class="max-h-40 overflow-y-auto bg-white rounded border border-sky-200">
-                                    <table class="w-full text-left"><tbody id="bangChoNiemThuRua"></tbody></table>
+                                <div class="max-h-52 overflow-y-auto bg-white rounded border border-sky-200">
+                                    <table class="w-full text-left border-collapse">
+                                        <tbody id="bangChoNiemThuRua"></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Mẻ Rửa Đã Chạy Trong Ngày -->
                     <div class="pt-4 border-t border-slate-100">
                         <h3 class="font-bold text-xs text-slate-700 uppercase mb-3"><i class="fa-solid fa-receipt mr-1"></i>Mẻ Rửa Đã Chạy Trong Ngày</h3>
                         <div class="overflow-x-auto border border-slate-200 rounded-xl">
@@ -558,7 +565,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: MÁY HẤP -->
+            <!-- TAB 5: MÁY HẤP (SỐ HÓA BATCH TIỆT TRÙNG & KHO CHUNG) -->
             <div id="tab-mayhap" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
@@ -570,6 +577,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Cột 1: Thông Số Lò Hấp -->
                         <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
                             <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-fire-burner mr-1 text-sky-600"></i>Thông Số Thiết Bị Hấp</h3>
                             <div>
@@ -621,7 +629,9 @@
                             </div>
                         </div>
 
+                        <!-- Cột 2 & 3: Hàng Đợi & Nghiệm Thu Lò Hấp -->
                         <div class="lg:col-span-2 space-y-4">
+                            <!-- Hàng Đợi Đã Đóng Gói Chờ Hấp -->
                             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                                 <div class="bg-slate-700 text-white p-3 text-xs font-bold uppercase flex justify-between items-center">
                                     <span>Mâm Đã Đóng Gói Chờ Đưa Vào Lò</span>
@@ -636,6 +646,7 @@
                                 </div>
                             </div>
 
+                            <!-- Nghiệm Thu Mẻ Hấp Đang Chạy Lò (Grouped theo Batch Lò Hấp) -->
                             <div class="bg-purple-50/40 border border-purple-200/80 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-bold text-xs text-purple-900 uppercase"><i class="fa-solid fa-vial-circle-check mr-1"></i>Nghiệm Thu Mẻ Hấp Đang Chạy Lò</h3>
@@ -654,8 +665,10 @@
                                     </button>
                                 </div>
 
-                                <div class="max-h-40 overflow-y-auto bg-white rounded border border-purple-200">
-                                    <table class="w-full text-left"><tbody id="bangChoNghiệmThu"></tbody></table>
+                                <div class="max-h-52 overflow-y-auto bg-white rounded border border-purple-200">
+                                    <table class="w-full text-left border-collapse">
+                                        <tbody id="bangChoNghiệmThu"></tbody>
+                                    </table>
                                 </div>
 
                                 <div class="flex gap-2">
@@ -984,7 +997,7 @@
                         </div>
                     </div>
 
-                    <!-- SUBTAB 2: CẤU HÌNH PIN & PHÂN QUYỀN (RESTORED FULL UI) -->
+                    <!-- SUBTAB 2: CẤU HÌNH PIN & PHÂN QUYỀN -->
                     <div id="subtab-security" class="space-y-6 hidden">
                         <!-- Form Thêm Nhân Sự Mới -->
                         <div class="bg-sky-50/70 border border-sky-200/80 p-4 rounded-xl space-y-3">
@@ -1043,7 +1056,10 @@
     <!-- Overlay Mobile/Tablet -->
     <div id="mobile-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden transition-opacity"></div>
 
-    <!-- POPUPS HỆ THỐNG -->
+    <!-- ========================================================================= -->
+    <!-- 3. POPUPS & MODALS HỆ THỐNG -->
+    <!-- ========================================================================= -->
+
     <!-- Popup 1: Kiểm Đếm -->
     <div id="popupKiemDem" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl p-6 space-y-4 border border-slate-200 max-h-[90vh] flex flex-col">
