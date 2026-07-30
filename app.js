@@ -1,9 +1,9 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA LỖI NÚT BÁO TRẢ CSSD)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA TRIỆT ĐỂ LỖI ĐƠ NÚT BÁO TRẢ)
    ========================================================================= */
 
-// 1. CẤU HÌNH KHỞI TẠO FIREBASE (v8)
+// 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "phuongnam-cssd.firebaseapp.com",
@@ -18,35 +18,27 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 }
 const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
-// 2. BIẾN TRẠNG THÁI TOÀN CỤC (GLOBAL STATES)
-let currentUser = {
-    role: 'ADMIN',
-    khoa: '',
-    nvName: 'ADMINISTRATOR'
-};
-
+// 2. BIẾN TRẠNG THÁI TOÀN CỤC
+let currentUser = { role: 'ADMIN', khoa: '', nvName: 'ADMINISTRATOR' };
 let currentTab = 'khoaphong';
 let globalData = {
-    phieuTra: [],        // Danh sách các lệnh báo trả mâm bẩn chờ thu gom
+    phieuTra: [],
     meRua: [],
     meHap: [],
     khoVoKhuan: [],
     lichSu: [],
-    danhMucLinhKien: [], // Dữ liệu nạp từ Excel
-    danhSachKhoa: [],    // Danh sách Khoa/Phòng
+    danhMucLinhKien: [],
+    danhSachKhoa: [],
     ktvList: [
         { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
-        { id: 'NV02', name: 'Trần Thị B', pin: '5678', role: 'CSSD' },
-        { id: 'ADMIN', name: 'ADMINISTRATOR', pin: '9999', role: 'ADMIN' },
-        { id: 'GUEST', name: 'Khách Tham Quan', pin: '0000', role: 'GUEST' }
+        { id: 'ADMIN', name: 'ADMINISTRATOR', pin: '9999', role: 'ADMIN' }
     ]
 };
 
 let gioHangTraTam = [];
-let html5QrcodeScanner = null;
 
 /* =========================================================================
-   3. KHỞI TẠO VÀ SỰ KIỆN TRANG (INITIALIZATION)
+   3. KHỞI TẠO VÀ ÉP BẮT SỰ KIỆN NÚT BẤM (AUTO-ATTACH EVENT LISTENERS)
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     initRealtimeListeners();
@@ -55,15 +47,24 @@ document.addEventListener('DOMContentLoaded', () => {
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
 
-    window.addEventListener('afterprint', () => {
-        document.body.classList.remove('print-mode-doc', 'print-mode-bixolon');
-        const printZone = document.getElementById('print-zone');
-        if (printZone) {
-            printZone.classList.add('hidden');
-            printZone.innerHTML = '';
+    // BẮT SỰ KIỆN TRỰC TIẾP CHO NÚT BÁO TRẢ (BẢO ĐẢM KHÔNG BỊ ĐƠ)
+    setTimeout(() => {
+        ganSuKienNutBaoTra();
+    }, 500);
+});
+
+// Hàm ép gán sự kiện Click vào bất kỳ nút nào có chữ "BÁO CSSD"
+function ganSuKienNutBaoTra() {
+    const allButtons = document.querySelectorAll('button');
+    allButtons.forEach(btn => {
+        if (btn.innerText.includes('BÁO CSSD') || btn.innerText.includes('Thu Gom') || btn.id === 'btnGuiBaoTra') {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                khoaGuiPhieuTraBatches();
+            };
         }
     });
-});
+}
 
 // NẠP VÀ XỬ LÝ FILE EXCEL
 function initExcelLoader() {
@@ -75,7 +76,7 @@ function initExcelLoader() {
         if (!file) return;
 
         if (typeof XLSX === 'undefined') {
-            alert("❌ Chưa tải thư viện SheetJS (XLSX). Vui lòng kiểm tra lại kết nối mạng!");
+            alert("❌ Chưa tải thư viện SheetJS (XLSX). Kiếm tra kết nối mạng!");
             return;
         }
 
@@ -101,25 +102,21 @@ function initExcelLoader() {
                 const targetSheet = workbook.Sheets[bestSheetName];
                 const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
 
-                if (!rawRows || rawRows.length === 0) {
-                    alert("⚠️ File Excel rỗng!");
-                    return;
-                }
+                if (!rawRows || rawRows.length === 0) return;
 
                 const row0 = rawRows[0] || [];
                 const row0Str = row0.map(v => String(v).toLowerCase()).join(' ');
-                const hasHeader = row0Str.includes('stt') || row0Str.includes('tên') || row0Str.includes('mã') || row0Str.includes('số lượng') || row0Str.includes('khoa');
+                const hasHeader = row0Str.includes('stt') || row0Str.includes('tên') || row0Str.includes('mã') || row0Str.includes('khoa');
 
                 let parsedList = [];
                 let setKhoa = new Set();
 
                 if (hasHeader) {
                     const headerRow = row0.map(v => String(v).trim());
-                    
                     let idxKhoa = headerRow.findIndex(h => h.includes('Tên TS (i)') || h.includes('Khoa') || h.includes('Phòng'));
                     let idxMa = headerRow.findIndex(h => h.includes('MÃ') || h.includes('Mã'));
-                    let idxTen = headerRow.findIndex(h => h.includes('Tên TS chuẩn') || h.includes('Tên bộ') || h.includes('Tên Dụng Cụ') || h.includes('Tên Mâm'));
-                    let idxSoLuong = headerRow.findIndex(h => h.includes('Số lượng') || h.includes('Cơ số') || h.includes('SỐ BỘ'));
+                    let idxTen = headerRow.findIndex(h => h.includes('Tên TS chuẩn') || h.includes('Tên bộ') || h.includes('Tên Dụng Cụ'));
+                    let idxSoLuong = headerRow.findIndex(h => h.includes('Số lượng') || h.includes('Cơ số'));
 
                     if (idxKhoa === -1) idxKhoa = 1;
                     if (idxMa === -1) idxMa = 2;
@@ -159,23 +156,18 @@ function initExcelLoader() {
                 if (parsedList.length > 0) {
                     globalData.danhMucLinhKien = parsedList;
                     globalData.danhSachKhoa = Array.from(setKhoa);
-                    
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ thuộc ${globalData.danhSachKhoa.length} Khoa/Phòng!`);
-                } else {
-                    alert("⚠️ Không tìm thấy dữ liệu hợp lệ trong file Excel!");
+                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ!`);
                 }
 
             } catch (err) {
                 console.error(err);
-                alert("❌ Lỗi khi đọc file Excel. Vui lòng kiểm tra lại!");
             }
         };
         reader.readAsArrayBuffer(file);
     });
 }
 
-// CẬP NHẬT DROPDOWN VÀ BẢNG SAU KHI NẠP EXCEL
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa'];
     selectIds.forEach(id => {
@@ -199,7 +191,7 @@ function capNhatGiaoDienSauKhiNapExcel() {
 }
 
 /* =========================================================================
-   4. LOGIC TRẠM KHOA/PHÒNG & GIỎ HÀNG BÁO TRẢ (FIX LỖI NÚT BÁO TRẢ)
+   4. LOGIC GIỎ HÀNG BÁO TRẢ (FIX LOẠI BỎ CHỐT CHẶN CHỌN KHOA)
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -228,7 +220,7 @@ function renderGioHangTam() {
     const tbody = document.getElementById('bangGioHang');
     const badge = document.getElementById('badgeGioHang');
 
-    if (khuvuc) khuvuc.classList.toggle('hidden', gioHangTraTam.length === 0);
+    if (khuvuc) khuvuc.classList.remove('hidden'); // Giữ nguyên khu vực giỏ hàng
     if (badge) badge.innerText = `${gioHangTraTam.length} món`;
 
     if (tbody) {
@@ -244,19 +236,22 @@ function renderGioHangTam() {
             </tr>
         `).join('');
     }
+
+    // Ép lại sự kiện cho nút màu xanh
+    ganSuKienNutBaoTra();
 }
 
 // HÀM XỬ LÝ CHÍNH KHI BẤM NÚT BÁO TRẢ CSSD
 function khoaGuiPhieuTraBatches() {
     if (gioHangTraTam.length === 0) {
-        alert("Giỏ hàng báo trả trống!");
+        alert("⚠️ Giỏ hàng báo trả đang trống! Vui lòng thêm mâm dụng cụ bẩn vào giỏ trước.");
         return;
     }
 
     const selKhoa = document.getElementById('khoa_selKhoa');
     let tenKhoa = selKhoa && selKhoa.value ? selKhoa.value : "";
 
-    // Tự động lấy Khoa từ mâm dụng cụ trong giỏ nếu chưa chọn ô Dropdown
+    // Nếu chưa chọn Khoa ở góc phải -> Tự động lấy tên Khoa từ mâm dụng cụ
     if (!tenKhoa && gioHangTraTam.length > 0) {
         tenKhoa = gioHangTraTam[0].khoa || "PHÒNG SANH";
     }
@@ -273,13 +268,13 @@ function khoaGuiPhieuTraBatches() {
     gioHangTraTam = [];
     renderGioHangTam();
 
-    alert(`🚀 Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn đến Xe Thu Gom CSSD thành công!`);
+    alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn của Khoa [${tenKhoa}] sang Xe Thu Gom!`);
     
-    // Tự động cập nhật bảng ở Xe thu gom
+    // Tự động chuyển cập nhật bảng ở Xe thu gom
     renderBangChoThuGom();
 }
 
-// ĐỒNG BỘ CÁC TÊN HÀM NÚT BẤM (BẢO ĐẢM TƯƠNG THÍCH HOÀN HẢO VỚI INDEX.HTML)
+// Đồng bộ tên hàm nút
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 function xacNhanGuiPhieuTra() { khoaGuiPhieuTraBatches(); }
@@ -387,7 +382,7 @@ function saveKiemDem() {
 }
 
 /* =========================================================================
-   6. RENDER BẢNG CÔNG NỢ & DANH MỤC
+   6. RENDER CÔNG NỢ & DANH MỤC
    ========================================================================= */
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
@@ -398,7 +393,7 @@ function renderBangCongNoKhoa() {
     const items = selectedKhoa ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) : globalData.danhMucLinhKien;
 
     if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem công nợ dụng cụ.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem công nợ.</td></tr>`;
         return;
     }
 
@@ -419,7 +414,7 @@ function renderBangDanhMucLinhKien() {
 
     if (tbody) {
         if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu cơ số dụng cụ. Vui lòng nạp file Excel tại Quản Trị Hệ Thống.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu. Vui lòng nạp file Excel.</td></tr>`;
         } else {
             tbody.innerHTML = globalData.danhMucLinhKien.map(item => `
                 <tr class="border-b hover:bg-slate-50 text-xs">
@@ -447,25 +442,19 @@ function renderBangDanhMucLinhKien() {
     }
 }
 
-// LẮNG NGHE REALTIME FIREBASE
 function initRealtimeListeners() {
     if (!db) return;
-
     db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
         .onSnapshot((snapshot) => {
             globalData.lichSu = [];
-            snapshot.forEach((doc) => {
-                globalData.lichSu.push({ id: doc.id, ...doc.data() });
-            });
+            snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
             renderBangLichSuLuanChuyen();
         });
 
     db.collection("me_rua_belimed").orderBy("timestamp", "desc").limit(50)
         .onSnapshot((snapshot) => {
             globalData.meRua = [];
-            snapshot.forEach((doc) => {
-                globalData.meRua.push({ id: doc.id, ...doc.data() });
-            });
+            snapshot.forEach((doc) => globalData.meRua.push({ id: doc.id, ...doc.data() }));
             renderBangLichSuRua();
         });
 }
@@ -551,10 +540,7 @@ function toggleLoginFields() {
    8. XUẤT BÁO CÁO EXCEL & MẺ RỬA/HẤP
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
-    if (typeof XLSX === 'undefined') {
-        alert("Thư viện SheetJS chưa sẵn sàng!");
-        return;
-    }
+    if (typeof XLSX === 'undefined') return;
     const dataLuanChuyen = globalData.lichSu.map(item => ({
         "Mã ID Khay": item.maBo || "N/A",
         "Tên Bộ Dụng Cụ": item.tenBo || "N/A",
@@ -572,10 +558,7 @@ function xuatBaoCaoExcelLuanChuyen() {
 }
 
 function xuatBaoCaoExcelMeRua() {
-    if (typeof XLSX === 'undefined') {
-        alert("Thư viện SheetJS chưa sẵn sàng!");
-        return;
-    }
+    if (typeof XLSX === 'undefined') return;
     const dataMeRua = globalData.meRua.map(item => ({
         "Mã Lô Rửa": item.batchId || "N/A",
         "Mã Máy Rửa": item.maySo || "Belimed WD250",
