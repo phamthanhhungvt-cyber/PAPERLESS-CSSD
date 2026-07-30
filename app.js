@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (ĐÃ SỬA LỖI MẤT DỮ LIỆU & NÚT GỬI)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN FIX TRIỆT ĐỂ BÁO TRẢ & LOCALSTORAGE)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -38,10 +38,10 @@ let globalData = {
 let gioHangTraTam = [];
 
 /* =========================================================================
-   3. KHỞI TẠO VÀ NẠP DỮ LIỆU TỪ LOCALSTORAGE (GIỮ DỮ LIỆU KHI ĐĂNG XUẤT)
+   3. KHỞI TẠO VÀ TỰ KHÔI PHỤC DỮ LIỆU TỪ LOCALSTORAGE
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
-    // Nạp lại dữ liệu Excel đã lưu từ trước trong localStorage (nếu có)
+    // Tự động khôi phục dữ liệu Excel đã nạp trước đó từ bộ nhớ máy
     docDuLieuLuuTruLocalStorage();
 
     initRealtimeListeners();
@@ -49,26 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
-
-    // Bắt click toàn màn hình hỗ trợ cho nút Báo trả
-    document.body.addEventListener('click', function(e) {
-        let el = e.target;
-        while (el && el !== document.body) {
-            let txt = el.innerText ? el.innerText.toUpperCase() : "";
-            let onclickAttr = el.getAttribute('onclick') || "";
-            
-            if (txt.includes('BÁO CSSD') || onclickAttr.includes('guiBaoTra') || onclickAttr.includes('khoaGuiPhieuTraBatches')) {
-                e.preventDefault();
-                e.stopPropagation();
-                khoaGuiPhieuTraBatches();
-                return;
-            }
-            el = el.parentNode;
-        }
-    });
 });
 
-// Đọc dữ liệu bền vững từ LocalStorage
+// Đọc dữ liệu bền vững (Tránh bị mất khi đăng xuất / refresh)
 function docDuLieuLuuTruLocalStorage() {
     try {
         const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
@@ -83,11 +66,11 @@ function docDuLieuLuuTruLocalStorage() {
             capNhatGiaoDienSauKhiNapExcel();
         }
     } catch (err) {
-        console.error("Lỗi khi đọc localStorage:", err);
+        console.error("Lỗi khi đọc dữ liệu lưu trữ:", err);
     }
 }
 
-// NẠP VÀ XỬ LÝ FILE EXCEL -> LƯU VÀO LOCALSTORAGE
+// NẠP VÀ XỬ LÝ FILE EXCEL -> TỰ ĐỘNG LƯU VĨNH VIỄN
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -178,12 +161,12 @@ function initExcelLoader() {
                     globalData.danhMucLinhKien = parsedList;
                     globalData.danhSachKhoa = Array.from(setKhoa);
 
-                    // LƯU BỀN VỮNG VÀO LOCALSTORAGE
+                    // LƯU VĨNH VIỄN VÀO BỘ NHỚ MÁY
                     localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
                     localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
 
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã được lưu bền vững vào hệ thống.`);
+                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã được lưu cố định vào hệ thống.`);
                 }
 
             } catch (err) {
@@ -217,7 +200,7 @@ function capNhatGiaoDienSauKhiNapExcel() {
 }
 
 /* =========================================================================
-   4. LOGIC GIỎ HÀNG BÁO TRẢ
+   4. LOGIC GIỎ HÀNG BÁO TRẢ & XỬ LÝ NÚT GỬI
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -264,7 +247,7 @@ function renderGioHangTam() {
     }
 }
 
-// HÀM XỬ LÝ CHÍNH KHI BẤM NÚT BÁO TRẢ CSSD
+// HÀM XỬ LÝ CHÍNH ĐƯỢC GỌI TRỰC TIẾP TỪ NÚT BẤM HTML
 function khoaGuiPhieuTraBatches() {
     if (gioHangTraTam.length === 0) {
         alert("⚠️ Giỏ hàng báo trả đang trống! Vui lòng thêm mâm dụng cụ bẩn vào giỏ trước.");
@@ -290,14 +273,16 @@ function khoaGuiPhieuTraBatches() {
     gioHangTraTam = [];
     renderGioHangTam();
 
-    // LƯU DỮ LIỆU PHIẾU TRẢ VÀO LOCALSTORAGE
+    // Lưu ngay phiếu vào bộ nhớ máy
     localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
 
     alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn của Khoa [${tenKhoa}] sang Xe Thu Gom!`);
     
+    // Cập nhật bảng Xe Thu Gom
     renderBangChoThuGom();
 }
 
+// Tên hàm alias dự phòng
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
