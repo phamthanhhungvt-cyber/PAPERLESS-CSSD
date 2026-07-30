@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN FIX TRIỆT ĐỂ BÁO TRẢ & LOCALSTORAGE)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE HOÀN CHỈNH & FIX LỖI TIME)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -21,6 +21,9 @@ const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.fi
 // 2. BIẾN TRẠNG THÁI TOÀN CỤC
 let currentUser = { role: 'ADMIN', khoa: '', nvName: 'ADMINISTRATOR' };
 let currentTab = 'khoaphong';
+let html5QrCodeScanner = null;
+let currentCameraInputId = null;
+
 let globalData = {
     phieuTra: [],
     meRua: [],
@@ -36,22 +39,22 @@ let globalData = {
 };
 
 let gioHangTraTam = [];
+let tempSuDungKhay = [];
 
 /* =========================================================================
    3. KHỞI TẠO VÀ TỰ KHÔI PHỤC DỮ LIỆU TỪ LOCALSTORAGE
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
-    // Tự động khôi phục dữ liệu Excel đã nạp trước đó từ bộ nhớ máy
     docDuLieuLuuTruLocalStorage();
-
     initRealtimeListeners();
     initExcelLoader(); 
+    capNhatDanhSachMaMayRua();
+    capNhatDanhSachMaMay();
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
 });
 
-// Đọc dữ liệu bền vững (Tránh bị mất khi đăng xuất / refresh)
 function docDuLieuLuuTruLocalStorage() {
     try {
         const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
@@ -70,7 +73,6 @@ function docDuLieuLuuTruLocalStorage() {
     }
 }
 
-// NẠP VÀ XỬ LÝ FILE EXCEL -> TỰ ĐỘNG LƯU VĨNH VIỄN
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -161,7 +163,6 @@ function initExcelLoader() {
                     globalData.danhMucLinhKien = parsedList;
                     globalData.danhSachKhoa = Array.from(setKhoa);
 
-                    // LƯU VĨNH VIỄN VÀO BỘ NHỚ MÁY
                     localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
                     localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
 
@@ -178,7 +179,7 @@ function initExcelLoader() {
 }
 
 function capNhatGiaoDienSauKhiNapExcel() {
-    const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa'];
+    const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
     selectIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -200,7 +201,7 @@ function capNhatGiaoDienSauKhiNapExcel() {
 }
 
 /* =========================================================================
-   4. LOGIC GIỎ HÀNG BÁO TRẢ & XỬ LÝ NÚT GỬI
+   4. LOGIC GIỎ HÀNG BÁO TRẢ & ĐÃ FIX LỖI TIME FORMAT ('2-digit')
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -247,7 +248,7 @@ function renderGioHangTam() {
     }
 }
 
-// HÀM XỬ LÝ CHÍNH ĐƯỢC GỌI TRỰC TIẾP TỪ NÚT BẤM HTML
+// FIX TRIỆT ĐỂ LỖI RANGEERROR: '2-2-digit' -> '2-digit'
 function khoaGuiPhieuTraBatches() {
     if (gioHangTraTam.length === 0) {
         alert("⚠️ Giỏ hàng báo trả đang trống! Vui lòng thêm mâm dụng cụ bẩn vào giỏ trước.");
@@ -265,7 +266,7 @@ function khoaGuiPhieuTraBatches() {
         id: `PGN_${Date.now()}`,
         khoa: tenKhoa,
         items: [...gioHangTraTam],
-        thoiGian: new Date().toLocaleTimeString('vi-VN', { hour: '2-2-digit', minute: '2-2-digit' }),
+        thoiGian: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
         nhanSu: currentUser.nvName
     };
 
@@ -273,16 +274,13 @@ function khoaGuiPhieuTraBatches() {
     gioHangTraTam = [];
     renderGioHangTam();
 
-    // Lưu ngay phiếu vào bộ nhớ máy
     localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
 
     alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn của Khoa [${tenKhoa}] sang Xe Thu Gom!`);
     
-    // Cập nhật bảng Xe Thu Gom
     renderBangChoThuGom();
 }
 
-// Tên hàm alias dự phòng
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
@@ -360,7 +358,7 @@ function moPopupKiemDemThuGom(idx) {
     if (popKhoa) popKhoa.innerText = phieu.khoa;
 
     if (popChecklist) {
-        popChecklist.innerHTML = phieu.items.map((it, i) => `
+        popChecklist.innerHTML = phieu.items.map((it) => `
             <div class="p-2.5 bg-slate-50 rounded-lg flex justify-between items-center text-xs">
                 <div>
                     <span class="font-mono font-bold text-sky-700 mr-2">${it.maBo}</span>
@@ -390,7 +388,86 @@ function saveKiemDem() {
 }
 
 /* =========================================================================
-   6. RENDER CÔNG NỢ & DANH MỤC
+   6. CẤU HÌNH THIẾT BỊ & MẺ MÁY RỬA / MÁY HẤP
+   ========================================================================= */
+function capNhatDanhSachMaMayRua() {
+    const loaiEl = document.getElementById('rua_loaiRua');
+    const maySoEl = document.getElementById('rua_maySo');
+    if (!loaiEl || !maySoEl) return;
+
+    const val = loaiEl.value;
+    if (val.includes("tự động")) {
+        maySoEl.innerHTML = `<option value="Belimed WD250 #1">Belimed WD250 #1</option><option value="Belimed WD250 #2">Belimed WD250 #2</option>`;
+    } else if (val.includes("siêu âm")) {
+        maySoEl.innerHTML = `<option value="Sonic Washer #1">Sonic Washer #1</option>`;
+    } else {
+        maySoEl.innerHTML = `<option value="Bồn Rửa Tay 01">Bồn Rửa Thủ Công #1</option>`;
+    }
+    tuDongTaoMaLoMeRua();
+}
+
+function tuDongTaoMaLoMeRua() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('rua_batchId');
+    const meInp = document.getElementById('rua_meSo');
+    if (batchInp && meInp) {
+        meInp.value = "01";
+        batchInp.value = `R${today}_01`;
+    }
+}
+
+function capNhatDanhSachMaMay() {
+    const loaiEl = document.getElementById('hap_loaiHap');
+    const maySoEl = document.getElementById('hap_maySo');
+    if (!loaiEl || !maySoEl) return;
+
+    const val = loaiEl.value;
+    if (val.includes("hơi nước")) {
+        maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>`;
+    } else if (val.includes("Plasma")) {
+        maySoEl.innerHTML = `<option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1</option>`;
+    } else {
+        maySoEl.innerHTML = `<option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>`;
+    }
+    tuDongTaoMaLoMeHap();
+}
+
+function tuDongTaoMaLoMeHap() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('hap_batchId');
+    const meInp = document.getElementById('hap_meSo');
+    if (batchInp && meInp) {
+        meInp.value = "01";
+        batchInp.value = `H${today}_01`;
+    }
+}
+
+function xacNhanMeRua() {
+    const batchInp = document.getElementById('rua_batchId');
+    const chuKyInp = document.getElementById('rua_chuKy');
+    const batchId = batchInp ? batchInp.value : `R${Date.now()}`;
+
+    const newRecord = {
+        batchId: batchId,
+        loaiRua: document.getElementById('rua_loaiRua') ? document.getElementById('rua_loaiRua').value : "Máy rửa tự động",
+        chuKy: chuKyInp ? chuKyInp.value : "Tiêu chuẩn",
+        testDoSach: "ĐẠT (Protein Negative)",
+        thoiGian: new Date().toLocaleString('vi-VN')
+    };
+
+    globalData.meRua.unshift(newRecord);
+    renderBangLichSuRua();
+    alert(`🚀 Đã kích hoạt mẻ rửa: ${batchId}`);
+}
+
+function xacNhanMeHap() {
+    const batchInp = document.getElementById('hap_batchId');
+    const batchId = batchInp ? batchInp.value : `H${Date.now()}`;
+    alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp mã: ${batchId}`);
+}
+
+/* =========================================================================
+   7. RENDER BẢNG BÁO CÁO & CÔNG NỢ & DANH MỤC
    ========================================================================= */
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
@@ -450,6 +527,44 @@ function renderBangDanhMucLinhKien() {
     }
 }
 
+function renderBangLichSuRua() {
+    const tbody = document.getElementById('bangLichSuRua');
+    if (!tbody) return;
+    if (globalData.meRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = globalData.meRua.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-sky-700">${item.batchId}</td>
+            <td class="p-3">${item.loaiRua}</td>
+            <td class="p-3">${item.chuKy}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGian}</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangLichSuLuanChuyen() {
+    const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
+    if (!tbody) return;
+    if (globalData.lichSu.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký luân chuyển</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = globalData.lichSu.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold">${item.maBo || 'MÂM_01'}</td>
+            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ'}</td>
+            <td class="p-3">${item.khoa || 'Khoa GMHS'}</td>
+            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai || 'Luân chuyển'}</span></td>
+            <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
+            <td class="p-3 text-center">${item.nhanSu || 'KTV'}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
+        </tr>
+    `).join('');
+}
+
 function initRealtimeListeners() {
     if (!db) return;
     db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
@@ -457,18 +572,11 @@ function initRealtimeListeners() {
             globalData.lichSu = [];
             snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
             renderBangLichSuLuanChuyen();
-        });
-
-    db.collection("me_rua_belimed").orderBy("timestamp", "desc").limit(50)
-        .onSnapshot((snapshot) => {
-            globalData.meRua = [];
-            snapshot.forEach((doc) => globalData.meRua.push({ id: doc.id, ...doc.data() }));
-            renderBangLichSuRua();
-        });
+        }, (err) => console.warn("Firestore listeners bypass:", err));
 }
 
 /* =========================================================================
-   7. CHUYỂN TAB & PHÂN QUYỀN
+   8. CHUYỂN TAB & PHÂN QUYỀN
    ========================================================================= */
 function switchTab(tabId) {
     currentTab = tabId;
@@ -545,7 +653,74 @@ function toggleLoginFields() {
 }
 
 /* =========================================================================
-   8. XUẤT BÁO CÁO EXCEL & MẺ RỬA/HẤP
+   9. CAMERA SCANNER & BỆNH NHÂN LOGGING
+   ========================================================================= */
+function moCamera(inputId) {
+    currentCameraInputId = inputId;
+    const pop = document.getElementById('popupScanner');
+    if (pop) pop.classList.remove('hidden');
+
+    if (typeof Html5QrcodeScanner !== 'undefined') {
+        html5QrCodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        html5QrCodeScanner.render((decodedText) => {
+            if (currentCameraInputId) {
+                const inputEl = document.getElementById(currentCameraInputId);
+                if (inputEl) inputEl.value = decodedText;
+            }
+            dongCamera();
+        }, (error) => {});
+    }
+}
+
+function dongCamera() {
+    if (html5QrCodeScanner) {
+        html5QrCodeScanner.clear().catch(error => console.error(error));
+    }
+    const pop = document.getElementById('popupScanner');
+    if (pop) pop.classList.add('hidden');
+}
+
+function moPopupSuDungBoDungCu() {
+    const pop = document.getElementById('popupSuDungBoDungCu');
+    if (pop) pop.classList.remove('hidden');
+}
+function closePopupSuDung() {
+    const pop = document.getElementById('popupSuDungBoDungCu');
+    if (pop) pop.classList.add('hidden');
+}
+
+function scanKhayVaoSuDung() {
+    const inp = document.getElementById('sd_maKhayInp');
+    if (!inp || !inp.value.trim()) return;
+
+    const maKhay = inp.value.trim().toUpperCase();
+    const item = globalData.danhMucLinhKien.find(i => i.maBo.toUpperCase() === maKhay) || { maBo: maKhay, tenBo: "Khay Dụng Cụ" };
+
+    tempSuDungKhay.push(item);
+    renderBangKhaySuDung();
+    inp.value = '';
+}
+
+function renderBangKhaySuDung() {
+    const tbody = document.getElementById('sd_bangKhayChon');
+    if (!tbody) return;
+
+    tbody.innerHTML = tempSuDungKhay.map((item, idx) => `
+        <tr class="border-b text-xs">
+            <td class="p-2 text-center font-bold">${idx + 1}</td>
+            <td class="p-2 font-mono font-bold text-teal-700">${item.maBo}</td>
+            <td class="p-2 font-semibold">${item.tenBo}</td>
+            <td class="p-2 text-center font-mono">H260328_01</td>
+            <td class="p-2 text-center"><span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Vô Khuẩn</span></td>
+            <td class="p-2 text-center">
+                <button onclick="tempSuDungKhay.splice(${idx},1); renderBangKhaySuDung();" class="text-rose-600"><i class="fa-solid fa-xmark"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+/* =========================================================================
+   10. XUẤT BÁO CÁO EXCEL
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
@@ -581,84 +756,8 @@ function xuatBaoCaoExcelMeRua() {
     XLSX.writeFile(wb, `NhatKy_MeRua_Belimed_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-function tuDongTaoMaLoMeRua() {
-    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const batchInp = document.getElementById('rua_batchId');
-    const meInp = document.getElementById('rua_meSo');
-    if (batchInp && meInp) {
-        meInp.value = "01";
-        batchInp.value = `R${today}_01`;
-    }
-}
-
-function tuDongTaoMaLoMeHap() {
-    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const batchInp = document.getElementById('hap_batchId');
-    const meInp = document.getElementById('hap_meSo');
-    if (batchInp && meInp) {
-        meInp.value = "01";
-        batchInp.value = `H${today}_01`;
-    }
-}
-
-function xacNhanMeRua() {
-    const batchInp = document.getElementById('rua_batchId');
-    const chuKyInp = document.getElementById('rua_chuKy');
-    const batchId = batchInp ? batchInp.value : `R${Date.now()}`;
-
-    const newRecord = {
-        batchId: batchId,
-        loaiRua: "Máy rửa khử khuẩn tự động",
-        chuKy: chuKyInp ? chuKyInp.value : "Tiêu chuẩn",
-        testDoSach: "ĐẠT (Protein Negative)",
-        thoiGian: new Date().toLocaleString('vi-VN')
-    };
-
-    globalData.meRua.unshift(newRecord);
-    renderBangLichSuRua();
-    alert(`🚀 Đã kích hoạt mẻ rửa: ${batchId}`);
-}
-
-function renderBangLichSuRua() {
-    const tbody = document.getElementById('bangLichSuRua');
-    if (!tbody) return;
-    if (globalData.meRua.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào</td></tr>`;
-        return;
-    }
-    tbody.innerHTML = globalData.meRua.map(item => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-mono font-bold text-sky-700">${item.batchId}</td>
-            <td class="p-3">${item.loaiRua}</td>
-            <td class="p-3">${item.chuKy}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach}</td>
-            <td class="p-3 text-center text-slate-500">${item.thoiGian}</td>
-        </tr>
-    `).join('');
-}
-
-function renderBangLichSuLuanChuyen() {
-    const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
-    if (!tbody) return;
-    if (globalData.lichSu.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký luân chuyển</td></tr>`;
-        return;
-    }
-    tbody.innerHTML = globalData.lichSu.map(item => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-mono font-bold">${item.maBo || 'MÂM_01'}</td>
-            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ'}</td>
-            <td class="p-3">${item.khoa || 'Khoa GMHS'}</td>
-            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai || 'Luân chuyển'}</span></td>
-            <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
-            <td class="p-3 text-center">${item.nhanSu || 'KTV'}</td>
-            <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
-        </tr>
-    `).join('');
-}
-
 /* =========================================================================
-   9. ADMIN SUBTAB & PIN
+   11. ADMIN SUBTAB & PIN CONFIG
    ========================================================================= */
 function switchAdminSubtab(subtab) {
     const subDb = document.getElementById('subtab-database');
@@ -749,6 +848,7 @@ function xoaSachDuLieuGiaoDichRealtime() {
         alert("🗑️ Đã xóa thành công!");
     }
 }
+
 function khaiSinhKhayVangLai() {
     const ma = prompt("Nhập mã khay vãng lai:");
     if (ma) alert(`✨ Đã khởi tạo khay: ${ma.toUpperCase()}`);
@@ -760,13 +860,5 @@ function moModalXemAnhCauHinh() {
 }
 function dongModalXemAnhCauHinh() {
     const pop = document.getElementById('popupXemAnhCauHinh');
-    if (pop) pop.classList.add('hidden');
-}
-function moPopupSuDungBoDungCu() {
-    const pop = document.getElementById('popupSuDungBoDungCu');
-    if (pop) pop.classList.remove('hidden');
-}
-function closePopupSuDung() {
-    const pop = document.getElementById('popupSuDungBoDungCu');
     if (pop) pop.classList.add('hidden');
 }
