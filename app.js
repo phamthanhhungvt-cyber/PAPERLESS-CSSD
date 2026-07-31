@@ -438,7 +438,6 @@ function closePopupKiemDem() {
     if (pop) pop.classList.add('hidden');
 }
 
-// CẬP NHẬT HÀM saveKiemDem(): LẤY ĐÚNG PHIẾU ĐƯỢC BẤM VÀ ĐẨY VÀO MẢNG choRua
 function saveKiemDem() {
     if (currentKiemDemIndex === null || !globalData.phieuTra[currentKiemDemIndex]) {
         if (globalData.phieuTra.length === 0) return;
@@ -502,18 +501,31 @@ function tuDongTaoMaLoMeRua() {
     }
 }
 
+// CẬP NHẬT: PHÂN LOẠI LÒ HẤP THEO CHUẨN THIẾT BỊ BỆNH VIỆN PHƯƠNG NAM
 function capNhatDanhSachMaMay() {
     const loaiEl = document.getElementById('hap_loaiHap');
     const maySoEl = document.getElementById('hap_maySo');
     if (!loaiEl || !maySoEl) return;
 
     const val = loaiEl.value;
-    if (val.includes("hơi nước")) {
-        maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>`;
-    } else if (val.includes("Plasma")) {
-        maySoEl.innerHTML = `<option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1</option>`;
+    if (val.includes("hơi nước") || val.includes("Steam")) {
+        maySoEl.innerHTML = `
+            <option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option>
+            <option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>
+        `;
+    } else if (val.includes("Plasma") || val.includes("H2O2")) {
+        maySoEl.innerHTML = `
+            <option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>
+        `;
+    } else if (val.includes("EO")) {
+        maySoEl.innerHTML = `
+            <option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>
+        `;
     } else {
-        maySoEl.innerHTML = `<option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>`;
+        maySoEl.innerHTML = `
+            <option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option>
+            <option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>
+        `;
     }
     tuDongTaoMaLoMeHap();
 }
@@ -1341,7 +1353,7 @@ function renderBangKhaySuDung() {
 }
 
 /* =========================================================================
-   13. XUẤT BÁO CÁO EXCEL
+   13. XUẤT BÁO CÁO EXCEL & IN TEM BIXOLON (TEM LÒ HẤP & TEM VÔ KHUẨN)
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
@@ -1375,6 +1387,90 @@ function xuatBaoCaoExcelMeRua() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, wsMeRua, "Me_Rua_Belimed");
     XLSX.writeFile(wb, `NhatKy_MeRua_Belimed_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+// In tem cho mẻ hấp chờ chạy
+function inTemTongHangLoat() {
+    const batchInp = document.getElementById('hap_batchId');
+    const maySoEl = document.getElementById('hap_maySo');
+    const loaiHapEl = document.getElementById('hap_loaiHap');
+    
+    const batchId = batchInp ? batchInp.value : `H${Date.now()}`;
+    const maySo = maySoEl ? maySoEl.value : "Lò Hấp Steam #1";
+    const loaiHap = loaiHapEl ? loaiHapEl.value : "Hấp Hơi Nước";
+
+    const checkedInps = document.querySelectorAll('.chk-hap-item:checked');
+    let itemsToPrint = [];
+
+    if (checkedInps.length > 0) {
+        checkedInps.forEach(chk => {
+            const idx = parseInt(chk.getAttribute('data-idx'));
+            if (globalData.choHap[idx]) itemsToPrint.push(globalData.choHap[idx]);
+        });
+    } else {
+        itemsToPrint = globalData.choHap || [];
+    }
+
+    if (itemsToPrint.length === 0) {
+        alert("⚠️ Không có mâm dụng cụ nào được chọn để in tem!");
+        return;
+    }
+
+    thucHienInTemBixolon(itemsToPrint, batchId, maySo, loaiHap);
+}
+
+// In tem vô khuẩn cho mâm nghiệm thu
+function inTemNghiemThuHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn ít nhất một mâm dụng cụ để in tem vô khuẩn!");
+        return;
+    }
+
+    let itemsToPrint = [];
+    checkedInps.forEach(chk => {
+        const idx = parseInt(chk.getAttribute('data-idx'));
+        if (globalData.dangHap[idx]) itemsToPrint.push(globalData.dangHap[idx]);
+    });
+
+    const firstItem = itemsToPrint[0] || {};
+    thucHienInTemBixolon(itemsToPrint, firstItem.maLoHap || 'H001', firstItem.loaiHap || 'Steam', 'Lò Hấp CSSD');
+}
+
+// Hàm render giao diện tem chuẩn Bixolon (80mm x 50mm)
+function thucHienInTemBixolon(items, batchId, maySo, loaiHap) {
+    const printZone = document.getElementById('print-zone');
+    if (!printZone) return;
+
+    document.body.className = "print-mode-bixolon";
+
+    printZone.innerHTML = items.map(item => `
+        <div class="bixolon-label p-3 bg-white border border-slate-300 font-sans text-black mb-4 flex flex-col justify-between" style="width: 80mm; height: 50mm; box-sizing: border-box;">
+            <div class="border-b-2 border-black pb-1 flex justify-between items-center">
+                <span class="font-black text-[11px] uppercase">PHUONG NAM HOSPITAL - CSSD</span>
+                <span class="font-mono font-bold text-[10px] bg-black text-white px-1.5 py-0.5">${item.maBo || 'MA_01'}</span>
+            </div>
+            
+            <div class="my-1">
+                <div class="font-extrabold text-xs text-black truncate uppercase">${item.tenBo || 'Bộ Dụng Cụ Tiệt Trùng'}</div>
+                <div class="text-[10px] font-semibold text-slate-800">Khoa: <strong>${item.khoa || 'Phòng Sanh'}</strong></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-1 text-[9px] border-t border-b border-black py-1 my-0.5">
+                <div>Lò Hấp: <strong>${maySo}</strong></div>
+                <div>Mã Lô: <strong class="font-mono">${batchId}</strong></div>
+                <div>Ngày Tiệt Trùng: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></div>
+                <div>Hạn Sử Dụng: <strong class="font-mono">${item.hanSuDung || '30 Ngày'}</strong></div>
+            </div>
+
+            <div class="flex items-center justify-between pt-0.5">
+                <div class="text-[8px] font-bold">Quy trình: ${loaiHap} | NVKH: ${currentUser.nvName}</div>
+                <div class="text-[9px] font-black uppercase text-emerald-800">VÔ KHUẨN</div>
+            </div>
+        </div>
+    `).join('');
+
+    window.print();
 }
 
 /* =========================================================================
