@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE HOÀN CHỈNH & LỌC DỤNG CỤ THEO KHOA)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE HOÀN CHỈNH & ĐỒNG BỘ LUỒNG DỮ LIỆU)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -26,9 +26,14 @@ let currentCameraInputId = null;
 
 let globalData = {
     phieuTra: [],
+    choRua: [],           // Mảng chứa các bộ dụng cụ chờ rửa (sau khi thu gom)
+    dangRua: [],          // Mảng các bộ dụng cụ đang trong buồng rửa
+    choDongGoi: [],       // Mảng chứa các bộ dụng cụ rửa xong chờ đóng gói
+    choHap: [],           // Mảng các bộ dụng cụ đã đóng gói chờ hấp
+    dangHap: [],          // Mảng các bộ dụng cụ đang chạy trong lò hấp
+    khoVoKhuan: [],       // Mảng các bộ dụng cụ vô khuẩn sẵn sàng xuất
     meRua: [],
     meHap: [],
-    khoVoKhuan: [],
     lichSu: [],
     danhMucLinhKien: [],
     danhSachKhoa: [],
@@ -40,6 +45,7 @@ let globalData = {
 
 let gioHangTraTam = [];
 let tempSuDungKhay = [];
+let itemDongGoiHienTai = null;
 
 /* =========================================================================
    3. KHỞI TẠO VÀ TỰ KHÔI PHỤC DỮ LIỆU TỪ LOCALSTORAGE
@@ -60,14 +66,39 @@ function docDuLieuLuuTruLocalStorage() {
         const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
         const savedKhoa = localStorage.getItem('cssd_danhSachKhoa');
         const savedPhieuTra = localStorage.getItem('cssd_phieuTra');
+        const savedChoRua = localStorage.getItem('cssd_choRua');
+        const savedDangRua = localStorage.getItem('cssd_dangRua');
+        const savedChoDongGoi = localStorage.getItem('cssd_choDongGoi');
+        const savedChoHap = localStorage.getItem('cssd_choHap');
+        const savedDangHap = localStorage.getItem('cssd_dangHap');
+        const savedKhoVoKhuan = localStorage.getItem('cssd_khoVoKhuan');
+        const savedMeRua = localStorage.getItem('cssd_meRua');
+        const savedMeHap = localStorage.getItem('cssd_meHap');
 
         if (savedLinhKien) globalData.danhMucLinhKien = JSON.parse(savedLinhKien);
         if (savedKhoa) globalData.danhSachKhoa = JSON.parse(savedKhoa);
         if (savedPhieuTra) globalData.phieuTra = JSON.parse(savedPhieuTra);
+        if (savedChoRua) globalData.choRua = JSON.parse(savedChoRua);
+        if (savedDangRua) globalData.dangRua = JSON.parse(savedDangRua);
+        if (savedChoDongGoi) globalData.choDongGoi = JSON.parse(savedChoDongGoi);
+        if (savedChoHap) globalData.choHap = JSON.parse(savedChoHap);
+        if (savedDangHap) globalData.dangHap = JSON.parse(savedDangHap);
+        if (savedKhoVoKhuan) globalData.khoVoKhuan = JSON.parse(savedKhoVoKhuan);
+        if (savedMeRua) globalData.meRua = JSON.parse(savedMeRua);
+        if (savedMeHap) globalData.meHap = JSON.parse(savedMeHap);
 
         if (globalData.danhMucLinhKien.length > 0) {
             capNhatGiaoDienSauKhiNapExcel();
         }
+        
+        // Render lại giao diện các tab
+        renderBangChoRua();
+        renderBangChoNiemThuRua();
+        renderBangDongGoi();
+        renderBangChoHap();
+        renderBangChoNghiemThuHap();
+        renderBangKhoVoKhuan();
+        renderDashboardTV();
     } catch (err) {
         console.error("Lỗi khi đọc dữ liệu lưu trữ:", err);
     }
@@ -192,7 +223,6 @@ function capNhatGiaoDienSauKhiNapExcel() {
         }
     });
 
-    // Lắng nghe sự kiện đổi Khoa ở Trạm Giao Nhận Lâm Sàng
     const khoaSel = document.getElementById('khoa_selKhoa');
     if (khoaSel) {
         khoaSel.onchange = function() {
@@ -201,7 +231,6 @@ function capNhatGiaoDienSauKhiNapExcel() {
         };
     }
 
-    // Lắng nghe sự kiện đổi Khoa ở Trạm Tồn Kho
     const invSel = document.getElementById('inv_filterKhoa');
     if (invSel) {
         invSel.onchange = function() {
@@ -215,7 +244,6 @@ function capNhatGiaoDienSauKhiNapExcel() {
     renderBangChoThuGom();
 }
 
-// CẬP NHẬT DATALIST GỢI Ý MÂM BẨN THEO KHOA ĐƯỢC CHỌN
 function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
     const datalist = document.getElementById('listBoDungCu');
     if (!datalist) return;
@@ -230,7 +258,7 @@ function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
 }
 
 /* =========================================================================
-   4. LOGIC GIỎ HÀNG BÁO TRẢ & XỬ LÝ NÚT GỬI (ĐÃ FIX HOUR FORMAT)
+   4. LOGIC GIỎ HÀNG BÁO TRẢ & XỬ LÝ NÚT GỬI
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -313,8 +341,10 @@ function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
 /* =========================================================================
-   5. LOGIC XE THU GOM & ĐỐI SOÁT
+   5. LOGIC XE THU GOM & ĐỐI SOÁT (CHUYỂN SANG MẺ RỬA)
    ========================================================================= */
+let currentKiemDemIndex = null;
+
 function renderBangChoThuGom() {
     const tbody = document.getElementById('bangChoThuGom');
     const filterSelect = document.getElementById('filterKhoaThuGom');
@@ -374,6 +404,7 @@ function renderBangChoThuGom() {
 }
 
 function moPopupKiemDemThuGom(idx) {
+    currentKiemDemIndex = idx;
     const phieu = globalData.phieuTra[idx];
     if (!phieu) return;
 
@@ -407,16 +438,43 @@ function closePopupKiemDem() {
     if (pop) pop.classList.add('hidden');
 }
 
+// CẬP NHẬT HÀM saveKiemDem(): LẤY ĐÚNG PHIẾU ĐƯỢC BẤM VÀ ĐẨY VÀO MẢNG choRua
 function saveKiemDem() {
+    if (currentKiemDemIndex === null || !globalData.phieuTra[currentKiemDemIndex]) {
+        if (globalData.phieuTra.length === 0) return;
+        currentKiemDemIndex = 0;
+    }
+
+    const phieuHienTai = globalData.phieuTra[currentKiemDemIndex];
+
+    if (phieuHienTai && phieuHienTai.items) {
+        if (!globalData.choRua) globalData.choRua = [];
+
+        phieuHienTai.items.forEach(item => {
+            globalData.choRua.push({
+                ...item,
+                khoa: phieuHienTai.khoa,
+                thoiGianThuGom: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            });
+        });
+
+        localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
+    }
+
+    globalData.phieuTra.splice(currentKiemDemIndex, 1);
+    currentKiemDemIndex = null;
+    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
+
     alert("✅ Đã chốt kiểm đếm đối soát thành công! Chuyển các mâm sang Trạm Belimed WD250.");
     closePopupKiemDem();
-    globalData.phieuTra.shift();
-    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
+
     renderBangChoThuGom();
+    renderBangChoRua();
+    renderDashboardTV();
 }
 
 /* =========================================================================
-   6. CẤU HÌNH THIẾT BỊ & MẺ MÁY RỬA / MÁY HẤP
+   6. CẤU HÌNH THIẾT BỊ & RENDER MẺ MÁY RỬA / MÁY HẤP
    ========================================================================= */
 function capNhatDanhSachMaMayRua() {
     const loaiEl = document.getElementById('rua_loaiRua');
@@ -470,32 +528,505 @@ function tuDongTaoMaLoMeHap() {
     }
 }
 
-function xacNhanMeRua() {
-    const batchInp = document.getElementById('rua_batchId');
-    const chuKyInp = document.getElementById('rua_chuKy');
-    const batchId = batchInp ? batchInp.value : `R${Date.now()}`;
+// RENDER HÀNG ĐỢI XẾP VÀO BUỒNG RỬA
+function renderBangChoRua() {
+    const tbody = document.getElementById('bangChoRua');
+    const badge = document.getElementById('badgeChoRua');
+    if (!tbody) return;
 
-    const newRecord = {
-        batchId: batchId,
-        loaiRua: document.getElementById('rua_loaiRua') ? document.getElementById('rua_loaiRua').value : "Máy rửa tự động",
-        chuKy: chuKyInp ? chuKyInp.value : "Tiêu chuẩn",
-        testDoSach: "ĐẠT (Protein Negative)",
-        thoiGian: new Date().toLocaleString('vi-VN')
-    };
+    if (!globalData.choRua) globalData.choRua = [];
 
-    globalData.meRua.unshift(newRecord);
-    renderBangLichSuRua();
-    alert(`🚀 Đã kích hoạt mẻ rửa: ${batchId}`);
+    if (badge) badge.innerText = `${globalData.choRua.length} Mục`;
+
+    if (globalData.choRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Hiện chưa có dụng cụ nào trong hàng đợi rửa.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.choRua.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2 text-center w-12">
+                <input type="checkbox" class="chk-rua-item w-4 h-4 rounded text-sky-600" data-idx="${idx}" checked>
+            </td>
+            <td class="p-2 font-semibold text-slate-800">
+                ${item.tenBo}
+                <span class="text-[10px] text-slate-400 block">${item.khoa || ''}</span>
+            </td>
+            <td class="p-2 text-right font-mono font-bold text-sky-700">${item.maBo}</td>
+        </tr>
+    `).join('');
 }
 
-function xacNhanMeHap() {
-    const batchInp = document.getElementById('hap_batchId');
-    const batchId = batchInp ? batchInp.value : `H${Date.now()}`;
-    alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp mã: ${batchId}`);
+function toggleSelectAllRua() {
+    const chkAll = document.getElementById('selectAllRua');
+    const items = document.querySelectorAll('.chk-rua-item');
+    if (chkAll) {
+        items.forEach(c => c.checked = chkAll.checked);
+    }
+}
+
+// KÍCH HOẠT CHẠY MẺ RỬA
+function xacNhanMeRua() {
+    const checkedInps = document.querySelectorAll('.chk-rua-item:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn ít nhất một bộ dụng cụ để cho vào mẻ rửa!");
+        return;
+    }
+
+    const batchInp = document.getElementById('rua_batchId');
+    const batchId = batchInp ? batchInp.value : `R${Date.now()}`;
+    const loaiRua = document.getElementById('rua_loaiRua') ? document.getElementById('rua_loaiRua').value : "Máy rửa tự động";
+    const chuKy = document.getElementById('rua_chuKy') ? document.getElementById('rua_chuKy').value : "Tiêu chuẩn";
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
+    
+    if (!globalData.dangRua) globalData.dangRua = [];
+
+    selectedIndices.forEach(idx => {
+        const item = globalData.choRua.splice(idx, 1)[0];
+        if (item) {
+            globalData.dangRua.push({
+                ...item,
+                batchId: batchId,
+                loaiRua: loaiRua,
+                chuKy: chuKy,
+                thoiGianBatDau: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            });
+        }
+    });
+
+    localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
+    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
+
+    renderBangChoRua();
+    renderBangChoNiemThuRua();
+    renderDashboardTV();
+
+    alert(`🚀 Đã kích hoạt mẻ rửa ${batchId} với ${selectedIndices.length} bộ dụng cụ!`);
+}
+
+// RENDER NGHIỆM THU MẺ ĐANG TRONG BUỒNG RỬA
+function renderBangChoNiemThuRua() {
+    const tbody = document.getElementById('bangChoNiemThuRua');
+    if (!tbody) return;
+
+    if (!globalData.dangRua) globalData.dangRua = [];
+
+    if (globalData.dangRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ rửa nào đang chạy trong buồng.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.dangRua.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2 text-center w-10">
+                <input type="checkbox" class="chk-nghiemthu-rua w-4 h-4 rounded text-sky-600" data-idx="${idx}" checked>
+            </td>
+            <td class="p-2 font-mono font-bold text-sky-700">${item.batchId}</td>
+            <td class="p-2 font-semibold text-slate-800">${item.tenBo} <span class="text-[10px] text-slate-400">(${item.maBo})</span></td>
+            <td class="p-2 text-center font-semibold text-amber-600">Đang rửa (${item.thoiGianBatDau})</td>
+        </tr>
+    `).join('');
+}
+
+function toggleSelectAllNghiemThuRua() {
+    const chkAll = document.getElementById('selectAllNghiemThuRua');
+    const items = document.querySelectorAll('.chk-nghiemthu-rua');
+    if (chkAll) {
+        items.forEach(c => c.checked = chkAll.checked);
+    }
+}
+
+// DUYỆT ĐẠT MẺ RỬA -> CHUYỂN SANG ĐÓNG GÓI
+function duyetSachMeRuaHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-rua:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn mâm dụng cụ cần nghiệm thu!");
+        return;
+    }
+
+    const testResult = document.getElementById('rua_testDoSach') ? document.getElementById('rua_testDoSach').value : "ĐẠT";
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
+
+    if (!globalData.choDongGoi) globalData.choDongGoi = [];
+    if (!globalData.meRua) globalData.meRua = [];
+
+    selectedIndices.forEach(idx => {
+        const item = globalData.dangRua.splice(idx, 1)[0];
+        if (item) {
+            item.testDoSach = testResult;
+            item.thoiGianRuaXong = new Date().toLocaleString('vi-VN');
+            
+            globalData.choDongGoi.push(item);
+            globalData.meRua.unshift(item);
+        }
+    });
+
+    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
+    localStorage.setItem('cssd_choDongGoi', JSON.stringify(globalData.choDongGoi));
+    localStorage.setItem('cssd_meRua', JSON.stringify(globalData.meRua));
+
+    renderBangChoNiemThuRua();
+    renderBangLichSuRua();
+    renderBangDongGoi();
+    renderDashboardTV();
+
+    alert("✅ Đã nghiệm thu đạt mẻ rửa! Các mâm dụng cụ đã chuyển sang Trạm Đóng Gói.");
+}
+
+function tuChoiMeRuaHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-rua:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn mâm dụng cụ bị từ chối!");
+        return;
+    }
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
+
+    selectedIndices.forEach(idx => {
+        const item = globalData.dangRua.splice(idx, 1)[0];
+        if (item) {
+            globalData.choRua.push(item);
+        }
+    });
+
+    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
+    localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
+
+    renderBangChoNiemThuRua();
+    renderBangChoRua();
+    alert("🔴 Đã trả các mâm không đạt về Hàng Đợi Rửa!");
 }
 
 /* =========================================================================
-   7. RENDER BẢNG CÔNG NỢ KHOA (SỬA CHÍNH XÁC THEO KHOA CHỌN)
+   7. LOGIC TRẠM LÀM SẠCH & ĐÓNG GÓI
+   ========================================================================= */
+function renderBangDongGoi() {
+    const grid = document.getElementById('gridDongGoi');
+    const badge = document.getElementById('badgeDongGoi');
+    if (!grid) return;
+
+    if (!globalData.choDongGoi) globalData.choDongGoi = [];
+
+    if (badge) badge.innerText = `${globalData.choDongGoi.length}`;
+
+    if (globalData.choDongGoi.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">Hiện chưa có mâm dụng cụ nào chờ đóng gói.</div>`;
+        return;
+    }
+
+    grid.innerHTML = globalData.choDongGoi.map((item, idx) => `
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+            <div>
+                <div class="flex justify-between items-start mb-1">
+                    <span class="font-mono font-bold text-sky-700 text-xs">${item.maBo}</span>
+                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Đã Rửa Sạch</span>
+                </div>
+                <h4 class="font-bold text-sm text-slate-800">${item.tenBo}</h4>
+                <p class="text-xs text-slate-500 mt-1">Khoa: <strong class="text-slate-700">${item.khoa || 'N/A'}</strong></p>
+                <p class="text-[10px] text-slate-400 font-mono mt-0.5">Mẻ rửa: ${item.batchId || 'N/A'}</p>
+            </div>
+            <button onclick="moPopupDongGoi(${idx})" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 rounded-lg text-xs shadow-sm transition-all">
+                <i class="fa-solid fa-box-archive mr-1"></i> Đóng Gói Mâm
+            </button>
+        </div>
+    `).join('');
+}
+
+function moPopupDongGoi(idx) {
+    itemDongGoiHienTai = idx;
+    const item = globalData.choDongGoi[idx];
+    if (!item) return;
+
+    const pop = document.getElementById('popupDongGoi');
+    const popBo = document.getElementById('popDG_Bo');
+
+    if (popBo) popBo.innerText = `ĐÓNG GÓI: ${item.tenBo} (${item.maBo})`;
+
+    tinhHanSuDung();
+
+    if (pop) pop.classList.remove('hidden');
+}
+
+function closePopupDongGoi() {
+    const pop = document.getElementById('popupDongGoi');
+    if (pop) pop.classList.add('hidden');
+    itemDongGoiHienTai = null;
+}
+
+function tinhHanSuDung() {
+    const loaiEl = document.getElementById('popDG_Loai');
+    const hanEl = document.getElementById('popDG_Han');
+    if (!loaiEl || !hanEl) return;
+
+    const val = loaiEl.value;
+    const days = parseInt(val.split('|')[1]) || 30;
+
+    const future = new Date();
+    future.setDate(future.getDate() + days);
+
+    hanEl.innerText = future.toLocaleDateString('vi-VN');
+}
+
+function chotDongGoi() {
+    if (itemDongGoiHienTai === null || !globalData.choDongGoi[itemDongGoiHienTai]) return;
+
+    const loaiEl = document.getElementById('popDG_Loai');
+    const vatLieuText = loaiEl ? loaiEl.value.split('|')[0] : "Giấy gói chuyên dụng";
+    const days = loaiEl ? parseInt(loaiEl.value.split('|')[1]) || 30 : 30;
+
+    const future = new Date();
+    future.setDate(future.getDate() + days);
+
+    const item = globalData.choDongGoi.splice(itemDongGoiHienTai, 1)[0];
+    
+    if (item) {
+        if (!globalData.choHap) globalData.choHap = [];
+        
+        item.vatLieuBaoBoc = vatLieuText;
+        item.hanSuDung = future.toLocaleDateString('vi-VN');
+        item.thoiGianDongGoi = new Date().toLocaleString('vi-VN');
+        item.nhanSuDongGoi = currentUser.nvName;
+
+        globalData.choHap.push(item);
+
+        localStorage.setItem('cssd_choDongGoi', JSON.stringify(globalData.choDongGoi));
+        localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
+    }
+
+    alert("✅ Đóng gói thành công! Dụng cụ đã chuyển sang Trạm Hấp Tiệt Trùng.");
+    closePopupDongGoi();
+
+    renderBangDongGoi();
+    renderBangChoHap();
+    renderDashboardTV();
+}
+
+/* =========================================================================
+   8. LOGIC MÁY HẤP TIỆT TRÙNG & NGHỆM THU
+   ========================================================================= */
+function renderBangChoHap() {
+    const tbody = document.getElementById('bangChoHap');
+    const badge = document.getElementById('badgeChoHap');
+    if (!tbody) return;
+
+    if (!globalData.choHap) globalData.choHap = [];
+
+    if (badge) badge.innerText = `${globalData.choHap.length} Mục`;
+
+    if (globalData.choHap.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Hiện chưa có mâm nào chờ hấp.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.choHap.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2 text-center w-12">
+                <input type="checkbox" class="chk-hap-item w-4 h-4 rounded text-purple-600" data-idx="${idx}" checked>
+            </td>
+            <td class="p-2 font-semibold text-slate-800">
+                ${item.tenBo}
+                <span class="text-[10px] text-slate-400 block">${item.vatLieuBaoBoc || ''} - HSD: ${item.hanSuDung || ''}</span>
+            </td>
+            <td class="p-2 text-right font-mono font-bold text-purple-700">${item.maBo}</td>
+        </tr>
+    `).join('');
+}
+
+function toggleSelectAllHap() {
+    const chkAll = document.getElementById('selectAllHap');
+    const items = document.querySelectorAll('.chk-hap-item');
+    if (chkAll) {
+        items.forEach(c => c.checked = chkAll.checked);
+    }
+}
+
+function xacNhanMeHap() {
+    const checkedInps = document.querySelectorAll('.chk-hap-item:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn ít nhất một bộ dụng cụ để đưa vào lò hấp!");
+        return;
+    }
+
+    const batchInp = document.getElementById('hap_batchId');
+    const batchId = batchInp ? batchInp.value : `H${Date.now()}`;
+    const loaiHap = document.getElementById('hap_loaiHap') ? document.getElementById('hap_loaiHap').value : "Hấp hơi nước";
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
+
+    if (!globalData.dangHap) globalData.dangHap = [];
+
+    selectedIndices.forEach(idx => {
+        const item = globalData.choHap.splice(idx, 1)[0];
+        if (item) {
+            globalData.dangHap.push({
+                ...item,
+                maLoHap: batchId,
+                loaiHap: loaiHap,
+                thoiGianBatDauHap: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+            });
+        }
+    });
+
+    localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
+    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
+
+    renderBangChoHap();
+    renderBangChoNghiemThuHap();
+    renderDashboardTV();
+
+    alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp mã: ${batchId} cho ${selectedIndices.length} bộ dụng cụ!`);
+}
+
+function renderBangChoNghiemThuHap() {
+    const tbody = document.getElementById('bangChoNghiệmThu');
+    if (!tbody) return;
+
+    if (!globalData.dangHap) globalData.dangHap = [];
+
+    if (globalData.dangHap.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ hấp nào đang trong lò.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.dangHap.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2 text-center w-10">
+                <input type="checkbox" class="chk-nghiemthu-hap w-4 h-4 rounded text-purple-600" data-idx="${idx}" checked>
+            </td>
+            <td class="p-2 font-mono font-bold text-purple-700">${item.maLoHap}</td>
+            <td class="p-2 font-semibold text-slate-800">${item.tenBo} <span class="text-[10px] text-slate-400">(${item.maBo})</span></td>
+            <td class="p-2 text-center font-semibold text-rose-600">Đang hấp (${item.thoiGianBatDauHap})</td>
+        </tr>
+    `).join('');
+}
+
+function toggleSelectAllNghiemThu() {
+    const chkAll = document.getElementById('selectAllNghiemThu');
+    const items = document.querySelectorAll('.chk-nghiemthu-hap');
+    if (chkAll) {
+        items.forEach(c => c.checked = chkAll.checked);
+    }
+}
+
+// DUYỆT ĐẠT MẺ HẤP -> CHUYỂN VÀO KHO VÔ KHUẨN
+function nhapKhoHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn mâm dụng cụ cần duyệt đạt để nhập kho!");
+        return;
+    }
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
+
+    if (!globalData.khoVoKhuan) globalData.khoVoKhuan = [];
+    if (!globalData.meHap) globalData.meHap = [];
+
+    selectedIndices.forEach(idx => {
+        const item = globalData.dangHap.splice(idx, 1)[0];
+        if (item) {
+            item.trangThai = "VÔ KHUẨN (Trong Kho)";
+            item.viTriKho = "Kệ A1 - Ô 02";
+            item.thoiGianHoanTatHap = new Date().toLocaleString('vi-VN');
+
+            globalData.khoVoKhuan.unshift(item);
+            globalData.meHap.unshift(item);
+        }
+    });
+
+    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
+    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
+    localStorage.setItem('cssd_meHap', JSON.stringify(globalData.meHap));
+
+    renderBangChoNghiemThuHap();
+    renderBangKhoVoKhuan();
+    renderBangTonKhoRealtime();
+    renderDashboardTV();
+
+    alert("🎉 Đã nhập kho vô khuẩn thành công!");
+}
+
+function tuChoiHapHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn mâm dụng cụ bị từ chối!");
+        return;
+    }
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
+
+    selectedIndices.forEach(idx => {
+        const item = globalData.dangHap.splice(idx, 1)[0];
+        if (item) {
+            globalData.choHap.push(item);
+        }
+    });
+
+    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
+    localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
+
+    renderBangChoNghiemThuHap();
+    renderBangChoHap();
+    alert("🔴 Đã trả các mâm về Hàng Đợi Hấp!");
+}
+
+/* =========================================================================
+   9. KHO VÔ KHUẨN & XUẤT KHO
+   ========================================================================= */
+function renderBangKhoVoKhuan() {
+    const tbody = document.getElementById('bangKhoVoKhuan');
+    if (!tbody) return;
+
+    if (!globalData.khoVoKhuan) globalData.khoVoKhuan = [];
+
+    if (globalData.khoVoKhuan.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Kho vô khuẩn hiện đang trống.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.khoVoKhuan.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-bold text-slate-800">${item.tenBo}</td>
+            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo}</td>
+            <td class="p-3 text-center text-slate-600 font-semibold">${item.khoa || 'Phòng Sanh'}</td>
+            <td class="p-3 text-center font-semibold text-emerald-700">${item.viTriKho || 'Kệ A1'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.hanSuDung || 'Còn Hạn'}</td>
+            <td class="p-3 text-center action-col">
+                <button onclick="xuatKhoDungCu(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1 rounded text-xs shadow-sm">
+                    Xuất Trả
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function xuatKhoDungCu(idx) {
+    if (!globalData.khoVoKhuan[idx]) return;
+    const item = globalData.khoVoKhuan.splice(idx, 1)[0];
+    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
+    renderBangKhoVoKhuan();
+    renderDashboardTV();
+    alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa!`);
+}
+
+function xuatKhoXoayVong() {
+    const inp = document.getElementById('xuat_inpMaBo');
+    if (!inp || !inp.value.trim()) {
+        alert("Vui lòng nhập/quét mã khay xuất!");
+        return;
+    }
+    const ma = inp.value.trim().toUpperCase();
+    const idx = globalData.khoVoKhuan.findIndex(i => i.maBo.toUpperCase() === ma);
+    if (idx !== -1) {
+        xuatKhoDungCu(idx);
+        inp.value = '';
+    } else {
+        alert("❌ Khay không có trong kho vô khuẩn!");
+    }
+}
+
+/* =========================================================================
+   10. RENDER BẢNG CÔNG NỢ, TỒN KHO & DASHBOARD TV
    ========================================================================= */
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
@@ -504,7 +1035,6 @@ function renderBangCongNoKhoa() {
 
     const selectedKhoa = selKhoa ? selKhoa.value : "";
     
-    // Lọc dụng cụ chính xác theo Khoa/Phòng
     const items = selectedKhoa 
         ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) 
         : globalData.danhMucLinhKien;
@@ -592,19 +1122,35 @@ function renderBangDanhMucLinhKien() {
 function renderBangLichSuRua() {
     const tbody = document.getElementById('bangLichSuRua');
     if (!tbody) return;
-    if (globalData.meRua.length === 0) {
+    if (!globalData.meRua || globalData.meRua.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào</td></tr>`;
         return;
     }
     tbody.innerHTML = globalData.meRua.map(item => `
         <tr class="border-b hover:bg-slate-50 text-xs">
             <td class="p-3 font-mono font-bold text-sky-700">${item.batchId}</td>
-            <td class="p-3">${item.loaiRua}</td>
-            <td class="p-3">${item.chuKy}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach}</td>
-            <td class="p-3 text-center text-slate-500">${item.thoiGian}</td>
+            <td class="p-3">${item.loaiRua || 'Máy rửa tự động'}</td>
+            <td class="p-3">${item.chuKy || 'Tiêu chuẩn'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach || 'ĐẠT'}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGianRuaXong || item.thoiGian || 'Vừa xong'}</td>
         </tr>
     `).join('');
+}
+
+function renderDashboardTV() {
+    const elRua = document.getElementById('tv_meRua');
+    const elHap = document.getElementById('tv_meHap');
+    const elDangRua = document.getElementById('tv_dangRua');
+    const elDangHap = document.getElementById('tv_dangHap');
+    const elHap2 = document.getElementById('tv_meHap2');
+    const elKho = document.getElementById('tv_khoVoKhuan');
+
+    if (elRua) elRua.innerText = `${(globalData.meRua || []).length}`;
+    if (elHap) elHap.innerText = `${(globalData.meHap || []).length}`;
+    if (elDangRua) elDangRua.innerText = `${(globalData.dangRua || []).length}`;
+    if (elDangHap) elDangHap.innerText = `${(globalData.dangHap || []).length}`;
+    if (elHap2) elHap2.innerText = `${(globalData.meHap || []).length}`;
+    if (elKho) elKho.innerText = `${(globalData.khoVoKhuan || []).length}`;
 }
 
 function renderBangLichSuLuanChuyen() {
@@ -638,7 +1184,7 @@ function initRealtimeListeners() {
 }
 
 /* =========================================================================
-   8. CHUYỂN TAB & PHÂN QUYỀN
+   11. CHUYỂN TAB & PHÂN QUYỀN
    ========================================================================= */
 function switchTab(tabId) {
     currentTab = tabId;
@@ -659,9 +1205,21 @@ function switchTab(tabId) {
     if (activeMenu) activeMenu.classList.add('sidebar-item-active');
 
     if (tabId === 'thugom') renderBangChoThuGom();
+    if (tabId === 'mayrua') {
+        renderBangChoRua();
+        renderBangChoNiemThuRua();
+        renderBangLichSuRua();
+    }
+    if (tabId === 'donggoi') renderBangDongGoi();
+    if (tabId === 'mayhap') {
+        renderBangChoHap();
+        renderBangChoNghiemThuHap();
+    }
+    if (tabId === 'khovokhuan') renderBangKhoVoKhuan();
     if (tabId === 'danhmuc') renderBangDanhMucLinhKien();
     if (tabId === 'khoaphong') renderBangCongNoKhoa();
     if (tabId === 'quanlykho') renderBangTonKhoRealtime();
+    if (tabId === 'dashboard_tv') renderDashboardTV();
 
     const sidebar = document.getElementById('sidebar_menu');
     if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
@@ -716,7 +1274,7 @@ function toggleLoginFields() {
 }
 
 /* =========================================================================
-   9. CAMERA SCANNER & BỆNH NHÂN LOGGING
+   12. CAMERA SCANNER & LOGGING BỆNH NHÂN
    ========================================================================= */
 function moCamera(inputId) {
     currentCameraInputId = inputId;
@@ -783,7 +1341,7 @@ function renderBangKhaySuDung() {
 }
 
 /* =========================================================================
-   10. XUẤT BÁO CÁO EXCEL
+   13. XUẤT BÁO CÁO EXCEL
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
@@ -810,7 +1368,7 @@ function xuatBaoCaoExcelMeRua() {
         "Mã Máy Rửa": item.maySo || "Belimed WD250",
         "Chu Trình": item.chuKy || "Tiêu chuẩn",
         "Kết Quả": item.testDoSach || "ĐẠT",
-        "Thời Gian": item.thoiGian || "N/A"
+        "Thời Gian": item.thoiGianRuaXong || item.thoiGian || "N/A"
     }));
 
     const wsMeRua = XLSX.utils.json_to_sheet(dataMeRua.length ? dataMeRua : [{ "Ghi chú": "Chưa có dữ liệu" }]);
@@ -820,7 +1378,7 @@ function xuatBaoCaoExcelMeRua() {
 }
 
 /* =========================================================================
-   11. ADMIN SUBTAB & PIN CONFIG
+   14. ADMIN SUBTAB & PIN CONFIG
    ========================================================================= */
 function switchAdminSubtab(subtab) {
     const subDb = document.getElementById('subtab-database');
@@ -899,16 +1457,42 @@ function themNhanSuMoiAdmin() {
 }
 
 function resetDuLieuKet() { alert("🔄 Đã giải phóng mâm kẹt dở dang!"); }
+
 function xoaSachDuLieuGiaoDichRealtime() {
-    if (confirm("⚠️ Bạn có chắc chắn muốn xóa nhật ký giao dịch?")) {
+    if (confirm("⚠️ Bạn có chắc chắn muốn xóa tất cả dữ liệu giao dịch?")) {
         globalData.lichSu = [];
         globalData.meRua = [];
+        globalData.meHap = [];
         globalData.phieuTra = [];
+        globalData.choRua = [];
+        globalData.dangRua = [];
+        globalData.choDongGoi = [];
+        globalData.choHap = [];
+        globalData.dangHap = [];
+        globalData.khoVoKhuan = [];
+
         localStorage.removeItem('cssd_phieuTra');
-        renderBangLichSuLuanChuyen();
-        renderBangLichSuRua();
+        localStorage.removeItem('cssd_choRua');
+        localStorage.removeItem('cssd_dangRua');
+        localStorage.removeItem('cssd_choDongGoi');
+        localStorage.removeItem('cssd_choHap');
+        localStorage.removeItem('cssd_dangHap');
+        localStorage.removeItem('cssd_khoVoKhuan');
+        localStorage.removeItem('cssd_meRua');
+        localStorage.removeItem('cssd_meHap');
+
         renderBangChoThuGom();
-        alert("🗑️ Đã xóa thành công!");
+        renderBangChoRua();
+        renderBangChoNiemThuRua();
+        renderBangDongGoi();
+        renderBangChoHap();
+        renderBangChoNghiemThuHap();
+        renderBangKhoVoKhuan();
+        renderBangLichSuRua();
+        renderBangLichSuLuanChuyen();
+        renderDashboardTV();
+
+        alert("🗑️ Đã xóa toàn bộ nhật ký giao dịch thành công!");
     }
 }
 
