@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE HOÀN CHỈNH & FIX LỖI TIME)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE HOÀN CHỈNH & LỌC DỤNG CỤ THEO KHOA)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -178,30 +178,59 @@ function initExcelLoader() {
     });
 }
 
+// ĐỒNG BỘ DROPDOWN CÁC KHOA & GÁN SỰ KIỆN LỌC CHÍNH XÁC
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
+    
     selectIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-            const firstOption = el.options[0] ? el.options[0].outerHTML : '<option value="">-- Chọn Khoa --</option>';
+            const firstOption = (id === 'khoa_selKhoa' || id === 'login_khoa' || id === 'xuat_selKhoa') 
+                ? '<option value="">-- Chọn Khoa / Phòng --</option>' 
+                : '<option value="">-- Tất cả Khoa / Phòng --</option>';
             el.innerHTML = firstOption + globalData.danhSachKhoa.map(k => `<option value="${k}">${k}</option>`).join('');
         }
     });
 
-    const datalist = document.getElementById('listBoDungCu');
-    if (datalist) {
-        datalist.innerHTML = globalData.danhMucLinhKien.map(item => 
-            `<option value="${item.maBo}">${item.tenBo} (${item.khoa})</option>`
-        ).join('');
+    // Lắng nghe sự kiện đổi Khoa ở Trạm Giao Nhận Lâm Sàng
+    const khoaSel = document.getElementById('khoa_selKhoa');
+    if (khoaSel) {
+        khoaSel.onchange = function() {
+            capNhatGoiYBoDungCuTheoKhoa(this.value);
+            renderBangCongNoKhoa();
+        };
     }
 
+    // Lắng nghe sự kiện đổi Khoa ở Trạm Tồn Kho
+    const invSel = document.getElementById('inv_filterKhoa');
+    if (invSel) {
+        invSel.onchange = function() {
+            renderBangTonKhoRealtime();
+        };
+    }
+
+    capNhatGoiYBoDungCuTheoKhoa('');
     renderBangDanhMucLinhKien();
     renderBangCongNoKhoa();
     renderBangChoThuGom();
 }
 
+// CẬP NHẬT DATALIST GỢI Ý MÂM BẨN THEO KHOA ĐƯỢC CHỌN
+function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
+    const datalist = document.getElementById('listBoDungCu');
+    if (!datalist) return;
+
+    const filteredItems = tenKhoa 
+        ? globalData.danhMucLinhKien.filter(item => item.khoa === tenKhoa)
+        : globalData.danhMucLinhKien;
+
+    datalist.innerHTML = filteredItems.map(item => 
+        `<option value="${item.maBo}">${item.tenBo} - [${item.khoa}]</option>`
+    ).join('');
+}
+
 /* =========================================================================
-   4. LOGIC GIỎ HÀNG BÁO TRẢ & ĐÃ FIX LỖI TIME FORMAT ('2-digit')
+   4. LOGIC GIỎ HÀNG BÁO TRẢ & XỬ LÝ NÚT GỬI (ĐÃ FIX HOUR FORMAT)
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -248,7 +277,6 @@ function renderGioHangTam() {
     }
 }
 
-// FIX TRIỆT ĐỂ LỖI RANGEERROR: '2-2-digit' -> '2-digit'
 function khoaGuiPhieuTraBatches() {
     if (gioHangTraTam.length === 0) {
         alert("⚠️ Giỏ hàng báo trả đang trống! Vui lòng thêm mâm dụng cụ bẩn vào giỏ trước.");
@@ -467,7 +495,7 @@ function xacNhanMeHap() {
 }
 
 /* =========================================================================
-   7. RENDER BẢNG BÁO CÁO & CÔNG NỢ & DANH MỤC
+   7. RENDER BẢNG CÔNG NỢ KHOA (SỬA CHÍNH XÁC THEO KHOA CHỌN)
    ========================================================================= */
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
@@ -475,20 +503,54 @@ function renderBangCongNoKhoa() {
     if (!tbody) return;
 
     const selectedKhoa = selKhoa ? selKhoa.value : "";
-    const items = selectedKhoa ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) : globalData.danhMucLinhKien;
+    
+    // Lọc dụng cụ chính xác theo Khoa/Phòng
+    const items = selectedKhoa 
+        ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) 
+        : globalData.danhMucLinhKien;
 
     if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem công nợ.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem công nợ bộ dụng cụ tương ứng.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = items.slice(0, 15).map(item => `
+    tbody.innerHTML = items.map(item => `
         <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-bold text-slate-800">${item.tenBo} <span class="text-[10px] text-sky-600 block font-mono">${item.maBo}</span></td>
+            <td class="p-3 font-bold text-slate-800">
+                ${item.tenBo} 
+                <span class="text-[10px] text-sky-600 block font-mono">${item.maBo} (${item.khoa})</span>
+            </td>
             <td class="p-3 text-center font-bold text-slate-600">0</td>
             <td class="p-3 text-center font-bold text-slate-600">0</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.soLuong}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.soLuong || 1}</td>
             <td class="p-3 text-center font-bold text-rose-600">0</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangTonKhoRealtime() {
+    const tbody = document.getElementById('bangTonKhoTe');
+    const selKhoa = document.getElementById('inv_filterKhoa');
+    if (!tbody) return;
+
+    const selectedKhoa = selKhoa ? selKhoa.value : "";
+    const items = selectedKhoa 
+        ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) 
+        : globalData.danhMucLinhKien;
+
+    if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không tìm thấy dữ liệu tồn kho.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = items.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo}</td>
+            <td class="p-3 font-bold text-slate-800">${item.tenBo}</td>
+            <td class="p-3 text-slate-600 font-semibold">${item.khoa}</td>
+            <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">Tủ Khoa Lâm Sàng</span></td>
+            <td class="p-3 text-center font-mono text-slate-500">H260328_01</td>
+            <td class="p-3 text-center font-bold text-emerald-600">Còn Hạn (30 ngày)</td>
         </tr>
     `).join('');
 }
@@ -599,6 +661,7 @@ function switchTab(tabId) {
     if (tabId === 'thugom') renderBangChoThuGom();
     if (tabId === 'danhmuc') renderBangDanhMucLinhKien();
     if (tabId === 'khoaphong') renderBangCongNoKhoa();
+    if (tabId === 'quanlykho') renderBangTonKhoRealtime();
 
     const sidebar = document.getElementById('sidebar_menu');
     if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
