@@ -277,8 +277,9 @@
                             <p class="text-xs text-slate-500 mt-0.5">Tạo lệnh báo trả mâm bẩn hoặc yêu cầu cấp mới khay vô khuẩn</p>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                            <select id="khoa_selKhoa" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-sky-800 bg-slate-50 focus:ring-2 focus:ring-sky-500 outline-none flex-1 sm:flex-none">
-                                <option value="">-- Chọn Khoa --</option>
+                            <!-- Đã thêm sự kiện onchange tự động lọc dụng cụ chuẩn theo Khoa -->
+                            <select id="khoa_selKhoa" onchange="capNhatGoiYBoDungCuTheoKhoa(this.value); renderBangCongNoKhoa();" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-sky-800 bg-slate-50 focus:ring-2 focus:ring-sky-500 outline-none flex-1 sm:flex-none">
+                                <option value="">-- Chọn Khoa / Phòng --</option>
                             </select>
                             <button onclick="moPopupSuDungBoDungCu()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm flex items-center gap-1.5 whitespace-nowrap">
                                 <i class="fa-solid fa-bed-pulse"></i> Dùng Cho BN
@@ -400,7 +401,7 @@
                             <p class="text-xs text-slate-500 mt-0.5">Đối soát chi tiết linh kiện mâm dụng cụ bẩn thu gom từ lâm sàng</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <select id="filterKhoaThuGom" onchange="callRender()" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-sky-500 outline-none">
+                            <select id="filterKhoaThuGom" onchange="renderBangChoThuGom()" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-sky-500 outline-none">
                                 <option value="">-- Lọc Theo Khoa --</option>
                             </select>
                             <span id="badgeSoCho" class="bg-rose-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg shadow-sm">0 Lệnh</span>
@@ -740,8 +741,9 @@
                             <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-boxes-stacked mr-2 text-sky-600"></i>GIÁM SÁT TỒN KHO TOÀN VIỆN REALTIME</h2>
                             <p class="text-xs text-slate-500 mt-0.5">Theo dõi vị trí chính xác và cảnh báo hạn dùng của từng mã khay</p>
                         </div>
-                        <select id="inv_filterKhoa" onchange="callRender()" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 outline-none">
-                            <option value="">-- Tất cả Khoa --</option>
+                        <!-- Bổ sung sự kiện lọc tự động khi chọn Khoa -->
+                        <select id="inv_filterKhoa" onchange="renderBangTonKhoRealtime()" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 outline-none">
+                            <option value="">-- Tất cả Khoa / Phòng --</option>
                         </select>
                     </div>
 
@@ -965,7 +967,7 @@
                 </div>
             </div>
 
-            <!-- TAB 13: ADMIN SUBTAB MODULE (QUẢN TRỊ NÂNG CẤP) -->
+            <!-- TAB 13: ADMIN SUBTAB MODULE -->
             <div id="tab-admin" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <!-- Thanh Chuyển Subtab Admin -->
@@ -1040,9 +1042,7 @@
                                             <th class="p-3 text-center w-28">Tác Vụ</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="bangCauHinhPinAdmin">
-                                        <!-- Dữ liệu KTV render động từ app.js -->
-                                    </tbody>
+                                    <tbody id="bangCauHinhPinAdmin"></tbody>
                                 </table>
                             </div>
                         </div>
