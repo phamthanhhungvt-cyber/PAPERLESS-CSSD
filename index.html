@@ -44,7 +44,7 @@
            CẤU HÌNH CHUYÊN DỤNG CHO CHẾ ĐỘ IN ÂN (PRINT CONFIG)
            ========================================================================== */
         @media print {
-            /* 1. Reset nền và ẩn toàn bộ giao diện ứng dụng web */
+            /* Reset nền và ẩn toàn bộ giao diện ứng dụng web */
             html, body {
                 background: #ffffff !important;
                 color: #000000 !important;
@@ -76,19 +76,13 @@
                 padding: 0 !important;
             }
 
-            /* 2. CHẾ ĐỘ 1: IN TEM BIXOLON (80mm x 50mm) */
+            /* CHẾ ĐỘ IN TEM ĐÔI BIXOLON (BARCODE) */
             body.print-mode-bixolon @page {
-                size: 80mm 50mm;
-                margin: 0;
-            }
-            body.print-mode-bixolon .bixolon-label {
-                page-break-after: always;
-                width: 80mm;
-                height: 50mm;
-                overflow: hidden;
+                size: A4 portrait;
+                margin: 8mm;
             }
 
-            /* 3. CHẾ ĐỘ 2: IN BIÊN BẢN GIAO NHẬN A4 (PRINT MODE DOC) */
+            /* CHẾ ĐỘ IN BIÊN BẢN GIAO NHẬN A4 */
             body.print-mode-doc @page {
                 size: A4 portrait;
                 margin: 15mm;
@@ -277,7 +271,6 @@
                             <p class="text-xs text-slate-500 mt-0.5">Tạo lệnh báo trả mâm bẩn hoặc yêu cầu cấp mới khay vô khuẩn</p>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                            <!-- Đã thêm sự kiện onchange tự động lọc dụng cụ chuẩn theo Khoa -->
                             <select id="khoa_selKhoa" onchange="capNhatGoiYBoDungCuTheoKhoa(this.value); renderBangCongNoKhoa();" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-sky-800 bg-slate-50 focus:ring-2 focus:ring-sky-500 outline-none flex-1 sm:flex-none">
                                 <option value="">-- Chọn Khoa / Phòng --</option>
                             </select>
@@ -508,7 +501,7 @@
                                 </div>
                             </div>
 
-                            <!-- Nghiệm Thu Mẻ Rửa (Grouped theo Batch Rửa) -->
+                            <!-- Nghiệm Thu Mẻ Rửa -->
                             <div class="bg-sky-50/40 border border-sky-200/80 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-bold text-xs text-sky-900 uppercase"><i class="fa-solid fa-check-double mr-1"></i>Nghiệm Thu Mẻ Đang Trong Buồng Rửa</h3>
@@ -566,7 +559,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: MÁY HẤP (SỐ HÓA BATCH TIỆT TRÙNG & KHO CHUNG) -->
+            <!-- TAB 5: MÁY HẤP (TÍCH HỢP NÚT IN TEM ĐÔI BARCODE) -->
             <div id="tab-mayhap" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
@@ -624,8 +617,8 @@
                                 <button onclick="xacNhanMeHap()" class="flex-1 bg-purple-700 hover:bg-purple-800 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm transition-all">
                                     🔥 Khởi Động Lò Hấp
                                 </button>
-                                <button onclick="inTemTongHangLoat()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-2.5 rounded-lg text-xs shadow-sm" title="In Tem Mẻ Hấp">
-                                    <i class="fa-solid fa-print"></i> In Tem
+                                <button onclick="inTemTongHangLoat()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-2.5 rounded-lg text-xs shadow-sm flex items-center gap-1" title="In Tem Mẻ Hấp">
+                                    <i class="fa-solid fa-print"></i> In Tem Đôi
                                 </button>
                             </div>
                         </div>
@@ -647,7 +640,7 @@
                                 </div>
                             </div>
 
-                            <!-- Nghiệm Thu Mẻ Hấp Đang Chạy Lò (Grouped theo Batch Lò Hấp) -->
+                            <!-- Nghiệm Thu Mẻ Hấp Đang Chạy Lò -->
                             <div class="bg-purple-50/40 border border-purple-200/80 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-bold text-xs text-purple-900 uppercase"><i class="fa-solid fa-vial-circle-check mr-1"></i>Nghiệm Thu Mẻ Hấp Đang Chạy Lò</h3>
@@ -659,10 +652,10 @@
                                 <div class="bg-white p-2.5 rounded-lg border border-purple-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-bold text-slate-700 whitespace-nowrap">Minh chứng BI:</span>
-                                        <input type="file" id="input_anhBI" accept="image/*" onchange="docAnhBiUpTaiCho(this)" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-purple-100 file:text-purple-700 font-bold w-full">
+                                        <input type="file" id="input_anhBI" accept="image/*" class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:bg-purple-100 file:text-purple-700 font-bold w-full">
                                     </div>
-                                    <button onclick="inTemNghiemThuHangLoat()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded text-xs shadow-sm whitespace-nowrap">
-                                        <i class="fa-solid fa-barcode"></i> In Tem Vô Khuẩn
+                                    <button onclick="inTemNghiemThuHangLoat()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold px-3 py-1.5 rounded text-xs shadow-sm whitespace-nowrap flex items-center gap-1">
+                                        <i class="fa-solid fa-barcode"></i> In Tem Barcode Đôi
                                     </button>
                                 </div>
 
@@ -741,7 +734,6 @@
                             <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-boxes-stacked mr-2 text-sky-600"></i>GIÁM SÁT TỒN KHO TOÀN VIỆN REALTIME</h2>
                             <p class="text-xs text-slate-500 mt-0.5">Theo dõi vị trí chính xác và cảnh báo hạn dùng của từng mã khay</p>
                         </div>
-                        <!-- Bổ sung sự kiện lọc tự động khi chọn Khoa -->
                         <select id="inv_filterKhoa" onchange="renderBangTonKhoRealtime()" class="border border-slate-300 rounded-lg p-2 text-xs font-bold text-slate-700 outline-none">
                             <option value="">-- Tất cả Khoa / Phòng --</option>
                         </select>
@@ -822,7 +814,6 @@
                         </div>
                     </div>
 
-                    <!-- Thanh Công Cụ Xuất Báo Cáo Excel -->
                     <div class="flex flex-wrap items-center gap-2 my-4">
                         <button onclick="xuatBaoCaoExcelLuanChuyen()" 
                                 class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-4 py-2.5 rounded-lg shadow-md text-xs uppercase flex items-center gap-2 transition-all cursor-pointer">
@@ -970,7 +961,6 @@
             <!-- TAB 13: ADMIN SUBTAB MODULE -->
             <div id="tab-admin" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
-                    <!-- Thanh Chuyển Subtab Admin -->
                     <div class="flex border-b border-slate-200 mb-6 gap-6 text-sm font-bold">
                         <button id="subbtn-database" onclick="switchAdminSubtab('database')" class="pb-2 text-sky-600 border-b-2 border-sky-600 admin-subtab-active">
                             <i class="fa-solid fa-file-excel mr-2"></i>Nạp Cơ Sở Dữ Liệu Excel
@@ -1001,7 +991,6 @@
 
                     <!-- SUBTAB 2: CẤU HÌNH PIN & PHÂN QUYỀN -->
                     <div id="subtab-security" class="space-y-6 hidden">
-                        <!-- Form Thêm Nhân Sự Mới -->
                         <div class="bg-sky-50/70 border border-sky-200/80 p-4 rounded-xl space-y-3">
                             <h4 class="text-xs font-bold text-sky-800 uppercase flex items-center gap-2">
                                 <i class="fa-solid fa-user-plus text-sky-600"></i> Thêm Nhân Sự / KTV Mới Vào Hệ Thống
@@ -1022,7 +1011,6 @@
                             </button>
                         </div>
 
-                        <!-- Bảng Danh Sách & Chỉnh Sửa PIN -->
                         <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                             <div class="p-3 bg-slate-100 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                                 <span class="text-xs font-bold uppercase text-slate-700 flex items-center gap-2">
@@ -1218,7 +1206,7 @@
         </div>
     </div>
 
-    <!-- Popup 6: Bệnh Nhân Sử Dụng Dụng Cụ (Surgical Patient Logging) -->
+    <!-- Popup 6: Bệnh Nhân Sử Dụng Dụng Cụ -->
     <div id="popupSuDungBoDungCu" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4 border border-slate-200 max-h-[92vh] flex flex-col">
             <div class="flex justify-between items-center pb-3 border-b border-slate-100">
