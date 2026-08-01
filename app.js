@@ -1,14 +1,14 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE TEM ĐÔI BARCODE CHUẨN)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE CẤU HÌNH FIREBASE CSSD-SYSTEM)
    ========================================================================= */
 
-// 1. CẤU HÌNH FIREBASE
+// 1. CẤU HÌNH FIREBASE (Cập nhật kết nối chuẩn tới dự án CSSD-System)
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "phuongnam-cssd.firebaseapp.com",
-    projectId: "phuongnam-cssd",
-    storageBucket: "phuongnam-cssd.appspot.com",
+    apiKey: "YOUR_API_KEY", // Bạn có thể dán API Key thực tế lấy từ Project Settings nếu cần
+    authDomain: "cssd-system.firebaseapp.com",
+    projectId: "cssd-system", // 🟢 Đã sửa trỏ về đúng dự án CSSD-System
+    storageBucket: "cssd-system.appspot.com",
     messagingSenderId: "1234567890",
     appId: "1:1234567890:web:abcdef123456"
 };
