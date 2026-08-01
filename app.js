@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE HOÀN CHỈNH & ĐỒNG BỘ LUỒNG DỮ LIỆU)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE TEM ĐÔI BARCODE CHUẨN)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -174,7 +174,7 @@ function initExcelLoader() {
                         }
                     }
                 } else {
-                    for (let i = 0; i < rawRows.length; i++) {
+                    for (let i = 1; i < rawRows.length; i++) {
                         const r = rawRows[i];
                         if (!r || r.length < 3) continue;
 
@@ -1353,7 +1353,7 @@ function renderBangKhaySuDung() {
 }
 
 /* =========================================================================
-   13. XUẤT BÁO CÁO EXCEL & IN TEM BIXOLON (TEM LÒ HẤP & TEM VÔ KHUẨN)
+   13. XUẤT BÁO CÁO EXCEL & IN TEM BARCODE ĐÔI (MẪU SG-BHD800 & SG-MAMINOX)
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
@@ -1437,40 +1437,117 @@ function inTemNghiemThuHangLoat() {
     thucHienInTemBixolon(itemsToPrint, firstItem.maLoHap || 'H001', firstItem.loaiHap || 'Steam', 'Lò Hấp CSSD');
 }
 
-// Hàm render giao diện tem chuẩn Bixolon (80mm x 50mm)
+// HÀM RENDER TEM ĐÔI CÓ MÃ VẠCH (BARCODE) THEO CHUẨN MẪU SG-BHD800 / SG-MAMINOX
 function thucHienInTemBixolon(items, batchId, maySo, loaiHap) {
     const printZone = document.getElementById('print-zone');
     if (!printZone) return;
 
     document.body.className = "print-mode-bixolon";
 
-    printZone.innerHTML = items.map(item => `
-        <div class="bixolon-label p-3 bg-white border border-slate-300 font-sans text-black mb-4 flex flex-col justify-between" style="width: 80mm; height: 50mm; box-sizing: border-box;">
-            <div class="border-b-2 border-black pb-1 flex justify-between items-center">
-                <span class="font-black text-[11px] uppercase">PHUONG NAM HOSPITAL - CSSD</span>
-                <span class="font-mono font-bold text-[10px] bg-black text-white px-1.5 py-0.5">${item.maBo || 'MA_01'}</span>
-            </div>
-            
-            <div class="my-1">
-                <div class="font-extrabold text-xs text-black truncate uppercase">${item.tenBo || 'Bộ Dụng Cụ Tiệt Trùng'}</div>
-                <div class="text-[10px] font-semibold text-slate-800">Khoa: <strong>${item.khoa || 'Phòng Sanh'}</strong></div>
-            </div>
+    const ngayHienTai = new Date();
+    const strNgayIn = ngayHienTai.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
 
-            <div class="grid grid-cols-2 gap-1 text-[9px] border-t border-b border-black py-1 my-0.5">
-                <div>Lò Hấp: <strong>${maySo}</strong></div>
-                <div>Mã Lô: <strong class="font-mono">${batchId}</strong></div>
-                <div>Ngày Tiệt Trùng: <strong>${new Date().toLocaleDateString('vi-VN')}</strong></div>
-                <div>Hạn Sử Dụng: <strong class="font-mono">${item.hanSuDung || '30 Ngày'}</strong></div>
-            </div>
+    printZone.innerHTML = `
+        <style>
+            @media print {
+                body * { visibility: hidden; }
+                #print-zone, #print-zone * { visibility: visible; }
+                #print-zone { position: absolute; left: 0; top: 0; width: 100%; }
+            }
+            .label-page {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 12px;
+                page-break-inside: avoid;
+            }
+            .single-label {
+                width: 49%;
+                border: 1px solid #333;
+                padding: 6px 10px;
+                background: #fff;
+                font-family: Arial, sans-serif;
+                box-sizing: border-box;
+                border-radius: 2px;
+            }
+        </style>
+        <div class="labels-container">
+            ${items.map((item, idx) => {
+                const maHienThi = item.maBo || 'SG-BHD800';
+                const tenNhanVien = currentUser.nvName || 'Trần Thị Thoa';
+                const hanSuDung = item.hanSuDung || '31-08-2026';
+                const maSoPhatHanh = item.batchId || (1020 + idx);
 
-            <div class="flex items-center justify-between pt-0.5">
-                <div class="text-[8px] font-bold">Quy trình: ${loaiHap} | NVKH: ${currentUser.nvName}</div>
-                <div class="text-[9px] font-black uppercase text-emerald-800">VÔ KHUẨN</div>
-            </div>
+                const labelHtml = `
+                    <div class="single-label">
+                        <!-- Tên Mã phía trên Barcode -->
+                        <div style="text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 2px; text-transform: uppercase;">
+                            ${maHienThi}
+                        </div>
+
+                        <!-- Mã vạch Barcode -->
+                        <div style="text-align: center; margin: 2px 0;">
+                            <svg id="barcode-${idx}" style="max-width: 100%; height: 42px;"></svg>
+                        </div>
+
+                        <!-- Mã định danh bên dưới Barcode -->
+                        <div style="text-align: center; font-size: 11px; color: #222; margin-bottom: 4px;">
+                            ${maSoPhatHanh}
+                        </div>
+
+                        <!-- Dòng Số Lượng & Tên Nhân Viên -->
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 3px;">
+                            <span>SL: ${item.soLuong || 1}</span>
+                            <span style="font-weight: bold; color: #000;">${tenNhanVien}</span>
+                        </div>
+
+                        <!-- Dòng Ngày In & HSD -->
+                        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                            <span>${strNgayIn}</span>
+                            <span><strong>HSD: ${hanSuDung}</strong></span>
+                        </div>
+                    </div>
+                `;
+
+                if (idx % 2 === 0) {
+                    return `<div class="label-page">${labelHtml}${idx + 1 < items.length ? '' : '<div class="single-label" style="visibility:hidden;"></div>'}`;
+                } else {
+                    return `${labelHtml}</div>`;
+                }
+            }).join('')}
         </div>
-    `).join('');
+    `;
 
-    window.print();
+    // Nhúng thư viện JsBarcode tự động nếu chưa có sẵn để render Barcode
+    if (typeof JsBarcode === 'undefined') {
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js";
+        script.onload = () => renderBarcodesAndPrint(items);
+        document.head.appendChild(script);
+    } else {
+        renderBarcodesAndPrint(items);
+    }
+}
+
+// Vẽ mã vạch bằng JsBarcode và khởi chạy hộp thoại In
+function renderBarcodesAndPrint(items) {
+    items.forEach((item, idx) => {
+        const barcodeId = `#barcode-${idx}`;
+        const codeValue = item.maBo || 'SG-BHD800';
+        if (document.querySelector(barcodeId)) {
+            JsBarcode(barcodeId, codeValue, {
+                format: "CODE128",
+                displayValue: false,
+                margin: 0,
+                height: 40,
+                width: 1.8
+            });
+        }
+    });
+
+    setTimeout(() => {
+        window.print();
+    }, 300);
 }
 
 /* =========================================================================
