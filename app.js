@@ -1014,13 +1014,54 @@ function renderBangKhoVoKhuan() {
 
 function xuatKhoDungCu(idx) {
     if (!globalData.khoVoKhuan[idx]) return;
+    
+    // Lấy thông tin mâm được xuất
     const item = globalData.khoVoKhuan.splice(idx, 1)[0];
+    
+    // 1. Lưu lại LocalStorage
     localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
+    
+    // 2. Gửi dữ liệu Realtime lên Firebase Firestore
+    ghiNhatKyFirebase({
+        maBo: item.maBo,
+        tenBo: item.tenBo,
+        khoa: item.khoa || 'Khoa Lâm Sàng',
+        trangThai: 'XUẤT KHO VỀ KHOA',
+        maLoHap: item.maLoHap || item.batchId || '---'
+    });
+
+    // 3. Cập nhật giao diện
     renderBangKhoVoKhuan();
     renderDashboardTV();
-    alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa!`);
+    
+    alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa & Đồng bộ Realtime thành công!`);
 }
+// HÀM ĐẨY DỮ LIỆU REALTIME LÊN FIREBASE FIRESTORE
+function ghiNhatKyFirebase(dataAction) {
+    if (!db) {
+        console.warn("⚠️ Chưa kết nối được Firebase Firestore Database.");
+        return;
+    }
 
+    const logEntry = {
+        maBo: dataAction.maBo || "N/A",
+        tenBo: dataAction.tenBo || "Mâm dụng cụ",
+        khoa: dataAction.khoa || "CSSD",
+        trangThai: dataAction.trangThai || "Đang xử lý",
+        maLoHap: dataAction.maLoHap || dataAction.batchId || "---",
+        nhanSu: currentUser.nvName || "KTV CSSD",
+        thoiGian: new Date().toLocaleString('vi-VN'),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection("lich_su_luan_chuyen").add(logEntry)
+        .then((docRef) => {
+            console.log("✅ Đã đồng bộ lên Firebase với ID:", docRef.id);
+        })
+        .catch((error) => {
+            console.error("❌ Lỗi khi ghi dữ liệu lên Firebase:", error);
+        });
+}
 function xuatKhoXoayVong() {
     const inp = document.getElementById('xuat_inpMaBo');
     if (!inp || !inp.value.trim()) {
