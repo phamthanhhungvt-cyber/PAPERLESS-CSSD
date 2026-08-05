@@ -1,13 +1,13 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE CẤU HÌNH FIREBASE CSSD-SYSTEM)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE TỒN KHO THỰC TẾ & REALTIME FIREBASE)
    ========================================================================= */
 
-// 1. CẤU HÌNH FIREBASE (Cập nhật đúng Project ID thực tế)
+// 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "cssd-system-2878c.firebaseapp.com",
-    projectId: "cssd-system-2878c", // 👈 Sửa thêm đoạn -2878c vào đây
+    projectId: "cssd-system-2878c",
     storageBucket: "cssd-system-2878c.appspot.com",
     messagingSenderId: "1234567890",
     appId: "1:1234567890:web:abcdef123456"
@@ -501,7 +501,6 @@ function tuDongTaoMaLoMeRua() {
     }
 }
 
-// CẬP NHẬT: PHÂN LOẠI LÒ HẤP THEO CHUẨN THIẾT BỊ BỆNH VIỆN PHƯƠNG NAM
 function capNhatDanhSachMaMay() {
     const loaiEl = document.getElementById('hap_loaiHap');
     const maySoEl = document.getElementById('hap_maySo');
@@ -540,7 +539,6 @@ function tuDongTaoMaLoMeHap() {
     }
 }
 
-// RENDER HÀNG ĐỢI XẾP VÀO BUỒNG RỬA
 function renderBangChoRua() {
     const tbody = document.getElementById('bangChoRua');
     const badge = document.getElementById('badgeChoRua');
@@ -577,7 +575,6 @@ function toggleSelectAllRua() {
     }
 }
 
-// KÍCH HOẠT CHẠY MẺ RỬA
 function xacNhanMeRua() {
     const checkedInps = document.querySelectorAll('.chk-rua-item:checked');
     if (checkedInps.length === 0) {
@@ -617,7 +614,6 @@ function xacNhanMeRua() {
     alert(`🚀 Đã kích hoạt mẻ rửa ${batchId} với ${selectedIndices.length} bộ dụng cụ!`);
 }
 
-// RENDER NGHIỆM THU MẺ ĐANG TRONG BUỒNG RỬA
 function renderBangChoNiemThuRua() {
     const tbody = document.getElementById('bangChoNiemThuRua');
     if (!tbody) return;
@@ -649,7 +645,6 @@ function toggleSelectAllNghiemThuRua() {
     }
 }
 
-// DUYỆT ĐẠT MẺ RỬA -> CHUYỂN SANG ĐÓNG GÓI
 function duyetSachMeRuaHangLoat() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-rua:checked');
     if (checkedInps.length === 0) {
@@ -921,7 +916,6 @@ function toggleSelectAllNghiemThu() {
     }
 }
 
-// DUYỆT ĐẠT MẺ HẤP -> CHUYỂN VÀO KHO VÔ KHUẨN
 function nhapKhoHangLoat() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
     if (checkedInps.length === 0) {
@@ -983,7 +977,7 @@ function tuChoiHapHangLoat() {
 }
 
 /* =========================================================================
-   9. KHO VÔ KHUẨN & XUẤT KHO
+   9. KHO VÔ KHUẨN & XUẤT KHO & FIRESTORE REALTIME
    ========================================================================= */
 function renderBangKhoVoKhuan() {
     const tbody = document.getElementById('bangKhoVoKhuan');
@@ -1015,13 +1009,10 @@ function renderBangKhoVoKhuan() {
 function xuatKhoDungCu(idx) {
     if (!globalData.khoVoKhuan[idx]) return;
     
-    // Lấy thông tin mâm được xuất
     const item = globalData.khoVoKhuan.splice(idx, 1)[0];
     
-    // 1. Lưu lại LocalStorage
     localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
     
-    // 2. Gửi dữ liệu Realtime lên Firebase Firestore
     ghiNhatKyFirebase({
         maBo: item.maBo,
         tenBo: item.tenBo,
@@ -1030,13 +1021,13 @@ function xuatKhoDungCu(idx) {
         maLoHap: item.maLoHap || item.batchId || '---'
     });
 
-    // 3. Cập nhật giao diện
     renderBangKhoVoKhuan();
+    renderBangTonKhoRealtime();
     renderDashboardTV();
     
     alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa & Đồng bộ Realtime thành công!`);
 }
-// HÀM ĐẨY DỮ LIỆU REALTIME LÊN FIREBASE FIRESTORE
+
 function ghiNhatKyFirebase(dataAction) {
     if (!db) {
         console.warn("⚠️ Chưa kết nối được Firebase Firestore Database.");
@@ -1062,6 +1053,7 @@ function ghiNhatKyFirebase(dataAction) {
             console.error("❌ Lỗi khi ghi dữ liệu lên Firebase:", error);
         });
 }
+
 function xuatKhoXoayVong() {
     const inp = document.getElementById('xuat_inpMaBo');
     if (!inp || !inp.value.trim()) {
@@ -1111,29 +1103,32 @@ function renderBangCongNoKhoa() {
     `).join('');
 }
 
+// BẢNG TỒN KHO THỰC TẾ TRONG KHO VÔ KHUẨN
 function renderBangTonKhoRealtime() {
     const tbody = document.getElementById('bangTonKhoTe');
     const selKhoa = document.getElementById('inv_filterKhoa');
     if (!tbody) return;
 
     const selectedKhoa = selKhoa ? selKhoa.value : "";
-    const items = selectedKhoa 
-        ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) 
-        : globalData.danhMucLinhKien;
+    
+    let items = globalData.khoVoKhuan || [];
+    if (selectedKhoa) {
+        items = items.filter(i => i.khoa === selectedKhoa);
+    }
 
     if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không tìm thấy dữ liệu tồn kho.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không có dữ liệu tồn kho vô khuẩn thực tế.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = items.map(item => `
         <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo}</td>
-            <td class="p-3 font-bold text-slate-800">${item.tenBo}</td>
-            <td class="p-3 text-slate-600 font-semibold">${item.khoa}</td>
-            <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">Tủ Khoa Lâm Sàng</span></td>
-            <td class="p-3 text-center font-mono text-slate-500">H260328_01</td>
-            <td class="p-3 text-center font-bold text-emerald-600">Còn Hạn (30 ngày)</td>
+            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || 'N/A'}</td>
+            <td class="p-3 font-bold text-slate-800">${item.tenBo || 'Bộ Dụng Cụ'}</td>
+            <td class="p-3 text-slate-600 font-semibold">${item.khoa || 'N/A'}</td>
+            <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">${item.viTriKho || 'Kho Vô Khuẩn'}</span></td>
+            <td class="p-3 text-center font-mono text-slate-500">${item.maLoHap || item.batchId || '---'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.hanSuDung || 'Còn Hạn'}</td>
         </tr>
     `).join('');
 }
@@ -1430,7 +1425,6 @@ function xuatBaoCaoExcelMeRua() {
     XLSX.writeFile(wb, `NhatKy_MeRua_Belimed_${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
-// In tem cho mẻ hấp chờ chạy
 function inTemTongHangLoat() {
     const batchInp = document.getElementById('hap_batchId');
     const maySoEl = document.getElementById('hap_maySo');
@@ -1460,7 +1454,6 @@ function inTemTongHangLoat() {
     thucHienInTemBixolon(itemsToPrint, batchId, maySo, loaiHap);
 }
 
-// In tem vô khuẩn cho mâm nghiệm thu
 function inTemNghiemThuHangLoat() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
     if (checkedInps.length === 0) {
@@ -1478,7 +1471,6 @@ function inTemNghiemThuHangLoat() {
     thucHienInTemBixolon(itemsToPrint, firstItem.maLoHap || 'H001', firstItem.loaiHap || 'Steam', 'Lò Hấp CSSD');
 }
 
-// HÀM RENDER TEM ĐÔI CÓ MÃ VẠCH (BARCODE) THEO CHUẨN MẪU SG-BHD800 / SG-MAMINOX
 function thucHienInTemBixolon(items, batchId, maySo, loaiHap) {
     const printZone = document.getElementById('print-zone');
     if (!printZone) return;
@@ -1521,28 +1513,19 @@ function thucHienInTemBixolon(items, batchId, maySo, loaiHap) {
 
                 const labelHtml = `
                     <div class="single-label">
-                        <!-- Tên Mã phía trên Barcode -->
                         <div style="text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 2px; text-transform: uppercase;">
                             ${maHienThi}
                         </div>
-
-                        <!-- Mã vạch Barcode -->
                         <div style="text-align: center; margin: 2px 0;">
                             <svg id="barcode-${idx}" style="max-width: 100%; height: 42px;"></svg>
                         </div>
-
-                        <!-- Mã định danh bên dưới Barcode -->
                         <div style="text-align: center; font-size: 11px; color: #222; margin-bottom: 4px;">
                             ${maSoPhatHanh}
                         </div>
-
-                        <!-- Dòng Số Lượng & Tên Nhân Viên -->
                         <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 3px;">
                             <span>SL: ${item.soLuong || 1}</span>
                             <span style="font-weight: bold; color: #000;">${tenNhanVien}</span>
                         </div>
-
-                        <!-- Dòng Ngày In & HSD -->
                         <div style="display: flex; justify-content: space-between; font-size: 12px;">
                             <span>${strNgayIn}</span>
                             <span><strong>HSD: ${hanSuDung}</strong></span>
@@ -1559,7 +1542,6 @@ function thucHienInTemBixolon(items, batchId, maySo, loaiHap) {
         </div>
     `;
 
-    // Nhúng thư viện JsBarcode tự động nếu chưa có sẵn để render Barcode
     if (typeof JsBarcode === 'undefined') {
         const script = document.createElement('script');
         script.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js";
@@ -1570,7 +1552,6 @@ function thucHienInTemBixolon(items, batchId, maySo, loaiHap) {
     }
 }
 
-// Vẽ mã vạch bằng JsBarcode và khởi chạy hộp thoại In
 function renderBarcodesAndPrint(items) {
     items.forEach((item, idx) => {
         const barcodeId = `#barcode-${idx}`;
