@@ -3,12 +3,12 @@
    FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE CẤU HÌNH FIREBASE CSSD-SYSTEM)
    ========================================================================= */
 
-// 1. CẤU HÌNH FIREBASE (Cập nhật kết nối chuẩn tới dự án CSSD-System)
+// 1. CẤU HÌNH FIREBASE (Cập nhật đúng Project ID thực tế)
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // Bạn có thể dán API Key thực tế lấy từ Project Settings nếu cần
-    authDomain: "cssd-system.firebaseapp.com",
-    projectId: "cssd-system", // 🟢 Đã sửa trỏ về đúng dự án CSSD-System
-    storageBucket: "cssd-system.appspot.com",
+    apiKey: "YOUR_API_KEY",
+    authDomain: "cssd-system-2878c.firebaseapp.com",
+    projectId: "cssd-system-2878c", // 👈 Sửa thêm đoạn -2878c vào đây
+    storageBucket: "cssd-system-2878c.appspot.com",
     messagingSenderId: "1234567890",
     appId: "1:1234567890:web:abcdef123456"
 };
