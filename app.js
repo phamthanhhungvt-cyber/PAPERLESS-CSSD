@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE TỒN KHO THỰC TẾ & REALTIME FIREBASE)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE TỒN KHO LINH HOẠT & FIREBASE REALTIME)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -1103,7 +1103,7 @@ function renderBangCongNoKhoa() {
     `).join('');
 }
 
-// BẢNG TỒN KHO THỰC TẾ TRONG KHO VÔ KHUẨN
+// BẢNG TỒN KHO LINH HOẠT: ƯU TIÊN MÂM VÔ KHUẨN THỰC TẾ, NẾU TRỐNG HIỂN THỊ CƠ SỐ EXCEL
 function renderBangTonKhoRealtime() {
     const tbody = document.getElementById('bangTonKhoTe');
     const selKhoa = document.getElementById('inv_filterKhoa');
@@ -1111,13 +1111,16 @@ function renderBangTonKhoRealtime() {
 
     const selectedKhoa = selKhoa ? selKhoa.value : "";
     
-    let items = globalData.khoVoKhuan || [];
+    let items = (globalData.khoVoKhuan && globalData.khoVoKhuan.length > 0)
+        ? globalData.khoVoKhuan 
+        : globalData.danhMucLinhKien;
+
     if (selectedKhoa) {
         items = items.filter(i => i.khoa === selectedKhoa);
     }
 
     if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không có dữ liệu tồn kho vô khuẩn thực tế.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không tìm thấy dữ liệu tồn kho. Vui lòng nạp file Excel cơ số.</td></tr>`;
         return;
     }
 
@@ -1126,9 +1129,13 @@ function renderBangTonKhoRealtime() {
             <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || 'N/A'}</td>
             <td class="p-3 font-bold text-slate-800">${item.tenBo || 'Bộ Dụng Cụ'}</td>
             <td class="p-3 text-slate-600 font-semibold">${item.khoa || 'N/A'}</td>
-            <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">${item.viTriKho || 'Kho Vô Khuẩn'}</span></td>
+            <td class="p-3 text-center">
+                <span class="${item.trangThai ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'} font-bold px-2 py-0.5 rounded-full text-[10px]">
+                    ${item.viTriKho || item.trangThai || 'Tủ Khoa Lâm Sàng'}
+                </span>
+            </td>
             <td class="p-3 text-center font-mono text-slate-500">${item.maLoHap || item.batchId || '---'}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.hanSuDung || 'Còn Hạn'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.hanSuDung || 'Sẵn Sàng'}</td>
         </tr>
     `).join('');
 }
