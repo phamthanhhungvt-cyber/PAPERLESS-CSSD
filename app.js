@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE TỒN KHO LINH HOẠT & FIREBASE REALTIME)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE ĐỒNG BỘ CLOUD FIREBASE REALTIME)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -48,7 +48,7 @@ let tempSuDungKhay = [];
 let itemDongGoiHienTai = null;
 
 /* =========================================================================
-   3. KHỞI TẠO VÀ TỰ KHÔI PHỤC DỮ LIỆU TỪ LOCALSTORAGE
+   3. KHỞI TẠO VÀ TỰ KHÔI PHỤC DỮ LIỆU TỪ LOCALSTORAGE & FIREBASE
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
@@ -104,6 +104,7 @@ function docDuLieuLuuTruLocalStorage() {
     }
 }
 
+// KHỞI TẠO NẠP FILE EXCEL & TỰ ĐỘNG ĐỒNG BỘ LÊN CLOUD FIREBASE
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -194,11 +195,23 @@ function initExcelLoader() {
                     globalData.danhMucLinhKien = parsedList;
                     globalData.danhSachKhoa = Array.from(setKhoa);
 
+                    // Lưu tạm cục bộ
                     localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
                     localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
 
+                    // ĐỒNG BỘ DANH MỤC LÊN FIREBASE CLOUD CHO TẤT CẢ CÁC MÁY CÙNG DÙNG
+                    if (db) {
+                        db.collection("he_thong_config").doc("danh_muc_master").set({
+                            danhMucLinhKien: globalData.danhMucLinhKien,
+                            danhSachKhoa: globalData.danhSachKhoa,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }).then(() => {
+                            console.log("☁️ Đã đồng bộ danh mục Excel lên Cloud Firebase!");
+                        }).catch(err => console.error("Lỗi đồng bộ Firebase:", err));
+                    }
+
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã được lưu cố định vào hệ thống.`);
+                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã được đồng bộ lên Cloud cho toàn bộ thiết bị.`);
                 }
 
             } catch (err) {
@@ -1228,14 +1241,34 @@ function renderBangLichSuLuanChuyen() {
     `).join('');
 }
 
+// KHỞI TẠO CÁC BỘ LẮNG NGHE ĐỒNG BỘ REALTIME TỪ FIREBASE
 function initRealtimeListeners() {
     if (!db) return;
+
+    // 1. Lắng nghe nhật ký luân chuyển
     db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
         .onSnapshot((snapshot) => {
             globalData.lichSu = [];
             snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
             renderBangLichSuLuanChuyen();
         }, (err) => console.warn("Firestore listeners bypass:", err));
+
+    // 2. LẮNG NGHE & TẢI DANH MỤC EXCEL MASTER DÙNG CHUNG TỪ CLOUD CHO TẤT CẢ THIẾT BỊ
+    db.collection("he_thong_config").doc("danh_muc_master")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.danhMucLinhKien) globalData.danhMucLinhKien = data.danhMucLinhKien;
+                if (data.danhSachKhoa) globalData.danhSachKhoa = data.danhSachKhoa;
+                
+                // Lưu đồng bộ vào localStorage của thiết bị hiện tại
+                localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+                
+                capNhatGiaoDienSauKhiNapExcel();
+                console.log("🔄 Đã đồng bộ danh mục mới nhất từ Cloud!");
+            }
+        }, (err) => console.warn("Không lấy được danh mục Cloud:", err));
 }
 
 /* =========================================================================
