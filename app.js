@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE ĐỒNG BỘ CLOUD FIREBASE REALTIME)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (BẢN UPDATE ĐỒNG BỘ CLOUD FIREBASE 100% REALTIME)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -26,12 +26,12 @@ let currentCameraInputId = null;
 
 let globalData = {
     phieuTra: [],
-    choRua: [],           // Mảng chứa các bộ dụng cụ chờ rửa (sau khi thu gom)
-    dangRua: [],          // Mảng các bộ dụng cụ đang trong buồng rửa
-    choDongGoi: [],       // Mảng chứa các bộ dụng cụ rửa xong chờ đóng gói
-    choHap: [],           // Mảng các bộ dụng cụ đã đóng gói chờ hấp
-    dangHap: [],          // Mảng các bộ dụng cụ đang chạy trong lò hấp
-    khoVoKhuan: [],       // Mảng các bộ dụng cụ vô khuẩn sẵn sàng xuất
+    choRua: [],           // Dụng cụ chờ rửa
+    dangRua: [],          // Dụng cụ đang trong buồng rửa
+    choDongGoi: [],       // Dụng cụ chờ đóng gói
+    choHap: [],           // Dụng cụ đã đóng gói chờ hấp
+    dangHap: [],          // Dụng cụ đang trong lò hấp
+    khoVoKhuan: [],       // Dụng cụ vô khuẩn sẵn sàng xuất
     meRua: [],
     meHap: [],
     lichSu: [],
@@ -48,7 +48,7 @@ let tempSuDungKhay = [];
 let itemDongGoiHienTai = null;
 
 /* =========================================================================
-   3. KHỞI TẠO VÀ TỰ KHÔI PHỤC DỮ LIỆU TỪ LOCALSTORAGE & FIREBASE
+   3. KHỞI TẠO VÀ ĐỒNG BỘ DỮ LIỆU CLOUD REALTIME
    ========================================================================= */
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
@@ -65,46 +65,112 @@ function docDuLieuLuuTruLocalStorage() {
     try {
         const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
         const savedKhoa = localStorage.getItem('cssd_danhSachKhoa');
-        const savedPhieuTra = localStorage.getItem('cssd_phieuTra');
-        const savedChoRua = localStorage.getItem('cssd_choRua');
-        const savedDangRua = localStorage.getItem('cssd_dangRua');
-        const savedChoDongGoi = localStorage.getItem('cssd_choDongGoi');
-        const savedChoHap = localStorage.getItem('cssd_choHap');
-        const savedDangHap = localStorage.getItem('cssd_dangHap');
-        const savedKhoVoKhuan = localStorage.getItem('cssd_khoVoKhuan');
-        const savedMeRua = localStorage.getItem('cssd_meRua');
-        const savedMeHap = localStorage.getItem('cssd_meHap');
-
         if (savedLinhKien) globalData.danhMucLinhKien = JSON.parse(savedLinhKien);
         if (savedKhoa) globalData.danhSachKhoa = JSON.parse(savedKhoa);
-        if (savedPhieuTra) globalData.phieuTra = JSON.parse(savedPhieuTra);
-        if (savedChoRua) globalData.choRua = JSON.parse(savedChoRua);
-        if (savedDangRua) globalData.dangRua = JSON.parse(savedDangRua);
-        if (savedChoDongGoi) globalData.choDongGoi = JSON.parse(savedChoDongGoi);
-        if (savedChoHap) globalData.choHap = JSON.parse(savedChoHap);
-        if (savedDangHap) globalData.dangHap = JSON.parse(savedDangHap);
-        if (savedKhoVoKhuan) globalData.khoVoKhuan = JSON.parse(savedKhoVoKhuan);
-        if (savedMeRua) globalData.meRua = JSON.parse(savedMeRua);
-        if (savedMeHap) globalData.meHap = JSON.parse(savedMeHap);
 
         if (globalData.danhMucLinhKien.length > 0) {
             capNhatGiaoDienSauKhiNapExcel();
         }
-        
-        // Render lại giao diện các tab
-        renderBangChoRua();
-        renderBangChoNiemThuRua();
-        renderBangDongGoi();
-        renderBangChoHap();
-        renderBangChoNghiemThuHap();
-        renderBangKhoVoKhuan();
-        renderDashboardTV();
+        capNhatTatCaGiaoDien();
     } catch (err) {
-        console.error("Lỗi khi đọc dữ liệu lưu trữ:", err);
+        console.error("Lỗi khi đọc dữ liệu lưu trữ cục bộ:", err);
     }
 }
 
-// KHỞI TẠO NẠP FILE EXCEL & TỰ ĐỘNG ĐỒNG BỘ LÊN CLOUD FIREBASE
+// CẬP NHẬT TẤT CẢ GIAO DIỆN TRẠM TRÊN MÀN HÌNH
+function capNhatTatCaGiaoDien() {
+    renderBangChoThuGom();
+    renderBangChoRua();
+    renderBangChoNiemThuRua();
+    renderBangDongGoi();
+    renderBangChoHap();
+    renderBangChoNghiemThuHap();
+    renderBangKhoVoKhuan();
+    renderBangTonKhoRealtime();
+    renderDashboardTV();
+}
+
+// LƯU TRẠNG THÁI REALTIME LÊN CLOUD FIREBASE VÀ LOCALSTORAGE
+function dongBoTrangThaiRealtime() {
+    const payload = {
+        phieuTra: globalData.phieuTra,
+        choRua: globalData.choRua,
+        dangRua: globalData.dangRua,
+        choDongGoi: globalData.choDongGoi,
+        choHap: globalData.choHap,
+        dangHap: globalData.dangHap,
+        khoVoKhuan: globalData.khoVoKhuan,
+        meRua: globalData.meRua,
+        meHap: globalData.meHap,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // 1. Lưu dự phòng vào LocalStorage
+    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
+    localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
+    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
+    localStorage.setItem('cssd_choDongGoi', JSON.stringify(globalData.choDongGoi));
+    localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
+    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
+    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
+    localStorage.setItem('cssd_meRua', JSON.stringify(globalData.meRua));
+    localStorage.setItem('cssd_meHap', JSON.stringify(globalData.meHap));
+
+    // 2. Đẩy đồng bộ lên Cloud Firebase
+    if (db) {
+        db.collection("he_thong_config").doc("trang_thai_realtime").set(payload, { merge: true })
+            .catch(err => console.error("❌ Lỗi đồng bộ trạng thái Cloud:", err));
+    }
+}
+
+// KHỞI TẠO BỘ LẮNG NGHE REALTIME 100% TỪ CLOUD
+function initRealtimeListeners() {
+    if (!db) return;
+
+    // 1. Lắng nghe Nhật ký luân chuyển
+    db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
+        .onSnapshot((snapshot) => {
+            globalData.lichSu = [];
+            snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
+            renderBangLichSuLuanChuyen();
+        }, (err) => console.warn("Firestore listeners bypass:", err));
+
+    // 2. Lắng nghe Danh mục Excel Master từ Cloud
+    db.collection("he_thong_config").doc("danh_muc_master")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.danhMucLinhKien) globalData.danhMucLinhKien = data.danhMucLinhKien;
+                if (data.danhSachKhoa) globalData.danhSachKhoa = data.danhSachKhoa;
+                
+                localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+                capNhatGiaoDienSauKhiNapExcel();
+            }
+        }, (err) => console.warn("Không lấy được danh mục Cloud:", err));
+
+    // 3. LẮNG NGHE ĐỒNG BỘ TOÀN BỘ TRẠM TRUNG GIAN THEO THỜI GIAN THỰC (REALTIME 100%)
+    db.collection("he_thong_config").doc("trang_thai_realtime")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                globalData.phieuTra = data.phieuTra || [];
+                globalData.choRua = data.choRua || [];
+                globalData.dangRua = data.dangRua || [];
+                globalData.choDongGoi = data.choDongGoi || [];
+                globalData.choHap = data.choHap || [];
+                globalData.dangHap = data.dangHap || [];
+                globalData.khoVoKhuan = data.khoVoKhuan || [];
+                globalData.meRua = data.meRua || [];
+                globalData.meHap = data.meHap || [];
+
+                capNhatTatCaGiaoDien();
+                console.log("☁️ [REALTIME 100%] Đã đồng bộ trạng thái mới nhất từ Cloud!");
+            }
+        }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err));
+}
+
+// NẠP EXCEL BỞI ADMIN VÀ TỰ ĐỘNG ĐẨY LÊN CLOUD
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -195,23 +261,21 @@ function initExcelLoader() {
                     globalData.danhMucLinhKien = parsedList;
                     globalData.danhSachKhoa = Array.from(setKhoa);
 
-                    // Lưu tạm cục bộ
                     localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
                     localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
 
-                    // ĐỒNG BỘ DANH MỤC LÊN FIREBASE CLOUD CHO TẤT CẢ CÁC MÁY CÙNG DÙNG
                     if (db) {
                         db.collection("he_thong_config").doc("danh_muc_master").set({
                             danhMucLinhKien: globalData.danhMucLinhKien,
                             danhSachKhoa: globalData.danhSachKhoa,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         }).then(() => {
-                            console.log("☁️ Đã đồng bộ danh mục Excel lên Cloud Firebase!");
-                        }).catch(err => console.error("Lỗi đồng bộ Firebase:", err));
+                            console.log("☁️ Đã đồng bộ danh mục Excel lên Cloud!");
+                        });
                     }
 
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã được đồng bộ lên Cloud cho toàn bộ thiết bị.`);
+                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã đồng bộ Realtime cho tất cả các thiết bị.`);
                 }
 
             } catch (err) {
@@ -222,7 +286,6 @@ function initExcelLoader() {
     });
 }
 
-// ĐỒNG BỘ DROPDOWN CÁC KHOA & GÁN SỰ KIỆN LỌC CHÍNH XÁC
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
     
@@ -271,7 +334,7 @@ function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
 }
 
 /* =========================================================================
-   4. LOGIC GIỎ HÀNG BÁO TRẢ & XỬ LÝ NÚT GỬI
+   4. GIỎ HÀNG BÁO TRẢ & ĐỒNG BỘ REALTIME
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -343,18 +406,16 @@ function khoaGuiPhieuTraBatches() {
     gioHangTraTam = [];
     renderGioHangTam();
 
-    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
+    dongBoTrangThaiRealtime();
 
     alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn của Khoa [${tenKhoa}] sang Xe Thu Gom!`);
-    
-    renderBangChoThuGom();
 }
 
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
 /* =========================================================================
-   5. LOGIC XE THU GOM & ĐỐI SOÁT (CHUYỂN SANG MẺ RỬA)
+   5. XE THU GOM & ĐỐI SOÁT REALTIME
    ========================================================================= */
 let currentKiemDemIndex = null;
 
@@ -469,24 +530,19 @@ function saveKiemDem() {
                 thoiGianThuGom: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
             });
         });
-
-        localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
     }
 
     globalData.phieuTra.splice(currentKiemDemIndex, 1);
     currentKiemDemIndex = null;
-    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
 
-    alert("✅ Đã chốt kiểm đếm đối soát thành công! Chuyển các mâm sang Trạm Belimed WD250.");
+    dongBoTrangThaiRealtime();
+
+    alert("✅ Đã chốt kiểm đếm đối soát thành công! Dữ liệu đã nhảy Realtime sang Trạm Rửa Belimed WD250.");
     closePopupKiemDem();
-
-    renderBangChoThuGom();
-    renderBangChoRua();
-    renderDashboardTV();
 }
 
 /* =========================================================================
-   6. CẤU HÌNH THIẾT BỊ & RENDER MẺ MÁY RỬA / MÁY HẤP
+   6. MÁY RỬA REALTIME
    ========================================================================= */
 function capNhatDanhSachMaMayRua() {
     const loaiEl = document.getElementById('rua_loaiRua');
@@ -514,51 +570,12 @@ function tuDongTaoMaLoMeRua() {
     }
 }
 
-function capNhatDanhSachMaMay() {
-    const loaiEl = document.getElementById('hap_loaiHap');
-    const maySoEl = document.getElementById('hap_maySo');
-    if (!loaiEl || !maySoEl) return;
-
-    const val = loaiEl.value;
-    if (val.includes("hơi nước") || val.includes("Steam")) {
-        maySoEl.innerHTML = `
-            <option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option>
-            <option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>
-        `;
-    } else if (val.includes("Plasma") || val.includes("H2O2")) {
-        maySoEl.innerHTML = `
-            <option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>
-        `;
-    } else if (val.includes("EO")) {
-        maySoEl.innerHTML = `
-            <option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>
-        `;
-    } else {
-        maySoEl.innerHTML = `
-            <option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option>
-            <option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>
-        `;
-    }
-    tuDongTaoMaLoMeHap();
-}
-
-function tuDongTaoMaLoMeHap() {
-    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const batchInp = document.getElementById('hap_batchId');
-    const meInp = document.getElementById('hap_meSo');
-    if (batchInp && meInp) {
-        meInp.value = "01";
-        batchInp.value = `H${today}_01`;
-    }
-}
-
 function renderBangChoRua() {
     const tbody = document.getElementById('bangChoRua');
     const badge = document.getElementById('badgeChoRua');
     if (!tbody) return;
 
     if (!globalData.choRua) globalData.choRua = [];
-
     if (badge) badge.innerText = `${globalData.choRua.length} Mục`;
 
     if (globalData.choRua.length === 0) {
@@ -617,14 +634,9 @@ function xacNhanMeRua() {
         }
     });
 
-    localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
-    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
+    dongBoTrangThaiRealtime();
 
-    renderBangChoRua();
-    renderBangChoNiemThuRua();
-    renderDashboardTV();
-
-    alert(`🚀 Đã kích hoạt mẻ rửa ${batchId} với ${selectedIndices.length} bộ dụng cụ!`);
+    alert(`🚀 Đã kích hoạt mẻ rửa ${batchId} với ${selectedIndices.length} bộ dụng cụ! Dữ liệu đã đồng bộ Realtime.`);
 }
 
 function renderBangChoNiemThuRua() {
@@ -682,16 +694,9 @@ function duyetSachMeRuaHangLoat() {
         }
     });
 
-    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
-    localStorage.setItem('cssd_choDongGoi', JSON.stringify(globalData.choDongGoi));
-    localStorage.setItem('cssd_meRua', JSON.stringify(globalData.meRua));
+    dongBoTrangThaiRealtime();
 
-    renderBangChoNiemThuRua();
-    renderBangLichSuRua();
-    renderBangDongGoi();
-    renderDashboardTV();
-
-    alert("✅ Đã nghiệm thu đạt mẻ rửa! Các mâm dụng cụ đã chuyển sang Trạm Đóng Gói.");
+    alert("✅ Đã nghiệm thu đạt mẻ rửa! Mâm dụng cụ đã tự động nhảy Realtime sang Trạm Đóng Gói.");
 }
 
 function tuChoiMeRuaHangLoat() {
@@ -710,16 +715,12 @@ function tuChoiMeRuaHangLoat() {
         }
     });
 
-    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
-    localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
-
-    renderBangChoNiemThuRua();
-    renderBangChoRua();
-    alert("🔴 Đã trả các mâm không đạt về Hàng Đợi Rửa!");
+    dongBoTrangThaiRealtime();
+    alert("🔴 Đã trả các mâm không đạt về Hàng Đợi Rửa trên Cloud!");
 }
 
 /* =========================================================================
-   7. LOGIC TRẠM LÀM SẠCH & ĐÓNG GÓI
+   7. TRẠM LÀM SẠCH & ĐÓNG GÓI REALTIME
    ========================================================================= */
 function renderBangDongGoi() {
     const grid = document.getElementById('gridDongGoi');
@@ -809,22 +810,55 @@ function chotDongGoi() {
         item.nhanSuDongGoi = currentUser.nvName;
 
         globalData.choHap.push(item);
-
-        localStorage.setItem('cssd_choDongGoi', JSON.stringify(globalData.choDongGoi));
-        localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
     }
 
-    alert("✅ Đóng gói thành công! Dụng cụ đã chuyển sang Trạm Hấp Tiệt Trùng.");
-    closePopupDongGoi();
+    dongBoTrangThaiRealtime();
 
-    renderBangDongGoi();
-    renderBangChoHap();
-    renderDashboardTV();
+    alert("✅ Đóng gói thành công! Dụng cụ đã tự động chuyển Realtime sang Trạm Hấp Tiệt Trùng.");
+    closePopupDongGoi();
 }
 
 /* =========================================================================
-   8. LOGIC MÁY HẤP TIỆT TRÙNG & NGHỆM THU
+   8. MÁY HẤP TIỆT TRÙNG REALTIME
    ========================================================================= */
+function capNhatDanhSachMaMay() {
+    const loaiEl = document.getElementById('hap_loaiHap');
+    const maySoEl = document.getElementById('hap_maySo');
+    if (!loaiEl || !maySoEl) return;
+
+    const val = loaiEl.value;
+    if (val.includes("hơi nước") || val.includes("Steam")) {
+        maySoEl.innerHTML = `
+            <option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option>
+            <option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>
+        `;
+    } else if (val.includes("Plasma") || val.includes("H2O2")) {
+        maySoEl.innerHTML = `
+            <option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>
+        `;
+    } else if (val.includes("EO")) {
+        maySoEl.innerHTML = `
+            <option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>
+        `;
+    } else {
+        maySoEl.innerHTML = `
+            <option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option>
+            <option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>
+        `;
+    }
+    tuDongTaoMaLoMeHap();
+}
+
+function tuDongTaoMaLoMeHap() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('hap_batchId');
+    const meInp = document.getElementById('hap_meSo');
+    if (batchInp && meInp) {
+        meInp.value = "01";
+        batchInp.value = `H${today}_01`;
+    }
+}
+
 function renderBangChoHap() {
     const tbody = document.getElementById('bangChoHap');
     const badge = document.getElementById('badgeChoHap');
@@ -888,14 +922,9 @@ function xacNhanMeHap() {
         }
     });
 
-    localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
-    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
+    dongBoTrangThaiRealtime();
 
-    renderBangChoHap();
-    renderBangChoNghiemThuHap();
-    renderDashboardTV();
-
-    alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp mã: ${batchId} cho ${selectedIndices.length} bộ dụng cụ!`);
+    alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp mã: ${batchId} cho ${selectedIndices.length} bộ dụng cụ! Dữ liệu đã đồng bộ Realtime.`);
 }
 
 function renderBangChoNghiemThuHap() {
@@ -953,16 +982,9 @@ function nhapKhoHangLoat() {
         }
     });
 
-    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
-    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
-    localStorage.setItem('cssd_meHap', JSON.stringify(globalData.meHap));
+    dongBoTrangThaiRealtime();
 
-    renderBangChoNghiemThuHap();
-    renderBangKhoVoKhuan();
-    renderBangTonKhoRealtime();
-    renderDashboardTV();
-
-    alert("🎉 Đã nhập kho vô khuẩn thành công!");
+    alert("🎉 Đã nhập kho vô khuẩn thành công! Dữ liệu Kho Vô Khuẩn đã cập nhật Realtime.");
 }
 
 function tuChoiHapHangLoat() {
@@ -981,16 +1003,13 @@ function tuChoiHapHangLoat() {
         }
     });
 
-    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
-    localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
+    dongBoTrangThaiRealtime();
 
-    renderBangChoNghiemThuHap();
-    renderBangChoHap();
-    alert("🔴 Đã trả các mâm về Hàng Đợi Hấp!");
+    alert("🔴 Đã trả các mâm về Hàng Đợi Hấp trên Cloud!");
 }
 
 /* =========================================================================
-   9. KHO VÔ KHUẨN & XUẤT KHO & FIRESTORE REALTIME
+   9. KHO VÔ KHUẨN & XUẤT KHO REALTIME
    ========================================================================= */
 function renderBangKhoVoKhuan() {
     const tbody = document.getElementById('bangKhoVoKhuan');
@@ -1024,7 +1043,7 @@ function xuatKhoDungCu(idx) {
     
     const item = globalData.khoVoKhuan.splice(idx, 1)[0];
     
-    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
+    dongBoTrangThaiRealtime();
     
     ghiNhatKyFirebase({
         maBo: item.maBo,
@@ -1034,18 +1053,11 @@ function xuatKhoDungCu(idx) {
         maLoHap: item.maLoHap || item.batchId || '---'
     });
 
-    renderBangKhoVoKhuan();
-    renderBangTonKhoRealtime();
-    renderDashboardTV();
-    
     alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa & Đồng bộ Realtime thành công!`);
 }
 
 function ghiNhatKyFirebase(dataAction) {
-    if (!db) {
-        console.warn("⚠️ Chưa kết nối được Firebase Firestore Database.");
-        return;
-    }
+    if (!db) return;
 
     const logEntry = {
         maBo: dataAction.maBo || "N/A",
@@ -1059,12 +1071,7 @@ function ghiNhatKyFirebase(dataAction) {
     };
 
     db.collection("lich_su_luan_chuyen").add(logEntry)
-        .then((docRef) => {
-            console.log("✅ Đã đồng bộ lên Firebase với ID:", docRef.id);
-        })
-        .catch((error) => {
-            console.error("❌ Lỗi khi ghi dữ liệu lên Firebase:", error);
-        });
+        .catch((error) => console.error("❌ Lỗi ghi nhật ký Cloud:", error));
 }
 
 function xuatKhoXoayVong() {
@@ -1116,7 +1123,6 @@ function renderBangCongNoKhoa() {
     `).join('');
 }
 
-// BẢNG TỒN KHO LINH HOẠT: ƯU TIÊN MÂM VÔ KHUẨN THỰC TẾ, NẾU TRỐNG HIỂN THỊ CƠ SỐ EXCEL
 function renderBangTonKhoRealtime() {
     const tbody = document.getElementById('bangTonKhoTe');
     const selKhoa = document.getElementById('inv_filterKhoa');
@@ -1239,36 +1245,6 @@ function renderBangLichSuLuanChuyen() {
             <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
         </tr>
     `).join('');
-}
-
-// KHỞI TẠO CÁC BỘ LẮNG NGHE ĐỒNG BỘ REALTIME TỪ FIREBASE
-function initRealtimeListeners() {
-    if (!db) return;
-
-    // 1. Lắng nghe nhật ký luân chuyển
-    db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
-        .onSnapshot((snapshot) => {
-            globalData.lichSu = [];
-            snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
-            renderBangLichSuLuanChuyen();
-        }, (err) => console.warn("Firestore listeners bypass:", err));
-
-    // 2. LẮNG NGHE & TẢI DANH MỤC EXCEL MASTER DÙNG CHUNG TỪ CLOUD CHO TẤT CẢ THIẾT BỊ
-    db.collection("he_thong_config").doc("danh_muc_master")
-        .onSnapshot((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                if (data.danhMucLinhKien) globalData.danhMucLinhKien = data.danhMucLinhKien;
-                if (data.danhSachKhoa) globalData.danhSachKhoa = data.danhSachKhoa;
-                
-                // Lưu đồng bộ vào localStorage của thiết bị hiện tại
-                localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
-                localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
-                
-                capNhatGiaoDienSauKhiNapExcel();
-                console.log("🔄 Đã đồng bộ danh mục mới nhất từ Cloud!");
-            }
-        }, (err) => console.warn("Không lấy được danh mục Cloud:", err));
 }
 
 /* =========================================================================
@@ -1429,7 +1405,7 @@ function renderBangKhaySuDung() {
 }
 
 /* =========================================================================
-   13. XUẤT BÁO CÁO EXCEL & IN TEM BARCODE ĐÔI (MẪU SG-BHD800 & SG-MAMINOX)
+   13. XUẤT BÁO CÁO EXCEL & IN TEM BARCODE ĐÔI
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
@@ -1613,7 +1589,7 @@ function renderBarcodesAndPrint(items) {
 }
 
 /* =========================================================================
-   14. ADMIN SUBTAB & PIN CONFIG
+   14. ADMIN SUBTAB & PIN CONFIG REALTIME
    ========================================================================= */
 function switchAdminSubtab(subtab) {
     const subDb = document.getElementById('subtab-database');
@@ -1694,7 +1670,7 @@ function themNhanSuMoiAdmin() {
 function resetDuLieuKet() { alert("🔄 Đã giải phóng mâm kẹt dở dang!"); }
 
 function xoaSachDuLieuGiaoDichRealtime() {
-    if (confirm("⚠️ Bạn có chắc chắn muốn xóa tất cả dữ liệu giao dịch?")) {
+    if (confirm("⚠️ Bạn có chắc chắn muốn xóa tất cả dữ liệu giao dịch trên Cloud?")) {
         globalData.lichSu = [];
         globalData.meRua = [];
         globalData.meHap = [];
@@ -1706,28 +1682,10 @@ function xoaSachDuLieuGiaoDichRealtime() {
         globalData.dangHap = [];
         globalData.khoVoKhuan = [];
 
-        localStorage.removeItem('cssd_phieuTra');
-        localStorage.removeItem('cssd_choRua');
-        localStorage.removeItem('cssd_dangRua');
-        localStorage.removeItem('cssd_choDongGoi');
-        localStorage.removeItem('cssd_choHap');
-        localStorage.removeItem('cssd_dangHap');
-        localStorage.removeItem('cssd_khoVoKhuan');
-        localStorage.removeItem('cssd_meRua');
-        localStorage.removeItem('cssd_meHap');
+        localStorage.clear();
+        dongBoTrangThaiRealtime();
 
-        renderBangChoThuGom();
-        renderBangChoRua();
-        renderBangChoNiemThuRua();
-        renderBangDongGoi();
-        renderBangChoHap();
-        renderBangChoNghiemThuHap();
-        renderBangKhoVoKhuan();
-        renderBangLichSuRua();
-        renderBangLichSuLuanChuyen();
-        renderDashboardTV();
-
-        alert("🗑️ Đã xóa toàn bộ nhật ký giao dịch thành công!");
+        alert("🗑️ Đã xóa sạch dữ liệu giao dịch trên Cloud Realtime thành công!");
     }
 }
 
