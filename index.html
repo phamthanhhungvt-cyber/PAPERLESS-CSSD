@@ -41,13 +41,11 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <!-- Stylesheet Nội bộ & Print Config -->
-    <link rel="stylesheet" href="style.css">
     <style>
         /* ==========================================================================
            CẤU HÌNH CHUYÊN DỤNG CHO CHẾ ĐỘ IN ÂN (PRINT CONFIG)
            ========================================================================== */
         @media print {
-            /* Reset nền và ẩn toàn bộ giao diện ứng dụng web */
             html, body {
                 background: #ffffff !important;
                 color: #000000 !important;
@@ -113,6 +111,11 @@
             color: #ffffff !important;
             font-weight: 700 !important;
         }
+        .admin-subtab-active {
+            border-bottom: 2px solid #0284c7 !important;
+            color: #0284c7 !important;
+            font-weight: 700 !important;
+        }
     </style>
 </head>
 <body class="bg-slate-100 font-sans text-slate-700 antialiased min-h-screen">
@@ -150,10 +153,8 @@
                 </div>
 
                 <div id="field_nhanvien_cssd" class="hidden">
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Nhân viên CSSD</label>
-                    <select id="login_nv_cssd" class="w-full border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
-                        <option value="">-- Chọn KTV CSSD --</option>
-                    </select>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Mã Nhân viên CSSD</label>
+                    <input type="text" id="login_nv_id" placeholder="Nhập mã NV (Ví dụ: NV01)" class="w-full border border-slate-300 rounded-xl p-3 text-sm font-mono font-bold uppercase text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
                 </div>
 
                 <div>
@@ -420,7 +421,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: MÁY RỬA (BELIMED WD250 & CÁC THIẾT BỊ RỬA) -->
+            <!-- TAB 3: MÁY RỬA (BELIMED WD250) -->
             <div id="tab-mayrua" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
@@ -432,14 +433,14 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Cột 1: Cấu Hình Mẻ Rửa -->
+                        <!-- Cấu Hình Mẻ Rửa -->
                         <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
                             <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-sliders mr-1 text-sky-600"></i>Cấu Hình Mẻ Máy Rửa</h3>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-600 mb-1">Phương thức rửa</label>
                                 <select id="rua_loaiRua" onchange="capNhatDanhSachMaMayRua()" class="w-full border border-slate-300 rounded p-2 text-xs font-bold outline-none bg-white">
-                                    <option value="Máy rửa khử khuẩn tự động">Máy rửa khử khuẩn tự động</option>
-                                    <option value="Máy rửa sóng siêu âm">Máy rửa sóng siêu âm</option>
+                                    <option value="Máy rửa khử khuẩn tự động">Máy rửa khử khuẩn tự động Belimed</option>
+                                    <option value="Máy rửa sóng siêu âm">Máy rửa sóng siêu âm Sonic</option>
                                     <option value="Bồn rửa thủ công">Bồn rửa thủ công</option>
                                 </select>
                             </div>
@@ -450,7 +451,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-600 mb-1">Số Mẻ Ngày</label>
-                                    <input type="text" id="rua_meSo" readonly class="w-full bg-slate-200 border border-slate-300 rounded p-2 text-xs font-mono font-bold text-center">
+                                    <input type="text" id="rua_meSo" value="01" readonly class="w-full bg-slate-200 border border-slate-300 rounded p-2 text-xs font-mono font-bold text-center">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-600 mb-1">Mã Lô Định Danh</label>
@@ -465,24 +466,13 @@
                                     <option value="Dụng cụ vi phẫu tinh xảo">Dụng cụ vi phẫu tinh xảo</option>
                                 </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Hóa chất chuyên dụng</label>
-                                    <select id="rua_hoaChat" class="w-full border border-slate-300 rounded p-2 text-xs font-bold outline-none bg-white"></select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-600 mb-1">Liều lượng / Lít</label>
-                                    <input type="text" id="rua_lieuLuong" class="w-full border border-slate-300 rounded p-2 text-xs font-bold text-center bg-white">
-                                </div>
-                            </div>
                             <button onclick="xacNhanMeRua()" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm transition-all">
                                 🚀 Kích Hoạt Chạy Mẻ Rửa
                             </button>
                         </div>
 
-                        <!-- Cột 2 & 3: Hàng Đợi & Nghiệm Thu Mẻ Rửa -->
+                        <!-- Hàng Đợi & Nghiệm Thu -->
                         <div class="lg:col-span-2 space-y-4">
-                            <!-- Hàng Đợi Chờ Xếp Rửa -->
                             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                                 <div class="bg-slate-700 text-white p-3 text-xs font-bold uppercase flex justify-between items-center">
                                     <span>Hàng Đợi Xếp Vào Buồng Rửa</span>
@@ -504,7 +494,6 @@
                                 </div>
                             </div>
 
-                            <!-- Nghiệm Thu Mẻ Rửa -->
                             <div class="bg-sky-50/40 border border-sky-200/80 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-bold text-xs text-sky-900 uppercase"><i class="fa-solid fa-check-double mr-1"></i>Nghiệm Thu Mẻ Đang Trong Buồng Rửa</h3>
@@ -535,11 +524,19 @@
                         </div>
                     </div>
 
-                    <!-- Mẻ Rửa Đã Chạy Trong Ngày -->
                     <div class="pt-4 border-t border-slate-100">
                         <h3 class="font-bold text-xs text-slate-700 uppercase mb-3"><i class="fa-solid fa-receipt mr-1"></i>Mẻ Rửa Đã Chạy Trong Ngày</h3>
                         <div class="overflow-x-auto border border-slate-200 rounded-xl">
                             <table class="w-full text-left border-collapse min-w-[500px]">
+                                <thead>
+                                    <tr class="bg-slate-50 text-[10px] font-bold text-slate-600 uppercase border-b">
+                                        <th class="p-2.5">Mã Mẻ</th>
+                                        <th class="p-2.5">Thiết Bị</th>
+                                        <th class="p-2.5">Chu Kỳ</th>
+                                        <th class="p-2.5 text-center">Kết Quả</th>
+                                        <th class="p-2.5 text-center">KTV Thực Hiện</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="bangLichSuRua"></tbody>
                             </table>
                         </div>
@@ -562,7 +559,7 @@
                 </div>
             </div>
 
-            <!-- TAB 5: MÁY HẤP (TÍCH HỢP NÚT IN TEM ĐÔI BARCODE) -->
+            <!-- TAB 5: MÁY HẤP -->
             <div id="tab-mayhap" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
@@ -574,7 +571,7 @@
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Cột 1: Thông Số Lò Hấp -->
+                        <!-- Thông Số Lò Hấp -->
                         <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
                             <h3 class="font-bold text-xs text-slate-700 uppercase tracking-wider"><i class="fa-solid fa-fire-burner mr-1 text-sky-600"></i>Thông Số Thiết Bị Hấp</h3>
                             <div>
@@ -592,7 +589,7 @@
                             <div class="grid grid-cols-2 gap-2">
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-600 mb-1">Số Mẻ Lò</label>
-                                    <input type="text" id="hap_meSo" readonly class="w-full bg-slate-200 border border-slate-300 rounded p-2 text-xs font-mono font-bold text-center">
+                                    <input type="text" id="hap_meSo" value="01" readonly class="w-full bg-slate-200 border border-slate-300 rounded p-2 text-xs font-mono font-bold text-center">
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-600 mb-1">Mã Lô Lò Hấp</label>
@@ -626,9 +623,8 @@
                             </div>
                         </div>
 
-                        <!-- Cột 2 & 3: Hàng Đợi & Nghiệm Thu Lò Hấp -->
+                        <!-- Hàng Đợi & Nghiệm Thu Lò Hấp -->
                         <div class="lg:col-span-2 space-y-4">
-                            <!-- Hàng Đợi Đã Đóng Gói Chờ Hấp -->
                             <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                                 <div class="bg-slate-700 text-white p-3 text-xs font-bold uppercase flex justify-between items-center">
                                     <span>Mâm Đã Đóng Gói Chờ Đưa Vào Lò</span>
@@ -643,7 +639,6 @@
                                 </div>
                             </div>
 
-                            <!-- Nghiệm Thu Mẻ Hấp Đang Chạy Lò -->
                             <div class="bg-purple-50/40 border border-purple-200/80 p-4 rounded-xl space-y-3">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-bold text-xs text-purple-900 uppercase"><i class="fa-solid fa-vial-circle-check mr-1"></i>Nghiệm Thu Mẻ Hấp Đang Chạy Lò</h3>
@@ -681,9 +676,18 @@
                     </div>
 
                     <div class="pt-4 border-t border-slate-100">
-                        <h3 class="font-bold text-xs text-slate-700 uppercase mb-3"><i class="fa-solid fa-clock-history mr-1"></i>Nhật Ký Các Mẻ Hấp Trong Ngày</h3>
+                        <h3 class="font-bold text-xs text-slate-700 uppercase mb-3"><i class="fa-solid fa-clock-rotate-left mr-1"></i>Nhật Ký Các Mẻ Hấp Trong Ngày</h3>
                         <div class="overflow-x-auto border border-slate-200 rounded-xl">
                             <table class="w-full text-left border-collapse min-w-[500px]">
+                                <thead>
+                                    <tr class="bg-slate-50 text-[10px] font-bold text-slate-600 uppercase border-b">
+                                        <th class="p-2.5">Mã Lô Hấp</th>
+                                        <th class="p-2.5">Thiết Bị</th>
+                                        <th class="p-2.5">Nhiệt Độ / Áp Suất</th>
+                                        <th class="p-2.5 text-center">Test BI</th>
+                                        <th class="p-2.5 text-center">Trạng Thái</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="bangLichSuHap"></tbody>
                             </table>
                         </div>
@@ -729,7 +733,7 @@
                 </div>
             </div>
 
-            <!-- TAB 7: TỒN KHO -->
+            <!-- TAB 7: TỒN KHO REALTIME -->
             <div id="tab-quanlykho" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
@@ -1168,7 +1172,7 @@
                 </button>
             </div>
             
-            <div id="reader" class="w-full overflow-hidden rounded-xl border border-slate-200 bg-black"></div>
+            <div id="reader" class="w-full overflow-hidden rounded-xl border border-slate-200 bg-black min-h-[220px]"></div>
 
             <button onclick="dongCamera()" class="w-full bg-slate-700 text-white font-bold py-2 rounded-lg text-xs">
                 Đóng Camera
@@ -1294,6 +1298,7 @@
     <!-- Zone In Ấn Temp Rendering -->
     <div id="print-zone" class="hidden"></div>
 
+    <!-- FILE SCRIPT ĐIỀU KHIỂN CHÍNH -->
     <script src="app.js"></script>
 </body>
 </html>
