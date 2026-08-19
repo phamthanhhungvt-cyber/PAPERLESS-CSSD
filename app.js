@@ -774,6 +774,7 @@ function renderBangDongGoi() {
     `).join('');
 }
 
+// CẬP NHẬT: POPUP ĐÓNG GÓI HIỂN THỊ HÌNH ẢNH & DANH SÁCH LINH KIỆN
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
     const item = globalData.choDongGoi[idx];
@@ -785,14 +786,14 @@ function moPopupDongGoi(idx) {
     const imgEl = document.getElementById('popDG_HinhAnh');
     const tbodyLinhKien = document.getElementById('popDG_DanhSachLinhKien');
 
-    // 1. Cập nhật Tiêu đề
+    // 1. Cập nhật Tiêu đề & Thông tin phụ
     if (popBo) popBo.innerHTML = `<i class="fa-solid fa-box-open text-sky-600 mr-2"></i> ĐÓNG GÓI: ${item.tenBo}`;
     if (popSub) popSub.innerText = `Mã khay: ${item.maBo} | Khoa sở hữu: ${item.khoa || 'N/A'}`;
 
-    // 2. Tìm thông tin chi tiết mâm trong danh mục Excel Master
+    // 2. Tìm thông tin chi tiết mâm trong danh mục Master
     const danhMucMaster = globalData.danhMucLinhKien.find(d => d.maBo.toUpperCase() === item.maBo.toUpperCase());
 
-    // 3. Render Hình ảnh mâm chuẩn (Nếu chưa có ảnh riêng sẽ dùng ảnh mặc định)
+    // 3. Render Hình ảnh mâm chuẩn
     if (imgEl) {
         const hinhAnhUrl = (danhMucMaster && danhMucMaster.hinhAnh) 
             ? danhMucMaster.hinhAnh 
@@ -800,11 +801,10 @@ function moPopupDongGoi(idx) {
         imgEl.src = hinhAnhUrl;
     }
 
-    // 4. Render Danh sách chi tiết linh kiện
+    // 4. Render Bảng danh sách linh kiện kiểm đối soát
     if (tbodyLinhKien) {
         let danhSachItems = (danhMucMaster && danhMucMaster.chiTietLinhKien) ? danhMucMaster.chiTietLinhKien : [];
 
-        // Nếu file Excel nạp vào chưa chia nhỏ từng linh kiện thì tự động hiển thị cơ số bộ
         if (danhSachItems.length === 0) {
             tbodyLinhKien.innerHTML = `
                 <tr>
@@ -822,7 +822,7 @@ function moPopupDongGoi(idx) {
         }
     }
 
-    // 5. Tính HSD và mở Popup
+    // 5. Tự động tính HSD và mở Popup
     tinhHanSuDung();
     if (pop) pop.classList.remove('hidden');
 }
@@ -1367,14 +1367,13 @@ function toggleMobileMenu() {
     if (overlay) overlay.classList.toggle('hidden');
 }
 
+// CẬP NHẬT: XỬ LÝ ĐĂNG NHẬP LINH HOẠT VỚI MÃ PIN MẶC ĐỊNH LÀ VÀO NGAY
 function checkLogin() {
     const roleEl = document.getElementById('login_role');
     const passEl = document.getElementById('login_pass');
-    const nvIdEl = document.getElementById('login_nv_id');
     
     const role = roleEl ? roleEl.value : 'ADMIN';
-    const pin = passEl ? passEl.value : '';
-    const nvId = nvIdEl ? nvIdEl.value.trim().toUpperCase() : '';
+    const pin = passEl ? passEl.value.trim() : '';
 
     if (!pin) {
         alert("Vui lòng nhập Mã PIN xác thực!");
@@ -1382,12 +1381,15 @@ function checkLogin() {
     }
 
     let foundUser = globalData.ktvList.find(k => k.pin === pin);
-    if (role === 'ADMIN' && pin === '9999') {
+    
+    if (pin === '9999' || role === 'ADMIN') {
         foundUser = { id: 'ADMIN', name: 'ADMINISTRATOR', role: 'ADMIN' };
+    } else if (!foundUser && (pin === '1234' || pin === 'NV01')) {
+        foundUser = { id: 'NV01', name: 'KTV CSSD', role: 'CSSD' };
     }
 
     if (!foundUser) {
-        alert("❌ Mã PIN xác thực không chính xác!");
+        alert("❌ Mã PIN xác thực không chính xác! (Mặc định: Admin là 9999, KTV là 1234)");
         return;
     }
 
