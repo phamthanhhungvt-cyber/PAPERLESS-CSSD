@@ -781,11 +781,49 @@ function moPopupDongGoi(idx) {
 
     const pop = document.getElementById('popupDongGoi');
     const popBo = document.getElementById('popDG_Bo');
+    const popSub = document.getElementById('popDG_SubTitle');
+    const imgEl = document.getElementById('popDG_HinhAnh');
+    const tbodyLinhKien = document.getElementById('popDG_DanhSachLinhKien');
 
-    if (popBo) popBo.innerText = `ĐÓNG GÓI: ${item.tenBo} (${item.maBo})`;
+    // 1. Cập nhật Tiêu đề
+    if (popBo) popBo.innerHTML = `<i class="fa-solid fa-box-open text-sky-600 mr-2"></i> ĐÓNG GÓI: ${item.tenBo}`;
+    if (popSub) popSub.innerText = `Mã khay: ${item.maBo} | Khoa sở hữu: ${item.khoa || 'N/A'}`;
 
+    // 2. Tìm thông tin chi tiết mâm trong danh mục Excel Master
+    const danhMucMaster = globalData.danhMucLinhKien.find(d => d.maBo.toUpperCase() === item.maBo.toUpperCase());
+
+    // 3. Render Hình ảnh mâm chuẩn (Nếu chưa có ảnh riêng sẽ dùng ảnh mặc định)
+    if (imgEl) {
+        const hinhAnhUrl = (danhMucMaster && danhMucMaster.hinhAnh) 
+            ? danhMucMaster.hinhAnh 
+            : 'https://placehold.co/400x300/1e293b/38bdf8?text=So+Do+Mam+' + encodeURIComponent(item.maBo);
+        imgEl.src = hinhAnhUrl;
+    }
+
+    // 4. Render Danh sách chi tiết linh kiện
+    if (tbodyLinhKien) {
+        let danhSachItems = (danhMucMaster && danhMucMaster.chiTietLinhKien) ? danhMucMaster.chiTietLinhKien : [];
+
+        // Nếu file Excel nạp vào chưa chia nhỏ từng linh kiện thì tự động hiển thị cơ số bộ
+        if (danhSachItems.length === 0) {
+            tbodyLinhKien.innerHTML = `
+                <tr>
+                    <td class="p-2 font-semibold text-slate-800">${item.tenBo} (Nguyên bộ)</td>
+                    <td class="p-2 text-center font-mono font-bold text-sky-700">${item.soLuong || 1}</td>
+                </tr>
+            `;
+        } else {
+            tbodyLinhKien.innerHTML = danhSachItems.map(lk => `
+                <tr>
+                    <td class="p-2 font-semibold text-slate-800">${lk.tenLinhKien || lk.ten}</td>
+                    <td class="p-2 text-center font-mono font-bold text-sky-700">${lk.soLuong || 1}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    // 5. Tính HSD và mở Popup
     tinhHanSuDung();
-
     if (pop) pop.classList.remove('hidden');
 }
 
