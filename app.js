@@ -20,13 +20,14 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 // Khởi tạo Firestore
 const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
-// Fix lỗi net::ERR_QUIC_PROTOCOL_ERROR & QUIC_NETWORK_IDLE_TIMEOUT
+// Fix triệt để net::ERR_QUIC_PROTOCOL_ERROR & QUIC_NETWORK_IDLE_TIMEOUT
 if (db) {
     try {
         db.settings({
-            experimentalForceLongPolling: true
+            experimentalForceLongPolling: true,
+            useFetchStreams: false // Tắt fetch streams để ép Firestore dùng HTTP Long Polling thuần
         });
-        console.log("⚡ [FIRESTORE CONFIG] Đã kích hoạt experimentalForceLongPolling để chống lỗi ngắt mạng QUIC!");
+        console.log("⚡ [FIRESTORE CONFIG] Đã ép kết nối HTTP Long Polling thuần để chống lỗi ngắt mạng QUIC!");
     } catch (err) {
         console.warn("⚠️ Cấu hình Firestore settings đã được khởi tạo trước đó:", err);
     }
