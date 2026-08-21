@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (UPDATE ĐỒNG BỘ CLOUD FIREBASE & CHỐNG LỖI QUIC PROTOCOL)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (UPDATE ĐỒNG BỘ CLOUD FIREBASE & CHỐNG LỖI QUIC PROTOCOL & BI RECALL)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -60,6 +60,7 @@ let globalData = {
 let gioHangTraTam = [];
 let tempSuDungKhay = [];
 let itemDongGoiHienTai = null;
+let currentRecallBatchId = "";
 
 // Biến Canvas Ký Điện Tử
 let canvasKy = null;
@@ -1558,7 +1559,7 @@ function luuXacNhanKyNhan() {
 }
 
 /* =========================================================================
-   13. XUẤT BÁO CÁO EXCEL, TRUY XUẤT & IN TEM BARCODE ĐÔI
+   13. XUẤT BÁO CÁO EXCEL, TRUY XUẤT, IN TEM BARCODE ĐÔI & THU HỒI KHẨN CẤP
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
@@ -1828,7 +1829,115 @@ function inHoaDonGiaoNhan() {
 }
 
 /* =========================================================================
-   14. ADMIN SUBTAB & PIN CONFIG REALTIME
+   14. QUY TRÌNH THU HỒI KHẨN CẤP LÔ TIỆT TRÙNG (BI (+) RECALL)
+   ========================================================================= */
+function moPopupThuHoiKhanCap() {
+    const pop = document.getElementById('popupThuHoi');
+    if (pop) pop.classList.remove('hidden');
+}
+
+function dongPopupThuHoi() {
+    const pop = document.getElementById('popupThuHoi');
+    if (pop) pop.classList.add('hidden');
+}
+
+function truyVetKhanCapLoHap() {
+    const inpBatch = document.getElementById('recall_inpBatchId');
+    const resultZone = document.getElementById('recall_resultZone');
+    const tbody = document.getElementById('recall_tbody');
+    const badge = document.getElementById('recall_totalBadge');
+
+    if (!inpBatch || !inpBatch.value.trim()) {
+        alert("⚠️ Vui lòng nhập mã lô tiệt trùng nghi ngờ sự cố BI (+)");
+        return;
+    }
+
+    currentRecallBatchId = inpBatch.value.trim().toUpperCase();
+
+    // Tìm tất cả các khay thuộc mã lô hấp này ở các trạm
+    let listInRecall = [];
+
+    // Trạm Đang Hấp
+    (globalData.dangHap || []).forEach(item => {
+        if (item.maLoHap && item.maLoHap.toUpperCase() === currentRecallBatchId) {
+            listInRecall.push({ ...item, viTriRealtime: "Lò Hấp (Đang chạy)", mucDoRuiRo: "🔴 CAO" });
+        }
+    });
+
+    // Kho Vô Khuẩn
+    (globalData.khoVoKhuan || []).forEach(item => {
+        if ((item.maLoHap && item.maLoHap.toUpperCase() === currentRecallBatchId) || 
+            (item.batchId && item.batchId.toUpperCase() === currentRecallBatchId)) {
+            listInRecall.push({ ...item, viTriRealtime: "Kho Vô Khuẩn CSSD", mucDoRuiRo: "🟡 TRUNG BÌNH" });
+        }
+    });
+
+    // Lịch sử đã xuất về khoa / Bệnh nhân
+    (globalData.lichSu || []).forEach(item => {
+        if (item.maLoHap && item.maLoHap.toUpperCase() === currentRecallBatchId) {
+            listInRecall.push({ 
+                maBo: item.maBo, 
+                tenBo: item.tenBo, 
+                khoa: item.khoa, 
+                viTriRealtime: "Khoa Lâm Sàng / BN", 
+                mucDoRuiRo: "🔴 NGUY CƠ CAO" 
+            });
+        }
+    });
+
+    if (badge) badge.innerText = `${listInRecall.length} Mâm`;
+
+    if (tbody) {
+        if (listInRecall.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Không tìm thấy mâm dụng cụ nào thuộc mã lô ${currentRecallBatchId}.</td></tr>`;
+        } else {
+            tbody.innerHTML = listInRecall.map(item => `
+                <tr class="border-b hover:bg-rose-50 text-xs">
+                    <td class="p-2.5 font-mono font-bold text-rose-700">${item.maBo || 'N/A'}</td>
+                    <td class="p-2.5 font-bold text-slate-800">${item.tenBo || 'Mâm Dụng Cụ'}</td>
+                    <td class="p-2.5 font-semibold text-slate-600">${item.khoa || 'N/A'}</td>
+                    <td class="p-2.5 text-center font-bold text-sky-700">${item.viTriRealtime}</td>
+                    <td class="p-2.5 text-center font-extrabold text-rose-600">${item.mucDoRuiRo}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    if (resultZone) resultZone.classList.remove('hidden');
+}
+
+function xacNhanPhatLenhThuHoi() {
+    if (!currentRecallBatchId) {
+        alert("⚠️ Chưa chọn mã lô tiệt trùng để phát lệnh phong tỏa!");
+        return;
+    }
+
+    const lyDo = document.getElementById('recall_lyDo') ? document.getElementById('recall_lyDo').value.trim() : "Phát hiện BI (+)";
+
+    if (confirm(`🚨 XÁC NHẬN PHONG TỎA: Bạn chắc chắn muốn thu hồi toàn bộ mâm dụng cụ mã lô [${currentRecallBatchId}]?`)) {
+        
+        // Loại bỏ các khay bị phong tỏa khỏi Kho Vô Khuẩn & Đang Hấp
+        globalData.khoVoKhuan = (globalData.khoVoKhuan || []).filter(i => (i.maLoHap || i.batchId || '').toUpperCase() !== currentRecallBatchId);
+        globalData.dangHap = (globalData.dangHap || []).filter(i => (i.maLoHap || '').toUpperCase() !== currentRecallBatchId);
+
+        // Ghi nhận nhật ký cảnh báo lên Cloud
+        ghiNhatKyFirebase({
+            maBo: "ALL_BATCH",
+            tenBo: `PHONG TỎA THU HỒI LÔ ${currentRecallBatchId}`,
+            khoa: "TOÀN VIỆN",
+            trangThai: `KHẨN CẤP: BI (+) - ${lyDo}`,
+            maLoHap: currentRecallBatchId
+        });
+
+        dongBoTrangThaiRealtime();
+
+        alert(`🔥 ĐÃ PHÁT LỆNH THU HỒI TỚI TOÀN VIỆN!\nLô tiệt trùng ${currentRecallBatchId} đã bị phong tỏa khỏi hệ thống Realtime.`);
+        dongPopupThuHoi();
+    }
+}
+
+/* =========================================================================
+   15. ADMIN SUBTAB & PIN CONFIG REALTIME
    ========================================================================= */
 function switchAdminSubtab(subtab) {
     const subDb = document.getElementById('subtab-database');
