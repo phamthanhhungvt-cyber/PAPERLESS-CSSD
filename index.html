@@ -1102,7 +1102,7 @@
         </div>
     </div>
 
-    <!-- Popup 2: Đóng Gói (Đã bổ sung danh sách & hình ảnh dụng cụ) -->
+    <!-- Popup 2: Đóng Gói (Đã tích hợp AI Vision Scanner) -->
     <div id="popupDongGoi" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-4 border border-slate-200 max-h-[90vh] flex flex-col">
             
@@ -1117,6 +1117,36 @@
                 <button onclick="closePopupDongGoi()" class="text-slate-400 hover:text-rose-500 text-lg p-1">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
+            </div>
+
+            <!-- KHU VỰC AI CAMERA KIỂM ĐẾM TỰ ĐỘNG -->
+            <div class="p-3 bg-slate-900 rounded-xl text-white shadow-inner">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+                        <i class="fa-solid fa-robot text-amber-400 animate-pulse"></i> AI VISION SCANNER (ĐẾM TỰ ĐỘNG)
+                    </span>
+                    <button type="button" onclick="kichHoatAICamera()" class="bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-lg shadow transition-all">
+                        <i class="fa-solid fa-camera mr-1"></i> Bật AI Camera
+                    </button>
+                </div>
+
+                <!-- Khung Viewport Video & Canvas Bounding Box -->
+                <div id="ai_camera_container" class="relative w-full h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center">
+                    <video id="ai_webcam" autoplay playsinline class="w-full h-full object-cover hidden"></video>
+                    <canvas id="ai_canvas_overlay" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                    
+                    <div id="ai_placeholder" class="text-center p-4 text-slate-500 text-xs">
+                        <i class="fa-solid fa-microscope text-3xl mb-2 text-slate-600 block"></i>
+                        Chưa bật Camera. Bấm "Bật AI Camera" để quét sơ đồ mâm.
+                    </div>
+                </div>
+
+                <!-- Nút chụp & Phân tích -->
+                <div class="mt-2">
+                    <button type="button" onclick="chupAnhVaDemAI()" id="btn_ai_scan" disabled class="w-full bg-emerald-600 disabled:bg-slate-700 hover:bg-emerald-500 text-white font-bold py-1.5 rounded-lg text-xs shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Phân Tích & Đối Soát Thiếu Dụng Cụ
+                    </button>
+                </div>
             </div>
 
             <!-- Body: Chia 2 cột (Hình ảnh + Danh sách chi tiết linh kiện) -->
@@ -1143,7 +1173,7 @@
                                 <thead class="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase sticky top-0">
                                     <tr>
                                         <th class="p-2">Tên Linh Kiện</th>
-                                        <th class="p-2 text-center w-16">SL Chuẩn</th>
+                                        <th class="p-2 text-center w-28">SL Đối Soát</th>
                                     </tr>
                                 </thead>
                                 <tbody id="popDG_DanhSachLinhKien" class="divide-y divide-slate-100">
