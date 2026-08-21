@@ -852,14 +852,30 @@
                 </div>
             </div>
 
-            <!-- TAB 10: TRUY XUẤT -->
+            <!-- TAB 10: TRUY XUẤT NGUỒN GỐC & TÍNH NĂNG THU HỒI KHẨN CẤP (BI+) -->
             <div id="tab-tracuu" class="space-y-6 hidden">
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-100">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pb-4 border-b border-slate-100">
                         <div>
                             <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-magnifying-glass mr-2 text-sky-600"></i>TRUY XUẤT NGUỒN GỐC MẺ TIỆT TRÙNG KHẨN CẤP</h2>
                             <p class="text-xs text-slate-500 mt-0.5">Truy vết sự cố nhiễm khuẩn ngược từ mã lô tiệt trùng về toàn bộ bệnh nhân</p>
                         </div>
+                    </div>
+
+                    <!-- KHU VỰC THU HỒI KHẨN CẤP (EMERGENCY BATCH RECALL) -->
+                    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold text-lg animate-pulse">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-extrabold text-rose-900 uppercase">Quy Trình Cảnh Báo & Thu Hồi Khẩn Cấp Lô Tiệt Trùng (BI (+) Recall)</h4>
+                                <p class="text-xs text-rose-700">Kích hoạt lệnh phong tỏa Realtime khi phát hiện chỉ thị sinh học (BI) dương tính hoặc sự cố lò hấp.</p>
+                            </div>
+                        </div>
+                        <button onclick="moPopupThuHoiKhanCap()" class="bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs uppercase shadow-md transition-all whitespace-nowrap flex items-center gap-2">
+                            <i class="fa-solid fa-radiation"></i> Kích Hoạt Lệnh Thu Hồi
+                        </button>
                     </div>
 
                     <div class="flex gap-2 max-w-xl mb-6">
@@ -1087,117 +1103,89 @@
     </div>
 
     <!-- Popup 2: Đóng Gói (Đã bổ sung danh sách & hình ảnh dụng cụ) -->
-<div id="popupDongGoi" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-4 border border-slate-200 max-h-[90vh] flex flex-col">
-        
-        <!-- Header Popup -->
-        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-            <div>
-                <h3 id="popDG_Bo" class="text-base font-extrabold text-slate-800 uppercase flex items-center gap-2">
-                    <i class="fa-solid fa-box-open text-sky-600"></i> ĐÓNG GÓI MÂM DỤNG CỤ
-                </h3>
-                <p id="popDG_SubTitle" class="text-xs text-slate-500 font-medium mt-0.5">Mã khay: --- | Khoa: ---</p>
+    <div id="popupDongGoi" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6 space-y-4 border border-slate-200 max-h-[90vh] flex flex-col">
+            
+            <!-- Header Popup -->
+            <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                <div>
+                    <h3 id="popDG_Bo" class="text-base font-extrabold text-slate-800 uppercase flex items-center gap-2">
+                        <i class="fa-solid fa-box-open text-sky-600"></i> ĐÓNG GÓI MÂM DỤNG CỤ
+                    </h3>
+                    <p id="popDG_SubTitle" class="text-xs text-slate-500 font-medium mt-0.5">Mã khay: --- | Khoa: ---</p>
+                </div>
+                <button onclick="closePopupDongGoi()" class="text-slate-400 hover:text-rose-500 text-lg p-1">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <button onclick="closePopupDongGoi()" class="text-slate-400 hover:text-rose-500 text-lg p-1">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
 
-        <!-- Body: Chia 2 cột (Hình ảnh + Danh sách chi tiết linh kiện) -->
-        <div class="flex-1 overflow-y-auto space-y-4 pr-1">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                <!-- Cột trái: Hình ảnh sơ đồ mâm dụng cụ mẫu -->
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col items-center justify-center">
-                    <span class="text-[11px] font-bold text-slate-600 uppercase mb-2 self-start">
-                        <i class="fa-solid fa-image text-sky-600 mr-1"></i>Hình Ảnh Mâm Chuẩn
-                    </span>
-                    <div class="w-full h-44 bg-slate-900/90 rounded-lg overflow-hidden flex items-center justify-center border border-slate-300">
-                        <img id="popDG_HinhAnh" src="" alt="Hình ảnh mâm dụng cụ" class="max-h-full max-w-full object-contain">
+            <!-- Body: Chia 2 cột (Hình ảnh + Danh sách chi tiết linh kiện) -->
+            <div class="flex-1 overflow-y-auto space-y-4 pr-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    
+                    <!-- Cột trái: Hình ảnh sơ đồ mâm dụng cụ mẫu -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col items-center justify-center">
+                        <span class="text-[11px] font-bold text-slate-600 uppercase mb-2 self-start">
+                            <i class="fa-solid fa-image text-sky-600 mr-1"></i>Hình Ảnh Mâm Chuẩn
+                        </span>
+                        <div class="w-full h-44 bg-slate-900/90 rounded-lg overflow-hidden flex items-center justify-center border border-slate-300">
+                            <img id="popDG_HinhAnh" src="" alt="Hình ảnh mâm dụng cụ" class="max-h-full max-w-full object-contain">
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: Bảng chi tiết danh sách linh kiện -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col">
+                        <span class="text-[11px] font-bold text-slate-600 uppercase mb-2">
+                            <i class="fa-solid fa-list-check text-sky-600 mr-1"></i>Danh Sách Linh Kiện Kiểm Đối Soát
+                        </span>
+                        <div class="flex-1 overflow-y-auto max-h-44 border border-slate-200 rounded-lg bg-white">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead class="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase sticky top-0">
+                                    <tr>
+                                        <th class="p-2">Tên Linh Kiện</th>
+                                        <th class="p-2 text-center w-16">SL Chuẩn</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="popDG_DanhSachLinhKien" class="divide-y divide-slate-100">
+                                    <!-- Render Realtime qua app.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Cấu hình vật liệu bao bọc & HSD -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Vật Liệu Bao Bọc</label>
+                        <select id="popDG_Loai" onchange="tinhHanSuDung()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs font-bold outline-none bg-slate-50">
+                            <option value="Vải (Hạn 7 Ngày)|7">a. Vải (Hạn 7 ngày)</option>
+                            <option value="Túi ép nhiệt độ cao (Hạn 30 Ngày)|30">b. Túi ép nhiệt độ cao (Hạn 30 ngày)</option>
+                            <option value="Hộp chuyên dụng (Hạn 90 Ngày)|90">c. Hộp chuyên dụng (Hạn 90 ngày)</option>
+                            <option value="Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 Ngày)|90">d. Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 ngày)</option>
+                            <option value="Giấy gói chuyên dụng (vải không dệt) (Hạn 30 Ngày)|30" selected>e. Giấy gói chuyên dụng (vải không dệt) (Hạn 30 ngày)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tự Động Tính Hạn Sử Dụng (HSD)</label>
+                        <div class="p-2.5 bg-sky-50 border border-sky-200 rounded-lg text-center">
+                            <span id="popDG_Han" class="font-mono font-bold text-sky-700 text-sm">--/--/----</span>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Cột phải: Bảng chi tiết danh sách linh kiện -->
-                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col">
-                    <span class="text-[11px] font-bold text-slate-600 uppercase mb-2">
-                        <i class="fa-solid fa-list-check text-sky-600 mr-1"></i>Danh Sách Linh Kiện Kiểm Đối Soát
-                    </span>
-                    <div class="flex-1 overflow-y-auto max-h-44 border border-slate-200 rounded-lg bg-white">
-                        <table class="w-full text-left border-collapse text-xs">
-                            <thead class="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase sticky top-0">
-                                <tr>
-                                    <th class="p-2">Tên Linh Kiện</th>
-                                    <th class="p-2 text-center w-16">SL Chuẩn</th>
-                                </tr>
-                            </thead>
-                            <tbody id="popDG_DanhSachLinhKien" class="divide-y divide-slate-100">
-                                <!-- Render Realtime qua app.js -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
 
-            <!-- Cấu hình vật liệu bao bọc & HSD -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Vật Liệu Bao Bọc</label>
-                    <select id="popDG_Loai" onchange="tinhHanSuDung()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs font-bold outline-none bg-slate-50">
-                        <option value="Vải (Hạn 7 Ngày)|7">a. Vải (Hạn 7 ngày)</option>
-                        <option value="Túi ép nhiệt độ cao (Hạn 30 Ngày)|30">b. Túi ép nhiệt độ cao (Hạn 30 ngày)</option>
-                        <option value="Hộp chuyên dụng (Hạn 90 Ngày)|90">c. Hộp chuyên dụng (Hạn 90 ngày)</option>
-                        <option value="Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 Ngày)|90">d. Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 ngày)</option>
-                        <option value="Giấy gói chuyên dụng (vải không dệt) (Hạn 30 Ngày)|30" selected>e. Giấy gói chuyên dụng (vải không dệt) (Hạn 30 ngày)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Tự Động Tính Hạn Sử Dụng (HSD)</label>
-                    <div class="p-2.5 bg-sky-50 border border-sky-200 rounded-lg text-center">
-                        <span id="popDG_Han" class="font-mono font-bold text-sky-700 text-sm">--/--/----</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer Buttons -->
-        <div class="flex gap-2 pt-3 border-t border-slate-100">
-            <button onclick="chotDongGoi()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm tracking-wider">
-                <i class="fa-solid fa-circle-check mr-1"></i> Xác Nhận Đóng Gói & Chuyển Hấp
-            </button>
-            <button onclick="closePopupDongGoi()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-lg text-xs">
-                Hủy
-            </button>
-        </div>
-
-    </div>
-</div>
-
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Loại Vật Liệu Bao Bọc</label>
-                    <select id="popDG_Loai" onchange="tinhHanSuDung()" class="w-full border border-slate-300 rounded-lg p-2.5 text-xs font-bold outline-none bg-slate-50/50">
-                        <option value="Vải (Hạn 7 Ngày)|7">a. Vải (Hạn 7 ngày)</option>
-                        <option value="Túi ép nhiệt độ cao (Hạn 30 Ngày)|30">b. Túi ép nhiệt độ cao (Hạn 30 ngày)</option>
-                        <option value="Hộp chuyên dụng (Hạn 90 Ngày)|90">c. Hộp chuyên dụng (Hạn 90 ngày)</option>
-                        <option value="Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 Ngày)|90">d. Túi ép nhiệt độ thấp (Tyvek) (Hạn 90 ngày)</option>
-                        <option value="Giấy gói chuyên dụng (vải không dệt) (Hạn 30 Ngày)|30" selected>e. Giấy gói chuyên dụng (vải không dệt) (Hạn 30 ngày)</option>
-                    </select>
-                </div>
-                <div class="p-3 bg-sky-50/60 border border-sky-200/80 rounded-lg flex justify-between items-center">
-                    <span class="text-xs font-bold text-sky-900">Tính Tự Động HSD:</span>
-                    <span id="popDG_Han" class="font-mono font-bold text-sky-700 text-sm">--/--/----</span>
-                </div>
-            </div>
-
-            <div class="flex gap-2 pt-2">
-                <button onclick="chotDongGoi()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm">
-                    Xác Nhận Đóng Gói
+            <!-- Footer Buttons -->
+            <div class="flex gap-2 pt-3 border-t border-slate-100">
+                <button onclick="chotDongGoi()" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm tracking-wider">
+                    <i class="fa-solid fa-circle-check mr-1"></i> Xác Nhận Đóng Gói & Chuyển Hấp
                 </button>
                 <button onclick="closePopupDongGoi()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-lg text-xs">
                     Hủy
                 </button>
             </div>
+
         </div>
     </div>
 
@@ -1369,6 +1357,89 @@
                 </button>
                 <button onclick="closePopupSuDung()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-lg text-xs">Hủy</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Popup 7: THU HỒI LÔ KHẨN CẤP (EMERGENCY BATCH RECALL) -->
+    <div id="popupThuHoi" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl border-2 border-rose-500 overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Header Popup Cảnh báo -->
+            <div class="bg-rose-600 text-white px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-xl animate-bounce"></i>
+                    <h3 class="text-base font-extrabold uppercase tracking-wide">CẢNH BÁO: THU HỒI KHẨN CẤP LÔ TIỆT TRÙNG</h3>
+                </div>
+                <button onclick="dongPopupThuHoi()" class="text-white/80 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Body Popup -->
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                
+                <!-- Ô nhập Mã Lô Cần Thu Hồi -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Mã Lô Tiệt Trùng Cần Thu Hồi (Batch ID / BI (+))</label>
+                        <input type="text" id="recall_inpBatchId" placeholder="Ví dụ: H260821_01" class="w-full border-2 border-rose-300 rounded-lg p-2.5 text-xs font-mono font-bold uppercase focus:border-rose-600 outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="truyVetKhanCapLoHap()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm">
+                            <i class="fa-solid fa-magnifying-glass mr-1"></i> Quét & Phân Tích
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kết Quả Phân Tích Vị Trí Các Mâm Dụng Cụ Trong Lô -->
+                <div id="recall_resultZone" class="hidden space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h5 class="text-xs font-extrabold text-slate-800 uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-boxes-stacked text-rose-600"></i> Bản Đồ Định Vị Mâm Dụng Cụ Trong Lô
+                        </h5>
+                        <span id="recall_totalBadge" class="bg-rose-100 text-rose-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">-- Mâm</span>
+                    </div>
+
+                    <!-- Bảng danh sách mâm dụng cụ & vị trí thực tế -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase">
+                                <tr>
+                                    <th class="p-2.5">Mã Khay</th>
+                                    <th class="p-2.5">Tên Dụng Cụ</th>
+                                    <th class="p-2.5">Khoa Sở Hữu</th>
+                                    <th class="p-2.5 text-center">Vị Trí Hiện Tại</th>
+                                    <th class="p-2.5 text-center">Trạng Thái Rủi Ro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recall_tbody" class="divide-y divide-slate-100">
+                                <!-- Render bằng JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Lý do thu hồi & ghi chú cảnh báo -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Lý Do Thu Hồi / Biên Bản Sự Cố</label>
+                        <textarea id="recall_lyDo" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-xs font-medium outline-none" placeholder="Nhập lý do: Kết quả BI dương tính sau 30 phút / Lò hấp báo lỗi áp suất..."></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer Popup -->
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-between items-center">
+                <span class="text-[11px] text-slate-500 font-medium">Lệnh thu hồi sẽ phát cảnh báo khẩn cấp và khóa mã lô trên toàn hệ thống.</span>
+                <div class="flex gap-2">
+                    <button onclick="xacNhanPhatLenhThuHoi()" class="bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-5 py-2 rounded-lg text-xs uppercase shadow-sm">
+                        <i class="fa-solid fa-lock mr-1"></i> Bấm Phát Lệnh Phong Tỏa & Thu Hồi
+                    </button>
+                    <button onclick="dongPopupThuHoi()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 
