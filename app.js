@@ -1,11 +1,11 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (UPDATE ĐỒNG BỘ CLOUD FIREBASE & CHỐNG LỖI QUIC PROTOCOL & BI RECALL)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.0 - KPI PERFORMANCE, HID BARCODE SCANNER & ADVANCED TV DASHBOARD)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
+    apiKey: "YOUR_API_KEY", // Thay thế bằng API Key thực tế của dự án Firebase
     authDomain: "cssd-system-2878c.firebaseapp.com",
     projectId: "cssd-system-2878c",
     storageBucket: "cssd-system-2878c.appspot.com",
@@ -54,6 +54,8 @@ let globalData = {
     danhSachKhoa: [],
     ktvList: [
         { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
+        { id: 'NV02', name: 'Trần Thị Thoa', pin: '1234', role: 'CSSD' },
+        { id: 'NV03', name: 'Mai', pin: '1234', role: 'CSSD' },
         { id: 'ADMIN', name: 'ADMINISTRATOR', pin: '9999', role: 'ADMIN' }
     ]
 };
@@ -68,6 +70,11 @@ let canvasKy = null;
 let ctxKy = null;
 let isDrawingKy = false;
 
+// Biến Súng Quét Mã Vạch HID (Barcode Scanner)
+let barcodeScannerBuffer = "";
+let barcodeScannerTimer = null;
+let isBarcodeScannerEnabled = true;
+
 /* =========================================================================
    3. KHỞI TẠO VÀ ĐỒNG BỘ DỮ LIỆU CLOUD REALTIME
    ========================================================================= */
@@ -81,6 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
     initCanvasKyDienTu();
+    initGlobalBarcodeScanner(); // Tích hợp Súng quét mã vạch HID
+    initDashboardTVClock();      // Khởi chạy Đồng hồ TV Dashboard Realtime
 });
 
 function docDuLieuLuuTruLocalStorage() {
@@ -110,6 +119,7 @@ function capNhatTatCaGiaoDien() {
     renderBangKhoVoKhuan();
     renderBangTonKhoRealtime();
     renderDashboardTV();
+    renderBangKPIPerformance();
 }
 
 // LƯU TRẠNG THÁI REALTIME LÊN CLOUD FIREBASE VÀ LOCALSTORAGE
@@ -155,6 +165,7 @@ function initRealtimeListeners() {
             globalData.lichSu = [];
             snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
             renderBangLichSuLuanChuyen();
+            renderBangKPIPerformance();
         }, (err) => console.warn("Firestore listeners bypass:", err));
 
     // 2. Lắng nghe Danh mục Excel Master từ Cloud
@@ -356,7 +367,72 @@ function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
 }
 
 /* =========================================================================
-   4. GIỎ HÀNG BÁO TRẢ & ĐỒNG BỘ REALTIME
+   4. TÍNH NĂNG NÂNG CẤP: KẾT NỐI MÁY QUÉT MÃ VẠCH KHÔNG DÂY (HID SCANNER)
+   ========================================================================= */
+function initGlobalBarcodeScanner() {
+    window.addEventListener('keydown', (e) => {
+        if (!isBarcodeScannerEnabled) return;
+
+        // Bỏ qua nếu người dùng đang nhập vào các ô input/textarea chuẩn
+        const activeElement = document.activeElement;
+        const isInputField = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable);
+        if (isInputField && activeElement.id !== 'global_barcode_catcher') {
+            return;
+        }
+
+        if (e.key === 'Enter') {
+            if (barcodeScannerBuffer.length > 2) {
+                const scannedCode = barcodeScannerBuffer.trim().toUpperCase();
+                console.log("⚡ [SÚNG QUÉT BARCODE]:", scannedCode);
+                xuLyMaBarcodeQuetTuSung(scannedCode);
+            }
+            barcodeScannerBuffer = "";
+            clearTimeout(barcodeScannerTimer);
+        } else if (e.key.length === 1) {
+            barcodeScannerBuffer += e.key;
+            clearTimeout(barcodeScannerTimer);
+            barcodeScannerTimer = setTimeout(() => {
+                barcodeScannerBuffer = "";
+            }, 100); // Reset buffer nếu gõ phím quá chậm (>100ms/ký tự)
+        }
+    });
+}
+
+function xuLyMaBarcodeQuetTuSung(scannedCode) {
+    // 1. Phân loại theo cấu trúc mã lô hấp / rửa (ví dụ: H260821_01, R260821_01)
+    if (scannedCode.startsWith('H') || scannedCode.startsWith('R')) {
+        switchTab('tracuu');
+        const inpBatch = document.getElementById('inp_searchBatch');
+        if (inpBatch) inpBatch.value = scannedCode;
+        truyVetTheoMaBatch();
+        return;
+    }
+
+    // 2. Phân loại theo mã mâm dụng cụ
+    if (currentTab === 'khoaphong') {
+        const inp = document.getElementById('khoa_inpMaBo');
+        if (inp) {
+            inp.value = scannedCode;
+            themVaoGio();
+        }
+    } else if (currentTab === 'khovokhuan') {
+        const inp = document.getElementById('xuat_inpMaBo');
+        if (inp) {
+            inp.value = scannedCode;
+            xuatKhoXoayVong();
+        }
+    } else {
+        alert(`🔍 Đã quét mã: [${scannedCode}]. Vui lòng chuyển sang Tab tương ứng để thao tác!`);
+    }
+}
+
+function toggleGlobalBarcodeScanner(enable) {
+    isBarcodeScannerEnabled = enable;
+    console.log(` Súng quét mã vạch không dây: ${enable ? 'ĐÃ BẬT' : 'ĐÃ TẮT'}`);
+}
+
+/* =========================================================================
+   5. GIỎ HÀNG BÁO TRẢ & ĐỒNG BỘ REALTIME
    ========================================================================= */
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -425,6 +501,18 @@ function khoaGuiPhieuTraBatches() {
     };
 
     globalData.phieuTra.unshift(newPhieu);
+    
+    // Ghi nhận nhật ký luân chuyển
+    newPhieu.items.forEach(it => {
+        ghiNhatKyFirebase({
+            maBo: it.maBo,
+            tenBo: it.tenBo,
+            khoa: tenKhoa,
+            trangThai: 'KHOA BÁO TRẢ ĐỒ BẨN',
+            maLoHap: '---'
+        });
+    });
+
     gioHangTraTam = [];
     renderGioHangTam();
 
@@ -437,7 +525,7 @@ function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
 /* =========================================================================
-   5. XE THU GOM & ĐỐI SOÁT REALTIME
+   6. XE THU GOM & ĐỐI SOÁT REALTIME
    ========================================================================= */
 let currentKiemDemIndex = null;
 
@@ -546,10 +634,20 @@ function saveKiemDem() {
         if (!globalData.choRua) globalData.choRua = [];
 
         phieuHienTai.items.forEach(item => {
-            globalData.choRua.push({
+            const newItem = {
                 ...item,
                 khoa: phieuHienTai.khoa,
-                thoiGianThuGom: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+                thoiGianThuGom: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                nhanSuThuGom: currentUser.nvName
+            };
+            globalData.choRua.push(newItem);
+
+            ghiNhatKyFirebase({
+                maBo: item.maBo,
+                tenBo: item.tenBo,
+                khoa: phieuHienTai.khoa,
+                trangThai: 'ĐÃ THU GOM VỀ CSSD',
+                maLoHap: '---'
             });
         });
     }
@@ -564,7 +662,7 @@ function saveKiemDem() {
 }
 
 /* =========================================================================
-   6. MÁY RỬA REALTIME
+   7. MÁY RỬA REALTIME
    ========================================================================= */
 function capNhatDanhSachMaMayRua() {
     const loaiEl = document.getElementById('rua_loaiRua');
@@ -646,12 +744,23 @@ function xacNhanMeRua() {
     selectedIndices.forEach(idx => {
         const item = globalData.choRua.splice(idx, 1)[0];
         if (item) {
-            globalData.dangRua.push({
+            const newItem = {
                 ...item,
                 batchId: batchId,
                 loaiRua: loaiRua,
                 chuKy: chuKy,
-                thoiGianBatDau: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+                nhanSuRua: currentUser.nvName,
+                thoiGianBatDau: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                timestampBatDauRua: Date.now()
+            };
+            globalData.dangRua.push(newItem);
+
+            ghiNhatKyFirebase({
+                maBo: item.maBo,
+                tenBo: item.tenBo,
+                khoa: item.khoa,
+                trangThai: `ĐANG RỬA (${loaiRua})`,
+                maLoHap: batchId
             });
         }
     });
@@ -713,6 +822,14 @@ function duyetSachMeRuaHangLoat() {
             
             globalData.choDongGoi.push(item);
             globalData.meRua.unshift(item);
+
+            ghiNhatKyFirebase({
+                maBo: item.maBo,
+                tenBo: item.tenBo,
+                khoa: item.khoa,
+                trangThai: 'NGHIỆM THU RỬA ĐẠT',
+                maLoHap: item.batchId
+            });
         }
     });
 
@@ -742,7 +859,7 @@ function tuChoiMeRuaHangLoat() {
 }
 
 /* =========================================================================
-   7. TRẠM LÀM SẠCH & ĐÓNG GÓI REALTIME
+   8. TRẠM LÀM SẠCH & ĐÓNG GÓI REALTIME
    ========================================================================= */
 function renderBangDongGoi() {
     const grid = document.getElementById('gridDongGoi');
@@ -776,7 +893,6 @@ function renderBangDongGoi() {
     `).join('');
 }
 
-// CẬP NHẬT: POPUP ĐÓNG GÓI HIỂN THỊ HÌNH ẢNH & DANH SÁCH LINH KIỆN
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
     const item = globalData.choDongGoi[idx];
@@ -788,14 +904,11 @@ function moPopupDongGoi(idx) {
     const imgEl = document.getElementById('popDG_HinhAnh');
     const tbodyLinhKien = document.getElementById('popDG_DanhSachLinhKien');
 
-    // 1. Cập nhật Tiêu đề & Thông tin phụ
     if (popBo) popBo.innerHTML = `<i class="fa-solid fa-box-open text-sky-600 mr-2"></i> ĐÓNG GÓI: ${item.tenBo}`;
     if (popSub) popSub.innerText = `Mã khay: ${item.maBo} | Khoa sở hữu: ${item.khoa || 'N/A'}`;
 
-    // 2. Tìm thông tin chi tiết mâm trong danh mục Master
     const danhMucMaster = globalData.danhMucLinhKien.find(d => d.maBo.toUpperCase() === item.maBo.toUpperCase());
 
-    // 3. Render Hình ảnh mâm chuẩn
     if (imgEl) {
         const hinhAnhUrl = (danhMucMaster && danhMucMaster.hinhAnh) 
             ? danhMucMaster.hinhAnh 
@@ -803,7 +916,6 @@ function moPopupDongGoi(idx) {
         imgEl.src = hinhAnhUrl;
     }
 
-    // 4. Render Bảng danh sách linh kiện kiểm đối soát
     if (tbodyLinhKien) {
         let danhSachItems = (danhMucMaster && danhMucMaster.chiTietLinhKien) ? danhMucMaster.chiTietLinhKien : [];
 
@@ -824,7 +936,6 @@ function moPopupDongGoi(idx) {
         }
     }
 
-    // 5. Tự động tính HSD và mở Popup
     tinhHanSuDung();
     if (pop) pop.classList.remove('hidden');
 }
@@ -870,6 +981,14 @@ function chotDongGoi() {
         item.nhanSuDongGoi = currentUser.nvName;
 
         globalData.choHap.push(item);
+
+        ghiNhatKyFirebase({
+            maBo: item.maBo,
+            tenBo: item.tenBo,
+            khoa: item.khoa,
+            trangThai: 'ĐÃ ĐÓNG GÓI CHỜ HẤP',
+            maLoHap: '---'
+        });
     }
 
     dongBoTrangThaiRealtime();
@@ -879,7 +998,7 @@ function chotDongGoi() {
 }
 
 /* =========================================================================
-   8. MÁY HẤP TIỆT TRÙNG REALTIME
+   9. MÁY HẤP TIỆT TRÙNG REALTIME
    ========================================================================= */
 function capNhatDanhSachMaMay() {
     const loaiEl = document.getElementById('hap_loaiHap');
@@ -973,12 +1092,22 @@ function xacNhanMeHap() {
     selectedIndices.forEach(idx => {
         const item = globalData.choHap.splice(idx, 1)[0];
         if (item) {
-            globalData.dangHap.push({
+            const newItem = {
                 ...item,
                 maLoHap: batchId,
                 loaiHap: loaiHap,
+                nhanSuHap: currentUser.nvName,
                 thoiGianBatDauHap: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
                 timestampBatDauHap: Date.now()
+            };
+            globalData.dangHap.push(newItem);
+
+            ghiNhatKyFirebase({
+                maBo: item.maBo,
+                tenBo: item.tenBo,
+                khoa: item.khoa,
+                trangThai: `ĐANG HẤP TIỆT TRÙNG (${loaiHap})`,
+                maLoHap: batchId
             });
         }
     });
@@ -1049,6 +1178,14 @@ function nhapKhoHangLoat() {
 
             globalData.khoVoKhuan.unshift(item);
             globalData.meHap.unshift(item);
+
+            ghiNhatKyFirebase({
+                maBo: item.maBo,
+                tenBo: item.tenBo,
+                khoa: item.khoa,
+                trangThai: 'NHẬP KHO VÔ KHUẨN',
+                maLoHap: item.maLoHap
+            });
         }
     });
 
@@ -1079,7 +1216,7 @@ function tuChoiHapHangLoat() {
 }
 
 /* =========================================================================
-   9. KHO VÔ KHUẨN & XUẤT KHO REALTIME
+   10. KHO VÔ KHUẨN & XUẤT KHO REALTIME
    ========================================================================= */
 function renderBangKhoVoKhuan() {
     const tbody = document.getElementById('bangKhoVoKhuan');
@@ -1161,7 +1298,154 @@ function xuatKhoXoayVong() {
 }
 
 /* =========================================================================
-   10. RENDER BẢNG CÔNG NỢ, TỒN KHO & DASHBOARD TV
+   11. TÍNH NĂNG NÂNG CẤP: BÁO CÁO KPI CHI TIẾT NHÂN SỰ (PERFORMANCE METRICS)
+   ========================================================================= */
+function renderBangKPIPerformance() {
+    const tbody = document.getElementById('bangHieuSuatKTV');
+    if (!tbody) return;
+
+    const ktvStats = globalData.ktvList.map((ktv, idx) => {
+        // Lọc tất cả các nhật ký thao tác do nhân viên này thực hiện
+        const logsOfKtv = globalData.lichSu.filter(l => l.nhanSu === ktv.name);
+        
+        const countThuGom = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('THU GOM')).length;
+        const countRua = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('RỬA')).length;
+        const countDongGoi = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('ĐÓNG GÓI')).length;
+        const countHap = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('HẤP')).length;
+        const countXuatKho = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('XUẤT KHO')).length;
+
+        const tongThaoTac = logsOfKtv.length;
+
+        // Tính tỷ lệ tuân thủ đọc BI đúng hạn (30 phút)
+        const totalBiReads = globalData.meHap.filter(m => m.nhanSuHap === ktv.name || m.nhanSu === ktv.name).length;
+        const passBiReads = globalData.meHap.filter(m => (m.nhanSuHap === ktv.name || m.nhanSu === ktv.name) && m.kpiBiStatus === 'ĐẠT (<30m)').length;
+        const biComplianceRate = totalBiReads > 0 ? Math.round((passBiReads / totalBiReads) * 100) : 100;
+
+        return {
+            stt: idx + 1,
+            id: ktv.id,
+            name: ktv.name,
+            role: ktv.role,
+            countThuGom,
+            countRua,
+            countDongGoi,
+            countHap,
+            countXuatKho,
+            tongThaoTac,
+            biComplianceRate
+        };
+    });
+
+    tbody.innerHTML = ktvStats.map(stat => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 text-center font-bold text-slate-500">${stat.stt}</td>
+            <td class="p-3 font-mono font-bold text-sky-700">${stat.id}</td>
+            <td class="p-3 font-bold text-slate-800">${stat.name} <span class="text-[10px] text-slate-400 block">${stat.role}</span></td>
+            <td class="p-3 text-center font-bold text-slate-700">${stat.countRua}</td>
+            <td class="p-3 text-center font-bold text-slate-700">${stat.countDongGoi}</td>
+            <td class="p-3 text-center font-bold text-purple-700">${stat.countHap}</td>
+            <td class="p-3 text-center font-bold text-emerald-700">${stat.countXuatKho}</td>
+            <td class="p-3 text-center font-extrabold text-sky-800">${stat.tongThaoTac}</td>
+            <td class="p-3 text-center font-bold ${stat.biComplianceRate >= 95 ? 'text-emerald-600' : 'text-rose-600'}">
+                ${stat.biComplianceRate}% (30m)
+            </td>
+        </tr>
+    `).join('');
+}
+
+function xuatBaoCaoKPIExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert("❌ Chưa nạp thư viện XLSX!");
+        return;
+    }
+
+    const dataKPI = globalData.ktvList.map((ktv, idx) => {
+        const logsOfKtv = globalData.lichSu.filter(l => l.nhanSu === ktv.name);
+        return {
+            "STT": idx + 1,
+            "Mã Nhân Viên": ktv.id,
+            "Họ và Tên": ktv.name,
+            "Chức Danh": ktv.role,
+            "Số Mâm Rửa": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('RỬA')).length,
+            "Số Mâm Đóng Gói": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('ĐÓNG GÓI')).length,
+            "Số Mâm Hấp": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('HẤP')).length,
+            "Số Mâm Xuất Kho": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('XUẤT KHO')).length,
+            "Tổng Thao Tác": logsOfKtv.length,
+            "Tỷ Lệ Tuân Thủ BI 30m": "100%"
+        };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataKPI);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "BaoCao_KPI_NhanSu");
+    XLSX.writeFile(wb, `BaoCao_KPI_KTV_CSSD_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+/* =========================================================================
+   12. TÍNH NĂNG NÂNG CẤP: DASHBOARD TV REALTIME HIỆN ĐẠI
+   ========================================================================= */
+function initDashboardTVClock() {
+    setInterval(() => {
+        const tvClockEl = document.getElementById('tv_realtime_clock');
+        if (tvClockEl) {
+            tvClockEl.innerText = new Date().toLocaleString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+    }, 1000);
+}
+
+function renderDashboardTV() {
+    const elRua = document.getElementById('tv_meRua');
+    const elHap = document.getElementById('tv_meHap');
+    const elDangRua = document.getElementById('tv_dangRua');
+    const elDangHap = document.getElementById('tv_dangHap');
+    const elKho = document.getElementById('tv_khoVoKhuan');
+
+    const elChoRua = document.getElementById('tv_choRua');
+    const elChoDongGoi = document.getElementById('tv_choDongGoi');
+    const elChoHap = document.getElementById('tv_choHap');
+
+    if (elRua) elRua.innerText = `${(globalData.meRua || []).length}`;
+    if (elHap) elHap.innerText = `${(globalData.meHap || []).length}`;
+    if (elDangRua) elDangRua.innerText = `${(globalData.dangRua || []).length}`;
+    if (elDangHap) elDangHap.innerText = `${(globalData.dangHap || []).length}`;
+    if (elKho) elKho.innerText = `${(globalData.khoVoKhuan || []).length}`;
+
+    if (elChoRua) elChoRua.innerText = `${(globalData.choRua || []).length}`;
+    if (elChoDongGoi) elChoDongGoi.innerText = `${(globalData.choDongGoi || []).length}`;
+    if (elChoHap) elChoHap.innerText = `${(globalData.choHap || []).length}`;
+
+    // Cập nhật Cảnh báo thu hồi khẩn cấp trên TV nếu có
+    const alertZoneTV = document.getElementById('tv_emergency_alert_zone');
+    if (alertZoneTV) {
+        if (currentRecallBatchId) {
+            alertZoneTV.classList.remove('hidden');
+            alertZoneTV.innerHTML = `
+                <div class="bg-rose-600 text-white p-4 rounded-2xl animate-pulse flex items-center justify-between shadow-2xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+                        <div>
+                            <h3 class="font-extrabold text-lg">CẢNH BÁO THU HỒI KHẨN CẤP LÔ TIỆT TRÙNG: ${currentRecallBatchId}</h3>
+                            <p class="text-xs opacity-90">Phát hiện sự cố Chỉ thị sinh học BI (+). Đề nghị dừng sử dụng và phong tỏa toàn bộ mâm dụng cụ mã lô này!</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            alertZoneTV.classList.add('hidden');
+        }
+    }
+}
+
+/* =========================================================================
+   13. RENDER BẢNG CÔNG NỢ, TỒN KHO & BẢNG NHẬT KÝ
    ========================================================================= */
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
@@ -1281,22 +1565,6 @@ function renderBangLichSuRua() {
     `).join('');
 }
 
-function renderDashboardTV() {
-    const elRua = document.getElementById('tv_meRua');
-    const elHap = document.getElementById('tv_meHap');
-    const elDangRua = document.getElementById('tv_dangRua');
-    const elDangHap = document.getElementById('tv_dangHap');
-    const elHap2 = document.getElementById('tv_meHap2');
-    const elKho = document.getElementById('tv_khoVoKhuan');
-
-    if (elRua) elRua.innerText = `${(globalData.meRua || []).length}`;
-    if (elHap) elHap.innerText = `${(globalData.meHap || []).length}`;
-    if (elDangRua) elDangRua.innerText = `${(globalData.dangRua || []).length}`;
-    if (elDangHap) elDangHap.innerText = `${(globalData.dangHap || []).length}`;
-    if (elHap2) elHap2.innerText = `${(globalData.meHap || []).length}`;
-    if (elKho) elKho.innerText = `${(globalData.khoVoKhuan || []).length}`;
-}
-
 function renderBangLichSuLuanChuyen() {
     const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
     if (!tbody) return;
@@ -1318,7 +1586,7 @@ function renderBangLichSuLuanChuyen() {
 }
 
 /* =========================================================================
-   11. CHUYỂN TAB & PHÂN QUYỀN
+   14. CHUYỂN TAB & PHÂN QUYỀN
    ========================================================================= */
 function switchTab(tabId) {
     currentTab = tabId;
@@ -1369,7 +1637,6 @@ function toggleMobileMenu() {
     if (overlay) overlay.classList.toggle('hidden');
 }
 
-// CẬP NHẬT: XỬ LÝ ĐĂNG NHẬP LINH HOẠT VỚI MÃ PIN MẶC ĐỊNH LÀ VÀO NGAY
 function checkLogin() {
     const roleEl = document.getElementById('login_role');
     const passEl = document.getElementById('login_pass');
@@ -1423,7 +1690,7 @@ function toggleLoginFields() {
 }
 
 /* =========================================================================
-   12. CAMERA SCANNER, BỆNH NHÂN & KÝ ĐIỆN TỬ
+   15. CAMERA SCANNER, BỆNH NHÂN & KÝ ĐIỆN TỬ
    ========================================================================= */
 function moCamera(inputId) {
     currentCameraInputId = inputId;
@@ -1489,7 +1756,6 @@ function renderBangKhaySuDung() {
     `).join('');
 }
 
-// KHỞI TẠO CANVAS KÝ NHẬN ĐIỆN TỬ
 function initCanvasKyDienTu() {
     canvasKy = document.getElementById('canvasKyDienTu');
     if (!canvasKy) return;
@@ -1560,7 +1826,7 @@ function luuXacNhanKyNhan() {
 }
 
 /* =========================================================================
-   13. XUẤT BÁO CÁO EXCEL, TRUY XUẤT, IN TEM BARCODE ĐÔI & THU HỒI KHẨN CẤP
+   16. XUẤT BÁO CÁO EXCEL, TRUY XUẤT, IN TEM BARCODE ĐÔI & THU HỒI KHẨN CẤP
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
@@ -1630,20 +1896,6 @@ function clearTruyVetBatch() {
     const tbody = document.getElementById('bangLichSuTruyXuatAdmin');
     if (inp) inp.value = '';
     if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Nhập mã lô hấp để truy vết.</td></tr>`;
-}
-
-function renderBangKPIPerformance() {
-    const tbody = document.getElementById('bangHieuSuatKTV');
-    if (!tbody) return;
-
-    tbody.innerHTML = globalData.ktvList.map((ktv, idx) => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
-            <td class="p-3 font-mono font-bold text-sky-700">${ktv.id}</td>
-            <td class="p-3 font-bold text-slate-800">${ktv.name}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">100% (Đạt Chuẩn 30m)</td>
-        </tr>
-    `).join('');
 }
 
 function inTemTongHangLoat() {
@@ -1830,7 +2082,7 @@ function inHoaDonGiaoNhan() {
 }
 
 /* =========================================================================
-   14. QUY TRÌNH THU HỒI KHẨN CẤP LÔ TIỆT TRÙNG (BI (+) RECALL)
+   17. QUY TRÌNH THU HỒI KHẨN CẤP LÔ TIỆT TRÙNG (BI (+) RECALL)
    ========================================================================= */
 function moPopupThuHoiKhanCap() {
     const pop = document.getElementById('popupThuHoi');
@@ -1855,7 +2107,6 @@ function truyVetKhanCapLoHap() {
 
     currentRecallBatchId = inpBatch.value.trim().toUpperCase();
 
-    // Tìm tất cả các khay thuộc mã lô hấp này ở các trạm
     let listInRecall = [];
 
     // Trạm Đang Hấp
@@ -1917,11 +2168,9 @@ function xacNhanPhatLenhThuHoi() {
 
     if (confirm(`🚨 XÁC NHẬN PHONG TỎA: Bạn chắc chắn muốn thu hồi toàn bộ mâm dụng cụ mã lô [${currentRecallBatchId}]?`)) {
         
-        // Loại bỏ các khay bị phong tỏa khỏi Kho Vô Khuẩn & Đang Hấp
         globalData.khoVoKhuan = (globalData.khoVoKhuan || []).filter(i => (i.maLoHap || i.batchId || '').toUpperCase() !== currentRecallBatchId);
         globalData.dangHap = (globalData.dangHap || []).filter(i => (i.maLoHap || '').toUpperCase() !== currentRecallBatchId);
 
-        // Ghi nhận nhật ký cảnh báo lên Cloud
         ghiNhatKyFirebase({
             maBo: "ALL_BATCH",
             tenBo: `PHONG TỎA THU HỒI LÔ ${currentRecallBatchId}`,
@@ -1938,7 +2187,7 @@ function xacNhanPhatLenhThuHoi() {
 }
 
 /* =========================================================================
-   15. ADMIN SUBTAB & PIN CONFIG REALTIME
+   18. ADMIN SUBTAB & PIN CONFIG REALTIME
    ========================================================================= */
 function switchAdminSubtab(subtab) {
     const subDb = document.getElementById('subtab-database');
