@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.1 - TÍCH HỢP TOÀN DIỆN AI VISION SCANNER, KPI, HID BARCODE & TV DASHBOARD)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.3 - TÍCH HỢP TOÀN DIỆN AI VISION SCANNER, EXCEL AESCULAP CHI TIẾT, KPI, HID BARCODE & TV DASHBOARD)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -206,7 +206,7 @@ function initRealtimeListeners() {
         }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err));
 }
 
-// NẠP EXCEL BỞI ADMIN VÀ TỰ ĐỘNG ĐẨY LÊN CLOUD
+// NẠP FILE EXCEL AESCULAP CHI TIẾT VÀ TỰ ĐỘNG GOM DANH MỤC ĐẨY LÊN CLOUD
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -226,72 +226,67 @@ function initExcelLoader() {
                 const data = new Uint8Array(evt.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
-                let bestSheetName = workbook.SheetNames[0];
-                let maxRows = 0;
-
-                workbook.SheetNames.forEach(sheetName => {
-                    const sheet = workbook.Sheets[sheetName];
-                    const range = XLSX.utils.decode_range(sheet['!ref'] || "A1:A1");
-                    const rowCount = range.e.r - range.s.r + 1;
-                    if (rowCount > maxRows) {
-                        maxRows = rowCount;
-                        bestSheetName = sheetName;
-                    }
-                });
-
-                const targetSheet = workbook.Sheets[bestSheetName];
+                // Ưu tiên đọc Sheet "Data chi tiết" hoặc Sheet có nhiều dòng nhất
+                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết')) || workbook.SheetNames[0];
+                const targetSheet = workbook.Sheets[targetSheetName];
                 const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
 
                 if (!rawRows || rawRows.length === 0) return;
 
-                const row0 = rawRows[0] || [];
-                const row0Str = row0.map(v => String(v).toLowerCase()).join(' ');
-                const hasHeader = row0Str.includes('stt') || row0Str.includes('tên') || row0Str.includes('mã') || row0Str.includes('khoa');
+                // Xác định vị trí cột theo cấu trúc file Aesculap
+                const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
+                
+                let idxTenBo = headerRow.findIndex(h => h.includes('tên ts (i)') || h.includes('tên bộ') || h.includes('danh mục bộ'));
+                let idxMaChiTiet = headerRow.findIndex(h => h.includes('ab 120/12') || h.includes('mã ts') || h.includes('mã'));
+                let idxTenChiTiet = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ'));
+                let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
 
-                let parsedList = [];
-                let setKhoa = new Set();
+                // Vị trí dự phòng nếu không khớp tiêu đề
+                if (idxTenBo === -1) idxTenBo = 1;
+                if (idxMaChiTiet === -1) idxMaChiTiet = 2;
+                if (idxTenChiTiet === -1) idxTenChiTiet = 3;
+                if (idxSoLuong === -1) idxSoLuong = 4;
 
-                if (hasHeader) {
-                    const headerRow = row0.map(v => String(v).trim());
-                    let idxKhoa = headerRow.findIndex(h => h.includes('Tên TS (i)') || h.includes('Khoa') || h.includes('Phòng'));
-                    let idxMa = headerRow.findIndex(h => h.includes('MÃ') || h.includes('Mã'));
-                    let idxTen = headerRow.findIndex(h => h.includes('Tên TS chuẩn') || h.includes('Tên bộ') || h.includes('Tên Dụng Cụ'));
-                    let idxSoLuong = headerRow.findIndex(h => h.includes('Số lượng') || h.includes('Cơ số'));
+                const mapBoDungCu = {};
+                const setKhoa = new Set();
 
-                    if (idxKhoa === -1) idxKhoa = 1;
-                    if (idxMa === -1) idxMa = 2;
-                    if (idxTen === -1) idxTen = 3;
-                    if (idxSoLuong === -1) idxSoLuong = 4;
+                for (let i = 1; i < rawRows.length; i++) {
+                    const r = rawRows[i];
+                    if (!r || r.length === 0) continue;
 
-                    for (let i = 1; i < rawRows.length; i++) {
-                        const r = rawRows[i];
-                        if (!r || r.length === 0) continue;
-                        const ten = r[idxTen] ? String(r[idxTen]).trim() : "";
-                        const ma = r[idxMa] ? String(r[idxMa]).trim() : "";
-                        const khoa = r[idxKhoa] ? String(r[idxKhoa]).trim() : "PHÒNG SANH";
-                        const sl = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
+                    const tenBo = r[idxTenBo] ? String(r[idxTenBo]).trim().toUpperCase() : "";
+                    const maChiTiet = r[idxMaChiTiet] ? String(r[idxMaChiTiet]).trim() : "";
+                    const tenChiTiet = r[idxTenChiTiet] ? String(r[idxTenChiTiet]).trim() : "";
+                    const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
 
-                        if (ten || ma) {
-                            parsedList.push({ khoa, maBo: ma || `MA_${i}`, tenBo: ten || "Bộ Dụng Cụ", soLuong: sl });
-                            if (khoa) setKhoa.add(khoa);
-                        }
+                    if (!tenBo) continue;
+
+                    // Tạo mã bộ chuẩn hóa (VD: MỔ BẮT CON -> MO_BAT_CON)
+                    const maBo = "BO_" + tenBo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_");
+                    const khoa = (tenBo.includes("SANH") || tenBo.includes("BẮT CON") || tenBo.includes("SƠ SINH") || tenBo.includes("TẦNG SINH MÔN")) ? "PHÒNG SANH" : "KHOA GMHS";
+
+                    setKhoa.add(khoa);
+
+                    if (!mapBoDungCu[maBo]) {
+                        mapBoDungCu[maBo] = {
+                            khoa: khoa,
+                            maBo: maBo,
+                            tenBo: tenBo,
+                            soLuong: 1,
+                            chiTietLinhKien: []
+                        };
                     }
-                } else {
-                    for (let i = 1; i < rawRows.length; i++) {
-                        const r = rawRows[i];
-                        if (!r || r.length < 3) continue;
 
-                        const khoa = r[0] ? String(r[0]).trim() : "PHÒNG SANH";
-                        const ma = r[1] ? String(r[1]).trim() : `MA_${i+1}`;
-                        const ten = r[2] ? String(r[2]).trim() : "";
-                        const sl = r[3] !== "" && r[3] !== undefined ? Number(r[3]) || 1 : 1;
-
-                        if (ten || ma) {
-                            parsedList.push({ khoa, maBo: ma, tenBo: ten || "Bộ Dụng Cụ", soLuong: sl });
-                            if (khoa) setKhoa.add(khoa);
-                        }
+                    if (tenChiTiet || maChiTiet) {
+                        mapBoDungCu[maBo].chiTietLinhKien.push({
+                            maLinhKien: maChiTiet,
+                            tenLinhKien: tenChiTiet || maChiTiet,
+                            soLuong: soLuong
+                        });
                     }
                 }
+
+                const parsedList = Object.values(mapBoDungCu);
 
                 if (parsedList.length > 0) {
                     globalData.danhMucLinhKien = parsedList;
@@ -306,16 +301,17 @@ function initExcelLoader() {
                             danhSachKhoa: globalData.danhSachKhoa,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         }).then(() => {
-                            console.log("☁️ Đã đồng bộ danh mục Excel lên Cloud!");
+                            console.log("☁️ Đã đồng bộ danh mục chi tiết lên Cloud!");
                         });
                     }
 
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ! Dữ liệu đã đồng bộ Realtime cho tất cả các thiết bị.`);
+                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ từ file Aesculap kèm cơ số chi tiết từng món!`);
                 }
 
             } catch (err) {
-                console.error(err);
+                console.error("Lỗi đọc Excel Aesculap:", err);
+                alert("❌ Có lỗi xảy ra khi đọc file Excel. Vui lòng kiểm tra lại cấu trúc file!");
             }
         };
         reader.readAsArrayBuffer(file);
@@ -924,7 +920,10 @@ function moPopupDongGoi(idx) {
         } else {
             tbodyLinhKien.innerHTML = danhSachItems.map(lk => `
                 <tr>
-                    <td class="p-2 font-semibold text-slate-800">${lk.tenLinhKien || lk.ten}</td>
+                    <td class="p-2 font-semibold text-slate-800">
+                        ${lk.tenLinhKien || lk.ten} 
+                        ${lk.maLinhKien ? `<span class="text-[10px] text-slate-400 font-mono ml-1">(${lk.maLinhKien})</span>` : ''}
+                    </td>
                     <td class="p-2 text-center font-mono font-bold text-sky-700">${lk.soLuong || 1}</td>
                 </tr>
             `).join('');
@@ -999,18 +998,28 @@ function chotDongGoi() {
 // Bảng từ điển chuẩn hóa tên nhãn AI sang tiếng Việt hiển thị
 const ROBOFLOW_LABEL_MAPPING = {
     "van doyen": "Van Doyen",
+    "banh doyen": "Van Doyen",
     "banh farabeuf": "Banh Farabeuf",
+    "farabeuf": "Banh Farabeuf",
     "can dao": "Cán Dao",
+    "can dao so 3": "Cán Dao",
+    "can dao so 4": "Cán Dao",
     "keo cat chi": "Kéo Cắt Chỉ",
     "keo cat ron": "Kéo Cắt Rốn",
     "mayo cong": "Kéo Mayo Cong",
+    "keo mayo": "Kéo Mayo Cong",
     "metzenbaum": "Kéo Metzenbaum",
+    "keo metzenbaum": "Kéo Metzenbaum",
     "kep hinh tim": "Kẹp Hình Tim",
     "kep kim": "Kẹp Kim Mang Chỉ",
+    "kem mang kim": "Kẹp Kim Mang Chỉ",
     "kelly cong": "Kìm Kelly Cong",
+    "kelly thang": "Kìm Kelly Thẳng",
     "kocher": "Kìm Kocher",
+    "kep kocher": "Kìm Kocher",
     "collin": "Kìm Collin",
     "nhip": "Nhíp Phẫu Thuật",
+    "kep phau tich": "Nhíp Phẫu Thuật",
     "vong giu dung cu": "Vòng Giữ Dụng Cụ",
     "bhd400": "Bồn Hạt Đậu 400ml",
     "bhd800": "Bồn Hạt Đậu 800ml"
@@ -1072,20 +1081,16 @@ async function chupAnhVaDemAI() {
         return;
     }
 
-    // Thiết lập kích thước Canvas khớp đúng khung hình Camera
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Chụp khung hình từ Video vào Canvas
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Trích xuất ảnh Base64 chất lượng 0.85
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     const base64Image = dataUrl.split(',')[1];
 
-    // Cập nhật trạng thái nút bấm quét
     if (btnScan) {
         btnScan.disabled = true;
         btnScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Phân Tích AI...`;
@@ -1116,7 +1121,6 @@ async function chupAnhVaDemAI() {
         const result = await response.json();
         console.log("⚡ [ROBOFLOW VISION RESULT]:", result);
 
-        // Trích xuất mảng dự đoán an toàn từ Workflow output
         let rawPredictions = [];
         if (result.outputs && Array.isArray(result.outputs)) {
             for (const out of result.outputs) {
@@ -1132,7 +1136,6 @@ async function chupAnhVaDemAI() {
             rawPredictions = result.predictions;
         }
 
-        // Vẽ Bounding Box trực quan lên Canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         const aiDetections = [];
@@ -1147,30 +1150,26 @@ async function chupAnhVaDemAI() {
                 conf: confidence
             });
 
-            // Tính tọa độ vẽ hộp Bounding Box
             const width = p.width || 50;
             const height = p.height || 50;
             const x = (p.x !== undefined) ? (p.x - width / 2) : 0;
             const y = (p.y !== undefined) ? (p.y - height / 2) : 0;
 
-            // 1. Vẽ khung chữ nhật
+            // Vẽ Bounding Box trực quan lên Canvas
             ctx.strokeStyle = '#10b981';
             ctx.lineWidth = 3;
             ctx.strokeRect(x, y, width, height);
 
-            // 2. Vẽ nền nhãn
             ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
             const text = `${labelChuan} (${Math.round(confidence * 100)}%)`;
             ctx.font = "bold 11px Arial";
             const textWidth = ctx.measureText(text).width;
             ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
 
-            // 3. Viết chữ nhãn màu trắng
             ctx.fillStyle = '#ffffff';
             ctx.fillText(text, x + 4, (y > 20 ? y - 6 : y + 14));
         });
 
-        // So khớp với cơ số chuẩn trong bảng
         capNhatDoiSoatBangAI(aiDetections, tbodyLinhKien);
 
     } catch (err) {
@@ -1192,10 +1191,16 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     const masterInfo = globalData.danhMucLinhKien.find(d => d.maBo.toUpperCase() === itemHienTai.maBo.toUpperCase());
     const danhSachChuan = (masterInfo && masterInfo.chiTietLinhKien) ? masterInfo.chiTietLinhKien : [];
 
+    // Chuẩn hóa chuỗi so sánh không dấu
+    const normalizeStr = (str) => {
+        return (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    };
+
     // Gom nhóm số lượng AI quét được từ Camera
     const aiCounts = {};
     detections.forEach(d => {
-        aiCounts[d.label] = (aiCounts[d.label] || 0) + 1;
+        const norm = normalizeStr(d.label);
+        aiCounts[norm] = (aiCounts[norm] || 0) + 1;
     });
 
     let html = '';
@@ -1204,17 +1209,26 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     if (danhSachChuan.length > 0) {
         danhSachChuan.forEach(lk => {
             const tenMon = lk.tenLinhKien || lk.ten;
+            const normTenMon = normalizeStr(tenMon);
             const slChuan = lk.soLuong || 1;
-            const slAIQuet = aiCounts[tenMon] || 0;
+            
+            // Tìm số lượng AI quét tương ứng theo tên linh kiện
+            let slAIQuet = 0;
+            for (const [keyNorm, count] of Object.entries(aiCounts)) {
+                if (normTenMon.includes(keyNorm) || keyNorm.includes(normTenMon)) {
+                    slAIQuet += count;
+                }
+            }
+
             const slThieu = slChuan - slAIQuet;
 
             if (slThieu > 0) {
                 hasMissing = true;
-                // Cảnh báo thiếu món (Đỏ)
                 html += `
                     <tr class="bg-rose-50 border-b text-xs font-bold text-rose-700">
                         <td class="p-2 flex items-center gap-1.5">
                             <i class="fa-solid fa-triangle-exclamation text-rose-600 animate-bounce"></i> ${tenMon}
+                            ${lk.maLinhKien ? `<span class="text-[10px] text-slate-400 font-mono">(${lk.maLinhKien})</span>` : ''}
                         </td>
                         <td class="p-2 text-center">
                             Chuẩn: ${slChuan} | <span class="underline">THIẾU ${slThieu} CÁI</span> (AI: ${slAIQuet})
@@ -1222,11 +1236,11 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
                     </tr>
                 `;
             } else {
-                // Đủ món (Xanh)
                 html += `
                     <tr class="bg-emerald-50/60 border-b text-xs text-slate-800">
                         <td class="p-2 font-semibold flex items-center gap-1.5">
                             <i class="fa-solid fa-circle-check text-emerald-600"></i> ${tenMon}
+                            ${lk.maLinhKien ? `<span class="text-[10px] text-slate-400 font-mono">(${lk.maLinhKien})</span>` : ''}
                         </td>
                         <td class="p-2 text-center font-mono font-bold text-emerald-700">
                             Đủ (${slAIQuet}/${slChuan})
@@ -1236,8 +1250,12 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
             }
         });
     } else {
-        // Trường hợp bộ chưa cấu hình danh mục con chi tiết
-        for (const [ten, sl] of Object.entries(aiCounts)) {
+        // Gom danh sách hiển thị nếu bộ chưa có danh mục con
+        const rawAiCounts = {};
+        detections.forEach(d => {
+            rawAiCounts[d.label] = (rawAiCounts[d.label] || 0) + 1;
+        });
+        for (const [ten, sl] of Object.entries(rawAiCounts)) {
             html += `
                 <tr class="bg-emerald-50 border-b text-xs">
                     <td class="p-2 font-semibold text-slate-800">${ten}</td>
