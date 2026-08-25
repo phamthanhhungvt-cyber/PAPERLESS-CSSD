@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.4 - TÍCH HỢP CHUẨN HÓA KHOA PHÒNG, AESCULAP EXCEL & AI VISION SCANNER)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.5 - HỖ TRỢ DUAL-EXCEL 22 KHOA/PHÒNG & GHÉP NỐI CHI TIẾT AESCULAP)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -51,15 +51,7 @@ let globalData = {
     meHap: [],
     lichSu: [],
     danhMucLinhKien: [],
-    danhSachKhoa: [
-        "PHÒNG SANH - CẤP CỨU SẢN",
-        "KHOA GMHS - PHÒNG MỔ",
-        "KHOA PHỤ SẢN",
-        "KHOA NHI - SƠ SINH",
-        "KHOA HIẾM MUỘN (IVF)",
-        "KHOA KHÁM BỆNH",
-        "KHOA NGOẠI TỔNG QUÁT"
-    ],
+    danhSachKhoa: [],
     ktvList: [
         { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
         { id: 'NV02', name: 'Trần Thị Thoa', pin: '1234', role: 'CSSD' },
@@ -231,7 +223,9 @@ function initRealtimeListeners() {
         }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err));
 }
 
-// NẠP FILE EXCEL AESCULAP CHI TIẾT & CHUẨN HÓA KHOA/PHÒNG LÂM SÀNG
+// =========================================================================
+// HÀM NẠP EXCEL THÔNG MINH (HỖ TRỢ CẢ FILE CƠ SỐ KHOA & FILE CHI TIẾT AESCULAP)
+// =========================================================================
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -251,6 +245,7 @@ function initExcelLoader() {
                 const data = new Uint8Array(evt.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
+                // Ưu tiên đọc Sheet "Data chi tiết" hoặc Sheet đầu tiên
                 let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết')) || workbook.SheetNames[0];
                 const targetSheet = workbook.Sheets[targetSheetName];
                 const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
@@ -259,99 +254,125 @@ function initExcelLoader() {
 
                 const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
                 
-                let idxTenBo = headerRow.findIndex(h => h.includes('tên ts (i)') || h.includes('tên bộ') || h.includes('danh mục bộ'));
-                let idxMaChiTiet = headerRow.findIndex(h => h.includes('ab 120/12') || h.includes('mã ts') || h.includes('mã'));
-                let idxTenChiTiet = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ'));
+                let idxKhoaHoacBo = headerRow.findIndex(h => h.includes('tên ts (i)') || h.includes('khoa') || h.includes('phòng'));
+                let idxMa = headerRow.findIndex(h => h.includes('mã dc') || h.includes('ab 120/12') || h.includes('mã ts') || h.includes('mã'));
+                let idxTen = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ') || h.includes('tên bộ'));
                 let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
 
-                if (idxTenBo === -1) idxTenBo = 1;
-                if (idxMaChiTiet === -1) idxMaChiTiet = 2;
-                if (idxTenChiTiet === -1) idxTenChiTiet = 3;
+                if (idxKhoaHoacBo === -1) idxKhoaHoacBo = 1;
+                if (idxMa === -1) idxMa = 2;
+                if (idxTen === -1) idxTen = 3;
                 if (idxSoLuong === -1) idxSoLuong = 4;
 
-                const mapBoDungCu = {};
-                
-                // Cố định danh mục Khoa/Phòng chuẩn
-                const danhSachKhoaChuan = [
-                    "PHÒNG SANH - CẤP CỨU SẢN",
-                    "KHOA GMHS - PHÒNG MỔ",
-                    "KHOA PHỤ SẢN",
-                    "KHOA NHI - SƠ SINH",
-                    "KHOA HIẾM MUỘN (IVF)",
-                    "KHOA KHÁM BỆNH",
-                    "KHOA NGOẠI TỔNG QUÁT"
-                ];
+                // Kiểm tra loại File: File Cơ Số Khoa hay File Chi Tiết Aesculap
+                const isFileCoSoKhoa = rawRows.some((r, i) => i > 0 && String(r[idxKhoaHoacBo]).toUpperCase().includes('PHÒNG SANH'));
 
-                for (let i = 1; i < rawRows.length; i++) {
-                    const r = rawRows[i];
-                    if (!r || r.length === 0) continue;
+                if (isFileCoSoKhoa) {
+                    // --- TRƯỜNG HỢP 1: NẠP FILE CƠ SỐ DC KHOA PHÒNG (22 KHOA) ---
+                    let danhSachBoMoi = [];
+                    let setKhoa = new Set();
 
-                    const tenBo = r[idxTenBo] ? String(r[idxTenBo]).trim() : "";
-                    const maChiTiet = r[idxMaChiTiet] ? String(r[idxMaChiTiet]).trim() : "";
-                    const tenChiTiet = r[idxTenChiTiet] ? String(r[idxTenChiTiet]).trim() : "";
-                    const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
+                    for (let i = 1; i < rawRows.length; i++) {
+                        const r = rawRows[i];
+                        if (!r || r.length === 0) continue;
 
-                    if (!tenBo) continue;
+                        const tenKhoa = r[idxKhoaHoacBo] ? String(r[idxKhoaHoacBo]).trim().toUpperCase() : "";
+                        const maBo = r[idxMa] ? String(r[idxMa]).trim().toUpperCase() : `BO_${i}`;
+                        const tenBo = r[idxTen] ? String(r[idxTen]).trim() : "Bộ Dụng Cụ";
+                        const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
 
-                    const tenBoUpper = tenBo.toUpperCase();
-                    const maBo = "BO_" + tenBoUpper.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_");
-                    
-                    // Tự động phân loại Khoa sở hữu
-                    let khoaSoHuu = "KHOA GMHS - PHÒNG MỔ";
-                    if (tenBoUpper.includes("SANH") || tenBoUpper.includes("BẮT CON") || tenBoUpper.includes("TẦNG SINH MÔN") || tenBoUpper.includes("NẠO")) {
-                        khoaSoHuu = "PHÒNG SANH - CẤP CỨU SẢN";
-                    } else if (tenBoUpper.includes("SƠ SINH") || tenBoUpper.includes("NHI")) {
-                        khoaSoHuu = "KHOA NHI - SƠ SINH";
-                    } else if (tenBoUpper.includes("NAM KHOA") || tenBoUpper.includes("TESE") || tenBoUpper.includes("PHÔI") || tenBoUpper.includes("TINH TRÙNG")) {
-                        khoaSoHuu = "KHOA HIẾM MUỘN (IVF)";
-                    } else if (tenBoUpper.includes("KHÁM") || tenBoUpper.includes("ĐẶT VÒNG") || tenBoUpper.includes("SOI CỔ")) {
-                        khoaSoHuu = "KHOA KHÁM BỆNH";
-                    }
+                        if (!tenKhoa || !tenBo) continue;
 
-                    if (!mapBoDungCu[maBo]) {
-                        mapBoDungCu[maBo] = {
-                            khoa: khoaSoHuu,
+                        setKhoa.add(tenKhoa);
+
+                        // Giữ lại chi tiết linh kiện cũ nếu đã nạp trước đó
+                        const boCu = (globalData.danhMucLinhKien || []).find(b => b.maBo === maBo || b.tenBo === tenBo);
+                        const chiTietLinhKien = boCu ? boCu.chiTietLinhKien : [];
+
+                        danhSachBoMoi.push({
+                            khoa: tenKhoa,
                             maBo: maBo,
                             tenBo: tenBo,
-                            soLuong: 1,
-                            chiTietLinhKien: []
-                        };
-                    }
-
-                    if (tenChiTiet || maChiTiet) {
-                        mapBoDungCu[maBo].chiTietLinhKien.push({
-                            maLinhKien: maChiTiet,
-                            tenLinhKien: tenChiTiet || maChiTiet,
-                            soLuong: soLuong
+                            soLuong: soLuong,
+                            chiTietLinhKien: chiTietLinhKien
                         });
                     }
-                }
 
-                const parsedList = Object.values(mapBoDungCu);
+                    if (danhSachBoMoi.length > 0) {
+                        globalData.danhMucLinhKien = danhSachBoMoi;
+                        globalData.danhSachKhoa = Array.from(setKhoa);
 
-                if (parsedList.length > 0) {
-                    globalData.danhMucLinhKien = parsedList;
-                    globalData.danhSachKhoa = danhSachKhoaChuan;
+                        localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                        localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+
+                        if (db) {
+                            db.collection("he_thong_config").doc("danh_muc_master").set({
+                                danhMucLinhKien: globalData.danhMucLinhKien,
+                                danhSachKhoa: globalData.danhSachKhoa,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+
+                        capNhatGiaoDienSauKhiNapExcel();
+                        alert(`🎉 NẠP THÀNH CÔNG!\n- Đã cập nhật ${globalData.danhSachKhoa.length} Khoa/Phòng\n- Tổng cộng: ${danhSachBoMoi.length} bộ dụng cụ.`);
+                    }
+
+                } else {
+                    // --- TRƯỜNG HỢP 2: NẠP FILE CHI TIẾT AESCULAP (GẮN CÂY VÀO TỪNG BỘ) ---
+                    const mapChiTietTheoBo = {};
+
+                    for (let i = 1; i < rawRows.length; i++) {
+                        const r = rawRows[i];
+                        if (!r || r.length === 0) continue;
+
+                        const tenBoRaw = r[idxKhoaHoacBo] ? String(r[idxKhoaHoacBo]).trim().toUpperCase() : "";
+                        const maChiTiet = r[idxMa] ? String(r[idxMa]).trim() : "";
+                        const tenChiTiet = r[idxTen] ? String(r[idxTen]).trim() : "";
+                        const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
+
+                        if (!tenBoRaw) continue;
+
+                        if (!mapChiTietTheoBo[tenBoRaw]) {
+                            mapChiTietTheoBo[tenBoRaw] = [];
+                        }
+
+                        if (tenChiTiet || maChiTiet) {
+                            mapChiTietTheoBo[tenBoRaw].push({
+                                maLinhKien: maChiTiet,
+                                tenLinhKien: tenChiTiet || maChiTiet,
+                                soLuong: soLuong
+                            });
+                        }
+                    }
+
+                    // Ghép danh sách chi tiết vào từng bộ dụng cụ đang có
+                    let countGhep = 0;
+                    (globalData.danhMucLinhKien || []).forEach(bo => {
+                        const tenBoUpper = bo.tenBo.toUpperCase();
+                        for (const [tenBoAesculap, listLinhKien] of Object.entries(mapChiTietTheoBo)) {
+                            if (tenBoUpper.includes(tenBoAesculap) || tenBoAesculap.includes(tenBoUpper)) {
+                                bo.chiTietLinhKien = listLinhKien;
+                                countGhep++;
+                                break;
+                            }
+                        }
+                    });
 
                     localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
-                    localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
-
                     if (db) {
                         db.collection("he_thong_config").doc("danh_muc_master").set({
                             danhMucLinhKien: globalData.danhMucLinhKien,
                             danhSachKhoa: globalData.danhSachKhoa,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }).then(() => {
-                            console.log("☁️ Đã đồng bộ danh mục chuẩn lên Cloud!");
                         });
                     }
 
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Đã nạp thành công ${parsedList.length} bộ dụng cụ và chuẩn hóa danh mục Khoa/Phòng!`);
+                    alert(`🎉 ĐÃ GHÉP THÀNH CÔNG CHI TIẾT AESCULAP!\n- Đã gắn danh mục linh kiện chi tiết vào ${countGhep} bộ dụng cụ.`);
                 }
 
             } catch (err) {
-                console.error("Lỗi đọc Excel Aesculap:", err);
+                console.error("Lỗi khi đọc file Excel:", err);
                 alert("❌ Lỗi khi đọc file Excel. Vui lòng kiểm tra lại cấu trúc file!");
             }
         };
@@ -561,7 +582,7 @@ function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
 /* =========================================================================
-   6. XE THU GOM & ĐỐI SOÁT REALTIME (FIX TRIỆT ĐỂ LENGTH UNDEFINED)
+   6. XE THU GOM & ĐỐI SOÁT REALTIME (SAFE ACCESS FIX)
    ========================================================================= */
 let currentKiemDemIndex = null;
 
