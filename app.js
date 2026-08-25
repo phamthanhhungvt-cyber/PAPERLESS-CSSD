@@ -376,7 +376,6 @@ function initGlobalBarcodeScanner() {
     window.addEventListener('keydown', (e) => {
         if (!isBarcodeScannerEnabled) return;
 
-        // Bỏ qua nếu người dùng đang nhập vào các ô input/textarea chuẩn
         const activeElement = document.activeElement;
         const isInputField = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable);
         if (isInputField && activeElement.id !== 'global_barcode_catcher') {
@@ -396,13 +395,12 @@ function initGlobalBarcodeScanner() {
             clearTimeout(barcodeScannerTimer);
             barcodeScannerTimer = setTimeout(() => {
                 barcodeScannerBuffer = "";
-            }, 100); // Reset buffer nếu gõ phím quá chậm (>100ms/ký tự)
+            }, 100);
         }
     });
 }
 
 function xuLyMaBarcodeQuetTuSung(scannedCode) {
-    // 1. Phân loại theo cấu trúc mã lô hấp / rửa (ví dụ: H260821_01, R260821_01)
     if (scannedCode.startsWith('H') || scannedCode.startsWith('R')) {
         switchTab('tracuu');
         const inpBatch = document.getElementById('inp_searchBatch');
@@ -411,7 +409,6 @@ function xuLyMaBarcodeQuetTuSung(scannedCode) {
         return;
     }
 
-    // 2. Phân loại theo mã mâm dụng cụ
     if (currentTab === 'khoaphong') {
         const inp = document.getElementById('khoa_inpMaBo');
         if (inp) {
@@ -431,7 +428,7 @@ function xuLyMaBarcodeQuetTuSung(scannedCode) {
 
 function toggleGlobalBarcodeScanner(enable) {
     isBarcodeScannerEnabled = enable;
-    console.log(` Súng quét mã vạch không dây: ${enable ? 'ĐÃ BẬT' : 'ĐÃ TẮT'}`);
+    console.log(`📡 Súng quét mã vạch không dây: ${enable ? 'ĐÃ BẬT' : 'ĐÃ TẮT'}`);
 }
 
 /* =========================================================================
@@ -505,7 +502,6 @@ function khoaGuiPhieuTraBatches() {
 
     globalData.phieuTra.unshift(newPhieu);
     
-    // Ghi nhận nhật ký luân chuyển
     newPhieu.items.forEach(it => {
         ghiNhatKyFirebase({
             maBo: it.maBo,
@@ -518,7 +514,6 @@ function khoaGuiPhieuTraBatches() {
 
     gioHangTraTam = [];
     renderGioHangTam();
-
     dongBoTrangThaiRealtime();
 
     alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn của Khoa [${tenKhoa}] sang Xe Thu Gom!`);
@@ -657,7 +652,6 @@ function saveKiemDem() {
 
     globalData.phieuTra.splice(currentKiemDemIndex, 1);
     currentKiemDemIndex = null;
-
     dongBoTrangThaiRealtime();
 
     alert("✅ Đã chốt kiểm đếm đối soát thành công! Dữ liệu đã nhảy Realtime sang Trạm Rửa Belimed WD250.");
@@ -769,7 +763,6 @@ function xacNhanMeRua() {
     });
 
     dongBoTrangThaiRealtime();
-
     alert(`🚀 Đã kích hoạt mẻ rửa ${batchId} với ${selectedIndices.length} bộ dụng cụ! Dữ liệu đã đồng bộ Realtime.`);
 }
 
@@ -837,7 +830,6 @@ function duyetSachMeRuaHangLoat() {
     });
 
     dongBoTrangThaiRealtime();
-
     alert("✅ Đã nghiệm thu đạt mẻ rửa! Mâm dụng cụ đã tự động nhảy Realtime sang Trạm Đóng Gói.");
 }
 
@@ -996,14 +988,33 @@ function chotDongGoi() {
     }
 
     dongBoTrangThaiRealtime();
-
     alert("✅ Đóng gói thành công! Dụng cụ đã tự động chuyển Realtime sang Trạm Hấp Tiệt Trùng.");
     closePopupDongGoi();
 }
 
 /* =========================================================================
-   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (ĐẾM & ĐỐI SOÁT CHUẨN)
+   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (TÍCH HỢP ROBOFLOW CLOUD API THỰC TẾ)
    ========================================================================= */
+
+// Bảng từ điển chuẩn hóa tên nhãn AI sang tiếng Việt hiển thị
+const ROBOFLOW_LABEL_MAPPING = {
+    "van doyen": "Van Doyen",
+    "banh farabeuf": "Banh Farabeuf",
+    "can dao": "Cán Dao",
+    "keo cat chi": "Kéo Cắt Chỉ",
+    "keo cat ron": "Kéo Cắt Rốn",
+    "mayo cong": "Kéo Mayo Cong",
+    "metzenbaum": "Kéo Metzenbaum",
+    "kep hinh tim": "Kẹp Hình Tim",
+    "kep kim": "Kẹp Kim Mang Chỉ",
+    "kelly cong": "Kìm Kelly Cong",
+    "kocher": "Kìm Kocher",
+    "collin": "Kìm Collin",
+    "nhip": "Nhíp Phẫu Thuật",
+    "vong giu dung cu": "Vòng Giữ Dụng Cụ",
+    "bhd400": "Bồn Hạt Đậu 400ml",
+    "bhd800": "Bồn Hạt Đậu 800ml"
+};
 
 // 1. Kích hoạt Live Camera
 async function kichHoatAICamera() {
@@ -1049,41 +1060,128 @@ function tatAICamera() {
     if (btnScan) btnScan.disabled = true;
 }
 
-// 3. Chụp khung hình & Phân tích nhận diện qua AI
+// 3. Chụp khung hình Canvas & Gửi trực tiếp sang Roboflow AI
 async function chupAnhVaDemAI() {
     const video = document.getElementById('ai_webcam');
     const canvas = document.getElementById('ai_canvas_overlay');
     const tbodyLinhKien = document.getElementById('popDG_DanhSachLinhKien');
+    const btnScan = document.getElementById('btn_ai_scan');
 
     if (!video || video.classList.contains('hidden')) {
-        alert("⚠️ Vui lòng bật AI Camera trước khi phân tích!");
+        alert("⚠️ Vui lòng bật Live Camera trước khi quét AI!");
         return;
     }
 
+    // Thiết lập kích thước Canvas khớp đúng khung hình Camera
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Bounding Box mô phỏng chuẩn (Tương thích YOLOv8 / Roboflow Inference API)
-    const aiDetections = [
-        { label: "Kéo Phẫu Thuật", x: canvas.width * 0.15, y: canvas.height * 0.2, w: 80, h: 150, color: "#10b981", conf: 0.96 },
-        { label: "Kìm Kelly Cong", x: canvas.width * 0.38, y: canvas.height * 0.2, w: 80, h: 140, color: "#10b981", conf: 0.92 },
-        { label: "Nhíp Phẫu Thuật", x: canvas.width * 0.75, y: canvas.height * 0.25, w: 50, h: 130, color: "#10b981", conf: 0.94 }
-    ];
+    // Chụp khung hình từ Video vào Canvas
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Vẽ Bounding Box trực tiếp lên Canvas đè lên Video
-    aiDetections.forEach(item => {
-        ctx.strokeStyle = item.color;
-        ctx.lineWidth = 3;
-        ctx.strokeRect(item.x, item.y, item.w, item.h);
-        ctx.fillStyle = item.color;
-        ctx.font = "bold 12px Arial";
-        ctx.fillText(`${item.label} (${Math.round(item.conf * 100)}%)`, item.x + 4, item.y > 15 ? item.y - 5 : 15);
-    });
+    // Trích xuất ảnh Base64 chất lượng 0.85
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const base64Image = dataUrl.split(',')[1];
 
-    // Chạy logic đối soát và báo thiếu
-    capNhatDoiSoatBangAI(aiDetections, tbodyLinhKien);
+    // Cập nhật trạng thái nút bấm quét
+    if (btnScan) {
+        btnScan.disabled = true;
+        btnScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Phân Tích AI...`;
+    }
+
+    try {
+        // GỌI ROBOFLOW SERVERLESS WORKFLOW API
+        const response = await fetch('https://serverless.roboflow.com/pham-thanh-hung-vt-gmail-com/workflows/cssd-instruments', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                api_key: 'NL3AKGKwKD5pagBvWgA3',
+                inputs: {
+                    "image": {
+                        "type": "base64",
+                        "value": base64Image
+                    }
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Roboflow API trả về mã lỗi HTTP: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log("⚡ [ROBOFLOW VISION RESULT]:", result);
+
+        // Trích xuất mảng dự đoán an toàn từ Workflow output
+        let rawPredictions = [];
+        if (result.outputs && Array.isArray(result.outputs)) {
+            for (const out of result.outputs) {
+                if (out.predictions && Array.isArray(out.predictions)) {
+                    rawPredictions = out.predictions;
+                    break;
+                } else if (out.predictions && Array.isArray(out.predictions.predictions)) {
+                    rawPredictions = out.predictions.predictions;
+                    break;
+                }
+            }
+        } else if (result.predictions && Array.isArray(result.predictions)) {
+            rawPredictions = result.predictions;
+        }
+
+        // Vẽ Bounding Box trực quan lên Canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const aiDetections = [];
+
+        rawPredictions.forEach(p => {
+            const labelRaw = (p.class || p.label || "").toLowerCase().trim();
+            const labelChuan = ROBOFLOW_LABEL_MAPPING[labelRaw] || p.class || "Dụng Cụ";
+            const confidence = p.confidence || 0;
+
+            aiDetections.push({
+                label: labelChuan,
+                conf: confidence
+            });
+
+            // Tính tọa độ vẽ hộp Bounding Box
+            const width = p.width || 50;
+            const height = p.height || 50;
+            const x = (p.x !== undefined) ? (p.x - width / 2) : 0;
+            const y = (p.y !== undefined) ? (p.y - height / 2) : 0;
+
+            // 1. Vẽ khung chữ nhật
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, width, height);
+
+            // 2. Vẽ nền nhãn
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
+            const text = `${labelChuan} (${Math.round(confidence * 100)}%)`;
+            ctx.font = "bold 11px Arial";
+            const textWidth = ctx.measureText(text).width;
+            ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
+
+            // 3. Viết chữ nhãn màu trắng
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(text, x + 4, (y > 20 ? y - 6 : y + 14));
+        });
+
+        // So khớp với cơ số chuẩn trong bảng
+        capNhatDoiSoatBangAI(aiDetections, tbodyLinhKien);
+
+    } catch (err) {
+        console.error("❌ Lỗi gọi AI Roboflow Vision API:", err);
+        alert(`❌ Không thể kết nối đến Máy chủ AI Vision (${err.message}). Vui lòng kiểm tra lại kết nối mạng!`);
+    } finally {
+        if (btnScan) {
+            btnScan.disabled = false;
+            btnScan.innerHTML = `<i class="fa-solid fa-camera-retro mr-1"></i> Chụp & Đối Soát AI`;
+        }
+    }
 }
 
 // 4. So khớp kết quả AI quét với Cơ số chuẩn trong Database
@@ -1112,7 +1210,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
 
             if (slThieu > 0) {
                 hasMissing = true;
-                // Tô màu đỏ cảnh báo thiếu món
+                // Cảnh báo thiếu món (Đỏ)
                 html += `
                     <tr class="bg-rose-50 border-b text-xs font-bold text-rose-700">
                         <td class="p-2 flex items-center gap-1.5">
@@ -1124,7 +1222,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
                     </tr>
                 `;
             } else {
-                // Đủ món - Màu xanh
+                // Đủ món (Xanh)
                 html += `
                     <tr class="bg-emerald-50/60 border-b text-xs text-slate-800">
                         <td class="p-2 font-semibold flex items-center gap-1.5">
@@ -1138,7 +1236,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
             }
         });
     } else {
-        // Trường hợp bộ chưa có danh mục con chi tiết
+        // Trường hợp bộ chưa cấu hình danh mục con chi tiết
         for (const [ten, sl] of Object.entries(aiCounts)) {
             html += `
                 <tr class="bg-emerald-50 border-b text-xs">
@@ -1154,7 +1252,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     if (hasMissing) {
         alert("⚠️ CẢNH BÁO: Mâm dụng cụ đang BỊ THIẾU CHI TIẾT! Vui lòng kiểm tra các mục tô màu đỏ trước khi đóng gói.");
     } else {
-        alert("🎉 HỢP LỆ: AI xác nhận mâm dụng cụ đã ĐỦ 100% CƠ SỐ!");
+        alert(`🎉 HỢP LỆ: AI xác nhận nhận diện được ${detections.length} chi tiết trên mâm!`);
     }
 }
 
@@ -1274,7 +1372,6 @@ function xacNhanMeHap() {
     });
 
     dongBoTrangThaiRealtime();
-
     alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp mã: ${batchId} cho ${selectedIndices.length} bộ dụng cụ! Dữ liệu đã đồng bộ Realtime.`);
 }
 
@@ -1329,7 +1426,6 @@ function nhapKhoHangLoat() {
             item.thoiGianHoanTatHap = new Date().toLocaleString('vi-VN');
             item.timestampHoanTatHap = Date.now();
 
-            // Tự động tính KPI đọc BI trong 30 phút
             let kpiStatus = "ĐẠT (<30m)";
             if (item.timestampBatDauHap) {
                 const diffMinutes = Math.round((item.timestampHoanTatHap - item.timestampBatDauHap) / 60000);
@@ -1351,7 +1447,6 @@ function nhapKhoHangLoat() {
     });
 
     dongBoTrangThaiRealtime();
-
     alert("🎉 Đã nhập kho vô khuẩn thành công! Dữ liệu Kho Vô Khuẩn đã cập nhật Realtime.");
 }
 
@@ -1372,7 +1467,6 @@ function tuChoiHapHangLoat() {
     });
 
     dongBoTrangThaiRealtime();
-
     alert("🔴 Đã trả các mâm về Hàng Đợi Hấp trên Cloud!");
 }
 
@@ -1410,7 +1504,6 @@ function xuatKhoDungCu(idx) {
     if (!globalData.khoVoKhuan[idx]) return;
     
     const item = globalData.khoVoKhuan.splice(idx, 1)[0];
-    
     dongBoTrangThaiRealtime();
     
     ghiNhatKyFirebase({
@@ -1466,7 +1559,6 @@ function renderBangKPIPerformance() {
     if (!tbody) return;
 
     const ktvStats = globalData.ktvList.map((ktv, idx) => {
-        // Lọc tất cả các nhật ký thao tác do nhân viên này thực hiện
         const logsOfKtv = globalData.lichSu.filter(l => l.nhanSu === ktv.name);
         
         const countThuGom = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('THU GOM')).length;
@@ -1477,7 +1569,6 @@ function renderBangKPIPerformance() {
 
         const tongThaoTac = logsOfKtv.length;
 
-        // Tính tỷ lệ tuân thủ đọc BI đúng hạn (30 phút)
         const totalBiReads = globalData.meHap.filter(m => m.nhanSuHap === ktv.name || m.nhanSu === ktv.name).length;
         const passBiReads = globalData.meHap.filter(m => (m.nhanSuHap === ktv.name || m.nhanSu === ktv.name) && m.kpiBiStatus === 'ĐẠT (<30m)').length;
         const biComplianceRate = totalBiReads > 0 ? Math.round((passBiReads / totalBiReads) * 100) : 100;
@@ -1583,7 +1674,6 @@ function renderDashboardTV() {
     if (elChoDongGoi) elChoDongGoi.innerText = `${(globalData.choDongGoi || []).length}`;
     if (elChoHap) elChoHap.innerText = `${(globalData.choHap || []).length}`;
 
-    // Cập nhật Cảnh báo thu hồi khẩn cấp trên TV nếu có
     const alertZoneTV = document.getElementById('tv_emergency_alert_zone');
     if (alertZoneTV) {
         if (currentRecallBatchId) {
@@ -2270,14 +2360,12 @@ function truyVetKhanCapLoHap() {
 
     let listInRecall = [];
 
-    // Trạm Đang Hấp
     (globalData.dangHap || []).forEach(item => {
         if (item.maLoHap && item.maLoHap.toUpperCase() === currentRecallBatchId) {
             listInRecall.push({ ...item, viTriRealtime: "Lò Hấp (Đang chạy)", mucDoRuiRo: "🔴 CAO" });
         }
     });
 
-    // Kho Vô Khuẩn
     (globalData.khoVoKhuan || []).forEach(item => {
         if ((item.maLoHap && item.maLoHap.toUpperCase() === currentRecallBatchId) || 
             (item.batchId && item.batchId.toUpperCase() === currentRecallBatchId)) {
@@ -2285,7 +2373,6 @@ function truyVetKhanCapLoHap() {
         }
     });
 
-    // Lịch sử đã xuất về khoa / Bệnh nhân
     (globalData.lichSu || []).forEach(item => {
         if (item.maLoHap && item.maLoHap.toUpperCase() === currentRecallBatchId) {
             listInRecall.push({ 
@@ -2341,7 +2428,6 @@ function xacNhanPhatLenhThuHoi() {
         });
 
         dongBoTrangThaiRealtime();
-
         alert(`🔥 ĐÃ PHÁT LỆNH THU HỒI TỚI TOÀN VIỆN!\nLô tiệt trùng ${currentRecallBatchId} đã bị phong tỏa khỏi hệ thống Realtime.`);
         dongPopupThuHoi();
     }
