@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.5 - HỖ TRỢ DUAL-EXCEL 22 KHOA/PHÒNG & GHÉP NỐI CHI TIẾT AESCULAP)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.6 - FULL DUAL-EXCEL & AESCULAP ALIAS MATCHING & AI SCANNER)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -77,6 +77,64 @@ let isBarcodeScannerEnabled = true;
 
 // Biến Luồng AI Vision Camera
 let aiVideoStream = null;
+
+// =========================================================================
+// BẢNG TỪ ĐIỂN ÁNH XẠ ĐA TỪ KHÓA (ALIAS DICTIONARY)
+// =========================================================================
+const SET_ALIAS_MAPPING = {
+    "MOLAYTHAI": "MỔ BẮT CON",
+    "MO LAY THAI": "MỔ BẮT CON",
+    "MO BAT CON": "MỔ BẮT CON",
+    "SANH": "BỘ SANH",
+    "BO SANH": "BỘ SANH",
+    "NAO": "BỘ NẠO",
+    "BO NAO": "BỘ NẠO",
+    "KIEMCOL": "BỘ KIỂM COL",
+    "KIEM COL": "BỘ KIỂM COL",
+    "MAYTANGSINHMON": "MAY TẦNG SINH MÔN",
+    "MAY TANG SINH MON": "MAY TẦNG SINH MÔN",
+    "MAYTHAMMY": "BỘ MAY THẨM MỸ",
+    "MAY THAM MY": "BỘ MAY THẨM MỸ",
+    "KHAIKHIQUAN": "BỘ KHAI KHÍ QUẢN",
+    "KHAI KHI QUAN": "BỘ KHAI KHÍ QUẢN",
+    "UTPK": "UNG THƯ PHỤ KHOA",
+    "UNG THU PHU KHOA": "UNG THƯ PHỤ KHOA",
+    "MOCTC(HO)": "CẮT TỬ CUNG",
+    "MO HO CAT TU CUNG": "CẮT TỬ CUNG",
+    "CAT TU CUNG": "CẮT TỬ CUNG",
+    "CTCNS(NB)": "CẮT TỬ CUNG NỘI SOI",
+    "CAT TU CUNG NOI SOI": "CẮT TỬ CUNG NỘI SOI",
+    "CTC(AD)": "PHẪU THUẬT NỘI SOI CẮT TỬ CUNG NGÃ ÂM ĐẠO",
+    "CAT TU CUNG NGA AM DAO": "PHẪU THUẬT NỘI SOI CẮT TỬ CUNG NGÃ ÂM ĐẠO",
+    "TIEUPHAU(NS)": "TIỂU PHẨU CHO NỘI SOI",
+    "TIEU PHAU NOI SOI": "TIỂU PHẨU CHO NỘI SOI",
+    "CATDOT": "CẮT ĐỐT",
+    "CAT DOT": "CẮT ĐỐT",
+    "TROCARXOAN": "BỘ TROCAR XOẮN",
+    "TROCARTRON": "BỘ TROCAR TRƠN",
+    "TROCARNHUAXOAN": "BỘ TROCAR NHỰA XOẮN",
+    "NONG": "BỘ NONG",
+    "BONONG": "BỘ NONG",
+    "MAYCOL": "MAY NỘI SOI",
+    "MAY COL": "MAY NỘI SOI",
+    "MAYNOISOI": "MAY NỘI SOI",
+    "ROBI": "KELLY ROBI",
+    "DCGIAM1": "DỤNG CỤ GIẢM 1",
+    "TIEUPHAUNHI": "TỔNG QUÁT NHI 1",
+    "SOICTC": "BỘ SOI CỔ TỬ CUNG",
+    "SOICOTUCUNG": "BỘ SOI CỔ TỬ CUNG",
+    "DATVAVONG": "BỘ ĐẶT VÀ LẤY VÒNG",
+    "SOSINH": "SƠ SINH",
+    "SO SINH": "SƠ SINH",
+    "NOISOI": "NỘI SOI",
+    "TESE": "BỘ TESE/MICROTESE",
+    "VIPHAUNAMKHOA": "VI PHẪU NAM KHOA",
+    "TRUNGPHAUNAMKHOA": "TRUNG PHẪU NAM KHOA"
+};
+
+function cleanSearchStr(str) {
+    return (str || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
+}
 
 /* =========================================================================
    3. KHỞI TẠO VÀ ĐỒNG BỘ DỮ LIỆU CLOUD REALTIME
@@ -224,7 +282,7 @@ function initRealtimeListeners() {
 }
 
 // =========================================================================
-// HÀM NẠP EXCEL THÔNG MINH (HỖ TRỢ CẢ FILE CƠ SỐ KHOA & FILE CHI TIẾT AESCULAP)
+// HÀM NẠP EXCEL THÔNG MINH (TỰ ĐỘNG GHÉP NỐI TOÀN DIỆN DANH MỤC & CHI TIẾT)
 // =========================================================================
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
@@ -245,7 +303,6 @@ function initExcelLoader() {
                 const data = new Uint8Array(evt.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
-                // Ưu tiên đọc Sheet "Data chi tiết" hoặc Sheet đầu tiên
                 let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết')) || workbook.SheetNames[0];
                 const targetSheet = workbook.Sheets[targetSheetName];
                 const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
@@ -264,13 +321,15 @@ function initExcelLoader() {
                 if (idxTen === -1) idxTen = 3;
                 if (idxSoLuong === -1) idxSoLuong = 4;
 
-                // Kiểm tra loại File: File Cơ Số Khoa hay File Chi Tiết Aesculap
                 const isFileCoSoKhoa = rawRows.some((r, i) => i > 0 && String(r[idxKhoaHoacBo]).toUpperCase().includes('PHÒNG SANH'));
 
                 if (isFileCoSoKhoa) {
-                    // --- TRƯỜNG HỢP 1: NẠP FILE CƠ SỐ DC KHOA PHÒNG (22 KHOA) ---
+                    // --- NẠP FILE CƠ SỐ DC KHOA PHÒNG ---
                     let danhSachBoMoi = [];
                     let setKhoa = new Set();
+                    
+                    const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
+                    const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
 
                     for (let i = 1; i < rawRows.length; i++) {
                         const r = rawRows[i];
@@ -285,9 +344,31 @@ function initExcelLoader() {
 
                         setKhoa.add(tenKhoa);
 
-                        // Giữ lại chi tiết linh kiện cũ nếu đã nạp trước đó
-                        const boCu = (globalData.danhMucLinhKien || []).find(b => b.maBo === maBo || b.tenBo === tenBo);
-                        const chiTietLinhKien = boCu ? boCu.chiTietLinhKien : [];
+                        // Tự động tìm và gắn danh mục chi tiết Aesculap nếu đã có
+                        let chiTietLinhKien = [];
+                        const maBoClean = cleanSearchStr(maBo);
+                        const tenBoClean = cleanSearchStr(tenBo);
+
+                        let targetAesculapName = "";
+                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                            const keyClean = cleanSearchStr(keyAlias);
+                            if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
+                                targetAesculapName = valAesculap;
+                                break;
+                            }
+                        }
+
+                        for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
+                            const aescClean = cleanSearchStr(tenBoAesculap);
+                            if (
+                                (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
+                                tenBoClean.includes(aescClean) ||
+                                aescClean.includes(tenBoClean)
+                            ) {
+                                chiTietLinhKien = listLinhKien;
+                                break;
+                            }
+                        }
 
                         danhSachBoMoi.push({
                             khoa: tenKhoa,
@@ -318,7 +399,7 @@ function initExcelLoader() {
                     }
 
                 } else {
-                    // --- TRƯỜNG HỢP 2: NẠP FILE CHI TIẾT AESCULAP (GẮN CÂY VÀO TỪNG BỘ) ---
+                    // --- NẠP FILE CHI TIẾT AESCULAP ---
                     const mapChiTietTheoBo = {};
 
                     for (let i = 1; i < rawRows.length; i++) {
@@ -345,12 +426,28 @@ function initExcelLoader() {
                         }
                     }
 
-                    // Ghép danh sách chi tiết vào từng bộ dụng cụ đang có
+                    // Ghép danh sách chi tiết vào từng bộ qua Từ điển ánh xạ
                     let countGhep = 0;
                     (globalData.danhMucLinhKien || []).forEach(bo => {
-                        const tenBoUpper = bo.tenBo.toUpperCase();
+                        const maBoClean = cleanSearchStr(bo.maBo);
+                        const tenBoClean = cleanSearchStr(bo.tenBo);
+
+                        let targetAesculapName = "";
+                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                            const keyClean = cleanSearchStr(keyAlias);
+                            if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
+                                targetAesculapName = valAesculap;
+                                break;
+                            }
+                        }
+
                         for (const [tenBoAesculap, listLinhKien] of Object.entries(mapChiTietTheoBo)) {
-                            if (tenBoUpper.includes(tenBoAesculap) || tenBoAesculap.includes(tenBoUpper)) {
+                            const aescClean = cleanSearchStr(tenBoAesculap);
+                            if (
+                                (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
+                                tenBoClean.includes(aescClean) ||
+                                aescClean.includes(tenBoClean)
+                            ) {
                                 bo.chiTietLinhKien = listLinhKien;
                                 countGhep++;
                                 break;
@@ -358,7 +455,9 @@ function initExcelLoader() {
                         }
                     });
 
+                    localStorage.setItem('cssd_aesculapCatalog', JSON.stringify(mapChiTietTheoBo));
                     localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+
                     if (db) {
                         db.collection("he_thong_config").doc("danh_muc_master").set({
                             danhMucLinhKien: globalData.danhMucLinhKien,
@@ -368,7 +467,7 @@ function initExcelLoader() {
                     }
 
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 ĐÃ GHÉP THÀNH CÔNG CHI TIẾT AESCULAP!\n- Đã gắn danh mục linh kiện chi tiết vào ${countGhep} bộ dụng cụ.`);
+                    alert(`🎉 ĐÃ GHÉP NỐI THÀNH CÔNG!\n- Đã gắn chi tiết linh kiện vào ${countGhep} bộ dụng cụ (Bao gồm Bộ Mổ Lấy Thai, Bộ Sanh, May TSM...)!`);
                 }
 
             } catch (err) {
@@ -582,7 +681,7 @@ function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
 /* =========================================================================
-   6. XE THU GOM & ĐỐI SOÁT REALTIME (SAFE ACCESS FIX)
+   6. XE THU GOM & ĐỐI SOÁT REALTIME
    ========================================================================= */
 let currentKiemDemIndex = null;
 
@@ -948,6 +1047,7 @@ function renderBangDongGoi() {
     `).join('');
 }
 
+// CẬP NHẬT POPUP ĐÓNG GÓI - TỰ ĐỘNG BUNG 22 LINH KIỆN AESCULAP THEO ALIAS
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
     const item = (globalData.choDongGoi || [])[idx];
@@ -963,6 +1063,39 @@ function moPopupDongGoi(idx) {
     if (popSub) popSub.innerText = `Mã khay: ${item.maBo} | Khoa sở hữu: ${item.khoa || 'N/A'}`;
 
     const danhMucMaster = (globalData.danhMucLinhKien || []).find(d => d.maBo.toUpperCase() === item.maBo.toUpperCase());
+    let danhSachItems = (danhMucMaster && danhMucMaster.chiTietLinhKien && danhMucMaster.chiTietLinhKien.length > 0) ? danhMucMaster.chiTietLinhKien : [];
+
+    // Tự động tìm dự phòng trong thư viện Aesculap Catalog nếu chưa ghép trước đó
+    if (danhSachItems.length === 0) {
+        const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
+        if (savedCatalog) {
+            const mapAesculap = JSON.parse(savedCatalog);
+            const maBoClean = cleanSearchStr(item.maBo);
+            const tenBoClean = cleanSearchStr(item.tenBo);
+
+            let targetAesculapName = "";
+            for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                const keyClean = cleanSearchStr(keyAlias);
+                if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
+                    targetAesculapName = valAesculap;
+                    break;
+                }
+            }
+
+            for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
+                const aescClean = cleanSearchStr(tenBoAesculap);
+                if (
+                    (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
+                    tenBoClean.includes(aescClean) ||
+                    aescClean.includes(tenBoClean)
+                ) {
+                    danhSachItems = listLinhKien;
+                    if (danhMucMaster) danhMucMaster.chiTietLinhKien = listLinhKien;
+                    break;
+                }
+            }
+        }
+    }
 
     if (imgEl) {
         const hinhAnhUrl = (danhMucMaster && danhMucMaster.hinhAnh) 
@@ -972,8 +1105,6 @@ function moPopupDongGoi(idx) {
     }
 
     if (tbodyLinhKien) {
-        let danhSachItems = (danhMucMaster && danhMucMaster.chiTietLinhKien) ? danhMucMaster.chiTietLinhKien : [];
-
         if (danhSachItems.length === 0) {
             tbodyLinhKien.innerHTML = `
                 <tr>
@@ -983,7 +1114,7 @@ function moPopupDongGoi(idx) {
             `;
         } else {
             tbodyLinhKien.innerHTML = danhSachItems.map(lk => `
-                <tr>
+                <tr class="border-b text-xs hover:bg-slate-50">
                     <td class="p-2 font-semibold text-slate-800">
                         ${lk.tenLinhKien || lk.ten} 
                         ${lk.maLinhKien ? `<span class="text-[10px] text-slate-400 font-mono ml-1">(${lk.maLinhKien})</span>` : ''}
