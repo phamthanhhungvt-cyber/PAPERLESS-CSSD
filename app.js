@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.3 - TÍCH HỢP TOÀN DIỆN AI VISION SCANNER, EXCEL AESCULAP CHI TIẾT, KPI, HID BARCODE & TV DASHBOARD)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.4 - TÍCH HỢP CHUẨN HÓA KHOA PHÒNG, AESCULAP EXCEL & AI VISION SCANNER)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -20,14 +20,14 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
 // Khởi tạo Firestore
 const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
-// Fix triệt để net::ERR_QUIC_PROTOCOL_ERROR & QUIC_NETWORK_IDLE_TIMEOUT
+// Chống ngắt kết nối QUIC
 if (db) {
     try {
         db.settings({
             experimentalForceLongPolling: true,
-            useFetchStreams: false // Tắt fetch streams để ép Firestore dùng HTTP Long Polling thuần
+            useFetchStreams: false
         });
-        console.log("⚡ [FIRESTORE CONFIG] Đã ép kết nối HTTP Long Polling thuần để chống lỗi ngắt mạng QUIC!");
+        console.log("⚡ [FIRESTORE CONFIG] Đã ép kết nối HTTP Long Polling thuần!");
     } catch (err) {
         console.warn("⚠️ Cấu hình Firestore settings đã được khởi tạo trước đó:", err);
     }
@@ -51,7 +51,15 @@ let globalData = {
     meHap: [],
     lichSu: [],
     danhMucLinhKien: [],
-    danhSachKhoa: [],
+    danhSachKhoa: [
+        "PHÒNG SANH - CẤP CỨU SẢN",
+        "KHOA GMHS - PHÒNG MỔ",
+        "KHOA PHỤ SẢN",
+        "KHOA NHI - SƠ SINH",
+        "KHOA HIẾM MUỘN (IVF)",
+        "KHOA KHÁM BỆNH",
+        "KHOA NGOẠI TỔNG QUÁT"
+    ],
     ktvList: [
         { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
         { id: 'NV02', name: 'Trần Thị Thoa', pin: '1234', role: 'CSSD' },
@@ -70,7 +78,7 @@ let canvasKy = null;
 let ctxKy = null;
 let isDrawingKy = false;
 
-// Biến Súng Quét Mã Vạch HID (Barcode Scanner)
+// Biến Súng Quét Mã Vạch HID
 let barcodeScannerBuffer = "";
 let barcodeScannerTimer = null;
 let isBarcodeScannerEnabled = true;
@@ -91,27 +99,51 @@ document.addEventListener('DOMContentLoaded', () => {
     tuDongTaoMaLoMeHap();
     renderDanhSachPinAdmin(); 
     initCanvasKyDienTu();
-    initGlobalBarcodeScanner(); // Tích hợp Súng quét mã vạch HID
-    initDashboardTVClock();      // Khởi chạy Đồng hồ TV Dashboard Realtime
+    initGlobalBarcodeScanner();
+    initDashboardTVClock();
 });
 
 function docDuLieuLuuTruLocalStorage() {
     try {
         const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
         const savedKhoa = localStorage.getItem('cssd_danhSachKhoa');
-        if (savedLinhKien) globalData.danhMucLinhKien = JSON.parse(savedLinhKien);
-        if (savedKhoa) globalData.danhSachKhoa = JSON.parse(savedKhoa);
+        if (savedLinhKien) globalData.danhMucLinhKien = JSON.parse(savedLinhKien) || [];
+        if (savedKhoa) globalData.danhSachKhoa = JSON.parse(savedKhoa) || [];
 
-        if (globalData.danhMucLinhKien.length > 0) {
-            capNhatGiaoDienSauKhiNapExcel();
-        }
+        const savedPhieuTra = localStorage.getItem('cssd_phieuTra');
+        if (savedPhieuTra) globalData.phieuTra = JSON.parse(savedPhieuTra) || [];
+
+        const savedChoRua = localStorage.getItem('cssd_choRua');
+        if (savedChoRua) globalData.choRua = JSON.parse(savedChoRua) || [];
+
+        const savedDangRua = localStorage.getItem('cssd_dangRua');
+        if (savedDangRua) globalData.dangRua = JSON.parse(savedDangRua) || [];
+
+        const savedChoDongGoi = localStorage.getItem('cssd_choDongGoi');
+        if (savedChoDongGoi) globalData.choDongGoi = JSON.parse(savedChoDongGoi) || [];
+
+        const savedChoHap = localStorage.getItem('cssd_choHap');
+        if (savedChoHap) globalData.choHap = JSON.parse(savedChoHap) || [];
+
+        const savedDangHap = localStorage.getItem('cssd_dangHap');
+        if (savedDangHap) globalData.dangHap = JSON.parse(savedDangHap) || [];
+
+        const savedKhoVoKhuan = localStorage.getItem('cssd_khoVoKhuan');
+        if (savedKhoVoKhuan) globalData.khoVoKhuan = JSON.parse(savedKhoVoKhuan) || [];
+
+        const savedMeRua = localStorage.getItem('cssd_meRua');
+        if (savedMeRua) globalData.meRua = JSON.parse(savedMeRua) || [];
+
+        const savedMeHap = localStorage.getItem('cssd_meHap');
+        if (savedMeHap) globalData.meHap = JSON.parse(savedMeHap) || [];
+
+        capNhatGiaoDienSauKhiNapExcel();
         capNhatTatCaGiaoDien();
     } catch (err) {
         console.error("Lỗi khi đọc dữ liệu lưu trữ cục bộ:", err);
     }
 }
 
-// CẬP NHẬT TẤT CẢ GIAO DIỆN TRẠM TRÊN MÀN HÌNH
 function capNhatTatCaGiaoDien() {
     renderBangChoThuGom();
     renderBangChoRua();
@@ -125,44 +157,39 @@ function capNhatTatCaGiaoDien() {
     renderBangKPIPerformance();
 }
 
-// LƯU TRẠNG THÁI REALTIME LÊN CLOUD FIREBASE VÀ LOCALSTORAGE
 function dongBoTrangThaiRealtime() {
     const payload = {
-        phieuTra: globalData.phieuTra,
-        choRua: globalData.choRua,
-        dangRua: globalData.dangRua,
-        choDongGoi: globalData.choDongGoi,
-        choHap: globalData.choHap,
-        dangHap: globalData.dangHap,
-        khoVoKhuan: globalData.khoVoKhuan,
-        meRua: globalData.meRua,
-        meHap: globalData.meHap,
+        phieuTra: globalData.phieuTra || [],
+        choRua: globalData.choRua || [],
+        dangRua: globalData.dangRua || [],
+        choDongGoi: globalData.choDongGoi || [],
+        choHap: globalData.choHap || [],
+        dangHap: globalData.dangHap || [],
+        khoVoKhuan: globalData.khoVoKhuan || [],
+        meRua: globalData.meRua || [],
+        meHap: globalData.meHap || [],
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
 
-    // 1. Lưu dự phòng vào LocalStorage
-    localStorage.setItem('cssd_phieuTra', JSON.stringify(globalData.phieuTra));
-    localStorage.setItem('cssd_choRua', JSON.stringify(globalData.choRua));
-    localStorage.setItem('cssd_dangRua', JSON.stringify(globalData.dangRua));
-    localStorage.setItem('cssd_choDongGoi', JSON.stringify(globalData.choDongGoi));
-    localStorage.setItem('cssd_choHap', JSON.stringify(globalData.choHap));
-    localStorage.setItem('cssd_dangHap', JSON.stringify(globalData.dangHap));
-    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(globalData.khoVoKhuan));
-    localStorage.setItem('cssd_meRua', JSON.stringify(globalData.meRua));
-    localStorage.setItem('cssd_meHap', JSON.stringify(globalData.meHap));
+    localStorage.setItem('cssd_phieuTra', JSON.stringify(payload.phieuTra));
+    localStorage.setItem('cssd_choRua', JSON.stringify(payload.choRua));
+    localStorage.setItem('cssd_dangRua', JSON.stringify(payload.dangRua));
+    localStorage.setItem('cssd_choDongGoi', JSON.stringify(payload.choDongGoi));
+    localStorage.setItem('cssd_choHap', JSON.stringify(payload.choHap));
+    localStorage.setItem('cssd_dangHap', JSON.stringify(payload.dangHap));
+    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(payload.khoVoKhuan));
+    localStorage.setItem('cssd_meRua', JSON.stringify(payload.meRua));
+    localStorage.setItem('cssd_meHap', JSON.stringify(payload.meHap));
 
-    // 2. Đẩy đồng bộ lên Cloud Firebase
     if (db) {
         db.collection("he_thong_config").doc("trang_thai_realtime").set(payload, { merge: true })
             .catch(err => console.error("❌ Lỗi đồng bộ trạng thái Cloud:", err));
     }
 }
 
-// KHỞI TẠO BỘ LẮNG NGHE REALTIME 100% TỪ CLOUD
 function initRealtimeListeners() {
     if (!db) return;
 
-    // 1. Lắng nghe Nhật ký luân chuyển
     db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
         .onSnapshot((snapshot) => {
             globalData.lichSu = [];
@@ -171,7 +198,6 @@ function initRealtimeListeners() {
             renderBangKPIPerformance();
         }, (err) => console.warn("Firestore listeners bypass:", err));
 
-    // 2. Lắng nghe Danh mục Excel Master từ Cloud
     db.collection("he_thong_config").doc("danh_muc_master")
         .onSnapshot((doc) => {
             if (doc.exists) {
@@ -185,20 +211,19 @@ function initRealtimeListeners() {
             }
         }, (err) => console.warn("Không lấy được danh mục Cloud:", err));
 
-    // 3. LẮNG NGHE ĐỒNG BỘ TOÀN BỘ TRẠM TRUNG GIAN THEO THỜI GIAN THỰC (REALTIME 100%)
     db.collection("he_thong_config").doc("trang_thai_realtime")
         .onSnapshot((doc) => {
             if (doc.exists) {
                 const data = doc.data();
-                globalData.phieuTra = data.phieuTra || [];
-                globalData.choRua = data.choRua || [];
-                globalData.dangRua = data.dangRua || [];
-                globalData.choDongGoi = data.choDongGoi || [];
-                globalData.choHap = data.choHap || [];
-                globalData.dangHap = data.dangHap || [];
-                globalData.khoVoKhuan = data.khoVoKhuan || [];
-                globalData.meRua = data.meRua || [];
-                globalData.meHap = data.meHap || [];
+                globalData.phieuTra = Array.isArray(data.phieuTra) ? data.phieuTra : [];
+                globalData.choRua = Array.isArray(data.choRua) ? data.choRua : [];
+                globalData.dangRua = Array.isArray(data.dangRua) ? data.dangRua : [];
+                globalData.choDongGoi = Array.isArray(data.choDongGoi) ? data.choDongGoi : [];
+                globalData.choHap = Array.isArray(data.choHap) ? data.choHap : [];
+                globalData.dangHap = Array.isArray(data.dangHap) ? data.dangHap : [];
+                globalData.khoVoKhuan = Array.isArray(data.khoVoKhuan) ? data.khoVoKhuan : [];
+                globalData.meRua = Array.isArray(data.meRua) ? data.meRua : [];
+                globalData.meHap = Array.isArray(data.meHap) ? data.meHap : [];
 
                 capNhatTatCaGiaoDien();
                 console.log("☁️ [REALTIME 100%] Đã đồng bộ trạng thái mới nhất từ Cloud!");
@@ -206,7 +231,7 @@ function initRealtimeListeners() {
         }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err));
 }
 
-// NẠP FILE EXCEL AESCULAP CHI TIẾT VÀ TỰ ĐỘNG GOM DANH MỤC ĐẨY LÊN CLOUD
+// NẠP FILE EXCEL AESCULAP CHI TIẾT & CHUẨN HÓA KHOA/PHÒNG LÂM SÀNG
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
     if (!excelInput) return;
@@ -226,14 +251,12 @@ function initExcelLoader() {
                 const data = new Uint8Array(evt.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
-                // Ưu tiên đọc Sheet "Data chi tiết" hoặc Sheet có nhiều dòng nhất
                 let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết')) || workbook.SheetNames[0];
                 const targetSheet = workbook.Sheets[targetSheetName];
                 const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
 
                 if (!rawRows || rawRows.length === 0) return;
 
-                // Xác định vị trí cột theo cấu trúc file Aesculap
                 const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
                 
                 let idxTenBo = headerRow.findIndex(h => h.includes('tên ts (i)') || h.includes('tên bộ') || h.includes('danh mục bộ'));
@@ -241,35 +264,53 @@ function initExcelLoader() {
                 let idxTenChiTiet = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ'));
                 let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
 
-                // Vị trí dự phòng nếu không khớp tiêu đề
                 if (idxTenBo === -1) idxTenBo = 1;
                 if (idxMaChiTiet === -1) idxMaChiTiet = 2;
                 if (idxTenChiTiet === -1) idxTenChiTiet = 3;
                 if (idxSoLuong === -1) idxSoLuong = 4;
 
                 const mapBoDungCu = {};
-                const setKhoa = new Set();
+                
+                // Cố định danh mục Khoa/Phòng chuẩn
+                const danhSachKhoaChuan = [
+                    "PHÒNG SANH - CẤP CỨU SẢN",
+                    "KHOA GMHS - PHÒNG MỔ",
+                    "KHOA PHỤ SẢN",
+                    "KHOA NHI - SƠ SINH",
+                    "KHOA HIẾM MUỘN (IVF)",
+                    "KHOA KHÁM BỆNH",
+                    "KHOA NGOẠI TỔNG QUÁT"
+                ];
 
                 for (let i = 1; i < rawRows.length; i++) {
                     const r = rawRows[i];
                     if (!r || r.length === 0) continue;
 
-                    const tenBo = r[idxTenBo] ? String(r[idxTenBo]).trim().toUpperCase() : "";
+                    const tenBo = r[idxTenBo] ? String(r[idxTenBo]).trim() : "";
                     const maChiTiet = r[idxMaChiTiet] ? String(r[idxMaChiTiet]).trim() : "";
                     const tenChiTiet = r[idxTenChiTiet] ? String(r[idxTenChiTiet]).trim() : "";
                     const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
 
                     if (!tenBo) continue;
 
-                    // Tạo mã bộ chuẩn hóa (VD: MỔ BẮT CON -> MO_BAT_CON)
-                    const maBo = "BO_" + tenBo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_");
-                    const khoa = (tenBo.includes("SANH") || tenBo.includes("BẮT CON") || tenBo.includes("SƠ SINH") || tenBo.includes("TẦNG SINH MÔN")) ? "PHÒNG SANH" : "KHOA GMHS";
-
-                    setKhoa.add(khoa);
+                    const tenBoUpper = tenBo.toUpperCase();
+                    const maBo = "BO_" + tenBoUpper.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "_");
+                    
+                    // Tự động phân loại Khoa sở hữu
+                    let khoaSoHuu = "KHOA GMHS - PHÒNG MỔ";
+                    if (tenBoUpper.includes("SANH") || tenBoUpper.includes("BẮT CON") || tenBoUpper.includes("TẦNG SINH MÔN") || tenBoUpper.includes("NẠO")) {
+                        khoaSoHuu = "PHÒNG SANH - CẤP CỨU SẢN";
+                    } else if (tenBoUpper.includes("SƠ SINH") || tenBoUpper.includes("NHI")) {
+                        khoaSoHuu = "KHOA NHI - SƠ SINH";
+                    } else if (tenBoUpper.includes("NAM KHOA") || tenBoUpper.includes("TESE") || tenBoUpper.includes("PHÔI") || tenBoUpper.includes("TINH TRÙNG")) {
+                        khoaSoHuu = "KHOA HIẾM MUỘN (IVF)";
+                    } else if (tenBoUpper.includes("KHÁM") || tenBoUpper.includes("ĐẶT VÒNG") || tenBoUpper.includes("SOI CỔ")) {
+                        khoaSoHuu = "KHOA KHÁM BỆNH";
+                    }
 
                     if (!mapBoDungCu[maBo]) {
                         mapBoDungCu[maBo] = {
-                            khoa: khoa,
+                            khoa: khoaSoHuu,
                             maBo: maBo,
                             tenBo: tenBo,
                             soLuong: 1,
@@ -290,7 +331,7 @@ function initExcelLoader() {
 
                 if (parsedList.length > 0) {
                     globalData.danhMucLinhKien = parsedList;
-                    globalData.danhSachKhoa = Array.from(setKhoa);
+                    globalData.danhSachKhoa = danhSachKhoaChuan;
 
                     localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
                     localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
@@ -301,17 +342,17 @@ function initExcelLoader() {
                             danhSachKhoa: globalData.danhSachKhoa,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         }).then(() => {
-                            console.log("☁️ Đã đồng bộ danh mục chi tiết lên Cloud!");
+                            console.log("☁️ Đã đồng bộ danh mục chuẩn lên Cloud!");
                         });
                     }
 
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 Nạp thành công ${parsedList.length} bộ dụng cụ từ file Aesculap kèm cơ số chi tiết từng món!`);
+                    alert(`🎉 Đã nạp thành công ${parsedList.length} bộ dụng cụ và chuẩn hóa danh mục Khoa/Phòng!`);
                 }
 
             } catch (err) {
                 console.error("Lỗi đọc Excel Aesculap:", err);
-                alert("❌ Có lỗi xảy ra khi đọc file Excel. Vui lòng kiểm tra lại cấu trúc file!");
+                alert("❌ Lỗi khi đọc file Excel. Vui lòng kiểm tra lại cấu trúc file!");
             }
         };
         reader.readAsArrayBuffer(file);
@@ -327,7 +368,7 @@ function capNhatGiaoDienSauKhiNapExcel() {
             const firstOption = (id === 'khoa_selKhoa' || id === 'login_khoa' || id === 'xuat_selKhoa') 
                 ? '<option value="">-- Chọn Khoa / Phòng --</option>' 
                 : '<option value="">-- Tất cả Khoa / Phòng --</option>';
-            el.innerHTML = firstOption + globalData.danhSachKhoa.map(k => `<option value="${k}">${k}</option>`).join('');
+            el.innerHTML = firstOption + (globalData.danhSachKhoa || []).map(k => `<option value="${k}">${k}</option>`).join('');
         }
     });
 
@@ -357,8 +398,8 @@ function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
     if (!datalist) return;
 
     const filteredItems = tenKhoa 
-        ? globalData.danhMucLinhKien.filter(item => item.khoa === tenKhoa)
-        : globalData.danhMucLinhKien;
+        ? (globalData.danhMucLinhKien || []).filter(item => item.khoa === tenKhoa)
+        : (globalData.danhMucLinhKien || []);
 
     datalist.innerHTML = filteredItems.map(item => 
         `<option value="${item.maBo}">${item.tenBo} - [${item.khoa}]</option>`
@@ -441,10 +482,10 @@ function themVaoGio() {
     const maBoInput = inp.value.trim().toUpperCase();
     const khoaSelect = selKhoa ? selKhoa.value : "";
 
-    const item = globalData.danhMucLinhKien.find(i => i.maBo.toUpperCase() === maBoInput) || {
+    const item = (globalData.danhMucLinhKien || []).find(i => i.maBo.toUpperCase() === maBoInput) || {
         maBo: maBoInput,
         tenBo: "Mâm Dụng Cụ Bẩn",
-        khoa: khoaSelect || "PHÒNG SANH"
+        khoa: khoaSelect || "PHÒNG SANH - CẤP CỨU SẢN"
     };
 
     gioHangTraTam.push(item);
@@ -485,7 +526,7 @@ function khoaGuiPhieuTraBatches() {
     let tenKhoa = selKhoa && selKhoa.value ? selKhoa.value : "";
 
     if (!tenKhoa && gioHangTraTam.length > 0) {
-        tenKhoa = gioHangTraTam[0].khoa || "PHÒNG SANH";
+        tenKhoa = gioHangTraTam[0].khoa || "PHÒNG SANH - CẤP CỨU SẢN";
     }
 
     const newPhieu = {
@@ -496,6 +537,7 @@ function khoaGuiPhieuTraBatches() {
         nhanSu: currentUser.nvName
     };
 
+    if (!globalData.phieuTra) globalData.phieuTra = [];
     globalData.phieuTra.unshift(newPhieu);
     
     newPhieu.items.forEach(it => {
@@ -519,7 +561,7 @@ function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
 /* =========================================================================
-   6. XE THU GOM & ĐỐI SOÁT REALTIME
+   6. XE THU GOM & ĐỐI SOÁT REALTIME (FIX TRIỆT ĐỂ LENGTH UNDEFINED)
    ========================================================================= */
 let currentKiemDemIndex = null;
 
@@ -529,9 +571,10 @@ function renderBangChoThuGom() {
     const badgeSoCho = document.getElementById('badgeSoCho');
 
     if (!tbody) return;
+    if (!globalData.phieuTra) globalData.phieuTra = [];
 
     if (filterSelect) {
-        const khoasWithOrders = Array.from(new Set(globalData.phieuTra.map(p => p.khoa)));
+        const khoasWithOrders = Array.from(new Set(globalData.phieuTra.map(p => p.khoa).filter(Boolean)));
         const currentValue = filterSelect.value;
 
         let optionsHtml = `<option value="">-- Tất Cả Khoa Có Lệnh Gửi (${globalData.phieuTra.length}) --</option>`;
@@ -558,20 +601,20 @@ function renderBangChoThuGom() {
     tbody.innerHTML = filteredPhieu.map((phieu, idx) => `
         <tr class="border-b hover:bg-slate-50 text-xs">
             <td class="p-3 font-bold text-slate-800">
-                <i class="fa-solid fa-hospital mr-1.5 text-sky-600"></i>${phieu.khoa}
-                <div class="text-[10px] text-slate-400 font-normal mt-0.5">Người gửi: ${phieu.nhanSu}</div>
+                <i class="fa-solid fa-hospital mr-1.5 text-sky-600"></i>${phieu.khoa || 'N/A'}
+                <div class="text-[10px] text-slate-400 font-normal mt-0.5">Người gửi: ${phieu.nhanSu || 'N/A'}</div>
             </td>
             <td class="p-3">
-                <div class="font-bold text-sky-800 mb-1">${phieu.items.length} Bộ dụng cụ bẩn:</div>
+                <div class="font-bold text-sky-800 mb-1">${(phieu.items || []).length} Bộ dụng cụ bẩn:</div>
                 <div class="space-y-1">
-                    ${phieu.items.map(it => `
+                    ${(phieu.items || []).map(it => `
                         <span class="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-mono mr-1">
-                            <strong>${it.maBo}</strong> - ${it.tenBo}
+                            <strong>${it.maBo || ''}</strong> - ${it.tenBo || ''}
                         </span>
                     `).join('')}
                 </div>
             </td>
-            <td class="p-3 text-center font-bold text-slate-600">${phieu.thoiGian}</td>
+            <td class="p-3 text-center font-bold text-slate-600">${phieu.thoiGian || ''}</td>
             <td class="p-3 text-center action-col">
                 <button type="button" onclick="moPopupKiemDemThuGom(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition-all whitespace-nowrap">
                     <i class="fa-solid fa-clipboard-check mr-1"></i> Kiểm Đếm & Nhận
@@ -583,7 +626,7 @@ function renderBangChoThuGom() {
 
 function moPopupKiemDemThuGom(idx) {
     currentKiemDemIndex = idx;
-    const phieu = globalData.phieuTra[idx];
+    const phieu = (globalData.phieuTra || [])[idx];
     if (!phieu) return;
 
     const pop = document.getElementById('popupKiemDem');
@@ -591,11 +634,11 @@ function moPopupKiemDemThuGom(idx) {
     const popKhoa = document.getElementById('popKhoa');
     const popChecklist = document.getElementById('popKiemDemChecklist');
 
-    if (popBo) popBo.innerText = `LỆNH THU GOM: ${phieu.items.length} MÂM DỤNG CỤ`;
+    if (popBo) popBo.innerText = `LỆNH THU GOM: ${(phieu.items || []).length} MÂM DỤNG CỤ`;
     if (popKhoa) popKhoa.innerText = phieu.khoa;
 
     if (popChecklist) {
-        popChecklist.innerHTML = phieu.items.map((it) => `
+        popChecklist.innerHTML = (phieu.items || []).map((it) => `
             <div class="p-2.5 bg-slate-50 rounded-lg flex justify-between items-center text-xs">
                 <div>
                     <span class="font-mono font-bold text-sky-700 mr-2">${it.maBo}</span>
@@ -617,8 +660,8 @@ function closePopupKiemDem() {
 }
 
 function saveKiemDem() {
-    if (currentKiemDemIndex === null || !globalData.phieuTra[currentKiemDemIndex]) {
-        if (globalData.phieuTra.length === 0) return;
+    if (currentKiemDemIndex === null || !(globalData.phieuTra || [])[currentKiemDemIndex]) {
+        if ((globalData.phieuTra || []).length === 0) return;
         currentKiemDemIndex = 0;
     }
 
@@ -886,7 +929,7 @@ function renderBangDongGoi() {
 
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
-    const item = globalData.choDongGoi[idx];
+    const item = (globalData.choDongGoi || [])[idx];
     if (!item) return;
 
     const pop = document.getElementById('popupDongGoi');
@@ -898,7 +941,7 @@ function moPopupDongGoi(idx) {
     if (popBo) popBo.innerHTML = `<i class="fa-solid fa-box-open text-sky-600 mr-2"></i> ĐÓNG GÓI: ${item.tenBo}`;
     if (popSub) popSub.innerText = `Mã khay: ${item.maBo} | Khoa sở hữu: ${item.khoa || 'N/A'}`;
 
-    const danhMucMaster = globalData.danhMucLinhKien.find(d => d.maBo.toUpperCase() === item.maBo.toUpperCase());
+    const danhMucMaster = (globalData.danhMucLinhKien || []).find(d => d.maBo.toUpperCase() === item.maBo.toUpperCase());
 
     if (imgEl) {
         const hinhAnhUrl = (danhMucMaster && danhMucMaster.hinhAnh) 
@@ -956,7 +999,7 @@ function tinhHanSuDung() {
 }
 
 function chotDongGoi() {
-    if (itemDongGoiHienTai === null || !globalData.choDongGoi[itemDongGoiHienTai]) return;
+    if (itemDongGoiHienTai === null || !(globalData.choDongGoi || [])[itemDongGoiHienTai]) return;
 
     const loaiEl = document.getElementById('popDG_Loai');
     const vatLieuText = loaiEl ? loaiEl.value.split('|')[0] : "Giấy gói chuyên dụng";
@@ -992,18 +1035,17 @@ function chotDongGoi() {
 }
 
 /* =========================================================================
-   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (TÍCH HỢP ROBOFLOW CLOUD API THỰC TẾ)
+   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (ROBOFLOW WORKFLOW)
    ========================================================================= */
 
-// Bảng từ điển chuẩn hóa tên nhãn AI sang tiếng Việt hiển thị
 const ROBOFLOW_LABEL_MAPPING = {
     "van doyen": "Van Doyen",
     "banh doyen": "Van Doyen",
     "banh farabeuf": "Banh Farabeuf",
     "farabeuf": "Banh Farabeuf",
     "can dao": "Cán Dao",
-    "can dao so 3": "Cán Dao",
-    "can dao so 4": "Cán Dao",
+    "can dao so 3": "Cán Dao số 3",
+    "can dao so 4": "Cán Dao số 4",
     "keo cat chi": "Kéo Cắt Chỉ",
     "keo cat ron": "Kéo Cắt Rốn",
     "mayo cong": "Kéo Mayo Cong",
@@ -1025,7 +1067,6 @@ const ROBOFLOW_LABEL_MAPPING = {
     "bhd800": "Bồn Hạt Đậu 800ml"
 };
 
-// 1. Kích hoạt Live Camera
 async function kichHoatAICamera() {
     const video = document.getElementById('ai_webcam');
     const placeholder = document.getElementById('ai_placeholder');
@@ -1054,7 +1095,6 @@ async function kichHoatAICamera() {
     }
 }
 
-// 2. Tắt Live Camera
 function tatAICamera() {
     if (aiVideoStream) {
         aiVideoStream.getTracks().forEach(track => track.stop());
@@ -1069,7 +1109,6 @@ function tatAICamera() {
     if (btnScan) btnScan.disabled = true;
 }
 
-// 3. Chụp khung hình Canvas & Gửi trực tiếp sang Roboflow AI
 async function chupAnhVaDemAI() {
     const video = document.getElementById('ai_webcam');
     const canvas = document.getElementById('ai_canvas_overlay');
@@ -1097,7 +1136,6 @@ async function chupAnhVaDemAI() {
     }
 
     try {
-        // GỌI ROBOFLOW SERVERLESS WORKFLOW API
         const response = await fetch('https://serverless.roboflow.com/pham-thanh-hung-vt-gmail-com/workflows/cssd-instruments', {
             method: 'POST',
             headers: {
@@ -1155,7 +1193,6 @@ async function chupAnhVaDemAI() {
             const x = (p.x !== undefined) ? (p.x - width / 2) : 0;
             const y = (p.y !== undefined) ? (p.y - height / 2) : 0;
 
-            // Vẽ Bounding Box trực quan lên Canvas
             ctx.strokeStyle = '#10b981';
             ctx.lineWidth = 3;
             ctx.strokeRect(x, y, width, height);
@@ -1183,20 +1220,19 @@ async function chupAnhVaDemAI() {
     }
 }
 
-// 4. So khớp kết quả AI quét với Cơ số chuẩn trong Database
 function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     if (!tbodyLinhKien || itemDongGoiHienTai === null) return;
 
-    const itemHienTai = globalData.choDongGoi[itemDongGoiHienTai];
-    const masterInfo = globalData.danhMucLinhKien.find(d => d.maBo.toUpperCase() === itemHienTai.maBo.toUpperCase());
+    const itemHienTai = (globalData.choDongGoi || [])[itemDongGoiHienTai];
+    if (!itemHienTai) return;
+
+    const masterInfo = (globalData.danhMucLinhKien || []).find(d => d.maBo.toUpperCase() === itemHienTai.maBo.toUpperCase());
     const danhSachChuan = (masterInfo && masterInfo.chiTietLinhKien) ? masterInfo.chiTietLinhKien : [];
 
-    // Chuẩn hóa chuỗi so sánh không dấu
     const normalizeStr = (str) => {
         return (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     };
 
-    // Gom nhóm số lượng AI quét được từ Camera
     const aiCounts = {};
     detections.forEach(d => {
         const norm = normalizeStr(d.label);
@@ -1212,7 +1248,6 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
             const normTenMon = normalizeStr(tenMon);
             const slChuan = lk.soLuong || 1;
             
-            // Tìm số lượng AI quét tương ứng theo tên linh kiện
             let slAIQuet = 0;
             for (const [keyNorm, count] of Object.entries(aiCounts)) {
                 if (normTenMon.includes(keyNorm) || keyNorm.includes(normTenMon)) {
@@ -1250,7 +1285,6 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
             }
         });
     } else {
-        // Gom danh sách hiển thị nếu bộ chưa có danh mục con
         const rawAiCounts = {};
         detections.forEach(d => {
             rawAiCounts[d.label] = (rawAiCounts[d.label] || 0) + 1;
@@ -1321,7 +1355,6 @@ function renderBangChoHap() {
     if (!tbody) return;
 
     if (!globalData.choHap) globalData.choHap = [];
-
     if (badge) badge.innerText = `${globalData.choHap.length} Mục`;
 
     if (globalData.choHap.length === 0) {
@@ -1519,7 +1552,7 @@ function renderBangKhoVoKhuan() {
 }
 
 function xuatKhoDungCu(idx) {
-    if (!globalData.khoVoKhuan[idx]) return;
+    if (!globalData.khoVoKhuan || !globalData.khoVoKhuan[idx]) return;
     
     const item = globalData.khoVoKhuan.splice(idx, 1)[0];
     dongBoTrangThaiRealtime();
@@ -1560,7 +1593,7 @@ function xuatKhoXoayVong() {
         return;
     }
     const ma = inp.value.trim().toUpperCase();
-    const idx = globalData.khoVoKhuan.findIndex(i => i.maBo.toUpperCase() === ma);
+    const idx = (globalData.khoVoKhuan || []).findIndex(i => i.maBo.toUpperCase() === ma);
     if (idx !== -1) {
         xuatKhoDungCu(idx);
         inp.value = '';
@@ -1576,8 +1609,8 @@ function renderBangKPIPerformance() {
     const tbody = document.getElementById('bangHieuSuatKTV');
     if (!tbody) return;
 
-    const ktvStats = globalData.ktvList.map((ktv, idx) => {
-        const logsOfKtv = globalData.lichSu.filter(l => l.nhanSu === ktv.name);
+    const ktvStats = (globalData.ktvList || []).map((ktv, idx) => {
+        const logsOfKtv = (globalData.lichSu || []).filter(l => l.nhanSu === ktv.name);
         
         const countThuGom = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('THU GOM')).length;
         const countRua = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('RỬA')).length;
@@ -1587,8 +1620,8 @@ function renderBangKPIPerformance() {
 
         const tongThaoTac = logsOfKtv.length;
 
-        const totalBiReads = globalData.meHap.filter(m => m.nhanSuHap === ktv.name || m.nhanSu === ktv.name).length;
-        const passBiReads = globalData.meHap.filter(m => (m.nhanSuHap === ktv.name || m.nhanSu === ktv.name) && m.kpiBiStatus === 'ĐẠT (<30m)').length;
+        const totalBiReads = (globalData.meHap || []).filter(m => m.nhanSuHap === ktv.name || m.nhanSu === ktv.name).length;
+        const passBiReads = (globalData.meHap || []).filter(m => (m.nhanSuHap === ktv.name || m.nhanSu === ktv.name) && m.kpiBiStatus === 'ĐẠT (<30m)').length;
         const biComplianceRate = totalBiReads > 0 ? Math.round((passBiReads / totalBiReads) * 100) : 100;
 
         return {
@@ -1629,8 +1662,8 @@ function xuatBaoCaoKPIExcel() {
         return;
     }
 
-    const dataKPI = globalData.ktvList.map((ktv, idx) => {
-        const logsOfKtv = globalData.lichSu.filter(l => l.nhanSu === ktv.name);
+    const dataKPI = (globalData.ktvList || []).map((ktv, idx) => {
+        const logsOfKtv = (globalData.lichSu || []).filter(l => l.nhanSu === ktv.name);
         return {
             "STT": idx + 1,
             "Mã Nhân Viên": ktv.id,
@@ -1724,8 +1757,8 @@ function renderBangCongNoKhoa() {
     const selectedKhoa = selKhoa ? selKhoa.value : "";
     
     const items = selectedKhoa 
-        ? globalData.danhMucLinhKien.filter(i => i.khoa === selectedKhoa) 
-        : globalData.danhMucLinhKien;
+        ? (globalData.danhMucLinhKien || []).filter(i => i.khoa === selectedKhoa) 
+        : (globalData.danhMucLinhKien || []);
 
     if (!items || items.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem công nợ bộ dụng cụ tương ứng.</td></tr>`;
@@ -1755,7 +1788,7 @@ function renderBangTonKhoRealtime() {
     
     let items = (globalData.khoVoKhuan && globalData.khoVoKhuan.length > 0)
         ? globalData.khoVoKhuan 
-        : globalData.danhMucLinhKien;
+        : (globalData.danhMucLinhKien || []);
 
     if (selectedKhoa) {
         items = items.filter(i => i.khoa === selectedKhoa);
@@ -1837,7 +1870,7 @@ function renderBangLichSuRua() {
 function renderBangLichSuLuanChuyen() {
     const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
     if (!tbody) return;
-    if (globalData.lichSu.length === 0) {
+    if (!globalData.lichSu || globalData.lichSu.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký luân chuyển</td></tr>`;
         return;
     }
@@ -1918,7 +1951,7 @@ function checkLogin() {
         return;
     }
 
-    let foundUser = globalData.ktvList.find(k => k.pin === pin);
+    let foundUser = (globalData.ktvList || []).find(k => k.pin === pin);
     
     if (pin === '9999' || role === 'ADMIN') {
         foundUser = { id: 'ADMIN', name: 'ADMINISTRATOR', role: 'ADMIN' };
@@ -2000,7 +2033,7 @@ function scanKhayVaoSuDung() {
     if (!inp || !inp.value.trim()) return;
 
     const maKhay = inp.value.trim().toUpperCase();
-    const item = globalData.danhMucLinhKien.find(i => i.maBo.toUpperCase() === maKhay) || { maBo: maKhay, tenBo: "Khay Dụng Cụ" };
+    const item = (globalData.danhMucLinhKien || []).find(i => i.maBo.toUpperCase() === maKhay) || { maBo: maKhay, tenBo: "Khay Dụng Cụ" };
 
     tempSuDungKhay.push(item);
     renderBangKhaySuDung();
@@ -2099,7 +2132,7 @@ function luuXacNhanKyNhan() {
    ========================================================================= */
 function xuatBaoCaoExcelLuanChuyen() {
     if (typeof XLSX === 'undefined') return;
-    const dataLuanChuyen = globalData.lichSu.map(item => ({
+    const dataLuanChuyen = (globalData.lichSu || []).map(item => ({
         "Mã ID Khay": item.maBo || "N/A",
         "Tên Bộ Dụng Cụ": item.tenBo || "N/A",
         "Khoa / Phòng": item.khoa || "N/A",
@@ -2117,7 +2150,7 @@ function xuatBaoCaoExcelLuanChuyen() {
 
 function xuatBaoCaoExcelMeRua() {
     if (typeof XLSX === 'undefined') return;
-    const dataMeRua = globalData.meRua.map(item => ({
+    const dataMeRua = (globalData.meRua || []).map(item => ({
         "Mã Lô Rửa": item.batchId || "N/A",
         "Mã Máy Rửa": item.maySo || "Belimed WD250",
         "Chu Trình": item.chuKy || "Tiêu chuẩn",
@@ -2142,7 +2175,7 @@ function truyVetTheoMaBatch() {
         return;
     }
 
-    const res = globalData.lichSu.filter(l => (l.maLoHap && l.maLoHap.toUpperCase().includes(maBatch)));
+    const res = (globalData.lichSu || []).filter(l => (l.maLoHap && l.maLoHap.toUpperCase().includes(maBatch)));
     if (res.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-rose-500 font-bold">Không tìm thấy lịch sử luân chuyển khớp với mã lô: ${maBatch}</td></tr>`;
         return;
@@ -2182,7 +2215,7 @@ function inTemTongHangLoat() {
     if (checkedInps.length > 0) {
         checkedInps.forEach(chk => {
             const idx = parseInt(chk.getAttribute('data-idx'));
-            if (globalData.choHap[idx]) itemsToPrint.push(globalData.choHap[idx]);
+            if ((globalData.choHap || [])[idx]) itemsToPrint.push(globalData.choHap[idx]);
         });
     } else {
         itemsToPrint = globalData.choHap || [];
@@ -2206,7 +2239,7 @@ function inTemNghiemThuHangLoat() {
     let itemsToPrint = [];
     checkedInps.forEach(chk => {
         const idx = parseInt(chk.getAttribute('data-idx'));
-        if (globalData.dangHap[idx]) itemsToPrint.push(globalData.dangHap[idx]);
+        if ((globalData.dangHap || [])[idx]) itemsToPrint.push(globalData.dangHap[idx]);
     });
 
     const firstItem = itemsToPrint[0] || {};
@@ -2334,7 +2367,7 @@ function inHoaDonGiaoNhan() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${globalData.danhMucLinhKien.slice(0, 10).map(i => `
+                    ${(globalData.danhMucLinhKien || []).slice(0, 10).map(i => `
                         <tr>
                             <td>${i.tenBo}</td>
                             <td>${i.maBo}</td>
@@ -2476,7 +2509,7 @@ function renderDanhSachPinAdmin() {
     const searchInp = document.getElementById('search_pin_admin');
     const keyword = searchInp ? searchInp.value.trim().toLowerCase() : '';
 
-    const filteredList = globalData.ktvList.filter(ktv => 
+    const filteredList = (globalData.ktvList || []).filter(ktv => 
         ktv.name.toLowerCase().includes(keyword) || ktv.id.toLowerCase().includes(keyword)
     );
 
@@ -2504,7 +2537,7 @@ function renderDanhSachPinAdmin() {
 
 function capNhatPinNhanVien(ktvId) {
     const pinInp = document.getElementById(`pin_input_${ktvId}`);
-    const targetKtv = globalData.ktvList.find(k => k.id === ktvId);
+    const targetKtv = (globalData.ktvList || []).find(k => k.id === ktvId);
     if (targetKtv && pinInp) {
         targetKtv.pin = pinInp.value.trim();
         alert(`🔑 Đã cập nhật PIN cho [${targetKtv.name}]!`);
@@ -2521,6 +2554,8 @@ function themNhanSuMoiAdmin() {
         alert("Vui lòng nhập Mã NV và Họ Tên!");
         return;
     }
+
+    if (!globalData.ktvList) globalData.ktvList = [];
 
     globalData.ktvList.push({
         id: idInp.value.trim().toUpperCase(),
