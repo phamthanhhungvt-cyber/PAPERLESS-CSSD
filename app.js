@@ -1,11 +1,11 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.6 - FULL DUAL-EXCEL & AESCULAP ALIAS MATCHING & AI SCANNER)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.7 - HỖ TRỢ ĐỒNG THỜI DUAL-EXCEL VÀ BÓC TÁCH FILE WORD .DOCX)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // Thay thế bằng API Key thực tế của dự án Firebase
+    apiKey: "YOUR_API_KEY",
     authDomain: "cssd-system-2878c.firebaseapp.com",
     projectId: "cssd-system-2878c",
     storageBucket: "cssd-system-2878c.appspot.com",
@@ -17,10 +17,8 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 
-// Khởi tạo Firestore
 const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 
-// Chống ngắt kết nối QUIC
 if (db) {
     try {
         db.settings({
@@ -41,12 +39,12 @@ let currentCameraInputId = null;
 
 let globalData = {
     phieuTra: [],
-    choRua: [],           // Dụng cụ chờ rửa
-    dangRua: [],          // Dụng cụ đang trong buồng rửa
-    choDongGoi: [],       // Dụng cụ chờ đóng gói
-    choHap: [],           // Dụng cụ đã đóng gói chờ hấp
-    dangHap: [],          // Dụng cụ đang trong lò hấp
-    khoVoKhuan: [],       // Dụng cụ vô khuẩn sẵn sàng xuất
+    choRua: [],           
+    dangRua: [],          
+    choDongGoi: [],       
+    choHap: [],           
+    dangHap: [],          
+    khoVoKhuan: [],       
     meRua: [],
     meHap: [],
     lichSu: [],
@@ -65,17 +63,14 @@ let tempSuDungKhay = [];
 let itemDongGoiHienTai = null;
 let currentRecallBatchId = "";
 
-// Biến Canvas Ký Điện Tử
 let canvasKy = null;
 let ctxKy = null;
 let isDrawingKy = false;
 
-// Biến Súng Quét Mã Vạch HID
 let barcodeScannerBuffer = "";
 let barcodeScannerTimer = null;
 let isBarcodeScannerEnabled = true;
 
-// Biến Luồng AI Vision Camera
 let aiVideoStream = null;
 
 // =========================================================================
@@ -85,6 +80,8 @@ const SET_ALIAS_MAPPING = {
     "MOLAYTHAI": "MỔ BẮT CON",
     "MO LAY THAI": "MỔ BẮT CON",
     "MO BAT CON": "MỔ BẮT CON",
+    "BO MO LAY THAI": "MỔ BẮT CON",
+    "BỘ MỔ LẤY THAI": "MỔ BẮT CON",
     "SANH": "BỘ SANH",
     "BO SANH": "BỘ SANH",
     "NAO": "BỘ NẠO",
@@ -143,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
     initExcelLoader(); 
+    initWordLoader(); // Bổ sung tự động kích hoạt bộ đọc Word .docx
     capNhatDanhSachMaMayRua();
     capNhatDanhSachMaMay();
     tuDongTaoMaLoMeRua();
@@ -282,7 +280,7 @@ function initRealtimeListeners() {
 }
 
 // =========================================================================
-// HÀM NẠP EXCEL THÔNG MINH (TỰ ĐỘNG GHÉP NỐI TOÀN DIỆN DANH MỤC & CHI TIẾT)
+// HÀM NẠP EXCEL THÔNG MINH
 // =========================================================================
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
@@ -324,7 +322,6 @@ function initExcelLoader() {
                 const isFileCoSoKhoa = rawRows.some((r, i) => i > 0 && String(r[idxKhoaHoacBo]).toUpperCase().includes('PHÒNG SANH'));
 
                 if (isFileCoSoKhoa) {
-                    // --- NẠP FILE CƠ SỐ DC KHOA PHÒNG ---
                     let danhSachBoMoi = [];
                     let setKhoa = new Set();
                     
@@ -344,7 +341,6 @@ function initExcelLoader() {
 
                         setKhoa.add(tenKhoa);
 
-                        // Tự động tìm và gắn danh mục chi tiết Aesculap nếu đã có
                         let chiTietLinhKien = [];
                         const maBoClean = cleanSearchStr(maBo);
                         const tenBoClean = cleanSearchStr(tenBo);
@@ -399,7 +395,6 @@ function initExcelLoader() {
                     }
 
                 } else {
-                    // --- NẠP FILE CHI TIẾT AESCULAP ---
                     const mapChiTietTheoBo = {};
 
                     for (let i = 1; i < rawRows.length; i++) {
@@ -426,7 +421,6 @@ function initExcelLoader() {
                         }
                     }
 
-                    // Ghép danh sách chi tiết vào từng bộ qua Từ điển ánh xạ
                     let countGhep = 0;
                     (globalData.danhMucLinhKien || []).forEach(bo => {
                         const maBoClean = cleanSearchStr(bo.maBo);
@@ -467,7 +461,7 @@ function initExcelLoader() {
                     }
 
                     capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 ĐÃ GHÉP NỐI THÀNH CÔNG!\n- Đã gắn chi tiết linh kiện vào ${countGhep} bộ dụng cụ (Bao gồm Bộ Mổ Lấy Thai, Bộ Sanh, May TSM...)!`);
+                    alert(`🎉 ĐÃ GHÉP NỐI THÀNH CÔNG CHI TIẾT AESCULAP!\n- Đã gắn chi tiết linh kiện vào ${countGhep} bộ dụng cụ!`);
                 }
 
             } catch (err) {
@@ -476,6 +470,115 @@ function initExcelLoader() {
             }
         };
         reader.readAsArrayBuffer(file);
+    });
+}
+
+// =========================================================================
+// HÀM BÓC TÁCH FILE WORD (.DOCX) CHECKLIST VÀO DANH MỤC CHI TIẾT
+// =========================================================================
+function initWordLoader() {
+    const wordInput = document.getElementById('wordFileInput');
+    if (!wordInput) return;
+
+    wordInput.addEventListener('change', async function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        if (typeof mammoth === 'undefined') {
+            alert("❌ Chưa nạp thư viện mammoth.js!");
+            return;
+        }
+
+        let totalSetsUpdated = 0;
+        const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
+        const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
+
+        for (const file of files) {
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+                const html = result.value;
+
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const tables = doc.querySelectorAll('table');
+
+                tables.forEach(table => {
+                    let tenBo = "";
+                    let chiTietLinhKien = [];
+                    const rows = Array.from(table.querySelectorAll('tr'));
+
+                    rows.forEach(tr => {
+                        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
+                        if (cells.length === 0) return;
+
+                        // Tìm tên bộ ở ô tiêu đề bảng
+                        if (cells.some(c => c.includes("MỔ") || c.includes("SANH") || c.includes("BỘ") || c.includes("PHẪU") || c.includes("THẨM MỸ"))) {
+                            for (const c of cells) {
+                                if (c.length > 3 && !c.includes("KHOA") && !c.includes("KIỂM") && !c.includes("STT") && !c.includes("Ngày")) {
+                                    tenBo = c;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Đọc từng dòng linh kiện (Cột 0: Mã TS, Cột 1: Tên TS, Cột 2: Số Lượng)
+                        if (cells.length >= 3 && /^\d+$/.test(cells[2])) {
+                            chiTietLinhKien.push({
+                                maLinhKien: cells[0],
+                                tenLinhKien: cells[1],
+                                soLuong: parseInt(cells[2], 10)
+                            });
+                        }
+                    });
+
+                    if (tenBo && chiTietLinhKien.length > 0) {
+                        const tenBoClean = cleanSearchStr(tenBo);
+                        mapAesculap[tenBo] = chiTietLinhKien;
+
+                        let targetAesculapName = "";
+                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                            const keyClean = cleanSearchStr(keyAlias);
+                            if (tenBoClean.includes(keyClean) || keyClean.includes(tenBoClean)) {
+                                targetAesculapName = valAesculap;
+                                break;
+                            }
+                        }
+
+                        (globalData.danhMucLinhKien || []).forEach(bo => {
+                            const boClean = cleanSearchStr(bo.tenBo);
+                            const maClean = cleanSearchStr(bo.maBo);
+                            if (
+                                (targetAesculapName && cleanSearchStr(targetAesculapName) === boClean) ||
+                                boClean.includes(tenBoClean) ||
+                                tenBoClean.includes(boClean) ||
+                                maClean.includes(tenBoClean)
+                            ) {
+                                bo.chiTietLinhKien = chiTietLinhKien;
+                                totalSetsUpdated++;
+                            }
+                        });
+                    }
+                });
+
+            } catch (err) {
+                console.error("Lỗi đọc file Word:", err);
+            }
+        }
+
+        localStorage.setItem('cssd_aesculapCatalog', JSON.stringify(mapAesculap));
+        localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+
+        if (db) {
+            db.collection("he_thong_config").doc("danh_muc_master").set({
+                danhMucLinhKien: globalData.danhMucLinhKien,
+                danhSachKhoa: globalData.danhSachKhoa,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+
+        capNhatGiaoDienSauKhiNapExcel();
+        alert(`🎉 ĐÃ BÓC TÁCH & GẮN LINH KIỆN THÀNH CÔNG CHO ${totalSetsUpdated} BỘ TỪ FILE WORD!`);
     });
 }
 
@@ -750,7 +853,7 @@ function moPopupKiemDemThuGom(idx) {
     if (!phieu) return;
 
     const pop = document.getElementById('popupKiemDem');
-    const popBo = document.getElementById('popBo');
+    const popBo = document.getElementById('popDG_Bo');
     const popKhoa = document.getElementById('popKhoa');
     const popChecklist = document.getElementById('popKiemDemChecklist');
 
@@ -1047,7 +1150,7 @@ function renderBangDongGoi() {
     `).join('');
 }
 
-// CẬP NHẬT POPUP ĐÓNG GÓI - TỰ ĐỘNG BUNG 22 LINH KIỆN AESCULAP THEO ALIAS
+// CẬP NHẬT POPUP ĐÓNG GÓI - TỰ ĐỘNG BUNG ĐẦY ĐỦ LINH KIỆN AESCULAP THEO ALIAS
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
     const item = (globalData.choDongGoi || [])[idx];
