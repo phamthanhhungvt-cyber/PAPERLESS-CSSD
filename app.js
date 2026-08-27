@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.8 - FULL WORD/EXCEL PARSER & REALTIME AI VISION)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 2.9 - TÍCH HỢP TOÀN DIỆN WORD/EXCEL & FIX LỖI AI VISION FETCH)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -85,47 +85,64 @@ const SET_ALIAS_MAPPING = {
     "MỔ BẮT CON": "MỔ LẤY THAI",
     "SANH": "BỘ SANH",
     "BO SANH": "BỘ SANH",
+    "BỘ SANH": "BỘ SANH",
     "NAO": "BỘ NẠO",
     "BO NAO": "BỘ NẠO",
+    "BỘ NẠO": "BỘ NẠO",
     "KIEMCOL": "BỘ KIỂM COL",
     "KIEM COL": "BỘ KIỂM COL",
+    "BỘ KIỂM COL": "BỘ KIỂM COL",
     "MAYTANGSINHMON": "MAY TẦNG SINH MÔN",
     "MAY TANG SINH MON": "MAY TẦNG SINH MÔN",
+    "MAY TẦNG SINH MÔN": "MAY TẦNG SINH MÔN",
     "MAYTHAMMY": "BỘ MAY THẨM MỸ",
     "MAY THAM MY": "BỘ MAY THẨM MỸ",
+    "BỘ MAY THẨM MỸ": "BỘ MAY THẨM MỸ",
     "KHAIKHIQUAN": "BỘ KHAI KHÍ QUẢN",
     "KHAI KHI QUAN": "BỘ KHAI KHÍ QUẢN",
+    "BỘ KHAI KHÍ QUẢN": "BỘ KHAI KHÍ QUẢN",
     "UTPK": "UNG THƯ PHỤ KHOA",
     "UNG THU PHU KHOA": "UNG THƯ PHỤ KHOA",
+    "UNG THƯ PHỤ KHOA": "UNG THƯ PHỤ KHOA",
     "MOCTC(HO)": "CẮT TỬ CUNG",
     "MO HO CAT TU CUNG": "CẮT TỬ CUNG",
     "CAT TU CUNG": "CẮT TỬ CUNG",
+    "CẮT TỬ CUNG": "CẮT TỬ CUNG",
     "CTCNS(NB)": "CẮT TỬ CUNG NỘI SOI",
     "CAT TU CUNG NOI SOI": "CẮT TỬ CUNG NỘI SOI",
+    "CẮT TỬ CUNG NỘI SOI": "CẮT TỬ CUNG NỘI SOI",
     "CTC(AD)": "PHẪU THUẬT NỘI SOI CẮT TỬ CUNG NGÃ ÂM ĐẠO",
     "CAT TU CUNG NGA AM DAO": "PHẪU THUẬT NỘI SOI CẮT TỬ CUNG NGÃ ÂM ĐẠO",
     "TIEUPHAU(NS)": "TIỂU PHẨU CHO NỘI SOI",
     "TIEU PHAU NOI SOI": "TIỂU PHẨU CHO NỘI SOI",
+    "TIỂU PHẨU CHO NỘI SOI": "TIỂU PHẨU CHO NỘI SOI",
     "CATDOT": "CẮT ĐỐT",
     "CAT DOT": "CẮT ĐỐT",
+    "CẮT ĐỐT": "CẮT ĐỐT",
     "TROCARXOAN": "BỘ TROCAR XOẮN",
     "TROCARTRON": "BỘ TROCAR TRƠN",
     "TROCARNHUAXOAN": "BỘ TROCAR NHỰA XOẮN",
     "NONG": "BỘ NONG",
     "BONONG": "BỘ NONG",
+    "BỘ NONG": "BỘ NONG",
     "MAYCOL": "MAY NỘI SOI",
     "MAY COL": "MAY NỘI SOI",
     "MAYNOISOI": "MAY NỘI SOI",
+    "MAY NỘI SOI": "MAY NỘI SOI",
     "ROBI": "KELLY ROBI",
     "DCGIAM1": "DỤNG CỤ GIẢM 1",
     "TIEUPHAUNHI": "TỔNG QUÁT NHI 1",
     "SOICTC": "BỘ SOI CỔ TỬ CUNG",
     "SOICOTUCUNG": "BỘ SOI CỔ TỬ CUNG",
+    "BỘ SOI CỔ TỬ CUNG": "BỘ SOI CỔ TỬ CUNG",
     "DATVAVONG": "BỘ ĐẶT VÀ LẤY VÒNG",
     "DATVALAYVONG": "BỘ ĐẶT VÀ LẤY VÒNG",
+    "BỘ ĐẶT VÀ LẤY VÒNG": "BỘ ĐẶT VÀ LẤY VÒNG",
     "SOSINH": "SƠ SINH",
     "SO SINH": "SƠ SINH",
+    "SƠ SINH": "SƠ SINH",
     "NOISOI": "NỘI SOI",
+    "NỘI SOI": "NỘI SOI",
     "TESE": "BỘ TESE/MICROTESE",
     "VIPHAUNAMKHOA": "VI PHẪU NAM KHOA",
     "TRUNGPHAUNAMKHOA": "TRUNG PHẪU NAM KHOA"
@@ -1300,7 +1317,7 @@ function chotDongGoi() {
 }
 
 /* =========================================================================
-   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (ROBOFLOW WORKFLOW)
+   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (ROBOFLOW CORS & DETECTION FIX)
    ========================================================================= */
 const ROBOFLOW_LABEL_MAPPING = {
     "van doyen": "Van Doyen",
@@ -1373,14 +1390,15 @@ function tatAICamera() {
     if (btnScan) btnScan.disabled = true;
 }
 
+// FIX TRIỆT ĐỂ LỖI FAILED TO FETCH & CORS KHI GỌI ROBOFLOW
 async function chupAnhVaDemAI() {
     const video = document.getElementById('ai_webcam');
     const canvas = document.getElementById('ai_canvas_overlay');
     const tbodyLinhKien = document.getElementById('popDG_DanhSachLinhKien');
     const btnScan = document.getElementById('btn_ai_scan');
 
-    if (!video || video.classList.contains('hidden')) {
-        alert("⚠️ Vui lòng bật Live Camera trước khi quét AI!");
+    if (!video || video.classList.contains('hidden') || !video.videoWidth) {
+        alert("⚠️ Vui lòng bật Live Camera và hướng vào mâm trước khi quét AI!");
         return;
     }
 
@@ -1400,31 +1418,43 @@ async function chupAnhVaDemAI() {
     }
 
     try {
-        const response = await fetch('https://serverless.roboflow.com/pham-thanh-hung-vt-gmail-com/workflows/cssd-instruments', {
+        let response = await fetch('https://detect.roboflow.com/cssd-instruments/1?api_key=NL3AKGKwKD5pagBvWgA3', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
-                api_key: 'NL3AKGKwKD5pagBvWgA3',
-                inputs: {
-                    "image": {
-                        "type": "base64",
-                        "value": base64Image
-                    }
-                }
-            })
+            body: base64Image
         });
 
         if (!response.ok) {
-            throw new Error(`Roboflow API trả về mã lỗi HTTP: ${response.status}`);
+            response = await fetch('https://serverless.roboflow.com/pham-thanh-hung-vt-gmail-com/workflows/cssd-instruments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    api_key: 'NL3AKGKwKD5pagBvWgA3',
+                    inputs: {
+                        "image": {
+                            "type": "base64",
+                            "value": base64Image
+                        }
+                    }
+                })
+            });
+        }
+
+        if (!response.ok) {
+            throw new Error(`Mã lỗi HTTP: ${response.status}`);
         }
 
         const result = await response.json();
-        console.log("⚡ [ROBOFLOW VISION RESULT]:", result);
+        console.log("⚡ [ROBOFLOW RESULT]:", result);
 
         let rawPredictions = [];
-        if (result.outputs && Array.isArray(result.outputs)) {
+        if (result.predictions && Array.isArray(result.predictions)) {
+            rawPredictions = result.predictions;
+        } else if (result.outputs && Array.isArray(result.outputs)) {
             for (const out of result.outputs) {
                 if (out.predictions && Array.isArray(out.predictions)) {
                     rawPredictions = out.predictions;
@@ -1434,12 +1464,9 @@ async function chupAnhVaDemAI() {
                     break;
                 }
             }
-        } else if (result.predictions && Array.isArray(result.predictions)) {
-            rawPredictions = result.predictions;
         }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
         const aiDetections = [];
 
         rawPredictions.forEach(p => {
@@ -1447,34 +1474,36 @@ async function chupAnhVaDemAI() {
             const labelChuan = ROBOFLOW_LABEL_MAPPING[labelRaw] || p.class || "Dụng Cụ";
             const confidence = p.confidence || 0;
 
-            aiDetections.push({
-                label: labelChuan,
-                conf: confidence
-            });
+            if (confidence >= 0.35) {
+                aiDetections.push({
+                    label: labelChuan,
+                    conf: confidence
+                });
 
-            const width = p.width || 50;
-            const height = p.height || 50;
-            const x = (p.x !== undefined) ? (p.x - width / 2) : 0;
-            const y = (p.y !== undefined) ? (p.y - height / 2) : 0;
+                const width = p.width || 50;
+                const height = p.height || 50;
+                const x = (p.x !== undefined) ? (p.x - width / 2) : 0;
+                const y = (p.y !== undefined) ? (p.y - height / 2) : 0;
 
-            ctx.strokeStyle = '#10b981';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x, y, width, height);
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x, y, width, height);
 
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
-            const text = `${labelChuan} (${Math.round(confidence * 100)}%)`;
-            ctx.font = "bold 11px Arial";
-            const textWidth = ctx.measureText(text).width;
-            ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
+                const text = `${labelChuan} (${Math.round(confidence * 100)}%)`;
+                ctx.font = "bold 11px Arial";
+                const textWidth = ctx.measureText(text).width;
+                ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
 
-            ctx.fillStyle = '#ffffff';
-            ctx.fillText(text, x + 4, (y > 20 ? y - 6 : y + 14));
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(text, x + 4, (y > 20 ? y - 6 : y + 14));
+            }
         });
 
         capNhatDoiSoatBangAI(aiDetections, tbodyLinhKien);
 
     } catch (err) {
-        console.error("❌ Lỗi gọi AI Roboflow Vision API:", err);
+        console.error("❌ Lỗi AI Vision:", err);
         alert(`❌ Không thể kết nối đến Máy chủ AI Vision (${err.message}). Vui lòng kiểm tra lại kết nối mạng!`);
     } finally {
         if (btnScan) {
