@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.1 - CHUẨN HÓA AI SCANNER THỰC TẾ & AUTO-SCROLL CẢNH BÁO ĐỎ)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.2 - DYNAMIC WORD PARSER, ACCURATE AI VISION & AUTO-SCROLL ALERT)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -493,7 +493,7 @@ function initExcelLoader() {
 }
 
 // =========================================================================
-// HÀM BÓC TÁCH FILE WORD (.DOCX) - GHI ĐÈ ƯU TIÊN DANH MỤC CHUẨN 2026
+// HÀM BÓC TÁCH FILE WORD (.DOCX) ĐA NĂNG TỰ ĐỘNG CHO MỌI BỘ DỤNG CỤ
 // =========================================================================
 function initWordLoader() {
     const wordInput = document.getElementById('wordFileInput');
@@ -509,6 +509,7 @@ function initWordLoader() {
         }
 
         let totalSetsUpdated = 0;
+        let danhSachTenBoCapNhat = [];
         const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
         const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
 
@@ -532,33 +533,44 @@ function initWordLoader() {
                         if (cells.length === 0) return;
 
                         const fullRowText = cells.join(" ").toUpperCase();
-                        if (fullRowText.includes("MỔ LẤY THAI") || fullRowText.includes("MỔ BẮT CON")) {
-                            tenBo = "MỔ LẤY THAI";
-                        } else if (!tenBo && cells.some(c => c.includes("MỔ") || c.includes("SANH") || c.includes("BỘ") || c.includes("PHẪU") || c.includes("THẨM MỸ"))) {
-                            for (const c of cells) {
-                                if (c.length > 3 && !c.includes("KHOA") && !c.includes("KIỂM") && !c.includes("STT") && !c.includes("Ngày") && !c.includes("Năm")) {
-                                    tenBo = c;
+                        
+                        // Tìm tên bộ ở header
+                        if (cells.some(c => c.includes("Tên TS") || c.includes("Tên bộ") || c.includes("DANH MỤC") || c.includes("MỔ LẤY THAI") || c.includes("BỘ SANH"))) {
+                            for (let i = 0; i < cells.length; i++) {
+                                const val = cells[i];
+                                if (val.length > 2 && !val.includes("KHOA") && !val.includes("KIỂM") && !val.includes("Tên TS") && !val.includes("STT") && !val.includes("Ngày") && !val.includes("Năm")) {
+                                    tenBo = val;
                                     break;
                                 }
                             }
                         }
 
-                        if (cells.length >= 3 && /^\d+$/.test(cells[2])) {
-                            chiTietLinhKien.push({
-                                maLinhKien: cells[0],
-                                tenLinhKien: cells[1],
-                                soLuong: parseInt(cells[2], 10)
-                            });
+                        // Đọc dòng linh kiện (Cột 0: Mã, Cột 1: Tên, Cột 2+: Số lượng)
+                        let idxQty = cells.findIndex((c, idx) => idx >= 2 && /^\d+$/.test(c) && parseInt(c, 10) > 0);
+                        if (idxQty !== -1 && cells.length >= 3) {
+                            const maTS = cells[0];
+                            const tenTS = cells[1];
+                            const soLuong = parseInt(cells[idxQty], 10);
+
+                            if (!tenTS.toUpperCase().includes("TỔNG") && !maTS.toUpperCase().includes("TỔNG") && tenTS.length > 1) {
+                                chiTietLinhKien.push({
+                                    maLinhKien: maTS,
+                                    tenLinhKien: tenTS,
+                                    soLuong: soLuong
+                                });
+                            }
                         }
                     });
 
-                    if (chiTietLinhKien.length > 0) {
-                        const tenBoNhanDien = tenBo || file.name.replace(/\.[^/.]+$/, "");
-                        const tenBoClean = cleanSearchStr(tenBoNhanDien);
+                    if (!tenBo) {
+                        tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cu/gi, "").trim();
+                    }
 
-                        mapAesculap[tenBoNhanDien] = chiTietLinhKien;
-                        mapAesculap["MỔ LẤY THAI"] = chiTietLinhKien;
-                        mapAesculap["MỔ BẮT CON"] = chiTietLinhKien;
+                    if (chiTietLinhKien.length > 0) {
+                        const tenBoClean = cleanSearchStr(tenBo);
+
+                        mapAesculap[tenBo] = chiTietLinhKien;
+                        mapAesculap[tenBoClean] = chiTietLinhKien;
 
                         let targetAesculapName = "";
                         for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
@@ -573,23 +585,22 @@ function initWordLoader() {
                             const boClean = cleanSearchStr(bo.tenBo);
                             const maClean = cleanSearchStr(bo.maBo);
                             if (
-                                boClean.includes("MOLAYTHAI") || 
-                                maClean.includes("MOLAYTHAI") || 
-                                boClean.includes("MOBATCON") ||
                                 (targetAesculapName && cleanSearchStr(targetAesculapName) === boClean) ||
                                 boClean.includes(tenBoClean) || 
                                 tenBoClean.includes(boClean) || 
                                 maClean.includes(tenBoClean)
                             ) {
                                 bo.chiTietLinhKien = chiTietLinhKien;
-                                totalSetsUpdated++;
                             }
                         });
+
+                        totalSetsUpdated++;
+                        danhSachTenBoCapNhat.push(tenBo);
                     }
                 });
 
             } catch (err) {
-                console.error("Lỗi đọc file Word:", err);
+                console.error(`Lỗi đọc file Word ${file.name}:`, err);
             }
         }
 
@@ -605,7 +616,7 @@ function initWordLoader() {
         }
 
         capNhatGiaoDienSauKhiNapExcel();
-        alert(`🎉 ĐÃ BÓC TÁCH & CẬP NHẬT CHUẨN XÁC DANH MỤC CHO ${totalSetsUpdated} MÂM TỪ FILE WORD!`);
+        alert(`🎉 NẠP TỰ ĐỘNG THÀNH CÔNG ${totalSetsUpdated} BỘ DỤNG CỤ:\n- ${danhSachTenBoCapNhat.join("\n- ")}`);
     });
 }
 
@@ -1177,7 +1188,7 @@ function renderBangDongGoi() {
     `).join('');
 }
 
-// CẬP NHẬT POPUP ĐÓNG GÓI - ƯU TIÊN GỌI DANH MỤC TỪ WORD CATALOG
+// POPUP ĐÓNG GÓI - TỰ ĐỘNG TRA CỨU LINH KIỆN ĐA TẦNG CHO BẤT KỲ BỘ NÀO
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
     const item = (globalData.choDongGoi || [])[idx];
@@ -1192,32 +1203,30 @@ function moPopupDongGoi(idx) {
     if (popBo) popBo.innerHTML = `<i class="fa-solid fa-box-open text-sky-600 mr-2"></i> ĐÓNG GÓI: ${item.tenBo}`;
     if (popSub) popSub.innerText = `Mã khay: ${item.maBo} | Khoa sở hữu: ${item.khoa || 'N/A'}`;
 
-    const danhMucMaster = (globalData.danhMucLinhKien || []).find(d => d.maBo.toUpperCase() === item.maBo.toUpperCase());
-    let danhSachItems = (danhMucMaster && danhMucMaster.chiTietLinhKien && danhMucMaster.chiTietLinhKien.length > 0) ? danhMucMaster.chiTietLinhKien : [];
+    const maBoClean = cleanSearchStr(item.maBo);
+    const tenBoClean = cleanSearchStr(item.tenBo);
 
-    // Tìm trong kho catalog nếu chưa có
+    let danhSachItems = [];
+
+    // Tầng 1: Tra cứu trong danh mục master
+    const danhMucMaster = (globalData.danhMucLinhKien || []).find(d => cleanSearchStr(d.maBo) === maBoClean || cleanSearchStr(d.tenBo) === tenBoClean);
+    if (danhMucMaster && danhMucMaster.chiTietLinhKien && danhMucMaster.chiTietLinhKien.length > 0) {
+        danhSachItems = danhMucMaster.chiTietLinhKien;
+    }
+
+    // Tầng 2: Tra cứu trong kho catalog đã bóc tách từ file Word/Excel
     if (danhSachItems.length === 0) {
         const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
         if (savedCatalog) {
             const mapAesculap = JSON.parse(savedCatalog);
-            const maBoClean = cleanSearchStr(item.maBo);
-            const tenBoClean = cleanSearchStr(item.tenBo);
 
-            let targetAesculapName = "";
-            for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
-                const keyClean = cleanSearchStr(keyAlias);
-                if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
-                    targetAesculapName = valAesculap;
-                    break;
-                }
-            }
-
-            for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
-                const aescClean = cleanSearchStr(tenBoAesculap);
+            for (const [keyName, listLinhKien] of Object.entries(mapAesculap)) {
+                const keyClean = cleanSearchStr(keyName);
                 if (
-                    (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
-                    tenBoClean.includes(aescClean) ||
-                    aescClean.includes(tenBoClean)
+                    keyClean.includes(tenBoClean) || 
+                    tenBoClean.includes(keyClean) || 
+                    keyClean.includes(maBoClean) ||
+                    maBoClean.includes(keyClean)
                 ) {
                     danhSachItems = listLinhKien;
                     if (danhMucMaster) danhMucMaster.chiTietLinhKien = listLinhKien;
@@ -1228,10 +1237,7 @@ function moPopupDongGoi(idx) {
     }
 
     if (imgEl) {
-        const hinhAnhUrl = (danhMucMaster && danhMucMaster.hinhAnh) 
-            ? danhMucMaster.hinhAnh 
-            : 'https://placehold.co/400x300/1e293b/38bdf8?text=So+Do+Mam+' + encodeURIComponent(item.maBo);
-        imgEl.src = hinhAnhUrl;
+        imgEl.src = 'https://placehold.co/400x300/1e293b/38bdf8?text=So+Do+Mam+' + encodeURIComponent(item.maBo);
     }
 
     if (tbodyLinhKien) {
