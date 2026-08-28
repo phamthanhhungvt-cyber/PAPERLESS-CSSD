@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.0 - TOÀN DIỆN DUAL-EXCEL, WORD PARSER & RESILIENT AI SCANNER)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.1 - CHUẨN HÓA AI SCANNER THỰC TẾ & AUTO-SCROLL CẢNH BÁO ĐỎ)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -1317,7 +1317,7 @@ function chotDongGoi() {
 }
 
 /* =========================================================================
-   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (ROBOFLOW CORS & FALLBACK FIX)
+   8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (ROBOFLOW REAL DETECTION)
    ========================================================================= */
 const ROBOFLOW_LABEL_MAPPING = {
     "van doyen": "Van Doyen",
@@ -1390,7 +1390,7 @@ function tatAICamera() {
     if (btnScan) btnScan.disabled = true;
 }
 
-// FIX TRIỆT ĐỂ LỖI FAILED TO FETCH BẰNG RESILIENT FALLBACK ENGINE
+// GỌI ROBOFLOW INFERENCE THỰC TẾ (KHÔNG VẼ KHUNG GIẢ TRÊN BÀN PHÍM)
 async function chupAnhVaDemAI() {
     const video = document.getElementById('ai_webcam');
     const canvas = document.getElementById('ai_canvas_overlay');
@@ -1414,109 +1414,65 @@ async function chupAnhVaDemAI() {
 
     if (btnScan) {
         btnScan.disabled = true;
-        btnScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Phân Tích AI...`;
+        btnScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Quét AI Thực Tế...`;
     }
 
     let rawPredictions = [];
-    let isApiSuccess = false;
 
-    // 1. Thử gọi máy chủ AI Roboflow
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-        const response = await fetch('https://serverless.roboflow.com/cssd-instruments', {
+        const response = await fetch('https://detect.roboflow.com/cssd-instruments/1?api_key=NL3AKGKwKD5pagBvWgA3', {
             method: 'POST',
-            signal: controller.signal,
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
-                api_key: 'NL3AKGKwKD5pagBvWgA3',
-                inputs: {
-                    "image": {
-                        "type": "base64",
-                        "value": base64Image
-                    }
-                }
-            })
+            body: base64Image
         });
-
-        clearTimeout(timeoutId);
 
         if (response.ok) {
             const result = await response.json();
-            if (result.predictions && Array.isArray(result.predictions)) {
-                rawPredictions = result.predictions;
-                isApiSuccess = true;
-            } else if (result.outputs && Array.isArray(result.outputs)) {
-                for (const out of result.outputs) {
-                    if (out.predictions && Array.isArray(out.predictions)) {
-                        rawPredictions = out.predictions;
-                        isApiSuccess = true;
-                        break;
-                    }
-                }
-            }
+            console.log("⚡ [ROBOFLOW REAL RESULT]:", result);
+            rawPredictions = result.predictions || [];
+        } else {
+            console.warn("Máy chủ Roboflow phản hồi mã:", response.status);
         }
     } catch (err) {
-        console.warn("⚠️ Kích hoạt AI Fallback Engine do máy chủ phản hồi chậm hoặc chặn CORS:", err.message);
+        console.error("Lỗi gọi AI Roboflow:", err);
     }
 
-    // 2. Chế độ dự phòng tự động (Local Resilient Fallback)
-    if (!isApiSuccess || rawPredictions.length === 0) {
-        const itemHienTai = (globalData.choDongGoi || [])[itemDongGoiHienTai];
-        const masterInfo = (globalData.danhMucLinhKien || []).find(d => d.maBo.toUpperCase() === (itemHienTai ? itemHienTai.maBo.toUpperCase() : ''));
-        const danhSachChuan = (masterInfo && masterInfo.chiTietLinhKien) ? masterInfo.chiTietLinhKien : [];
-
-        rawPredictions = danhSachChuan.map((lk, idx) => {
-            const posX = 60 + ((idx * 55) % (canvas.width - 120));
-            const posY = 60 + (Math.floor(idx / 8) * 70);
-            return {
-                class: lk.tenLinhKien || lk.ten,
-                confidence: 0.92 + (Math.random() * 0.06),
-                x: posX,
-                y: posY,
-                width: 50,
-                height: 50
-            };
-        });
-    }
-
-    // 3. Vẽ Bounding Box trực quan lên Canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const aiDetections = [];
 
     rawPredictions.forEach(p => {
         const labelRaw = (p.class || p.label || "").toLowerCase().trim();
         const labelChuan = ROBOFLOW_LABEL_MAPPING[labelRaw] || p.class || "Dụng Cụ";
-        const confidence = p.confidence || 0.9;
+        const confidence = p.confidence || 0;
 
-        aiDetections.push({
-            label: labelChuan,
-            conf: confidence
-        });
+        if (confidence >= 0.4) {
+            aiDetections.push({
+                label: labelChuan,
+                conf: confidence
+            });
 
-        const width = p.width || 50;
-        const height = p.height || 50;
-        const x = (p.x !== undefined) ? (p.x - width / 2) : 20;
-        const y = (p.y !== undefined) ? (p.y - height / 2) : 20;
+            const width = p.width || 50;
+            const height = p.height || 50;
+            const x = (p.x !== undefined) ? (p.x - width / 2) : 0;
+            const y = (p.y !== undefined) ? (p.y - height / 2) : 0;
 
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(x, y, width, height);
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, width, height);
 
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
-        const text = `${labelChuan} (${Math.round(confidence * 100)}%)`;
-        ctx.font = "bold 11px Arial";
-        const textWidth = ctx.measureText(text).width;
-        ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
+            const text = `${labelChuan} (${Math.round(confidence * 100)}%)`;
+            ctx.font = "bold 11px Arial";
+            const textWidth = ctx.measureText(text).width;
+            ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
 
-        ctx.fillStyle = '#ffffff';
-        ctx.fillText(text, x + 4, (y > 20 ? y - 6 : y + 14));
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(text, x + 4, (y > 20 ? y - 6 : y + 14));
+        }
     });
 
-    // 4. Đối soát vào bảng chi tiết linh kiện
     capNhatDoiSoatBangAI(aiDetections, tbodyLinhKien);
 
     if (btnScan) {
@@ -1525,6 +1481,7 @@ async function chupAnhVaDemAI() {
     }
 }
 
+// CẬP NHẬT BẢNG ĐỐI SOÁT - TÔ ĐỎ RỰC RỠ TẤT CẢ MÓN THIẾU & TỰ CUỘN MÀN HÌNH
 function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     if (!tbodyLinhKien || itemDongGoiHienTai === null) return;
 
@@ -1532,7 +1489,9 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     if (!itemHienTai) return;
 
     const masterInfo = (globalData.danhMucLinhKien || []).find(d => d.maBo.toUpperCase() === itemHienTai.maBo.toUpperCase());
-    const danhSachChuan = (masterInfo && masterInfo.chiTietLinhKien) ? masterInfo.chiTietLinhKien : [];
+    const danhSachChuan = (masterInfo && masterInfo.chiTietLinhKien && masterInfo.chiTietLinhKien.length > 0) 
+        ? masterInfo.chiTietLinhKien 
+        : [];
 
     const normalizeStr = (str) => {
         return (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -1545,7 +1504,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     });
 
     let html = '';
-    let hasMissing = false;
+    let soMonThieu = 0;
 
     if (danhSachChuan.length > 0) {
         danhSachChuan.forEach(lk => {
@@ -1563,53 +1522,54 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
             const slThieu = slChuan - slAIQuet;
 
             if (slThieu > 0) {
-                hasMissing = true;
+                soMonThieu += slThieu;
                 html += `
-                    <tr class="bg-rose-50 border-b text-xs font-bold text-rose-700">
-                        <td class="p-2 flex items-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation text-rose-600 animate-bounce"></i> ${tenMon}
-                            ${lk.maLinhKien ? `<span class="text-[10px] text-slate-400 font-mono">(${lk.maLinhKien})</span>` : ''}
+                    <tr class="bg-rose-100/80 border-b border-rose-200 text-xs font-bold text-rose-800">
+                        <td class="p-2.5">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation text-rose-600 animate-pulse"></i>
+                                <span>${tenMon}</span>
+                            </div>
+                            ${lk.maLinhKien ? `<span class="text-[10px] text-rose-600/80 font-mono block ml-4">(${lk.maLinhKien})</span>` : ''}
                         </td>
-                        <td class="p-2 text-center">
-                            Chuẩn: ${slChuan} | <span class="underline">THIẾU ${slThieu} CÁI</span> (AI: ${slAIQuet})
+                        <td class="p-2.5 text-center whitespace-nowrap">
+                            <span class="bg-rose-600 text-white px-2 py-0.5 rounded text-[11px] font-extrabold">
+                                THIẾU ${slThieu} / ${slChuan}
+                            </span>
+                            <span class="text-[10px] text-slate-500 block mt-0.5">(Đã đếm: ${slAIQuet})</span>
                         </td>
                     </tr>
                 `;
             } else {
                 html += `
-                    <tr class="bg-emerald-50/60 border-b text-xs text-slate-800">
-                        <td class="p-2 font-semibold flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-check text-emerald-600"></i> ${tenMon}
-                            ${lk.maLinhKien ? `<span class="text-[10px] text-slate-400 font-mono">(${lk.maLinhKien})</span>` : ''}
+                    <tr class="bg-emerald-50/70 border-b border-emerald-100 text-xs text-slate-800">
+                        <td class="p-2.5 font-semibold">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                                <span>${tenMon}</span>
+                            </div>
+                            ${lk.maLinhKien ? `<span class="text-[10px] text-slate-400 font-mono block ml-4">(${lk.maLinhKien})</span>` : ''}
                         </td>
-                        <td class="p-2 text-center font-mono font-bold text-emerald-700">
-                            Đủ (${slAIQuet}/${slChuan})
+                        <td class="p-2.5 text-center font-mono font-bold text-emerald-700 whitespace-nowrap">
+                            <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">
+                                ĐỦ (${slAIQuet}/${slChuan})
+                            </span>
                         </td>
                     </tr>
                 `;
             }
         });
-    } else {
-        const rawAiCounts = {};
-        detections.forEach(d => {
-            rawAiCounts[d.label] = (rawAiCounts[d.label] || 0) + 1;
-        });
-        for (const [ten, sl] of Object.entries(rawAiCounts)) {
-            html += `
-                <tr class="bg-emerald-50 border-b text-xs">
-                    <td class="p-2 font-semibold text-slate-800">${ten}</td>
-                    <td class="p-2 text-center font-mono font-bold text-emerald-700">${sl} cái (AI Đếm)</td>
-                </tr>
-            `;
-        }
     }
 
     tbodyLinhKien.innerHTML = html;
 
-    if (hasMissing) {
-        alert("⚠️ CẢNH BÁO: Mâm dụng cụ đang BỊ THIẾU CHI TIẾT! Vui lòng kiểm tra các mục tô màu đỏ trước khi đóng gói.");
-    } else {
-        alert(`🎉 HỢP LỆ: AI xác nhận nhận diện được ${detections.length} chi tiết trên mâm!`);
+    // Tự động cuộn xuống phần bảng kiểm tra để kỹ thuật viên nhìn thấy ngay
+    tbodyLinhKien.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    if (soMonThieu > 0) {
+        alert(`⚠️ CẢNH BÁO: Phát hiện mâm đang THIẾU ${soMonThieu} CHI TIẾT! Vui lòng kiểm tra các mục tô màu đỏ bên dưới.`);
+    } else if (detections.length > 0) {
+        alert(`🎉 HỢP LỆ: Đã nhận diện đầy đủ toàn bộ chi tiết trên mâm!`);
     }
 }
 
