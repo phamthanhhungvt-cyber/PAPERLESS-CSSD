@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.2 - DYNAMIC WORD PARSER, ACCURATE AI VISION & AUTO-SCROLL ALERT)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.3 - DYNAMIC WORD PARSER, ACCURATE AI VISION & AUTO-SCROLL ALERT)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -533,26 +533,54 @@ function initWordLoader() {
                         if (cells.length === 0) return;
 
                         const fullRowText = cells.join(" ").toUpperCase();
-                        
-                        // Tìm tên bộ ở header
-                        if (cells.some(c => c.includes("Tên TS") || c.includes("Tên bộ") || c.includes("DANH MỤC") || c.includes("MỔ LẤY THAI") || c.includes("BỘ SANH"))) {
+
+                        // 1. Tìm chính xác Tên Bộ ở các ô tiêu đề (Bỏ qua các từ khóa hệ thống)
+                        if (cells.some(c => c.toUpperCase().includes("TÊN TS") || c.toUpperCase().includes("TÊN BỘ"))) {
                             for (let i = 0; i < cells.length; i++) {
-                                const val = cells[i];
-                                if (val.length > 2 && !val.includes("KHOA") && !val.includes("KIỂM") && !val.includes("Tên TS") && !val.includes("STT") && !val.includes("Ngày") && !val.includes("Năm")) {
+                                const val = cells[i].trim();
+                                const valUpper = val.toUpperCase();
+                                if (
+                                    val.length > 2 && 
+                                    !valUpper.includes("KHOA") && 
+                                    !valUpper.includes("KIỂM") && 
+                                    !valUpper.includes("TÊN TS") && 
+                                    !valUpper.includes("TÊN BỘ") && 
+                                    !valUpper.includes("STT") && 
+                                    !valUpper.includes("NGÀY") && 
+                                    !valUpper.includes("NĂM") &&
+                                    !/^\d+$/.test(val)
+                                ) {
                                     tenBo = val;
                                     break;
                                 }
                             }
                         }
 
-                        // Đọc dòng linh kiện (Cột 0: Mã, Cột 1: Tên, Cột 2+: Số lượng)
+                        // 2. Bỏ qua hoàn toàn các dòng Header / Tiêu đề bảng kiểm
+                        if (
+                            fullRowText.includes("KHOA KIỂM SOÁT") || 
+                            fullRowText.includes("TÊN TS (I)") || 
+                            fullRowText.includes("MÃ TS") || 
+                            fullRowText.includes("CHECK SẠCH") ||
+                            fullRowText.includes("CHECK VK") ||
+                            fullRowText.includes("GHI CHÚ")
+                        ) {
+                            return;
+                        }
+
+                        // 3. Đọc dòng linh kiện thực tế (Mã TS - Tên TS - Số Lượng)
                         let idxQty = cells.findIndex((c, idx) => idx >= 2 && /^\d+$/.test(c) && parseInt(c, 10) > 0);
                         if (idxQty !== -1 && cells.length >= 3) {
                             const maTS = cells[0];
                             const tenTS = cells[1];
                             const soLuong = parseInt(cells[idxQty], 10);
 
-                            if (!tenTS.toUpperCase().includes("TỔNG") && !maTS.toUpperCase().includes("TỔNG") && tenTS.length > 1) {
+                            if (
+                                tenTS.length > 1 && 
+                                !tenTS.toUpperCase().includes("TỔNG") && 
+                                !maTS.toUpperCase().includes("TỔNG") &&
+                                !maTS.toUpperCase().includes("TÊN TS")
+                            ) {
                                 chiTietLinhKien.push({
                                     maLinhKien: maTS,
                                     tenLinhKien: tenTS,
@@ -562,40 +590,38 @@ function initWordLoader() {
                         }
                     });
 
+                    // Nếu không lấy được tên từ bảng thì lấy từ tên file Word
                     if (!tenBo) {
-                        tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cu/gi, "").trim();
+                        tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cu|phieu kiem/gi, "").trim();
                     }
 
-                    if (chiTietLinhKien.length > 0) {
+                    if (chiTietLinhKien.length > 0 && tenBo) {
                         const tenBoClean = cleanSearchStr(tenBo);
 
                         mapAesculap[tenBo] = chiTietLinhKien;
                         mapAesculap[tenBoClean] = chiTietLinhKien;
 
-                        let targetAesculapName = "";
-                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
-                            const keyClean = cleanSearchStr(keyAlias);
-                            if (tenBoClean.includes(keyClean) || keyClean.includes(tenBoClean)) {
-                                targetAesculapName = valAesculap;
-                                break;
-                            }
-                        }
+                        let targetAlias = SET_ALIAS_MAPPING[tenBoClean] ? cleanSearchStr(SET_ALIAS_MAPPING[tenBoClean]) : tenBoClean;
 
                         (globalData.danhMucLinhKien || []).forEach(bo => {
                             const boClean = cleanSearchStr(bo.tenBo);
                             const maClean = cleanSearchStr(bo.maBo);
-                            if (
-                                (targetAesculapName && cleanSearchStr(targetAesculapName) === boClean) ||
-                                boClean.includes(tenBoClean) || 
-                                tenBoClean.includes(boClean) || 
-                                maClean.includes(tenBoClean)
-                            ) {
+
+                            const isExactMatch = 
+                                boClean === tenBoClean || 
+                                maClean === tenBoClean || 
+                                boClean === targetAlias || 
+                                maClean === targetAlias ||
+                                (tenBoClean.length >= 6 && (boClean.includes(tenBoClean) || tenBoClean.includes(boClean))) ||
+                                (targetAlias.length >= 6 && (boClean.includes(targetAlias) || targetAlias.includes(boClean)));
+
+                            if (isExactMatch) {
                                 bo.chiTietLinhKien = chiTietLinhKien;
                             }
                         });
 
                         totalSetsUpdated++;
-                        danhSachTenBoCapNhat.push(tenBo);
+                        danhSachTenBoCapNhat.push(`${tenBo} (${chiTietLinhKien.length} món)`);
                     }
                 });
 
@@ -616,7 +642,7 @@ function initWordLoader() {
         }
 
         capNhatGiaoDienSauKhiNapExcel();
-        alert(`🎉 NẠP TỰ ĐỘNG THÀNH CÔNG ${totalSetsUpdated} BỘ DỤNG CỤ:\n- ${danhSachTenBoCapNhat.join("\n- ")}`);
+        alert(`🎉 NẠP THÀNH CÔNG ${totalSetsUpdated} BỘ DỤNG CỤ TỪ WORD:\n- ${danhSachTenBoCapNhat.join("\n- ")}`);
     });
 }
 
