@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.4 - UNIFIED CLEAN CODE)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.5 - FULL WORD PARSER & ACCURATE AI VISION)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -25,6 +25,7 @@ if (db) {
             experimentalForceLongPolling: true,
             useFetchStreams: false
         });
+        console.log("⚡ [FIRESTORE CONFIG] Đã ép kết nối HTTP Long Polling thuần!");
     } catch (err) {
         console.warn("Firestore settings bypass:", err);
     }
@@ -72,6 +73,9 @@ let isBarcodeScannerEnabled = true;
 
 let aiVideoStream = null;
 
+// =========================================================================
+// BẢNG TỪ ĐIỂN ÁNH XẠ ĐA TỪ KHÓA (ALIAS DICTIONARY)
+// =========================================================================
 const SET_ALIAS_MAPPING = {
     "MOLAYTHAI": "MỔ LẤY THAI",
     "MO LAY THAI": "MỔ LẤY THAI",
@@ -148,7 +152,7 @@ function cleanSearchStr(str) {
     return (str || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
 }
 
-// 3. KHỞI TẠO DOM
+// 3. KHỞI TẠO VÀ ĐỒNG BỘ DỮ LIỆU
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
@@ -481,7 +485,7 @@ function initExcelLoader() {
     });
 }
 
-// 5. BỘ BÓC TÁCH FILE WORD (.DOCX) CHUẨN XÁC
+// 5. BỘ BÓC TÁCH FILE WORD (.DOCX) THÔNG MINH
 function initWordLoader() {
     const wordInput = document.getElementById('wordFileInput');
     if (!wordInput) return;
@@ -515,91 +519,120 @@ function initWordLoader() {
                     let chiTietLinhKien = [];
                     const rows = Array.from(table.querySelectorAll('tr'));
 
+                    let idxMa = -1, idxTen = -1, idxQty = -1;
+
+                    // 1. Quét tìm dòng tiêu đề bảng để xác định chính xác vị trí các cột
                     rows.forEach(tr => {
                         const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
                         if (cells.length === 0) return;
 
-                        const fullRowText = cells.join(" ").toUpperCase();
+                        const fullRow = cells.join(" ").toUpperCase();
 
-                        if (cells.some(c => c.toUpperCase().includes("TÊN TS") || c.toUpperCase().includes("TÊN BỘ"))) {
-                            for (let i = 0; i < cells.length; i++) {
-                                const val = cells[i].trim();
-                                const valUpper = val.toUpperCase();
-                                if (
-                                    val.length > 2 && 
-                                    !valUpper.includes("KHOA") && 
-                                    !valUpper.includes("KIỂM") && 
-                                    !valUpper.includes("TÊN TS") && 
-                                    !valUpper.includes("TÊN BỘ") && 
-                                    !valUpper.includes("STT") && 
-                                    !valUpper.includes("NGÀY") && 
-                                    !valUpper.includes("NĂM") &&
-                                    !/^\d+$/.test(val)
-                                ) {
-                                    tenBo = val;
-                                    break;
+                        // Tìm Tên Bộ (Mổ lấy thai, Bộ sanh...)
+                        if (!tenBo) {
+                            if (fullRow.includes("MỔ LẤY THAI") || fullRow.includes("MỔ BẮT CON")) {
+                                tenBo = "MỔ LẤY THAI";
+                            } else if (fullRow.includes("BỘ SANH") || fullRow.includes("ĐỠ SANH")) {
+                                tenBo = "BỘ SANH";
+                            } else if (cells.some(c => c.toUpperCase().includes("TÊN TS") || c.toUpperCase().includes("TÊN BỘ"))) {
+                                for (let c of cells) {
+                                    if (c.length > 2 && !c.includes("KHOA") && !c.includes("KIỂM") && !c.includes("STT") && !c.includes("Ngày") && !/^\d+$/.test(c)) {
+                                        tenBo = c.replace(/checklist|danh mục|bộ dụng cụ/gi, '').trim();
+                                        break;
+                                    }
                                 }
                             }
                         }
 
-                        if (
-                            fullRowText.includes("KHOA KIỂM SOÁT") || 
-                            fullRowText.includes("TÊN TS (I)") || 
-                            fullRowText.includes("MÃ TS") || 
-                            fullRowText.includes("CHECK SẠCH") ||
-                            fullRowText.includes("CHECK VK") ||
-                            fullRowText.includes("GHI CHÚ")
-                        ) {
-                            return;
-                        }
-
-                        let idxQty = cells.findIndex((c, idx) => idx >= 2 && /^\d+$/.test(c) && parseInt(c, 10) > 0);
-                        if (idxQty !== -1 && cells.length >= 3) {
-                            const maTS = cells[0];
-                            const tenTS = cells[1];
-                            const soLuong = parseInt(cells[idxQty], 10);
-
-                            if (
-                                tenTS.length > 1 && 
-                                !tenTS.toUpperCase().includes("TỔNG") && 
-                                !maTS.toUpperCase().includes("TỔNG") &&
-                                !maTS.toUpperCase().includes("TÊN TS")
-                            ) {
-                                chiTietLinhKien.push({
-                                    maLinhKien: maTS,
-                                    tenLinhKien: tenTS,
-                                    soLuong: soLuong
-                                });
-                            }
-                        }
+                        // Nhận diện chỉ mục các cột
+                        cells.forEach((c, i) => {
+                            const u = c.toUpperCase();
+                            if (u.includes("MÃ TS") || u === "MÃ" || u.includes("MÃ SỐ")) idxMa = i;
+                            if (u.includes("TÊN TS") || u.includes("TÊN DỤNG CỤ") || u === "TÊN") idxTen = i;
+                            if (u.includes("SL") || u.includes("SỐ LƯỢNG") || u.includes("CƠ SỐ")) idxQty = i;
+                        });
                     });
 
+                    // Tên bộ dự phòng từ tên file
                     if (!tenBo) {
                         tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cu|phieu kiem/gi, "").trim();
                     }
+
+                    // 2. Đọc dữ liệu chi tiết từng dòng dụng cụ
+                    rows.forEach(tr => {
+                        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
+                        if (cells.length < 2) return;
+
+                        const fullRow = cells.join(" ").toUpperCase();
+                        if (fullRow.includes("KHOA KIỂM SOÁT") || fullRow.includes("CHECK SẠCH") || fullRow.includes("GHI CHÚ") || fullRow.includes("TỔNG CỘNG") || fullRow.includes("ĐIỀU DƯỠNG")) {
+                            return;
+                        }
+
+                        let maTS = "", tenTS = "", soLuong = 0;
+
+                        if (idxTen !== -1 && idxQty !== -1) {
+                            tenTS = cells[idxTen] || "";
+                            maTS = idxMa !== -1 ? (cells[idxMa] || "") : "";
+                            soLuong = parseInt(cells[idxQty], 10) || 0;
+                        } else {
+                            let qtyIndex = cells.findIndex((c, i) => i >= 1 && /^\d+$/.test(c) && parseInt(c, 10) > 0 && parseInt(c, 10) < 50);
+                            if (qtyIndex !== -1) {
+                                soLuong = parseInt(cells[qtyIndex], 10);
+                                let textCells = cells.slice(0, qtyIndex).filter(c => !/^\d+$/.test(c));
+                                if (textCells.length >= 2) {
+                                    if (/[A-Z]{1,3}\s?\d+|\d{5,}/.test(textCells[0])) {
+                                        maTS = textCells[0];
+                                        tenTS = textCells[1];
+                                    } else {
+                                        tenTS = textCells[0];
+                                        maTS = textCells[1];
+                                    }
+                                } else if (textCells.length === 1) {
+                                    tenTS = textCells[0];
+                                }
+                            }
+                        }
+
+                        if (tenTS && soLuong > 0 && !tenTS.toUpperCase().includes("TÊN TS") && !tenTS.toUpperCase().includes("BỘ SANH") && !tenTS.toUpperCase().includes("MỔ LẤY THAI")) {
+                            chiTietLinhKien.push({
+                                maLinhKien: maTS,
+                                tenLinhKien: tenTS,
+                                soLuong: soLuong
+                            });
+                        }
+                    });
 
                     if (chiTietLinhKien.length > 0 && tenBo) {
                         const tenBoClean = cleanSearchStr(tenBo);
 
                         mapAesculap[tenBo] = chiTietLinhKien;
                         mapAesculap[tenBoClean] = chiTietLinhKien;
-
-                        let targetAlias = SET_ALIAS_MAPPING[tenBoClean] ? cleanSearchStr(SET_ALIAS_MAPPING[tenBoClean]) : tenBoClean;
+                        if (tenBoClean.includes("MOLAYTHAI") || tenBoClean.includes("MOBATCON")) {
+                            mapAesculap["MỔ LẤY THAI"] = chiTietLinhKien;
+                            mapAesculap["MOLAYTHAI"] = chiTietLinhKien;
+                        }
 
                         (globalData.danhMucLinhKien || []).forEach(bo => {
                             const boClean = cleanSearchStr(bo.tenBo);
                             const maClean = cleanSearchStr(bo.maBo);
 
-                            const isExactMatch = 
-                                boClean === tenBoClean || 
-                                maClean === tenBoClean || 
-                                boClean === targetAlias || 
-                                maClean === targetAlias ||
-                                (tenBoClean.length >= 6 && (boClean.includes(tenBoClean) || tenBoClean.includes(boClean))) ||
-                                (targetAlias.length >= 6 && (boClean.includes(targetAlias) || targetAlias.includes(boClean)));
-
-                            if (isExactMatch) {
+                            if (
+                                (tenBoClean.includes("MOLAYTHAI") && (boClean.includes("MOLAYTHAI") || maClean.includes("MOLAYTHAI") || boClean.includes("MOBATCON"))) ||
+                                (tenBoClean.includes("SANH") && !tenBoClean.includes("MOLAYTHAI") && (boClean === "BOSANH" || maClean === "SGSANH")) ||
+                                boClean === tenBoClean || maClean === tenBoClean
+                            ) {
                                 bo.chiTietLinhKien = chiTietLinhKien;
+                            }
+                        });
+
+                        (globalData.choDongGoi || []).forEach(item => {
+                            const maClean = cleanSearchStr(item.maBo);
+                            const boClean = cleanSearchStr(item.tenBo);
+                            if (
+                                (tenBoClean.includes("MOLAYTHAI") && (boClean.includes("MOLAYTHAI") || maClean.includes("MOLAYTHAI"))) ||
+                                boClean === tenBoClean || maClean === tenBoClean
+                            ) {
+                                item.chiTietLinhKien = chiTietLinhKien;
                             }
                         });
 
@@ -609,71 +642,30 @@ function initWordLoader() {
                 });
 
             } catch (err) {
-                console.error(`Lỗi đọc file Word ${file.name}:`, err);
+                console.error(`Lỗi đọc file ${file.name}:`, err);
             }
         }
 
         localStorage.setItem('cssd_aesculapCatalog', JSON.stringify(mapAesculap));
         localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+        localStorage.setItem('cssd_choDongGoi', JSON.stringify(globalData.choDongGoi));
 
         if (db) {
             db.collection("he_thong_config").doc("danh_muc_master").set({
                 danhMucLinhKien: globalData.danhMucLinhKien,
                 danhSachKhoa: globalData.danhSachKhoa,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            }, { merge: true });
+
+            db.collection("he_thong_config").doc("trang_thai_realtime").set({
+                choDongGoi: globalData.choDongGoi,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
         }
 
         capNhatGiaoDienSauKhiNapExcel();
-        alert(`🎉 NẠP THÀNH CÔNG ${totalSetsUpdated} BỘ DỤNG CỤ TỪ WORD:\n- ${danhSachTenBoCapNhat.join("\n- ")}`);
+        alert(`🎉 ĐÃ BÓC TÁCH VÀ GHI ĐÈ THÀNH CÔNG ${totalSetsUpdated} BỘ DỤNG CỤ:\n- ${danhSachTenBoCapNhat.join("\n- ")}`);
     });
-}
-
-function capNhatGiaoDienSauKhiNapExcel() {
-    const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
-    
-    selectIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            const firstOption = (id === 'khoa_selKhoa' || id === 'login_khoa' || id === 'xuat_selKhoa') 
-                ? '<option value="">-- Chọn Khoa / Phòng --</option>' 
-                : '<option value="">-- Tất cả Khoa / Phòng --</option>';
-            el.innerHTML = firstOption + (globalData.danhSachKhoa || []).map(k => `<option value="${k}">${k}</option>`).join('');
-        }
-    });
-
-    const khoaSel = document.getElementById('khoa_selKhoa');
-    if (khoaSel) {
-        khoaSel.onchange = function() {
-            capNhatGoiYBoDungCuTheoKhoa(this.value);
-            renderBangCongNoKhoa();
-        };
-    }
-
-    const invSel = document.getElementById('inv_filterKhoa');
-    if (invSel) {
-        invSel.onchange = function() {
-            renderBangTonKhoRealtime();
-        };
-    }
-
-    capNhatGoiYBoDungCuTheoKhoa('');
-    renderBangDanhMucLinhKien();
-    renderBangCongNoKhoa();
-    renderBangChoThuGom();
-}
-
-function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
-    const datalist = document.getElementById('listBoDungCu');
-    if (!datalist) return;
-
-    const filteredItems = tenKhoa 
-        ? (globalData.danhMucLinhKien || []).filter(item => item.khoa === tenKhoa)
-        : (globalData.danhMucLinhKien || []);
-
-    datalist.innerHTML = filteredItems.map(item => 
-        `<option value="${item.maBo}">${item.tenBo} - [${item.khoa}]</option>`
-    ).join('');
 }
 
 // 6. SÚNG QUÉT MÃ VẠCH (HID SCANNER)
