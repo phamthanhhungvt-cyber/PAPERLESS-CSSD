@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.5 - FULL WORD PARSER & ACCURATE AI VISION)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.6 - SMART AI MATCHER & FULL WORKSPACE)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -521,14 +521,13 @@ function initWordLoader() {
 
                     let idxMa = -1, idxTen = -1, idxQty = -1;
 
-                    // 1. Quét tìm dòng tiêu đề bảng để xác định chính xác vị trí các cột
+                    // Quét tìm dòng tiêu đề bảng để xác định chính xác vị trí các cột
                     rows.forEach(tr => {
                         const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
                         if (cells.length === 0) return;
 
                         const fullRow = cells.join(" ").toUpperCase();
 
-                        // Tìm Tên Bộ (Mổ lấy thai, Bộ sanh...)
                         if (!tenBo) {
                             if (fullRow.includes("MỔ LẤY THAI") || fullRow.includes("MỔ BẮT CON")) {
                                 tenBo = "MỔ LẤY THAI";
@@ -544,7 +543,6 @@ function initWordLoader() {
                             }
                         }
 
-                        // Nhận diện chỉ mục các cột
                         cells.forEach((c, i) => {
                             const u = c.toUpperCase();
                             if (u.includes("MÃ TS") || u === "MÃ" || u.includes("MÃ SỐ")) idxMa = i;
@@ -553,12 +551,10 @@ function initWordLoader() {
                         });
                     });
 
-                    // Tên bộ dự phòng từ tên file
                     if (!tenBo) {
-                        tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cu|phieu kiem/gi, "").trim();
+                        tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cụ|phieu kiem/gi, "").trim();
                     }
 
-                    // 2. Đọc dữ liệu chi tiết từng dòng dụng cụ
                     rows.forEach(tr => {
                         const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
                         if (cells.length < 2) return;
@@ -1309,35 +1305,9 @@ function chotDongGoi() {
     closePopupDongGoi();
 }
 
-const ROBOFLOW_LABEL_MAPPING = {
-    "van doyen": "Van Doyen",
-    "banh doyen": "Van Doyen",
-    "banh farabeuf": "Banh Farabeuf",
-    "farabeuf": "Banh Farabeuf",
-    "can dao": "Cán Dao",
-    "can dao so 3": "Cán Dao số 3",
-    "can dao so 4": "Cán Dao số 4",
-    "keo cat chi": "Kéo Cắt Chỉ",
-    "keo cat ron": "Kéo Cắt Rốn",
-    "mayo cong": "Kéo Mayo Cong",
-    "keo mayo": "Kéo Mayo Cong",
-    "metzenbaum": "Kéo Metzenbaum",
-    "keo metzenbaum": "Kéo Metzenbaum",
-    "kep hinh tim": "Kẹp Hình Tim",
-    "kep kim": "Kẹp Kim Mang Chỉ",
-    "kem mang kim": "Kẹp Kim Mang Chỉ",
-    "kelly cong": "Kìm Kelly Cong",
-    "kelly thang": "Kìm Kelly Thẳng",
-    "kocher": "Kìm Kocher",
-    "kep kocher": "Kìm Kocher",
-    "collin": "Kìm Collin",
-    "nhip": "Nhíp Phẫu Thuật",
-    "kep phau tich": "Nhíp Phẫu Thuật",
-    "vong giu dung cu": "Vòng Giữ Dụng Cụ",
-    "bhd400": "Bồn Hạt Đậu 400ml",
-    "bhd800": "Bồn Hạt Đậu 800ml"
-};
-
+// =========================================================================
+// 8.1 LOGIC ĐIỀU KHIỂN AI VISION SCANNER (ROBOFLOW REAL DETECTION & FUZZY MATCH)
+// =========================================================================
 async function kichHoatAICamera() {
     const video = document.getElementById('ai_webcam');
     const placeholder = document.getElementById('ai_placeholder');
@@ -1379,6 +1349,52 @@ function tatAICamera() {
     if (btnScan) btnScan.disabled = true;
 }
 
+// HÀM SO KHỚP TỪ KHÓA THÔNG MINH GIỮA NHÃN AI VÀ TÊN DỤNG CỤ TRONG FILE WORD
+function kiemTraKhopDungCu(tenTrongWord, tenNhanAI) {
+    const clean = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, " ");
+    const w = clean(tenTrongWord);
+    const a = clean(tenNhanAI);
+
+    if (w.includes(a) || a.includes(w)) return true;
+
+    const keywords = [
+        ["farabeuf", "farabeuf"],
+        ["balfour", "balfour"],
+        ["kocher", "kocher"],
+        ["metzenbaum", "metzenbaum"],
+        ["mayo cong", "mayo cong"],
+        ["mayo", "mayo"],
+        ["collin", "collin"],
+        ["doyen", "doyen"],
+        ["ron", "ron"],                  // kéo cắt rốn
+        ["mang kim", "mang kim"],        // kẹp mang kim
+        ["hinh tim", "hinh tim"],        // kẹp hình tim
+        ["hat dau 800", "800"],          // bồn hạt đậu 800
+        ["hat dau 400", "400"],          // bồn hạt đậu 400
+        ["hat dau", "hat dau"],
+        ["chen chun", "chen"],           // chén chun
+        ["hop dung", "hop"],
+        ["so 3", "3"],                   // cán dao số 3
+        ["so 4", "4"],                   // cán dao số 4
+        ["co mau", "co mau"],            // phẫu tích có mấu
+        ["khong mau", "khong mau"]       // phẫu tích không mấu
+    ];
+
+    for (const [kwW, kwA] of keywords) {
+        if (w.includes(kwW) && a.includes(kwA)) {
+            return true;
+        }
+    }
+
+    if (w.includes("kelly") && a.includes("kelly")) {
+        if (w.includes("thang") && a.includes("thang")) return true;
+        if (w.includes("cong") && a.includes("cong")) return true;
+        if (!w.includes("thang") && !w.includes("cong")) return true;
+    }
+
+    return false;
+}
+
 async function chupAnhVaDemAI() {
     const video = document.getElementById('ai_webcam');
     const canvas = document.getElementById('ai_canvas_overlay');
@@ -1402,7 +1418,7 @@ async function chupAnhVaDemAI() {
 
     if (btnScan) {
         btnScan.disabled = true;
-        btnScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Quét AI Thực Tế...`;
+        btnScan.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Phân Tích AI...`;
     }
 
     let rawPredictions = [];
@@ -1418,7 +1434,10 @@ async function chupAnhVaDemAI() {
 
         if (response.ok) {
             const result = await response.json();
+            console.log("⚡ [ROBOFLOW REAL RESULT]:", result);
             rawPredictions = result.predictions || [];
+        } else {
+            console.warn("Máy chủ Roboflow phản hồi HTTP:", response.status);
         }
     } catch (err) {
         console.error("Lỗi AI:", err);
@@ -1428,13 +1447,12 @@ async function chupAnhVaDemAI() {
     const aiDetections = [];
 
     rawPredictions.forEach(p => {
-        const labelRaw = (p.class || p.label || "").toLowerCase().trim();
-        const labelChuan = ROBOFLOW_LABEL_MAPPING[labelRaw] || p.class || "Dụng Cụ";
+        const labelRaw = (p.class || p.label || "").trim();
         const confidence = p.confidence || 0;
 
-        if (confidence >= 0.4) {
+        if (confidence >= 0.30) {
             aiDetections.push({
-                label: labelChuan,
+                label: labelRaw,
                 conf: confidence
             });
 
@@ -1448,7 +1466,7 @@ async function chupAnhVaDemAI() {
             ctx.strokeRect(x, y, width, height);
 
             ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
-            const text = `${labelChuan} (${Math.round(confidence * 100)}%)`;
+            const text = `${labelRaw} (${Math.round(confidence * 100)}%)`;
             ctx.font = "bold 11px Arial";
             const textWidth = ctx.measureText(text).width;
             ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
@@ -1477,32 +1495,23 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
         ? masterInfo.chiTietLinhKien 
         : [];
 
-    const normalizeStr = (str) => {
-        return (str || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-    };
-
-    const aiCounts = {};
-    detections.forEach(d => {
-        const norm = normalizeStr(d.label);
-        aiCounts[norm] = (aiCounts[norm] || 0) + 1;
-    });
-
     let html = '';
     let soMonThieu = 0;
+    let tongDemDuoc = 0;
 
     if (danhSachChuan.length > 0) {
         danhSachChuan.forEach(lk => {
             const tenMon = lk.tenLinhKien || lk.ten;
-            const normTenMon = normalizeStr(tenMon);
             const slChuan = lk.soLuong || 1;
             
             let slAIQuet = 0;
-            for (const [keyNorm, count] of Object.entries(aiCounts)) {
-                if (normTenMon.includes(keyNorm) || keyNorm.includes(normTenMon)) {
-                    slAIQuet += count;
+            detections.forEach(d => {
+                if (kiemTraKhopDungCu(tenMon, d.label)) {
+                    slAIQuet++;
                 }
-            }
+            });
 
+            tongDemDuoc += slAIQuet;
             const slThieu = slChuan - slAIQuet;
 
             if (slThieu > 0) {
@@ -1520,7 +1529,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
                             <span class="bg-rose-600 text-white px-2 py-0.5 rounded text-[11px] font-extrabold">
                                 THIẾU ${slThieu} / ${slChuan}
                             </span>
-                            <span class="text-[10px] text-slate-500 block mt-0.5">(Đã đếm: ${slAIQuet})</span>
+                            <span class="text-[10px] text-slate-500 block mt-0.5">(AI thấy: ${slAIQuet})</span>
                         </td>
                     </tr>
                 `;
@@ -1548,10 +1557,12 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
     tbodyLinhKien.innerHTML = html;
     tbodyLinhKien.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-    if (soMonThieu > 0) {
-        alert(`⚠️ CẢNH BÁO: Phát hiện mâm đang THIẾU ${soMonThieu} CHI TIẾT! Vui lòng kiểm tra các mục tô màu đỏ.`);
-    } else if (detections.length > 0) {
-        alert(`🎉 HỢP LỆ: Đã nhận diện đầy đủ toàn bộ chi tiết trên mâm!`);
+    if (detections.length === 0) {
+        alert("⚠️ AI chưa nhận diện được dụng cụ nào trong khung hình. Vui lòng đảm bảo đủ ánh sáng và đặt mâm ngay ngắn trước camera!");
+    } else if (soMonThieu > 0) {
+        alert(`⚠️ AI đã phát hiện ${detections.length} dụng cụ, mâm vẫn còn THIẾU ${soMonThieu} chi tiết. Vui lòng kiểm tra các mục màu đỏ!`);
+    } else {
+        alert(`🎉 HỢP LỆ: AI xác nhận đủ toàn bộ ${danhSachChuan.length} món trên mâm!`);
     }
 }
 
@@ -2414,7 +2425,7 @@ function truyVetTheoMaBatch() {
         <tr class="border-b hover:bg-slate-50 text-xs">
             <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || 'N/A'}</td>
             <td class="p-3 font-bold text-slate-800">${item.tenBo || 'Mâm Dụng Cụ'}</td>
-            <td class="p-3 font-semibold text-slate-600">${item.khoa || 'N/A'}</td>
+            <td class="p-3 text-slate-600 font-semibold">${item.khoa || 'N/A'}</td>
             <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai}</span></td>
             <td class="p-3 text-center font-mono font-bold text-purple-700">${item.maLoHap}</td>
             <td class="p-3 text-center text-slate-500">${item.thoiGian}</td>
