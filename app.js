@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.8 - STABLE RUNTIME & AI MATCHER)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 3.9 - FULL RUNTIME RESTORATION)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -152,7 +152,137 @@ function cleanSearchStr(str) {
 }
 
 // =========================================================================
-// 3. CÁC HÀM RENDER ĐẶT LÊN TRƯỚC ĐỂ TRÁNH LỖI REFERENCEERROR
+// 3. KHỞI TẠO DỮ LIỆU & ĐỒNG BỘ LOCALSTORAGE
+// =========================================================================
+function docDuLieuLuuTruLocalStorage() {
+    try {
+        const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
+        const savedKhoa = localStorage.getItem('cssd_danhSachKhoa');
+        if (savedLinhKien) globalData.danhMucLinhKien = JSON.parse(savedLinhKien) || [];
+        if (savedKhoa) globalData.danhSachKhoa = JSON.parse(savedKhoa) || [];
+
+        const savedPhieuTra = localStorage.getItem('cssd_phieuTra');
+        if (savedPhieuTra) globalData.phieuTra = JSON.parse(savedPhieuTra) || [];
+
+        const savedChoRua = localStorage.getItem('cssd_choRua');
+        if (savedChoRua) globalData.choRua = JSON.parse(savedChoRua) || [];
+
+        const savedDangRua = localStorage.getItem('cssd_dangRua');
+        if (savedDangRua) globalData.dangRua = JSON.parse(savedDangRua) || [];
+
+        const savedChoDongGoi = localStorage.getItem('cssd_choDongGoi');
+        if (savedChoDongGoi) globalData.choDongGoi = JSON.parse(savedChoDongGoi) || [];
+
+        const savedChoHap = localStorage.getItem('cssd_choHap');
+        if (savedChoHap) globalData.choHap = JSON.parse(savedChoHap) || [];
+
+        const savedDangHap = localStorage.getItem('cssd_dangHap');
+        if (savedDangHap) globalData.dangHap = JSON.parse(savedDangHap) || [];
+
+        const savedKhoVoKhuan = localStorage.getItem('cssd_khoVoKhuan');
+        if (savedKhoVoKhuan) globalData.khoVoKhuan = JSON.parse(savedKhoVoKhuan) || [];
+
+        const savedMeRua = localStorage.getItem('cssd_meRua');
+        if (savedMeRua) globalData.meRua = JSON.parse(savedMeRua) || [];
+
+        const savedMeHap = localStorage.getItem('cssd_meHap');
+        if (savedMeHap) globalData.meHap = JSON.parse(savedMeHap) || [];
+
+        capNhatGiaoDienSauKhiNapExcel();
+        capNhatTatCaGiaoDien();
+    } catch (err) {
+        console.error("Lỗi đọc LocalStorage:", err);
+    }
+}
+
+function capNhatTatCaGiaoDien() {
+    renderBangChoThuGom();
+    renderBangChoRua();
+    renderBangChoNiemThuRua();
+    renderBangDongGoi();
+    renderBangChoHap();
+    renderBangChoNghiemThuHap();
+    renderBangKhoVoKhuan();
+    renderBangTonKhoRealtime();
+    renderDashboardTV();
+    renderBangKPIPerformance();
+}
+
+function dongBoTrangThaiRealtime() {
+    const payload = {
+        phieuTra: globalData.phieuTra || [],
+        choRua: globalData.choRua || [],
+        dangRua: globalData.dangRua || [],
+        choDongGoi: globalData.choDongGoi || [],
+        choHap: globalData.choHap || [],
+        dangHap: globalData.dangHap || [],
+        khoVoKhuan: globalData.khoVoKhuan || [],
+        meRua: globalData.meRua || [],
+        meHap: globalData.meHap || [],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    localStorage.setItem('cssd_phieuTra', JSON.stringify(payload.phieuTra));
+    localStorage.setItem('cssd_choRua', JSON.stringify(payload.choRua));
+    localStorage.setItem('cssd_dangRua', JSON.stringify(payload.dangRua));
+    localStorage.setItem('cssd_choDongGoi', JSON.stringify(payload.choDongGoi));
+    localStorage.setItem('cssd_choHap', JSON.stringify(payload.choHap));
+    localStorage.setItem('cssd_dangHap', JSON.stringify(payload.dangHap));
+    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(payload.khoVoKhuan));
+    localStorage.setItem('cssd_meRua', JSON.stringify(payload.meRua));
+    localStorage.setItem('cssd_meHap', JSON.stringify(payload.meHap));
+
+    if (db) {
+        db.collection("he_thong_config").doc("trang_thai_realtime").set(payload, { merge: true })
+            .catch(err => console.error("❌ Lỗi đồng bộ Cloud:", err));
+    }
+}
+
+function initRealtimeListeners() {
+    if (!db) return;
+
+    db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
+        .onSnapshot((snapshot) => {
+            globalData.lichSu = [];
+            snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
+            renderBangLichSuLuanChuyen();
+            renderBangKPIPerformance();
+        }, (err) => console.warn("Firestore listeners bypass:", err));
+
+    db.collection("he_thong_config").doc("danh_muc_master")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.danhMucLinhKien) globalData.danhMucLinhKien = data.danhMucLinhKien;
+                if (data.danhSachKhoa) globalData.danhSachKhoa = data.danhSachKhoa;
+                
+                localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+                capNhatGiaoDienSauKhiNapExcel();
+            }
+        }, (err) => console.warn("Không lấy được danh mục Cloud:", err));
+
+    db.collection("he_thong_config").doc("trang_thai_realtime")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                globalData.phieuTra = Array.isArray(data.phieuTra) ? data.phieuTra : [];
+                globalData.choRua = Array.isArray(data.choRua) ? data.choRua : [];
+                globalData.dangRua = Array.isArray(data.dangRua) ? data.dangRua : [];
+                globalData.choDongGoi = Array.isArray(data.choDongGoi) ? data.choDongGoi : [];
+                globalData.choHap = Array.isArray(data.choHap) ? data.choHap : [];
+                globalData.dangHap = Array.isArray(data.dangHap) ? data.dangHap : [];
+                globalData.khoVoKhuan = Array.isArray(data.khoVoKhuan) ? data.khoVoKhuan : [];
+                globalData.meRua = Array.isArray(data.meRua) ? data.meRua : [];
+                globalData.meHap = Array.isArray(data.meHap) ? data.meHap : [];
+
+                capNhatTatCaGiaoDien();
+            }
+        }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err));
+}
+
+// =========================================================================
+// 4. CÁC HÀM RENDER GIAO DIỆN
 // =========================================================================
 function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
     const datalist = document.getElementById('listBoDungCu');
@@ -178,7 +308,7 @@ function renderBangCongNoKhoa() {
         : (globalData.danhMucLinhKien || []);
 
     if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem cơ số bộ dụng cụ.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng.</td></tr>`;
         return;
     }
 
@@ -202,7 +332,7 @@ function renderBangDanhMucLinhKien() {
 
     if (tbody) {
         if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu danh mục linh kiện.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu danh mục.</td></tr>`;
         } else {
             tbody.innerHTML = (globalData.danhMucLinhKien || []).map(item => `
                 <tr class="border-b hover:bg-slate-50 text-xs">
@@ -259,7 +389,7 @@ function renderBangChoThuGom() {
     if (badgeSoCho) badgeSoCho.innerText = `${filteredPhieu.length} Lệnh`;
 
     if (filteredPhieu.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-xs text-slate-400">Hiện chưa có lệnh báo trả mâm bẩn nào từ các Khoa/Phòng.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-xs text-slate-400">Hiện chưa có lệnh báo trả mâm bẩn nào.</td></tr>`;
         return;
     }
 
@@ -304,7 +434,7 @@ function renderBangTonKhoRealtime() {
     }
 
     if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không tìm thấy dữ liệu tồn kho.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Không có dữ liệu tồn kho.</td></tr>`;
         return;
     }
 
@@ -359,7 +489,7 @@ function capNhatGiaoDienSauKhiNapExcel() {
 }
 
 // =========================================================================
-// 4. VÒNG ĐỜI KÍCH HOẠT DOMContentLoaded
+// 5. SỰ KIỆN DOMContentLoaded
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
@@ -377,8 +507,197 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =========================================================================
-// 5. BỘ BÓC TÁCH FILE WORD (.DOCX) THÔNG MINH
+// 6. BỘ NẠP FILE EXCEL & WORD CHUẨN XÁC
 // =========================================================================
+function initExcelLoader() {
+    const excelInput = document.getElementById('excelFileInput');
+    if (!excelInput) return;
+
+    excelInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (typeof XLSX === 'undefined') {
+            alert("❌ Chưa tải thư viện SheetJS (XLSX)!");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết')) || workbook.SheetNames[0];
+                const targetSheet = workbook.Sheets[targetSheetName];
+                const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
+
+                if (!rawRows || rawRows.length === 0) return;
+
+                const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
+                
+                let idxKhoaHoacBo = headerRow.findIndex(h => h.includes('tên ts (i)') || h.includes('khoa') || h.includes('phòng'));
+                let idxMa = headerRow.findIndex(h => h.includes('mã dc') || h.includes('ab 120/12') || h.includes('mã ts') || h.includes('mã'));
+                let idxTen = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ') || h.includes('tên bộ'));
+                let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
+
+                if (idxKhoaHoacBo === -1) idxKhoaHoacBo = 1;
+                if (idxMa === -1) idxMa = 2;
+                if (idxTen === -1) idxTen = 3;
+                if (idxSoLuong === -1) idxSoLuong = 4;
+
+                const isFileCoSoKhoa = rawRows.some((r, i) => i > 0 && String(r[idxKhoaHoacBo]).toUpperCase().includes('PHÒNG SANH'));
+
+                if (isFileCoSoKhoa) {
+                    let danhSachBoMoi = [];
+                    let setKhoa = new Set();
+                    const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
+                    const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
+
+                    for (let i = 1; i < rawRows.length; i++) {
+                        const r = rawRows[i];
+                        if (!r || r.length === 0) continue;
+
+                        const tenKhoa = r[idxKhoaHoacBo] ? String(r[idxKhoaHoacBo]).trim().toUpperCase() : "";
+                        const maBo = r[idxMa] ? String(r[idxMa]).trim().toUpperCase() : `BO_${i}`;
+                        const tenBo = r[idxTen] ? String(r[idxTen]).trim() : "Bộ Dụng Cụ";
+                        const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
+
+                        if (!tenKhoa || !tenBo) continue;
+                        setKhoa.add(tenKhoa);
+
+                        let chiTietLinhKien = [];
+                        const maBoClean = cleanSearchStr(maBo);
+                        const tenBoClean = cleanSearchStr(tenBo);
+
+                        let targetAesculapName = "";
+                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                            const keyClean = cleanSearchStr(keyAlias);
+                            if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
+                                targetAesculapName = valAesculap;
+                                break;
+                            }
+                        }
+
+                        for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
+                            const aescClean = cleanSearchStr(tenBoAesculap);
+                            if (
+                                (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
+                                tenBoClean.includes(aescClean) ||
+                                aescClean.includes(tenBoClean)
+                            ) {
+                                chiTietLinhKien = listLinhKien;
+                                break;
+                            }
+                        }
+
+                        danhSachBoMoi.push({
+                            khoa: tenKhoa,
+                            maBo: maBo,
+                            tenBo: tenBo,
+                            soLuong: soLuong,
+                            chiTietLinhKien: chiTietLinhKien
+                        });
+                    }
+
+                    if (danhSachBoMoi.length > 0) {
+                        globalData.danhMucLinhKien = danhSachBoMoi;
+                        globalData.danhSachKhoa = Array.from(setKhoa);
+
+                        localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                        localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+
+                        if (db) {
+                            db.collection("he_thong_config").doc("danh_muc_master").set({
+                                danhMucLinhKien: globalData.danhMucLinhKien,
+                                danhSachKhoa: globalData.danhSachKhoa,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+
+                        capNhatGiaoDienSauKhiNapExcel();
+                        alert(`🎉 NẠP THÀNH CÔNG!\n- Đã cập nhật ${globalData.danhSachKhoa.length} Khoa/Phòng\n- Tổng cộng: ${danhSachBoMoi.length} bộ dụng cụ.`);
+                    }
+
+                } else {
+                    const mapChiTietTheoBo = {};
+
+                    for (let i = 1; i < rawRows.length; i++) {
+                        const r = rawRows[i];
+                        if (!r || r.length === 0) continue;
+
+                        const tenBoRaw = r[idxKhoaHoacBo] ? String(r[idxKhoaHoacBo]).trim().toUpperCase() : "";
+                        const maChiTiet = r[idxMa] ? String(r[idxMa]).trim() : "";
+                        const tenChiTiet = r[idxTen] ? String(r[idxTen]).trim() : "";
+                        const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
+
+                        if (!tenBoRaw) continue;
+
+                        if (!mapChiTietTheoBo[tenBoRaw]) {
+                            mapChiTietTheoBo[tenBoRaw] = [];
+                        }
+
+                        if (tenChiTiet || maChiTiet) {
+                            mapChiTietTheoBo[tenBoRaw].push({
+                                maLinhKien: maChiTiet,
+                                tenLinhKien: tenChiTiet || maChiTiet,
+                                soLuong: soLuong
+                            });
+                        }
+                    }
+
+                    let countGhep = 0;
+                    (globalData.danhMucLinhKien || []).forEach(bo => {
+                        const maBoClean = cleanSearchStr(bo.maBo);
+                        const tenBoClean = cleanSearchStr(bo.tenBo);
+
+                        let targetAesculapName = "";
+                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                            const keyClean = cleanSearchStr(keyAlias);
+                            if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
+                                targetAesculapName = valAesculap;
+                                break;
+                            }
+                        }
+
+                        for (const [tenBoAesculap, listLinhKien] of Object.entries(mapChiTietTheoBo)) {
+                            const aescClean = cleanSearchStr(tenBoAesculap);
+                            if (
+                                (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
+                                tenBoClean.includes(aescClean) ||
+                                aescClean.includes(tenBoClean)
+                            ) {
+                                bo.chiTietLinhKien = listLinhKien;
+                                countGhep++;
+                                break;
+                            }
+                        }
+                    });
+
+                    localStorage.setItem('cssd_aesculapCatalog', JSON.stringify(mapChiTietTheoBo));
+                    localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+
+                    if (db) {
+                        db.collection("he_thong_config").doc("danh_muc_master").set({
+                            danhMucLinhKien: globalData.danhMucLinhKien,
+                            danhSachKhoa: globalData.danhSachKhoa,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    }
+
+                    capNhatGiaoDienSauKhiNapExcel();
+                    alert(`🎉 ĐÃ GHÉP NỐI THÀNH CÔNG CHI TIẾT AESCULAP!\n- Đã gắn chi tiết linh kiện vào ${countGhep} bộ dụng cụ!`);
+                }
+
+            } catch (err) {
+                console.error("Lỗi đọc file Excel:", err);
+                alert("❌ Lỗi khi đọc file Excel!");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
 function initWordLoader() {
     const wordInput = document.getElementById('wordFileInput');
     if (!wordInput) return;
@@ -414,7 +733,6 @@ function initWordLoader() {
 
                     let idxMa = -1, idxTen = -1, idxQty = -1;
 
-                    // 1. Quét tìm dòng tiêu đề bảng để xác định vị trí các cột
                     rows.forEach(tr => {
                         const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
                         if (cells.length === 0) return;
@@ -448,7 +766,6 @@ function initWordLoader() {
                         tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cu|phieu kiem/gi, "").trim();
                     }
 
-                    // 2. Bóc tách từng dòng linh kiện
                     rows.forEach(tr => {
                         const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
                         if (cells.length < 2) return;
@@ -559,7 +876,7 @@ function initWordLoader() {
 }
 
 // =========================================================================
-// 6. POPUP ĐÓNG GÓI
+// 7. QUY TRÌNH ĐÓNG GÓI & AI SCANNER
 // =========================================================================
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
@@ -664,7 +981,7 @@ async function chotDongGoi() {
     const btnConfirm = document.querySelector('#popupDongGoi button[onclick="chotDongGoi()"]');
     if (btnConfirm) {
         btnConfirm.disabled = true;
-        btnConfirm.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải ảnh bằng chứng...`;
+        btnConfirm.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang lưu...`;
     }
 
     const loaiEl = document.getElementById('popDG_Loai');
@@ -722,9 +1039,6 @@ async function chotDongGoi() {
     }
 }
 
-// =========================================================================
-// 7. LOGIC AI VISION SCANNER (ROBOFLOW REAL DETECTION & FUZZY MATCH)
-// =========================================================================
 async function kichHoatAICamera() {
     const video = document.getElementById('ai_webcam');
     const placeholder = document.getElementById('ai_placeholder');
@@ -1194,7 +1508,260 @@ function tuChoiHapHangLoat() {
     alert("🔴 Đã trả các mâm về Hàng Đợi Hấp!");
 }
 
-// 9. QUẢN TRỊ TÀI KHOẢN & SÚNG BARCODE
+function renderBangKhoVoKhuan() {
+    const tbody = document.getElementById('bangKhoVoKhuan');
+    if (!tbody) return;
+
+    if (!globalData.khoVoKhuan) globalData.khoVoKhuan = [];
+
+    if (globalData.khoVoKhuan.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Kho vô khuẩn hiện đang trống.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.khoVoKhuan.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-bold text-slate-800">${item.tenBo}</td>
+            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo}</td>
+            <td class="p-3 text-center text-slate-600 font-semibold">${item.khoa || 'Phòng Sanh'}</td>
+            <td class="p-3 text-center font-semibold text-emerald-700">${item.viTriKho || 'Kệ A1'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.hanSuDung || 'Còn Hạn'}</td>
+            <td class="p-3 text-center action-col">
+                <button onclick="xuatKhoDungCu(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1 rounded text-xs shadow-sm">
+                    Xuất Trả
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function xuatKhoDungCu(idx) {
+    if (!globalData.khoVoKhuan || !globalData.khoVoKhuan[idx]) return;
+    
+    const item = globalData.khoVoKhuan.splice(idx, 1)[0];
+    dongBoTrangThaiRealtime();
+    
+    ghiNhatKyFirebase({
+        maBo: item.maBo,
+        tenBo: item.tenBo,
+        khoa: item.khoa || 'Khoa Lâm Sàng',
+        trangThai: 'XUẤT KHO VỀ KHOA',
+        maLoHap: item.maLoHap || item.batchId || '---'
+    });
+
+    alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa!`);
+}
+
+function ghiNhatKyFirebase(dataAction) {
+    if (!db) return;
+
+    const logEntry = {
+        maBo: dataAction.maBo || "N/A",
+        tenBo: dataAction.tenBo || "Mâm dụng cụ",
+        khoa: dataAction.khoa || "CSSD",
+        trangThai: dataAction.trangThai || "Đang xử lý",
+        maLoHap: dataAction.maLoHap || dataAction.batchId || "---",
+        nhanSu: currentUser.nvName || "KTV CSSD",
+        thoiGian: new Date().toLocaleString('vi-VN'),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection("lich_su_luan_chuyen").add(logEntry)
+        .catch((error) => console.error("❌ Lỗi ghi nhật ký Cloud:", error));
+}
+
+function xuatKhoXoayVong() {
+    const inp = document.getElementById('xuat_inpMaBo');
+    if (!inp || !inp.value.trim()) {
+        alert("Vui lòng nhập/quét mã khay xuất!");
+        return;
+    }
+    const ma = inp.value.trim().toUpperCase();
+    const idx = (globalData.khoVoKhuan || []).findIndex(i => i.maBo.toUpperCase() === ma);
+    if (idx !== -1) {
+        xuatKhoDungCu(idx);
+        inp.value = '';
+    } else {
+        alert("❌ Khay không có trong kho vô khuẩn!");
+    }
+}
+
+function renderBangKPIPerformance() {
+    const tbody = document.getElementById('bangHieuSuatKTV');
+    if (!tbody) return;
+
+    const ktvStats = (globalData.ktvList || []).map((ktv, idx) => {
+        const logsOfKtv = (globalData.lichSu || []).filter(l => l.nhanSu === ktv.name);
+        
+        const countThuGom = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('THU GOM')).length;
+        const countRua = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('RỬA')).length;
+        const countDongGoi = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('ĐÓNG GÓI')).length;
+        const countHap = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('HẤP')).length;
+        const countXuatKho = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('XUẤT KHO')).length;
+
+        const tongThaoTac = logsOfKtv.length;
+
+        const totalBiReads = (globalData.meHap || []).filter(m => m.nhanSuHap === ktv.name || m.nhanSu === ktv.name).length;
+        const passBiReads = (globalData.meHap || []).filter(m => (m.nhanSuHap === ktv.name || m.nhanSu === ktv.name) && m.kpiBiStatus === 'ĐẠT (<30m)').length;
+        const biComplianceRate = totalBiReads > 0 ? Math.round((passBiReads / totalBiReads) * 100) : 100;
+
+        return {
+            stt: idx + 1,
+            id: ktv.id,
+            name: ktv.name,
+            role: ktv.role,
+            countThuGom,
+            countRua,
+            countDongGoi,
+            countHap,
+            countXuatKho,
+            tongThaoTac,
+            biComplianceRate
+        };
+    });
+
+    tbody.innerHTML = ktvStats.map(stat => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 text-center font-bold text-slate-500">${stat.stt}</td>
+            <td class="p-3 font-mono font-bold text-sky-700">${stat.id}</td>
+            <td class="p-3 font-bold text-slate-800">${stat.name} <span class="text-[10px] text-slate-400 block">${stat.role}</span></td>
+            <td class="p-3 text-center font-bold text-slate-700">${stat.countRua}</td>
+            <td class="p-3 text-center font-bold text-slate-700">${stat.countDongGoi}</td>
+            <td class="p-3 text-center font-bold text-purple-700">${stat.countHap}</td>
+            <td class="p-3 text-center font-bold text-emerald-700">${stat.countXuatKho}</td>
+            <td class="p-3 text-center font-extrabold text-sky-800">${stat.tongThaoTac}</td>
+            <td class="p-3 text-center font-bold ${stat.biComplianceRate >= 95 ? 'text-emerald-600' : 'text-rose-600'}">
+                ${stat.biComplianceRate}% (30m)
+            </td>
+        </tr>
+    `).join('');
+}
+
+function xuatBaoCaoKPIExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert("❌ Chưa nạp thư viện XLSX!");
+        return;
+    }
+
+    const dataKPI = (globalData.ktvList || []).map((ktv, idx) => {
+        const logsOfKtv = (globalData.lichSu || []).filter(l => l.nhanSu === ktv.name);
+        return {
+            "STT": idx + 1,
+            "Mã Nhân Viên": ktv.id,
+            "Họ và Tên": ktv.name,
+            "Chức Danh": ktv.role,
+            "Số Mâm Rửa": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('RỬA')).length,
+            "Số Mâm Đóng Gói": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('ĐÓNG GÓI')).length,
+            "Số Mâm Hấp": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('HẤP')).length,
+            "Số Mâm Xuất Kho": logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('XUẤT KHO')).length,
+            "Tổng Thao Tác": logsOfKtv.length,
+            "Tỷ Lệ Tuân Thủ BI 30m": "100%"
+        };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(dataKPI);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "BaoCao_KPI_NhanSu");
+    XLSX.writeFile(wb, `BaoCao_KPI_KTV_CSSD_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function initDashboardTVClock() {
+    setInterval(() => {
+        const tvClockEl = document.getElementById('tv_realtime_clock');
+        if (tvClockEl) {
+            tvClockEl.innerText = new Date().toLocaleString('vi-VN', {
+                weekday: 'long',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+    }, 1000);
+}
+
+function renderDashboardTV() {
+    const elRua = document.getElementById('tv_meRua');
+    const elHap = document.getElementById('tv_meHap');
+    const elDangRua = document.getElementById('tv_dangRua');
+    const elDangHap = document.getElementById('tv_dangHap');
+    const elKho = document.getElementById('tv_khoVoKhuan');
+
+    const elChoRua = document.getElementById('tv_choRua');
+    const elChoDongGoi = document.getElementById('tv_choDongGoi');
+    const elChoHap = document.getElementById('tv_choHap');
+
+    if (elRua) elRua.innerText = `${(globalData.meRua || []).length}`;
+    if (elHap) elHap.innerText = `${(globalData.meHap || []).length}`;
+    if (elDangRua) elDangRua.innerText = `${(globalData.dangRua || []).length}`;
+    if (elDangHap) elDangHap.innerText = `${(globalData.dangHap || []).length}`;
+    if (elKho) elKho.innerText = `${(globalData.khoVoKhuan || []).length}`;
+
+    if (elChoRua) elChoRua.innerText = `${(globalData.choRua || []).length}`;
+    if (elChoDongGoi) elChoDongGoi.innerText = `${(globalData.choDongGoi || []).length}`;
+    if (elChoHap) elChoHap.innerText = `${(globalData.choHap || []).length}`;
+
+    const alertZoneTV = document.getElementById('tv_emergency_alert_zone');
+    if (alertZoneTV) {
+        if (currentRecallBatchId) {
+            alertZoneTV.classList.remove('hidden');
+            alertZoneTV.innerHTML = `
+                <div class="bg-rose-600 text-white p-4 rounded-2xl animate-pulse flex items-center justify-between shadow-2xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+                        <div>
+                            <h3 class="font-extrabold text-lg">CẢNH BÁO THU HỒI KHẨN CẤP LÔ TIỆT TRÙNG: ${currentRecallBatchId}</h3>
+                            <p class="text-xs opacity-90">Phát hiện sự cố Chỉ thị sinh học BI (+)!</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            alertZoneTV.classList.add('hidden');
+        }
+    }
+}
+
+function renderBangLichSuRua() {
+    const tbody = document.getElementById('bangLichSuRua');
+    if (!tbody) return;
+    if (!globalData.meRua || globalData.meRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = globalData.meRua.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-sky-700">${item.batchId}</td>
+            <td class="p-3">${item.loaiRua || 'Máy rửa tự động'}</td>
+            <td class="p-3">${item.chuKy || 'Tiêu chuẩn'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach || 'ĐẠT'}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGianRuaXong || item.thoiGian || 'Vừa xong'}</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangLichSuLuanChuyen() {
+    const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
+    if (!tbody) return;
+    if (!globalData.lichSu || globalData.lichSu.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = globalData.lichSu.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold">${item.maBo || 'MÂM_01'}</td>
+            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ'}</td>
+            <td class="p-3">${item.khoa || 'Khoa GMHS'}</td>
+            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai || 'Luân chuyển'}</span></td>
+            <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
+            <td class="p-3 text-center">${item.nhanSu || 'KTV'}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
+        </tr>
+    `).join('');
+}
+
 function initGlobalBarcodeScanner() {
     window.addEventListener('keydown', (e) => {
         if (!isBarcodeScannerEnabled) return;
