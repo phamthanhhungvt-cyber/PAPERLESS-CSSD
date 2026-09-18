@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.0 - HOISTED DEFINITIONS & CLEAN RUNTIME)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.1 - STABLE MASTER FIX)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -152,210 +152,253 @@ function cleanSearchStr(str) {
 }
 
 // =========================================================================
-// 3. TOÀN BỘ CÁC HÀM RENDER ĐƯỢC ĐỊNH NGHĨA TRƯỚC
+// 3. ĐỌC DỮ LIỆU LOCALSTORAGE & ĐỒNG BỘ CLOUD (ĐƯỢC ĐẶT LÊN TRÊN HẾT)
 // =========================================================================
+function docDuLieuLuuTruLocalStorage() {
+    try {
+        const savedLinhKien = localStorage.getItem('cssd_danhMucLinhKien');
+        const savedKhoa = localStorage.getItem('cssd_danhSachKhoa');
+        if (savedLinhKien) globalData.danhMucLinhKien = JSON.parse(savedLinhKien) || [];
+        if (savedKhoa) globalData.danhSachKhoa = JSON.parse(savedKhoa) || [];
 
-// Render Trạm Rửa
-function renderBangChoRua() {
-    const tbody = document.getElementById('bangChoRua');
-    const badge = document.getElementById('badgeChoRua');
+        const savedPhieuTra = localStorage.getItem('cssd_phieuTra');
+        if (savedPhieuTra) globalData.phieuTra = JSON.parse(savedPhieuTra) || [];
+
+        const savedChoRua = localStorage.getItem('cssd_choRua');
+        if (savedChoRua) globalData.choRua = JSON.parse(savedChoRua) || [];
+
+        const savedDangRua = localStorage.getItem('cssd_dangRua');
+        if (savedDangRua) globalData.dangRua = JSON.parse(savedDangRua) || [];
+
+        const savedChoDongGoi = localStorage.getItem('cssd_choDongGoi');
+        if (savedChoDongGoi) globalData.choDongGoi = JSON.parse(savedChoDongGoi) || [];
+
+        const savedChoHap = localStorage.getItem('cssd_choHap');
+        if (savedChoHap) globalData.choHap = JSON.parse(savedChoHap) || [];
+
+        const savedDangHap = localStorage.getItem('cssd_dangHap');
+        if (savedDangHap) globalData.dangHap = JSON.parse(savedDangHap) || [];
+
+        const savedKhoVoKhuan = localStorage.getItem('cssd_khoVoKhuan');
+        if (savedKhoVoKhuan) globalData.khoVoKhuan = JSON.parse(savedKhoVoKhuan) || [];
+
+        const savedMeRua = localStorage.getItem('cssd_meRua');
+        if (savedMeRua) globalData.meRua = JSON.parse(savedMeRua) || [];
+
+        const savedMeHap = localStorage.getItem('cssd_meHap');
+        if (savedMeHap) globalData.meHap = JSON.parse(savedMeHap) || [];
+
+        capNhatGiaoDienSauKhiNapExcel();
+        capNhatTatCaGiaoDien();
+    } catch (err) {
+        console.error("Lỗi đọc LocalStorage:", err);
+    }
+}
+
+function capNhatTatCaGiaoDien() {
+    renderBangChoThuGom();
+    renderBangChoRua();
+    renderBangChoNiemThuRua();
+    renderBangDongGoi();
+    renderBangChoHap();
+    renderBangChoNghiemThuHap();
+    renderBangKhoVoKhuan();
+    renderBangTonKhoRealtime();
+    renderDashboardTV();
+    renderBangKPIPerformance();
+    renderBangCongNoKhoa();
+}
+
+function dongBoTrangThaiRealtime() {
+    const payload = {
+        phieuTra: globalData.phieuTra || [],
+        choRua: globalData.choRua || [],
+        dangRua: globalData.dangRua || [],
+        choDongGoi: globalData.choDongGoi || [],
+        choHap: globalData.choHap || [],
+        dangHap: globalData.dangHap || [],
+        khoVoKhuan: globalData.khoVoKhuan || [],
+        meRua: globalData.meRua || [],
+        meHap: globalData.meHap || [],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    localStorage.setItem('cssd_phieuTra', JSON.stringify(payload.phieuTra));
+    localStorage.setItem('cssd_choRua', JSON.stringify(payload.choRua));
+    localStorage.setItem('cssd_dangRua', JSON.stringify(payload.dangRua));
+    localStorage.setItem('cssd_choDongGoi', JSON.stringify(payload.choDongGoi));
+    localStorage.setItem('cssd_choHap', JSON.stringify(payload.choHap));
+    localStorage.setItem('cssd_dangHap', JSON.stringify(payload.dangHap));
+    localStorage.setItem('cssd_khoVoKhuan', JSON.stringify(payload.khoVoKhuan));
+    localStorage.setItem('cssd_meRua', JSON.stringify(payload.meRua));
+    localStorage.setItem('cssd_meHap', JSON.stringify(payload.meHap));
+
+    if (db) {
+        db.collection("he_thong_config").doc("trang_thai_realtime").set(payload, { merge: true })
+            .catch(err => console.error("❌ Lỗi đồng bộ Cloud:", err));
+    }
+}
+
+function initRealtimeListeners() {
+    if (!db) return;
+
+    db.collection("lich_su_luan_chuyen").orderBy("timestamp", "desc").limit(100)
+        .onSnapshot((snapshot) => {
+            globalData.lichSu = [];
+            snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
+            renderBangLichSuLuanChuyen();
+            renderBangKPIPerformance();
+        }, (err) => console.warn("Firestore listeners bypass:", err));
+
+    db.collection("he_thong_config").doc("danh_muc_master")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.danhMucLinhKien && data.danhMucLinhKien.length > 0) {
+                    globalData.danhMucLinhKien = data.danhMucLinhKien;
+                }
+                if (data.danhSachKhoa && data.danhSachKhoa.length > 0) {
+                    globalData.danhSachKhoa = data.danhSachKhoa;
+                }
+                
+                localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+                capNhatGiaoDienSauKhiNapExcel();
+            }
+        }, (err) => console.warn("Không lấy được danh mục Cloud:", err));
+
+    db.collection("he_thong_config").doc("trang_thai_realtime")
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                globalData.phieuTra = Array.isArray(data.phieuTra) ? data.phieuTra : [];
+                globalData.choRua = Array.isArray(data.choRua) ? data.choRua : [];
+                globalData.dangRua = Array.isArray(data.dangRua) ? data.dangRua : [];
+                globalData.choDongGoi = Array.isArray(data.choDongGoi) ? data.choDongGoi : [];
+                globalData.choHap = Array.isArray(data.choHap) ? data.choHap : [];
+                globalData.dangHap = Array.isArray(data.dangHap) ? data.dangHap : [];
+                globalData.khoVoKhuan = Array.isArray(data.khoVoKhuan) ? data.khoVoKhuan : [];
+                globalData.meRua = Array.isArray(data.meRua) ? data.meRua : [];
+                globalData.meHap = Array.isArray(data.meHap) ? data.meHap : [];
+
+                capNhatTatCaGiaoDien();
+            }
+        }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err));
+}
+
+// =========================================================================
+// 4. CÁC HÀM RENDER & CẬP NHẬT DROPDOWN
+// =========================================================================
+function capNhatGiaoDienSauKhiNapExcel() {
+    const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
+    
+    selectIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            const firstOption = (id === 'khoa_selKhoa' || id === 'login_khoa' || id === 'xuat_selKhoa') 
+                ? '<option value="">-- Chọn Khoa / Phòng --</option>' 
+                : '<option value="">-- Tất cả Khoa / Phòng --</option>';
+            el.innerHTML = firstOption + (globalData.danhSachKhoa || []).map(k => `<option value="${k}">${k}</option>`).join('');
+        }
+    });
+
+    const khoaSel = document.getElementById('khoa_selKhoa');
+    if (khoaSel) {
+        khoaSel.onchange = function() {
+            capNhatGoiYBoDungCuTheoKhoa(this.value);
+            renderBangCongNoKhoa();
+        };
+    }
+
+    const invSel = document.getElementById('inv_filterKhoa');
+    if (invSel) {
+        invSel.onchange = function() {
+            renderBangTonKhoRealtime();
+        };
+    }
+
+    capNhatGoiYBoDungCuTheoKhoa('');
+    renderBangDanhMucLinhKien();
+    renderBangCongNoKhoa();
+    renderBangChoThuGom();
+}
+
+function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
+    const datalist = document.getElementById('listBoDungCu');
+    if (!datalist) return;
+
+    const filteredItems = tenKhoa 
+        ? (globalData.danhMucLinhKien || []).filter(item => item && item.khoa === tenKhoa)
+        : (globalData.danhMucLinhKien || []);
+
+    datalist.innerHTML = filteredItems.map(item => 
+        `<option value="${item.maBo || ''}">${item.tenBo || ''} - [${item.khoa || ''}]</option>`
+    ).join('');
+}
+
+function renderBangCongNoKhoa() {
+    const tbody = document.getElementById('bangDonGiaoNhan');
+    const selKhoa = document.getElementById('khoa_selKhoa');
     if (!tbody) return;
 
-    if (!globalData.choRua) globalData.choRua = [];
-    if (badge) badge.innerText = `${globalData.choRua.length} Mục`;
+    const selectedKhoa = selKhoa ? selKhoa.value : "";
+    const items = selectedKhoa 
+        ? (globalData.danhMucLinhKien || []).filter(i => i && i.khoa === selectedKhoa) 
+        : (globalData.danhMucLinhKien || []);
 
-    if (globalData.choRua.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Hiện chưa có dụng cụ nào trong hàng đợi rửa.</td></tr>`;
+    if (!items || items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng để xem cơ số bộ dụng cụ.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = globalData.choRua.map((item, idx) => `
+    tbody.innerHTML = items.map(item => `
         <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-2 text-center w-12">
-                <input type="checkbox" class="chk-rua-item w-4 h-4 rounded text-sky-600" data-idx="${idx}" checked>
+            <td class="p-3 font-bold text-slate-800">
+                ${item.tenBo || 'N/A'} 
+                <span class="text-[10px] text-sky-600 block font-mono">${item.maBo || ''} (${item.khoa || ''})</span>
             </td>
-            <td class="p-2 font-semibold text-slate-800">
-                ${item.tenBo || ''}
-                <span class="text-[10px] text-slate-400 block">${item.khoa || ''}</span>
-            </td>
-            <td class="p-2 text-right font-mono font-bold text-sky-700">${item.maBo || ''}</td>
+            <td class="p-3 text-center font-bold text-slate-600">0</td>
+            <td class="p-3 text-center font-bold text-slate-600">0</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.soLuong || 1}</td>
+            <td class="p-3 text-center font-bold text-rose-600">0</td>
         </tr>
     `).join('');
 }
 
-function renderBangChoNiemThuRua() {
-    const tbody = document.getElementById('bangChoNiemThuRua');
-    if (!tbody) return;
+function renderBangDanhMucLinhKien() {
+    const tbody = document.getElementById('bangDanhMucLinhKien');
+    const tbodyTong = document.getElementById('bangDanhMucTong');
 
-    if (!globalData.dangRua) globalData.dangRua = [];
-
-    if (globalData.dangRua.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ rửa nào đang chạy trong buồng.</td></tr>`;
-        return;
+    if (tbody) {
+        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu danh mục.</td></tr>`;
+        } else {
+            tbody.innerHTML = (globalData.danhMucLinhKien || []).map(item => `
+                <tr class="border-b hover:bg-slate-50 text-xs">
+                    <td class="p-3 font-bold text-slate-800">${item.tenBo || ''} <span class="text-[10px] text-sky-600 block font-mono">${item.maBo || ''}</span></td>
+                    <td class="p-3 text-slate-600">${item.khoa || ''}</td>
+                    <td class="p-3 text-center font-bold text-sky-700 bg-sky-50 rounded">${item.soLuong || 1}</td>
+                </tr>
+            `).join('');
+        }
     }
 
-    tbody.innerHTML = globalData.dangRua.map((item, idx) => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-2 text-center w-10">
-                <input type="checkbox" class="chk-nghiemthu-rua w-4 h-4 rounded text-sky-600" data-idx="${idx}" checked>
-            </td>
-            <td class="p-2 font-mono font-bold text-sky-700">${item.batchId || ''}</td>
-            <td class="p-2 font-semibold text-slate-800">${item.tenBo || ''} <span class="text-[10px] text-slate-400">(${item.maBo || ''})</span></td>
-            <td class="p-2 text-center font-semibold text-amber-600">Đang rửa (${item.thoiGianBatDau || ''})</td>
-        </tr>
-    `).join('');
-}
-
-function renderBangLichSuRua() {
-    const tbody = document.getElementById('bangLichSuRua');
-    if (!tbody) return;
-    if (!globalData.meRua || globalData.meRua.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào.</td></tr>`;
-        return;
+    if (tbodyTong) {
+        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
+            tbodyTong.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có dữ liệu khay dụng cụ.</td></tr>`;
+        } else {
+            tbodyTong.innerHTML = (globalData.danhMucLinhKien || []).map(item => `
+                <tr class="border-b hover:bg-slate-50 text-xs">
+                    <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || ''}</td>
+                    <td class="p-3 font-bold text-slate-800">${item.tenBo || ''}</td>
+                    <td class="p-3 text-slate-600">${item.khoa || ''}</td>
+                    <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">Sẵn Sàng (${item.soLuong || 1})</span></td>
+                </tr>
+            `).join('');
+        }
     }
-    tbody.innerHTML = globalData.meRua.map(item => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-mono font-bold text-sky-700">${item.batchId || ''}</td>
-            <td class="p-3">${item.loaiRua || 'Máy rửa tự động'}</td>
-            <td class="p-3">${item.chuKy || 'Tiêu chuẩn'}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach || 'ĐẠT'}</td>
-            <td class="p-3 text-center text-slate-500">${item.thoiGianRuaXong || item.thoiGian || 'Vừa xong'}</td>
-        </tr>
-    `).join('');
 }
 
-// Render Trạm Đóng Gói
-function renderBangDongGoi() {
-    const grid = document.getElementById('gridDongGoi');
-    const badge = document.getElementById('badgeDongGoi');
-    if (!grid) return;
-
-    if (!globalData.choDongGoi) globalData.choDongGoi = [];
-    if (badge) badge.innerText = `${globalData.choDongGoi.length}`;
-
-    if (globalData.choDongGoi.length === 0) {
-        grid.innerHTML = `<div class="col-span-full p-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">Hiện chưa có mâm dụng cụ nào chờ đóng gói.</div>`;
-        return;
-    }
-
-    grid.innerHTML = globalData.choDongGoi.map((item, idx) => `
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
-            <div>
-                <div class="flex justify-between items-start mb-1">
-                    <span class="font-mono font-bold text-sky-700 text-xs">${item.maBo || ''}</span>
-                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Đã Rửa Sạch</span>
-                </div>
-                <h4 class="font-bold text-sm text-slate-800">${item.tenBo || ''}</h4>
-                <p class="text-xs text-slate-500 mt-1">Khoa: <strong class="text-slate-700">${item.khoa || 'N/A'}</strong></p>
-                <p class="text-[10px] text-slate-400 font-mono mt-0.5">Mẻ rửa: ${item.batchId || 'N/A'}</p>
-            </div>
-            <button onclick="moPopupDongGoi(${idx})" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 rounded-lg text-xs shadow-sm transition-all">
-                <i class="fa-solid fa-box-archive mr-1"></i> Đóng Gói Mâm
-            </button>
-        </div>
-    `).join('');
-}
-
-// Render Trạm Hấp
-function renderBangChoHap() {
-    const tbody = document.getElementById('bangChoHap');
-    const badge = document.getElementById('badgeChoHap');
-    if (!tbody) return;
-
-    if (!globalData.choHap) globalData.choHap = [];
-    if (badge) badge.innerText = `${globalData.choHap.length} Mục`;
-
-    if (globalData.choHap.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Hiện chưa có mâm nào chờ hấp.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = globalData.choHap.map((item, idx) => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-2 text-center w-12">
-                <input type="checkbox" class="chk-hap-item w-4 h-4 rounded text-purple-600" data-idx="${idx}" checked>
-            </td>
-            <td class="p-2 font-semibold text-slate-800">
-                ${item.tenBo || ''}
-                <span class="text-[10px] text-slate-400 block">${item.vatLieuBaoBoc || ''} - HSD: ${item.hanSuDung || ''}</span>
-            </td>
-            <td class="p-2 text-right font-mono font-bold text-purple-700">${item.maBo || ''}</td>
-        </tr>
-    `).join('');
-}
-
-function renderBangChoNghiemThuHap() {
-    const tbody = document.getElementById('bangChoNghiệmThu');
-    if (!tbody) return;
-
-    if (!globalData.dangHap) globalData.dangHap = [];
-
-    if (globalData.dangHap.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ hấp nào đang trong lò.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = globalData.dangHap.map((item, idx) => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-2 text-center w-10">
-                <input type="checkbox" class="chk-nghiemthu-hap w-4 h-4 rounded text-purple-600" data-idx="${idx}" checked>
-            </td>
-            <td class="p-2 font-mono font-bold text-purple-700">${item.maLoHap || ''}</td>
-            <td class="p-2 font-semibold text-slate-800">${item.tenBo || ''} <span class="text-[10px] text-slate-400">(${item.maBo || ''})</span></td>
-            <td class="p-2 text-center font-semibold text-rose-600">Đang hấp (${item.thoiGianBatDauHap || ''})</td>
-        </tr>
-    `).join('');
-}
-
-// Render Kho Vô Khuẩn & Luân Chuyển
-function renderBangKhoVoKhuan() {
-    const tbody = document.getElementById('bangKhoVoKhuan');
-    if (!tbody) return;
-
-    if (!globalData.khoVoKhuan) globalData.khoVoKhuan = [];
-
-    if (globalData.khoVoKhuan.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Kho vô khuẩn hiện đang trống.</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = globalData.khoVoKhuan.map((item, idx) => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-bold text-slate-800">${item.tenBo || ''}</td>
-            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || ''}</td>
-            <td class="p-3 text-center text-slate-600 font-semibold">${item.khoa || 'Phòng Sanh'}</td>
-            <td class="p-3 text-center font-semibold text-emerald-700">${item.viTriKho || 'Kệ A1'}</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.hanSuDung || 'Còn Hạn'}</td>
-            <td class="p-3 text-center action-col">
-                <button onclick="xuatKhoDungCu(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1 rounded text-xs shadow-sm">
-                    Xuất Trả
-                </button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function renderBangLichSuLuanChuyen() {
-    const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
-    if (!tbody) return;
-    if (!globalData.lichSu || globalData.lichSu.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký.</td></tr>`;
-        return;
-    }
-    tbody.innerHTML = globalData.lichSu.map(item => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-mono font-bold">${item.maBo || 'MÂM_01'}</td>
-            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ'}</td>
-            <td class="p-3">${item.khoa || 'Khoa GMHS'}</td>
-            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai || 'Luân chuyển'}</span></td>
-            <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
-            <td class="p-3 text-center">${item.nhanSu || 'KTV'}</td>
-            <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
-        </tr>
-    `).join('');
-}
-
-// Render Thu Gom, Tồn Kho & Công Nợ
 function renderBangChoThuGom() {
     const tbody = document.getElementById('bangChoThuGom');
     const filterSelect = document.getElementById('filterKhoaThuGom');
@@ -450,67 +493,200 @@ function renderBangTonKhoRealtime() {
     `).join('');
 }
 
-function renderBangCongNoKhoa() {
-    const tbody = document.getElementById('bangDonGiaoNhan');
-    const selKhoa = document.getElementById('khoa_selKhoa');
+function renderBangChoRua() {
+    const tbody = document.getElementById('bangChoRua');
+    const badge = document.getElementById('badgeChoRua');
     if (!tbody) return;
 
-    const selectedKhoa = selKhoa ? selKhoa.value : "";
-    const items = selectedKhoa 
-        ? (globalData.danhMucLinhKien || []).filter(i => i && i.khoa === selectedKhoa) 
-        : (globalData.danhMucLinhKien || []);
+    if (!globalData.choRua) globalData.choRua = [];
+    if (badge) badge.innerText = `${globalData.choRua.length} Mục`;
 
-    if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-xs text-slate-400">Vui lòng chọn Khoa/Phòng.</td></tr>`;
+    if (globalData.choRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Hiện chưa có dụng cụ nào trong hàng đợi rửa.</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = items.map(item => `
+    tbody.innerHTML = globalData.choRua.map((item, idx) => `
         <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-bold text-slate-800">
-                ${item.tenBo || 'N/A'} 
-                <span class="text-[10px] text-sky-600 block font-mono">${item.maBo || ''} (${item.khoa || ''})</span>
+            <td class="p-2 text-center w-12">
+                <input type="checkbox" class="chk-rua-item w-4 h-4 rounded text-sky-600" data-idx="${idx}" checked>
             </td>
-            <td class="p-3 text-center font-bold text-slate-600">0</td>
-            <td class="p-3 text-center font-bold text-slate-600">0</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.soLuong || 1}</td>
-            <td class="p-3 text-center font-bold text-rose-600">0</td>
+            <td class="p-2 font-semibold text-slate-800">
+                ${item.tenBo || ''}
+                <span class="text-[10px] text-slate-400 block">${item.khoa || ''}</span>
+            </td>
+            <td class="p-2 text-right font-mono font-bold text-sky-700">${item.maBo || ''}</td>
         </tr>
     `).join('');
 }
 
-function renderBangDanhMucLinhKien() {
-    const tbody = document.getElementById('bangDanhMucLinhKien');
-    const tbodyTong = document.getElementById('bangDanhMucTong');
+function renderBangChoNiemThuRua() {
+    const tbody = document.getElementById('bangChoNiemThuRua');
+    if (!tbody) return;
 
-    if (tbody) {
-        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Chưa có dữ liệu.</td></tr>`;
-        } else {
-            tbody.innerHTML = (globalData.danhMucLinhKien || []).map(item => `
-                <tr class="border-b hover:bg-slate-50 text-xs">
-                    <td class="p-3 font-bold text-slate-800">${item.tenBo || ''} <span class="text-[10px] text-sky-600 block font-mono">${item.maBo || ''}</span></td>
-                    <td class="p-3 text-slate-600">${item.khoa || ''}</td>
-                    <td class="p-3 text-center font-bold text-sky-700 bg-sky-50 rounded">${item.soLuong || 1}</td>
-                </tr>
-            `).join('');
-        }
+    if (!globalData.dangRua) globalData.dangRua = [];
+
+    if (globalData.dangRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ rửa nào đang chạy trong buồng.</td></tr>`;
+        return;
     }
 
-    if (tbodyTong) {
-        if (!globalData.danhMucLinhKien || globalData.danhMucLinhKien.length === 0) {
-            tbodyTong.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có dữ liệu.</td></tr>`;
-        } else {
-            tbodyTong.innerHTML = (globalData.danhMucLinhKien || []).map(item => `
-                <tr class="border-b hover:bg-slate-50 text-xs">
-                    <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || ''}</td>
-                    <td class="p-3 font-bold text-slate-800">${item.tenBo || ''}</td>
-                    <td class="p-3 text-slate-600">${item.khoa || ''}</td>
-                    <td class="p-3 text-center"><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px]">Sẵn Sàng (${item.soLuong || 1})</span></td>
-                </tr>
-            `).join('');
-        }
+    tbody.innerHTML = globalData.dangRua.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2 text-center w-10">
+                <input type="checkbox" class="chk-nghiemthu-rua w-4 h-4 rounded text-sky-600" data-idx="${idx}" checked>
+            </td>
+            <td class="p-2 font-mono font-bold text-sky-700">${item.batchId || ''}</td>
+            <td class="p-2 font-semibold text-slate-800">${item.tenBo || ''} <span class="text-[10px] text-slate-400">(${item.maBo || ''})</span></td>
+            <td class="p-2 text-center font-semibold text-amber-600">Đang rửa (${item.thoiGianBatDau || ''})</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangLichSuRua() {
+    const tbody = document.getElementById('bangLichSuRua');
+    if (!tbody) return;
+    if (!globalData.meRua || globalData.meRua.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào.</td></tr>`;
+        return;
     }
+    tbody.innerHTML = globalData.meRua.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-sky-700">${item.batchId || ''}</td>
+            <td class="p-3">${item.loaiRua || 'Máy rửa tự động'}</td>
+            <td class="p-3">${item.chuKy || 'Tiêu chuẩn'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.testDoSach || 'ĐẠT'}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGianRuaXong || item.thoiGian || 'Vừa xong'}</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangDongGoi() {
+    const grid = document.getElementById('gridDongGoi');
+    const badge = document.getElementById('badgeDongGoi');
+    if (!grid) return;
+
+    if (!globalData.choDongGoi) globalData.choDongGoi = [];
+    if (badge) badge.innerText = `${globalData.choDongGoi.length}`;
+
+    if (globalData.choDongGoi.length === 0) {
+        grid.innerHTML = `<div class="col-span-full p-8 text-center text-xs text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">Hiện chưa có mâm dụng cụ nào chờ đóng gói.</div>`;
+        return;
+    }
+
+    grid.innerHTML = globalData.choDongGoi.map((item, idx) => `
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+            <div>
+                <div class="flex justify-between items-start mb-1">
+                    <span class="font-mono font-bold text-sky-700 text-xs">${item.maBo || ''}</span>
+                    <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Đã Rửa Sạch</span>
+                </div>
+                <h4 class="font-bold text-sm text-slate-800">${item.tenBo || ''}</h4>
+                <p class="text-xs text-slate-500 mt-1">Khoa: <strong class="text-slate-700">${item.khoa || 'N/A'}</strong></p>
+                <p class="text-[10px] text-slate-400 font-mono mt-0.5">Mẻ rửa: ${item.batchId || 'N/A'}</p>
+            </div>
+            <button onclick="moPopupDongGoi(${idx})" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2 rounded-lg text-xs shadow-sm transition-all">
+                <i class="fa-solid fa-box-archive mr-1"></i> Đóng Gói Mâm
+            </button>
+        </div>
+    `).join('');
+}
+
+function renderBangChoHap() {
+    const tbody = document.getElementById('bangChoHap');
+    const badge = document.getElementById('badgeChoHap');
+    if (!tbody) return;
+
+    if (!globalData.choHap) globalData.choHap = [];
+    if (badge) badge.innerText = `${globalData.choHap.length} Mục`;
+
+    if (globalData.choHap.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-xs text-slate-400">Hiện chưa có mâm nào chờ hấp.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.choHap.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2 text-center w-12">
+                <input type="checkbox" class="chk-hap-item w-4 h-4 rounded text-purple-600" data-idx="${idx}" checked>
+            </td>
+            <td class="p-2 font-semibold text-slate-800">
+                ${item.tenBo || ''}
+                <span class="text-[10px] text-slate-400 block">${item.vatLieuBaoBoc || ''} - HSD: ${item.hanSuDung || ''}</span>
+            </td>
+            <td class="p-2 text-right font-mono font-bold text-purple-700">${item.maBo || ''}</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangChoNghiemThuHap() {
+    const tbody = document.getElementById('bangChoNghiệmThu');
+    if (!tbody) return;
+
+    if (!globalData.dangHap) globalData.dangHap = [];
+
+    if (globalData.dangHap.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ hấp nào đang trong lò.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.dangHap.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2 text-center w-10">
+                <input type="checkbox" class="chk-nghiemthu-hap w-4 h-4 rounded text-purple-600" data-idx="${idx}" checked>
+            </td>
+            <td class="p-2 font-mono font-bold text-purple-700">${item.maLoHap || ''}</td>
+            <td class="p-2 font-semibold text-slate-800">${item.tenBo || ''} <span class="text-[10px] text-slate-400">(${item.maBo || ''})</span></td>
+            <td class="p-2 text-center font-semibold text-rose-600">Đang hấp (${item.thoiGianBatDauHap || ''})</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangKhoVoKhuan() {
+    const tbody = document.getElementById('bangKhoVoKhuan');
+    if (!tbody) return;
+
+    if (!globalData.khoVoKhuan) globalData.khoVoKhuan = [];
+
+    if (globalData.khoVoKhuan.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Kho vô khuẩn hiện đang trống.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.khoVoKhuan.map((item, idx) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-bold text-slate-800">${item.tenBo || ''}</td>
+            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || ''}</td>
+            <td class="p-3 text-center text-slate-600 font-semibold">${item.khoa || 'Phòng Sanh'}</td>
+            <td class="p-3 text-center font-semibold text-emerald-700">${item.viTriKho || 'Kệ A1'}</td>
+            <td class="p-3 text-center font-bold text-emerald-600">${item.hanSuDung || 'Còn Hạn'}</td>
+            <td class="p-3 text-center action-col">
+                <button onclick="xuatKhoDungCu(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1 rounded text-xs shadow-sm">
+                    Xuất Trả
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderBangLichSuLuanChuyen() {
+    const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
+    if (!tbody) return;
+    if (!globalData.lichSu || globalData.lichSu.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký.</td></tr>`;
+        return;
+    }
+    tbody.innerHTML = globalData.lichSu.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold">${item.maBo || 'MÂM_01'}</td>
+            <td class="p-3 font-bold">${item.tenBo || 'Mâm Dụng Cụ'}</td>
+            <td class="p-3">${item.khoa || 'Khoa GMHS'}</td>
+            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai || 'Luân chuyển'}</span></td>
+            <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
+            <td class="p-3 text-center">${item.nhanSu || 'KTV'}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
+        </tr>
+    `).join('');
 }
 
 function renderBangKPIPerformance() {
@@ -606,41 +782,6 @@ function renderDashboardTV() {
     }
 }
 
-function capNhatGiaoDienSauKhiNapExcel() {
-    const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
-    
-    selectIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            const firstOption = (id === 'khoa_selKhoa' || id === 'login_khoa' || id === 'xuat_selKhoa') 
-                ? '<option value="">-- Chọn Khoa / Phòng --</option>' 
-                : '<option value="">-- Tất cả Khoa / Phòng --</option>';
-            el.innerHTML = firstOption + (globalData.danhSachKhoa || []).map(k => `<option value="${k}">${k}</option>`).join('');
-        }
-    });
-
-    const khoaSel = document.getElementById('khoa_selKhoa');
-    if (khoaSel) {
-        khoaSel.onchange = function() {
-            capNhatGoiYBoDungCuTheoKhoa(this.value);
-            renderBangCongNoKhoa();
-        };
-    }
-
-    const invSel = document.getElementById('inv_filterKhoa');
-    if (invSel) {
-        invSel.onchange = function() {
-            renderBangTonKhoRealtime();
-        };
-    }
-
-    capNhatGoiYBoDungCuTheoKhoa('');
-    renderBangDanhMucLinhKien();
-    renderBangCongNoKhoa();
-    renderBangChoThuGom();
-}
-
-// Cấu hình máy mẻ rửa & mẻ hấp
 function capNhatDanhSachMaMayRua() {
     const loaiEl = document.getElementById('rua_loaiRua');
     const maySoEl = document.getElementById('rua_maySo');
@@ -756,7 +897,7 @@ function initDashboardTVClock() {
 }
 
 // =========================================================================
-// 4. KÍCH HOẠT DOMContentLoaded AN TOÀN
+// 5. VÒNG ĐỜI KÍCH HOẠT DOMContentLoaded
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
@@ -774,8 +915,123 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =========================================================================
-// 5. BỘ BÓC TÁCH FILE WORD (.DOCX) THÔNG MINH
+// 6. BỘ NẠP EXCEL & WORD
 // =========================================================================
+function initExcelLoader() {
+    const excelInput = document.getElementById('excelFileInput');
+    if (!excelInput) return;
+
+    excelInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (typeof XLSX === 'undefined') {
+            alert("❌ Chưa nạp thư viện SheetJS (XLSX)!");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+
+                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết') || s.trim().toLowerCase().includes('cơ số')) || workbook.SheetNames[0];
+                const targetSheet = workbook.Sheets[targetSheetName];
+                const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
+
+                if (!rawRows || rawRows.length === 0) return;
+
+                const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
+                
+                let idxKhoa = headerRow.findIndex(h => h.includes('khoa') || h.includes('phòng') || h.includes('tên ts (i)'));
+                let idxMa = headerRow.findIndex(h => h.includes('mã dc') || h.includes('mã ts') || h.includes('mã'));
+                let idxTen = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ') || h.includes('tên bộ'));
+                let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
+
+                if (idxKhoa === -1) idxKhoa = 1;
+                if (idxMa === -1) idxMa = 2;
+                if (idxTen === -1) idxTen = 3;
+                if (idxSoLuong === -1) idxSoLuong = 4;
+
+                let danhSachBoMoi = [];
+                let setKhoa = new Set();
+                const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
+                const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
+
+                for (let i = 1; i < rawRows.length; i++) {
+                    const r = rawRows[i];
+                    if (!r || r.length === 0) continue;
+
+                    const tenKhoa = r[idxKhoa] ? String(r[idxKhoa]).trim().toUpperCase() : "";
+                    const maBo = r[idxMa] ? String(r[idxMa]).trim().toUpperCase() : `BO_${i}`;
+                    const tenBo = r[idxTen] ? String(r[idxTen]).trim() : "";
+                    const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
+
+                    if (!tenKhoa || !tenBo) continue;
+                    setKhoa.add(tenKhoa);
+
+                    let chiTietLinhKien = [];
+                    const maBoClean = cleanSearchStr(maBo);
+                    const tenBoClean = cleanSearchStr(tenBo);
+
+                    let targetAesculapName = "";
+                    for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                        const keyClean = cleanSearchStr(keyAlias);
+                        if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
+                            targetAesculapName = valAesculap;
+                            break;
+                        }
+                    }
+
+                    for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
+                        const aescClean = cleanSearchStr(tenBoAesculap);
+                        if (
+                            (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
+                            tenBoClean.includes(aescClean) ||
+                            aescClean.includes(tenBoClean)
+                        ) {
+                            chiTietLinhKien = listLinhKien;
+                            break;
+                        }
+                    }
+
+                    danhSachBoMoi.push({
+                        khoa: tenKhoa,
+                        maBo: maBo,
+                        tenBo: tenBo,
+                        soLuong: soLuong,
+                        chiTietLinhKien: chiTietLinhKien
+                    });
+                }
+
+                if (danhSachBoMoi.length > 0) {
+                    globalData.danhMucLinhKien = danhSachBoMoi;
+                    globalData.danhSachKhoa = Array.from(setKhoa);
+
+                    localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                    localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+
+                    if (db) {
+                        db.collection("he_thong_config").doc("danh_muc_master").set({
+                            danhMucLinhKien: globalData.danhMucLinhKien,
+                            danhSachKhoa: globalData.danhSachKhoa,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+                    }
+
+                    capNhatGiaoDienSauKhiNapExcel();
+                    alert(`🎉 NẠP THÀNH CÔNG!\n- Đã cập nhật ${globalData.danhSachKhoa.length} Khoa/Phòng\n- Tổng cộng: ${danhSachBoMoi.length} bộ dụng cụ.`);
+                }
+            } catch (err) {
+                console.error("Lỗi đọc file Excel:", err);
+                alert("❌ Lỗi khi đọc file Excel!");
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
+}
+
 function initWordLoader() {
     const wordInput = document.getElementById('wordFileInput');
     if (!wordInput) return;
@@ -954,199 +1210,7 @@ function initWordLoader() {
 }
 
 // =========================================================================
-// 6. BỘ NẠP FILE EXCEL MASTER
-// =========================================================================
-function initExcelLoader() {
-    const excelInput = document.getElementById('excelFileInput');
-    if (!excelInput) return;
-
-    excelInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        if (typeof XLSX === 'undefined') {
-            alert("❌ Chưa tải thư viện SheetJS (XLSX)!");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                const data = new Uint8Array(evt.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-
-                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết')) || workbook.SheetNames[0];
-                const targetSheet = workbook.Sheets[targetSheetName];
-                const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
-
-                if (!rawRows || rawRows.length === 0) return;
-
-                const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
-                
-                let idxKhoaHoacBo = headerRow.findIndex(h => h.includes('tên ts (i)') || h.includes('khoa') || h.includes('phòng'));
-                let idxMa = headerRow.findIndex(h => h.includes('mã dc') || h.includes('ab 120/12') || h.includes('mã ts') || h.includes('mã'));
-                let idxTen = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ') || h.includes('tên bộ'));
-                let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
-
-                if (idxKhoaHoacBo === -1) idxKhoaHoacBo = 1;
-                if (idxMa === -1) idxMa = 2;
-                if (idxTen === -1) idxTen = 3;
-                if (idxSoLuong === -1) idxSoLuong = 4;
-
-                const isFileCoSoKhoa = rawRows.some((r, i) => i > 0 && String(r[idxKhoaHoacBo]).toUpperCase().includes('PHÒNG SANH'));
-
-                if (isFileCoSoKhoa) {
-                    let danhSachBoMoi = [];
-                    let setKhoa = new Set();
-                    const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
-                    const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
-
-                    for (let i = 1; i < rawRows.length; i++) {
-                        const r = rawRows[i];
-                        if (!r || r.length === 0) continue;
-
-                        const tenKhoa = r[idxKhoaHoacBo] ? String(r[idxKhoaHoacBo]).trim().toUpperCase() : "";
-                        const maBo = r[idxMa] ? String(r[idxMa]).trim().toUpperCase() : `BO_${i}`;
-                        const tenBo = r[idxTen] ? String(r[idxTen]).trim() : "Bộ Dụng Cụ";
-                        const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
-
-                        if (!tenKhoa || !tenBo) continue;
-                        setKhoa.add(tenKhoa);
-
-                        let chiTietLinhKien = [];
-                        const maBoClean = cleanSearchStr(maBo);
-                        const tenBoClean = cleanSearchStr(tenBo);
-
-                        let targetAesculapName = "";
-                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
-                            const keyClean = cleanSearchStr(keyAlias);
-                            if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
-                                targetAesculapName = valAesculap;
-                                break;
-                            }
-                        }
-
-                        for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
-                            const aescClean = cleanSearchStr(tenBoAesculap);
-                            if (
-                                (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
-                                tenBoClean.includes(aescClean) ||
-                                aescClean.includes(tenBoClean)
-                            ) {
-                                chiTietLinhKien = listLinhKien;
-                                break;
-                            }
-                        }
-
-                        danhSachBoMoi.push({
-                            khoa: tenKhoa,
-                            maBo: maBo,
-                            tenBo: tenBo,
-                            soLuong: soLuong,
-                            chiTietLinhKien: chiTietLinhKien
-                        });
-                    }
-
-                    if (danhSachBoMoi.length > 0) {
-                        globalData.danhMucLinhKien = danhSachBoMoi;
-                        globalData.danhSachKhoa = Array.from(setKhoa);
-
-                        localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
-                        localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
-
-                        if (db) {
-                            db.collection("he_thong_config").doc("danh_muc_master").set({
-                                danhMucLinhKien: globalData.danhMucLinhKien,
-                                danhSachKhoa: globalData.danhSachKhoa,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                        }
-
-                        capNhatGiaoDienSauKhiNapExcel();
-                        alert(`🎉 NẠP THÀNH CÔNG!\n- Đã cập nhật ${globalData.danhSachKhoa.length} Khoa/Phòng\n- Tổng cộng: ${danhSachBoMoi.length} bộ dụng cụ.`);
-                    }
-
-                } else {
-                    const mapChiTietTheoBo = {};
-
-                    for (let i = 1; i < rawRows.length; i++) {
-                        const r = rawRows[i];
-                        if (!r || r.length === 0) continue;
-
-                        const tenBoRaw = r[idxKhoaHoacBo] ? String(r[idxKhoaHoacBo]).trim().toUpperCase() : "";
-                        const maChiTiet = r[idxMa] ? String(r[idxMa]).trim() : "";
-                        const tenChiTiet = r[idxTen] ? String(r[idxTen]).trim() : "";
-                        const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
-
-                        if (!tenBoRaw) continue;
-
-                        if (!mapChiTietTheoBo[tenBoRaw]) {
-                            mapChiTietTheoBo[tenBoRaw] = [];
-                        }
-
-                        if (tenChiTiet || maChiTiet) {
-                            mapChiTietTheoBo[tenBoRaw].push({
-                                maLinhKien: maChiTiet,
-                                tenLinhKien: tenChiTiet || maChiTiet,
-                                soLuong: soLuong
-                            });
-                        }
-                    }
-
-                    let countGhep = 0;
-                    (globalData.danhMucLinhKien || []).forEach(bo => {
-                        const maBoClean = cleanSearchStr(bo.maBo);
-                        const tenBoClean = cleanSearchStr(bo.tenBo);
-
-                        let targetAesculapName = "";
-                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
-                            const keyClean = cleanSearchStr(keyAlias);
-                            if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
-                                targetAesculapName = valAesculap;
-                                break;
-                            }
-                        }
-
-                        for (const [tenBoAesculap, listLinhKien] of Object.entries(mapChiTietTheoBo)) {
-                            const aescClean = cleanSearchStr(tenBoAesculap);
-                            if (
-                                (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
-                                tenBoClean.includes(aescClean) ||
-                                aescClean.includes(tenBoClean)
-                            ) {
-                                bo.chiTietLinhKien = listLinhKien;
-                                countGhep++;
-                                break;
-                            }
-                        }
-                    });
-
-                    localStorage.setItem('cssd_aesculapCatalog', JSON.stringify(mapChiTietTheoBo));
-                    localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
-
-                    if (db) {
-                        db.collection("he_thong_config").doc("danh_muc_master").set({
-                            danhMucLinhKien: globalData.danhMucLinhKien,
-                            danhSachKhoa: globalData.danhSachKhoa,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
-
-                    capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 ĐÃ GHÉP NỐI THÀNH CÔNG CHI TIẾT AESCULAP!\n- Đã gắn chi tiết linh kiện vào ${countGhep} bộ dụng cụ!`);
-                }
-
-            } catch (err) {
-                console.error("Lỗi đọc file Excel:", err);
-                alert("❌ Lỗi khi đọc file Excel!");
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    });
-}
-
-// =========================================================================
-// 7. QUY TRÌNH ĐÓNG GÓI & AI SCANNER
+// 7. ĐÓNG GÓI & AI SCANNER
 // =========================================================================
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
@@ -1566,7 +1630,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
 }
 
 // =========================================================================
-// 8. CÁC QUY TRÌNH HẤP, RỬA, KHO & NGHIỆM THU
+// 8. CÁC HÀM XỬ LÝ MẺ RỬA, MẺ HẤP, XUẤT KHO & SÚNG QUÉT
 // =========================================================================
 function toggleSelectAllRua() {
     const chkAll = document.getElementById('selectAllRua');
@@ -1857,9 +1921,7 @@ function xuatKhoXoayVong() {
     }
 }
 
-// =========================================================================
-// 9. QUẢN TRỊ HỆ THỐNG, TIỆN ÍCH, KÝ ĐIỆN TỬ & SÚNG QUÉT BARCODE
-// =========================================================================
+// Súng quét Barcode
 function initGlobalBarcodeScanner() {
     window.addEventListener('keydown', (e) => {
         if (!isBarcodeScannerEnabled) return;
@@ -2079,6 +2141,7 @@ function saveKiemDem() {
     closePopupKiemDem();
 }
 
+// Điều hướng Tab & Phân quyền
 function switchTab(tabId) {
     currentTab = tabId;
     const allTabs = ['khoaphong', 'thugom', 'mayrua', 'donggoi', 'mayhap', 'khovokhuan', 'quanlykho', 'danhmuc', 'lichsuluanchuyen', 'tracuu', 'performance', 'dashboard_tv', 'admin'];
