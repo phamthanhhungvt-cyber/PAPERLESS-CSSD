@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.1 - STABLE MASTER FIX)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.2 - ROBUST LOADER & CLEAN SCOPE)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -152,7 +152,7 @@ function cleanSearchStr(str) {
 }
 
 // =========================================================================
-// 3. ĐỌC DỮ LIỆU LOCALSTORAGE & ĐỒNG BỘ CLOUD (ĐƯỢC ĐẶT LÊN TRÊN HẾT)
+// 3. ĐỌC DỮ LIỆU LOCALSTORAGE & ĐỒNG BỘ CLOUD
 // =========================================================================
 function docDuLieuLuuTruLocalStorage() {
     try {
@@ -897,7 +897,7 @@ function initDashboardTVClock() {
 }
 
 // =========================================================================
-// 5. VÒNG ĐỜI KÍCH HOẠT DOMContentLoaded
+// 5. KHỞI TẠO DOMContentLoaded DUY NHẤT
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
@@ -915,7 +915,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // =========================================================================
-// 6. BỘ NẠP EXCEL & WORD
+// 6. BỘ NẠP EXCEL (.XLSX) MASTER
 // =========================================================================
 function initExcelLoader() {
     const excelInput = document.getElementById('excelFileInput');
@@ -926,7 +926,7 @@ function initExcelLoader() {
         if (!file) return;
 
         if (typeof XLSX === 'undefined') {
-            alert("❌ Chưa nạp thư viện SheetJS (XLSX)!");
+            alert("❌ Chưa tải thư viện SheetJS (XLSX)!");
             return;
         }
 
@@ -936,7 +936,7 @@ function initExcelLoader() {
                 const data = new Uint8Array(evt.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
 
-                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết') || s.trim().toLowerCase().includes('cơ số')) || workbook.SheetNames[0];
+                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết') || s.trim().toLowerCase().includes('cơ số') || s.trim().toLowerCase().includes('sheet1')) || workbook.SheetNames[0];
                 const targetSheet = workbook.Sheets[targetSheetName];
                 const rawRows = XLSX.utils.sheet_to_json(targetSheet, { header: 1, defval: "" });
 
@@ -944,8 +944,8 @@ function initExcelLoader() {
 
                 const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
                 
-                let idxKhoa = headerRow.findIndex(h => h.includes('khoa') || h.includes('phòng') || h.includes('tên ts (i)'));
-                let idxMa = headerRow.findIndex(h => h.includes('mã dc') || h.includes('mã ts') || h.includes('mã'));
+                let idxKhoa = headerRow.findIndex(h => h.includes('khoa') || h.includes('phòng') || h.includes('tên ts (i)') || h.includes('đơn vị'));
+                let idxMa = headerRow.findIndex(h => h.includes('mã dc') || h.includes('mã ts') || h.includes('mã') || h.includes('ab 120/12'));
                 let idxTen = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ') || h.includes('tên bộ'));
                 let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
 
@@ -954,74 +954,78 @@ function initExcelLoader() {
                 if (idxTen === -1) idxTen = 3;
                 if (idxSoLuong === -1) idxSoLuong = 4;
 
-                let danhSachBoMoi = [];
-                let setKhoa = new Set();
-                const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
-                const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
+                const isFileCoSoKhoa = rawRows.some((r, i) => i > 0 && String(r[idxKhoa]).toUpperCase().includes('PHÒNG'));
 
-                for (let i = 1; i < rawRows.length; i++) {
-                    const r = rawRows[i];
-                    if (!r || r.length === 0) continue;
+                if (isFileCoSoKhoa || true) {
+                    let danhSachBoMoi = [];
+                    let setKhoa = new Set();
+                    const savedCatalog = localStorage.getItem('cssd_aesculapCatalog');
+                    const mapAesculap = savedCatalog ? JSON.parse(savedCatalog) : {};
 
-                    const tenKhoa = r[idxKhoa] ? String(r[idxKhoa]).trim().toUpperCase() : "";
-                    const maBo = r[idxMa] ? String(r[idxMa]).trim().toUpperCase() : `BO_${i}`;
-                    const tenBo = r[idxTen] ? String(r[idxTen]).trim() : "";
-                    const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
+                    for (let i = 1; i < rawRows.length; i++) {
+                        const r = rawRows[i];
+                        if (!r || r.length === 0) continue;
 
-                    if (!tenKhoa || !tenBo) continue;
-                    setKhoa.add(tenKhoa);
+                        const tenKhoa = r[idxKhoa] ? String(r[idxKhoa]).trim().toUpperCase() : "";
+                        const maBo = r[idxMa] ? String(r[idxMa]).trim().toUpperCase() : `BO_${i}`;
+                        const tenBo = r[idxTen] ? String(r[idxTen]).trim() : "Bộ Dụng Cụ";
+                        const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
 
-                    let chiTietLinhKien = [];
-                    const maBoClean = cleanSearchStr(maBo);
-                    const tenBoClean = cleanSearchStr(tenBo);
+                        if (!tenKhoa || !tenBo) continue;
+                        setKhoa.add(tenKhoa);
 
-                    let targetAesculapName = "";
-                    for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
-                        const keyClean = cleanSearchStr(keyAlias);
-                        if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
-                            targetAesculapName = valAesculap;
-                            break;
+                        let chiTietLinhKien = [];
+                        const maBoClean = cleanSearchStr(maBo);
+                        const tenBoClean = cleanSearchStr(tenBo);
+
+                        let targetAesculapName = "";
+                        for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
+                            const keyClean = cleanSearchStr(keyAlias);
+                            if (maBoClean.includes(keyClean) || tenBoClean.includes(keyClean)) {
+                                targetAesculapName = valAesculap;
+                                break;
+                            }
                         }
-                    }
 
-                    for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
-                        const aescClean = cleanSearchStr(tenBoAesculap);
-                        if (
-                            (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
-                            tenBoClean.includes(aescClean) ||
-                            aescClean.includes(tenBoClean)
-                        ) {
-                            chiTietLinhKien = listLinhKien;
-                            break;
+                        for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
+                            const aescClean = cleanSearchStr(tenBoAesculap);
+                            if (
+                                (targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) ||
+                                tenBoClean.includes(aescClean) ||
+                                aescClean.includes(tenBoClean)
+                            ) {
+                                chiTietLinhKien = listLinhKien;
+                                break;
+                            }
                         }
+
+                        danhSachBoMoi.push({
+                            khoa: tenKhoa,
+                            maBo: maBo,
+                            tenBo: tenBo,
+                            soLuong: soLuong,
+                            chiTietLinhKien: chiTietLinhKien
+                        });
                     }
 
-                    danhSachBoMoi.push({
-                        khoa: tenKhoa,
-                        maBo: maBo,
-                        tenBo: tenBo,
-                        soLuong: soLuong,
-                        chiTietLinhKien: chiTietLinhKien
-                    });
-                }
+                    if (danhSachBoMoi.length > 0) {
+                        globalData.danhMucLinhKien = danhSachBoMoi;
+                        globalData.danhSachKhoa = Array.from(setKhoa);
 
-                if (danhSachBoMoi.length > 0) {
-                    globalData.danhMucLinhKien = danhSachBoMoi;
-                    globalData.danhSachKhoa = Array.from(setKhoa);
+                        localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                        localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
 
-                    localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
-                    localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
+                        if (db) {
+                            db.collection("he_thong_config").doc("danh_muc_master").set({
+                                danhMucLinhKien: globalData.danhMucLinhKien,
+                                danhSachKhoa: globalData.danhSachKhoa,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }, { merge: true });
+                        }
 
-                    if (db) {
-                        db.collection("he_thong_config").doc("danh_muc_master").set({
-                            danhMucLinhKien: globalData.danhMucLinhKien,
-                            danhSachKhoa: globalData.danhSachKhoa,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true });
+                        capNhatGiaoDienSauKhiNapExcel();
+                        alert(`🎉 NẠP THÀNH CÔNG!\n- Đã cập nhật ${globalData.danhSachKhoa.length} Khoa/Phòng\n- Tổng cộng: ${danhSachBoMoi.length} bộ dụng cụ.`);
                     }
-
-                    capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 NẠP THÀNH CÔNG!\n- Đã cập nhật ${globalData.danhSachKhoa.length} Khoa/Phòng\n- Tổng cộng: ${danhSachBoMoi.length} bộ dụng cụ.`);
                 }
             } catch (err) {
                 console.error("Lỗi đọc file Excel:", err);
@@ -1032,6 +1036,9 @@ function initExcelLoader() {
     });
 }
 
+// =========================================================================
+// 7. BỘ BÓC TÁCH FILE WORD (.DOCX) THÔNG MINH
+// =========================================================================
 function initWordLoader() {
     const wordInput = document.getElementById('wordFileInput');
     if (!wordInput) return;
@@ -1210,7 +1217,7 @@ function initWordLoader() {
 }
 
 // =========================================================================
-// 7. ĐÓNG GÓI & AI SCANNER
+// 8. ĐÓNG GÓI & AI SCANNER
 // =========================================================================
 function moPopupDongGoi(idx) {
     itemDongGoiHienTai = idx;
@@ -1470,14 +1477,15 @@ async function chupAnhVaDemAI() {
         return;
     }
 
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
+    const scale = Math.min(800 / video.videoWidth, 800 / video.videoHeight, 1);
+    canvas.width = video.videoWidth * scale;
+    canvas.height = video.videoHeight * scale;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
     const base64Image = dataUrl.split(',')[1];
     anhBangChungDongGoiTam = dataUrl;
 
@@ -1501,6 +1509,10 @@ async function chupAnhVaDemAI() {
             const result = await response.json();
             console.log("⚡ [ROBOFLOW REAL RESULT]:", result);
             rawPredictions = result.predictions || [];
+        } else {
+            const errData = await response.text();
+            console.error("Lỗi API Roboflow:", response.status, errData);
+            alert(`⚠️ Máy chủ AI phản hồi mã: ${response.status}`);
         }
     } catch (err) {
         console.error("Lỗi AI:", err);
@@ -1513,16 +1525,16 @@ async function chupAnhVaDemAI() {
         const labelRaw = (p.class || p.label || "").trim();
         const confidence = p.confidence || 0;
 
-        if (confidence >= 0.30) {
+        if (confidence >= 0.18) {
             aiDetections.push({
                 label: labelRaw,
                 conf: confidence
             });
 
-            const width = p.width || 50;
-            const height = p.height || 50;
-            const x = (p.x !== undefined) ? (p.x - width / 2) : 0;
-            const y = (p.y !== undefined) ? (p.y - height / 2) : 0;
+            const width = (p.width || 50) * scale;
+            const height = (p.height || 50) * scale;
+            const x = ((p.x !== undefined) ? (p.x - p.width / 2) : 0) * scale;
+            const y = ((p.y !== undefined) ? (p.y - p.height / 2) : 0) * scale;
 
             ctx.strokeStyle = '#10b981';
             ctx.lineWidth = 3;
@@ -1530,12 +1542,12 @@ async function chupAnhVaDemAI() {
 
             ctx.fillStyle = 'rgba(16, 185, 129, 0.85)';
             const text = `${labelRaw} (${Math.round(confidence * 100)}%)`;
-            ctx.font = "bold 11px Arial";
+            ctx.font = "bold 12px Arial";
             const textWidth = ctx.measureText(text).width;
-            ctx.fillRect(x, (y > 20 ? y - 20 : y), textWidth + 8, 20);
+            ctx.fillRect(x, (y > 22 ? y - 22 : y), textWidth + 8, 22);
 
             ctx.fillStyle = '#ffffff';
-            ctx.fillText(text, x + 4, (y > 20 ? y - 6 : y + 14));
+            ctx.fillText(text, x + 4, (y > 22 ? y - 7 : y + 15));
         }
     });
 
@@ -1630,7 +1642,7 @@ function capNhatDoiSoatBangAI(detections, tbodyLinhKien) {
 }
 
 // =========================================================================
-// 8. CÁC HÀM XỬ LÝ MẺ RỬA, MẺ HẤP, XUẤT KHO & SÚNG QUÉT
+// 9. CÁC HÀM XỬ LÝ MẺ RỬA, MẺ HẤP, XUẤT KHO & SÚNG QUÉT
 // =========================================================================
 function toggleSelectAllRua() {
     const chkAll = document.getElementById('selectAllRua');
