@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.3 - FEFO MONITOR & SAFE STERILITY)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.4 - KHOA FEFO ALERT & FULL RUNTIME)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -151,6 +151,24 @@ function cleanSearchStr(str) {
     return (str || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
 }
 
+function parseVietnameseDate(strDate) {
+    if (!strDate) return null;
+    if (strDate.includes('/')) {
+        const parts = strDate.split('/');
+        if (parts.length === 3) {
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+    } else if (strDate.includes('-')) {
+        const parts = strDate.split('-');
+        if (parts[0].length === 4) {
+            return new Date(parts[0], parts[1] - 1, parts[2]);
+        } else {
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+    }
+    return new Date(strDate);
+}
+
 // =========================================================================
 // 3. ĐỌC DỮ LIỆU LOCALSTORAGE & ĐỒNG BỘ CLOUD
 // =========================================================================
@@ -287,7 +305,7 @@ function initRealtimeListeners() {
 }
 
 // =========================================================================
-// 4. CÁC HÀM RENDER GIAO DIỆN & TIỆN ÍCH HỖ TRỢ
+// 4. CÁC HÀM RENDER & CẬP NHẬT DROPDOWN
 // =========================================================================
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
@@ -336,6 +354,7 @@ function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
     ).join('');
 }
 
+// BẢNG CÔNG NỢ & CẢNH BÁO FEFO TẠI KHOA/PHÒNG
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
     const selKhoa = document.getElementById('khoa_selKhoa');
@@ -351,18 +370,100 @@ function renderBangCongNoKhoa() {
         return;
     }
 
-    tbody.innerHTML = items.map(item => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-bold text-slate-800">
-                ${item.tenBo || 'N/A'} 
-                <span class="text-[10px] text-sky-600 block font-mono">${item.maBo || ''} (${item.khoa || ''})</span>
-            </td>
-            <td class="p-3 text-center font-bold text-slate-600">0</td>
-            <td class="p-3 text-center font-bold text-slate-600">0</td>
-            <td class="p-3 text-center font-bold text-emerald-600">${item.soLuong || 1}</td>
-            <td class="p-3 text-center font-bold text-rose-600">0</td>
-        </tr>
-    `).join('');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Lọc danh sách mâm của khoa này đang có trong kho vô khuẩn
+    const mamCuaKhoaTrongKho = (globalData.khoVoKhuan || []).filter(k => !selectedKhoa || k.khoa === selectedKhoa);
+    
+    let dsCanhBaoSapHetHan = [];
+    let dsCanhBaoHetHan = [];
+
+    mamCuaKhoaTrongKho.forEach(m => {
+        const expDate = parseVietnameseDate(m.hanSuDung);
+        if (expDate && !isNaN(expDate.getTime())) {
+            const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) {
+                dsCanhBaoHetHan.push(`${m.tenBo} (${m.maBo})`);
+            } else if (diffDays <= 7) {
+                dsCanhBaoSapHetHan.push(`${m.tenBo} (còn ${diffDays} ngày)`);
+            }
+        }
+    });
+
+    // 1. CẬP NHẬT BANNER CẢNH BÁO ĐẦU TRANG KHOA
+    let alertBannerContainer = document.getElementById('khoa_alert_fefo_banner');
+    if (!alertBannerContainer) {
+        alertBannerContainer = document.createElement('div');
+        alertBannerContainer.id = 'khoa_alert_fefo_banner';
+        const parentArea = tbody.closest('.bg-white') || tbody.parentElement;
+        if (parentArea && parentArea.parentElement) {
+            parentArea.parentElement.insertBefore(alertBannerContainer, parentArea);
+        }
+    }
+
+    if (dsCanhBaoHetHan.length > 0 || dsCanhBaoSapHetHan.length > 0) {
+        alertBannerContainer.innerHTML = `
+            <div class="mb-4 space-y-2">
+                ${dsCanhBaoHetHan.length > 0 ? `
+                    <div class="p-3 bg-rose-50 border-l-4 border-rose-500 rounded-r-lg text-rose-800 text-xs flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base animate-pulse"></i>
+                            <div>
+                                <span class="font-extrabold uppercase">Cảnh Báo Hết Hạn Vô Khuẩn:</span>
+                                <span>Có ${dsCanhBaoHetHan.length} mâm đã quá hạn: <strong>${dsCanhBaoHetHan.join(', ')}</strong>. Vui lòng gửi trả về CSSD để tiệt trùng lại!</span>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+                ${dsCanhBaoSapHetHan.length > 0 ? `
+                    <div class="p-3 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg text-amber-800 text-xs flex items-center justify-between shadow-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-clock text-amber-600 text-base"></i>
+                            <div>
+                                <span class="font-extrabold uppercase">Cảnh Báo Hạn Dùng FEFO:</span>
+                                <span>Có ${dsCanhBaoSapHetHan.length} mâm sắp hết hạn (≤ 7 ngày): <strong>${dsCanhBaoSapHetHan.join(', ')}</strong>. Ưu tiên sử dụng trước!</span>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    } else {
+        alertBannerContainer.innerHTML = '';
+    }
+
+    // 2. RENDER BẢNG CÔNG NỢ KÈM HUY HIỆU CẢNH BÁO
+    tbody.innerHTML = items.map(item => {
+        const listKhayCungMa = mamCuaKhoaTrongKho.filter(k => k.maBo === item.maBo);
+        let noteHSD = '';
+
+        listKhayCungMa.forEach(k => {
+            const expDate = parseVietnameseDate(k.hanSuDung);
+            if (expDate && !isNaN(expDate.getTime())) {
+                const diffDays = Math.ceil((expDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) {
+                    noteHSD = `<span class="inline-block bg-rose-100 text-rose-700 text-[10px] font-extrabold px-1.5 py-0.5 rounded mt-1 border border-rose-200 animate-pulse">🚨 Có mâm quá hạn (${k.hanSuDung})</span>`;
+                } else if (diffDays <= 7 && !noteHSD) {
+                    noteHSD = `<span class="inline-block bg-amber-100 text-amber-800 text-[10px] font-bold px-1.5 py-0.5 rounded mt-1 border border-amber-200">⚠️ Còn ${diffDays} ngày (${k.hanSuDung})</span>`;
+                }
+            }
+        });
+
+        return `
+            <tr class="border-b hover:bg-slate-50 text-xs">
+                <td class="p-3 font-bold text-slate-800">
+                    ${item.tenBo || 'N/A'} 
+                    <span class="text-[10px] text-sky-600 block font-mono">${item.maBo || ''} (${item.khoa || ''})</span>
+                    ${noteHSD}
+                </td>
+                <td class="p-3 text-center font-bold text-slate-600">0</td>
+                <td class="p-3 text-center font-bold text-slate-600">0</td>
+                <td class="p-3 text-center font-bold text-emerald-600">${item.soLuong || 1}</td>
+                <td class="p-3 text-center font-bold text-rose-600">0</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderBangDanhMucLinhKien() {
@@ -642,27 +743,7 @@ function renderBangChoNghiemThuHap() {
     `).join('');
 }
 
-// =========================================================================
-// NÂNG CẤP GÓI 1: GIÁM SÁT HẠN DÙNG (FEFO MONITOR) & KHÓA AN TOÀN Y KHOA
-// =========================================================================
-function parseVietnameseDate(strDate) {
-    if (!strDate) return null;
-    if (strDate.includes('/')) {
-        const parts = strDate.split('/');
-        if (parts.length === 3) {
-            return new Date(parts[2], parts[1] - 1, parts[0]);
-        }
-    } else if (strDate.includes('-')) {
-        const parts = strDate.split('-');
-        if (parts[0].length === 4) {
-            return new Date(parts[0], parts[1] - 1, parts[2]);
-        } else {
-            return new Date(parts[2], parts[1] - 1, parts[0]);
-        }
-    }
-    return new Date(strDate);
-}
-
+// BẢNG KHO VÔ KHUẨN & XUẤT KHO THEO CHUẨN FEFO
 function renderBangKhoVoKhuan() {
     const tbody = document.getElementById('bangKhoVoKhuan');
     if (!tbody) return;
@@ -677,7 +758,6 @@ function renderBangKhoVoKhuan() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 1. Phân loại và tính số ngày còn lại theo HSD đã tính từ vật liệu bao gói
     globalData.khoVoKhuan.forEach(item => {
         const expDate = parseVietnameseDate(item.hanSuDung);
         if (expDate && !isNaN(expDate.getTime())) {
@@ -691,17 +771,14 @@ function renderBangKhoVoKhuan() {
         }
     });
 
-    // 2. Sắp xếp ưu tiên FEFO: Mâm nào hết hạn trước thì xếp lên đầu
     globalData.khoVoKhuan.sort((a, b) => a._expTimestamp - b._expTimestamp);
 
-    // 3. Render bảng kèm nhãn cảnh báo y khoa
     tbody.innerHTML = globalData.khoVoKhuan.map((item, idx) => {
         const diffDays = item._diffDays;
         let badgeHSD = '';
         let actionBtn = '';
 
         if (diffDays < 0) {
-            // Đã hết hạn -> Khóa xuất, chỉ cho phép đưa về tái xử lý
             badgeHSD = `
                 <span class="inline-flex items-center gap-1 bg-rose-100 text-rose-800 text-[11px] font-bold px-2 py-0.5 rounded-md border border-rose-200">
                     <i class="fa-solid fa-triangle-exclamation text-rose-600 animate-pulse"></i>
@@ -714,7 +791,6 @@ function renderBangKhoVoKhuan() {
                 </button>
             `;
         } else if (diffDays <= 7) {
-            // Cận hạn (còn dưới 7 ngày) -> Cảnh báo ưu tiên xuất FEFO
             badgeHSD = `
                 <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-900 text-[11px] font-bold px-2 py-0.5 rounded-md border border-amber-300 animate-pulse">
                     <i class="fa-solid fa-clock text-amber-600"></i>
@@ -728,7 +804,6 @@ function renderBangKhoVoKhuan() {
                 </button>
             `;
         } else {
-            // Còn hạn dài (> 7 ngày)
             badgeHSD = `
                 <span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2 py-0.5 rounded-md border border-emerald-200">
                     <i class="fa-solid fa-circle-check text-emerald-600"></i>
@@ -766,7 +841,6 @@ function renderBangKhoVoKhuan() {
     }).join('');
 }
 
-// Xử lý an toàn khi mâm hết hạn trong kho: Đưa ngược lại về hàng đợi rửa (S2)
 function thuHoiMamHetHanVeRua(idx) {
     if (!globalData.khoVoKhuan || !globalData.khoVoKhuan[idx]) return;
 
