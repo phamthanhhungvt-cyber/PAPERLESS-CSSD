@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.4 - KHOA FEFO ALERT & FULL RUNTIME)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.6 - CLEAN MASTER DEPLOYMENT)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -238,7 +238,7 @@ function dongBoTrangThaiRealtime() {
         khoVoKhuan: globalData.khoVoKhuan || [],
         meRua: globalData.meRua || [],
         meHap: globalData.meHap || [],
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date()
     };
 
     localStorage.setItem('cssd_phieuTra', JSON.stringify(payload.phieuTra));
@@ -253,7 +253,7 @@ function dongBoTrangThaiRealtime() {
 
     if (db) {
         db.collection("he_thong_config").doc("trang_thai_realtime").set(payload, { merge: true })
-            .catch(err => console.error("❌ Lỗi đồng bộ Cloud:", err));
+            .catch(err => console.warn("Lưu realtime cloud tạm hoãn:", err.message));
     }
 }
 
@@ -266,7 +266,7 @@ function initRealtimeListeners() {
             snapshot.forEach((doc) => globalData.lichSu.push({ id: doc.id, ...doc.data() }));
             renderBangLichSuLuanChuyen();
             renderBangKPIPerformance();
-        }, (err) => console.warn("Firestore listeners bypass:", err));
+        }, (err) => console.warn("Firestore listeners bypass:", err.message));
 
     db.collection("he_thong_config").doc("danh_muc_master")
         .onSnapshot((doc) => {
@@ -283,7 +283,7 @@ function initRealtimeListeners() {
                 localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
                 capNhatGiaoDienSauKhiNapExcel();
             }
-        }, (err) => console.warn("Không lấy được danh mục Cloud:", err));
+        }, (err) => console.warn("Không lấy được danh mục Cloud:", err.message));
 
     db.collection("he_thong_config").doc("trang_thai_realtime")
         .onSnapshot((doc) => {
@@ -301,11 +301,11 @@ function initRealtimeListeners() {
 
                 capNhatTatCaGiaoDien();
             }
-        }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err));
+        }, (err) => console.warn("Không lấy được trạng thái Realtime Cloud:", err.message));
 }
 
 // =========================================================================
-// 4. CÁC HÀM RENDER & CẬP NHẬT DROPDOWN
+// 4. CÁC HÀM RENDER GIAO DIỆN
 // =========================================================================
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
@@ -354,7 +354,7 @@ function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
     ).join('');
 }
 
-// BẢNG CÔNG NỢ & CẢNH BÁO FEFO TẠI KHOA/PHÒNG
+// BẢNG CÔNG NỢ & CẢNH BÁO FEFO TẠI KHOA
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
     const selKhoa = document.getElementById('khoa_selKhoa');
@@ -373,7 +373,6 @@ function renderBangCongNoKhoa() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Lọc danh sách mâm của khoa này đang có trong kho vô khuẩn
     const mamCuaKhoaTrongKho = (globalData.khoVoKhuan || []).filter(k => !selectedKhoa || k.khoa === selectedKhoa);
     
     let dsCanhBaoSapHetHan = [];
@@ -391,7 +390,6 @@ function renderBangCongNoKhoa() {
         }
     });
 
-    // 1. CẬP NHẬT BANNER CẢNH BÁO ĐẦU TRANG KHOA
     let alertBannerContainer = document.getElementById('khoa_alert_fefo_banner');
     if (!alertBannerContainer) {
         alertBannerContainer = document.createElement('div');
@@ -433,7 +431,6 @@ function renderBangCongNoKhoa() {
         alertBannerContainer.innerHTML = '';
     }
 
-    // 2. RENDER BẢNG CÔNG NỢ KÈM HUY HIỆU CẢNH BÁO
     tbody.innerHTML = items.map(item => {
         const listKhayCungMa = mamCuaKhoaTrongKho.filter(k => k.maBo === item.maBo);
         let noteHSD = '';
@@ -1219,7 +1216,7 @@ function initExcelLoader() {
                         db.collection("he_thong_config").doc("danh_muc_master").set({
                             danhMucLinhKien: globalData.danhMucLinhKien,
                             danhSachKhoa: globalData.danhSachKhoa,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date()
                         }, { merge: true });
                     }
 
@@ -1401,12 +1398,12 @@ function initWordLoader() {
             db.collection("he_thong_config").doc("danh_muc_master").set({
                 danhMucLinhKien: globalData.danhMucLinhKien,
                 danhSachKhoa: globalData.danhSachKhoa,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date()
             }, { merge: true });
 
             db.collection("he_thong_config").doc("trang_thai_realtime").set({
                 choDongGoi: globalData.choDongGoi,
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                updatedAt: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date()
             }, { merge: true });
         }
 
@@ -2109,11 +2106,11 @@ function ghiNhatKyFirebase(dataAction) {
         maLoHap: dataAction.maLoHap || dataAction.batchId || "---",
         nhanSu: currentUser.nvName || "KTV CSSD",
         thoiGian: new Date().toLocaleString('vi-VN'),
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        timestamp: (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore.FieldValue.serverTimestamp() : new Date()
     };
 
     db.collection("lich_su_luan_chuyen").add(logEntry)
-        .catch((error) => console.error("❌ Lỗi ghi nhật ký Cloud:", error));
+        .catch((error) => console.warn("Lưu log tạm hoãn:", error.message));
 }
 
 function xuatKhoXoayVong() {
