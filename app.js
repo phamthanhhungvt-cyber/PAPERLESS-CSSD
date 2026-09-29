@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.7 - GÓI 3 QC MẺ HẤP & BẰNG CHỨNG SỐ)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.8 - CLEAN DEPLOYMENT)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -65,7 +65,6 @@ let itemDongGoiHienTai = null;
 let currentRecallBatchId = "";
 let anhBangChungDongGoiTam = null;
 
-// Biến quản lý phiên nghiệm thu QC mẻ hấp
 let currentQCBatchData = null;
 let currentQCEvidenceImage = null;
 
@@ -173,7 +172,6 @@ function parseVietnameseDate(strDate) {
     return new Date(strDate);
 }
 
-// Thuật toán tạo mã băm SHA-256 kiểm toán toàn vẹn
 async function taoMaBamSHA256(text) {
     if (window.crypto && window.crypto.subtle) {
         try {
@@ -516,21 +514,22 @@ function renderBangDanhMucLinhKien() {
     }
 }
 
+// BẢNG THU GOM CÓ BẢO VỆ CHỐNG LỖI LENGTH
 function renderBangChoThuGom() {
     const tbody = document.getElementById('bangChoThuGom');
     const filterSelect = document.getElementById('filterKhoaThuGom');
     const badgeSoCho = document.getElementById('badgeSoCho');
 
     if (!tbody) return;
-    if (!globalData.phieuTra) globalData.phieuTra = [];
+    if (!Array.isArray(globalData.phieuTra)) globalData.phieuTra = [];
 
     if (filterSelect) {
-        const khoasWithOrders = Array.from(new Set(globalData.phieuTra.map(p => p.khoa).filter(Boolean)));
+        const khoasWithOrders = Array.from(new Set(globalData.phieuTra.map(p => p?.khoa).filter(Boolean)));
         const currentValue = filterSelect.value;
 
         let optionsHtml = `<option value="">-- Tất Cả Khoa Có Lệnh Gửi (${globalData.phieuTra.length}) --</option>`;
         optionsHtml += khoasWithOrders.map(k => {
-            const count = globalData.phieuTra.filter(p => p.khoa === k).length;
+            const count = globalData.phieuTra.filter(p => p?.khoa === k).length;
             return `<option value="${k}" ${currentValue === k ? 'selected' : ''}>${k} (${count} lệnh)</option>`;
         }).join('');
 
@@ -539,7 +538,7 @@ function renderBangChoThuGom() {
 
     const selectedKhoa = filterSelect ? filterSelect.value : "";
     const filteredPhieu = selectedKhoa 
-        ? globalData.phieuTra.filter(p => p.khoa === selectedKhoa)
+        ? globalData.phieuTra.filter(p => p && p.khoa === selectedKhoa)
         : globalData.phieuTra;
 
     if (badgeSoCho) badgeSoCho.innerText = `${filteredPhieu.length} Lệnh`;
@@ -549,30 +548,33 @@ function renderBangChoThuGom() {
         return;
     }
 
-    tbody.innerHTML = filteredPhieu.map((phieu, idx) => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 font-bold text-slate-800">
-                <i class="fa-solid fa-hospital mr-1.5 text-sky-600"></i>${phieu.khoa || 'N/A'}
-                <div class="text-[10px] text-slate-400 font-normal mt-0.5">Người gửi: ${phieu.nhanSu || 'N/A'}</div>
-            </td>
-            <td class="p-3">
-                <div class="font-bold text-sky-800 mb-1">${(phieu.items || []).length} Bộ dụng cụ bẩn:</div>
-                <div class="space-y-1">
-                    ${(phieu.items || []).map(it => `
-                        <span class="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-mono mr-1">
-                            <strong>${it.maBo || ''}</strong> - ${it.tenBo || ''}
-                        </span>
-                    `).join('')}
-                </div>
-            </td>
-            <td class="p-3 text-center font-bold text-slate-600">${phieu.thoiGian || ''}</td>
-            <td class="p-3 text-center action-col">
-                <button type="button" onclick="moPopupKiemDemThuGom(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition-all whitespace-nowrap">
-                    <i class="fa-solid fa-clipboard-check mr-1"></i> Kiểm Đếm & Nhận
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = filteredPhieu.map((phieu, idx) => {
+        const itemList = Array.isArray(phieu?.items) ? phieu.items : [];
+        return `
+            <tr class="border-b hover:bg-slate-50 text-xs">
+                <td class="p-3 font-bold text-slate-800">
+                    <i class="fa-solid fa-hospital mr-1.5 text-sky-600"></i>${phieu?.khoa || 'N/A'}
+                    <div class="text-[10px] text-slate-400 font-normal mt-0.5">Người gửi: ${phieu?.nhanSu || 'N/A'}</div>
+                </td>
+                <td class="p-3">
+                    <div class="font-bold text-sky-800 mb-1">${itemList.length} Bộ dụng cụ bẩn:</div>
+                    <div class="space-y-1">
+                        ${itemList.map(it => `
+                            <span class="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-mono mr-1">
+                                <strong>${it?.maBo || ''}</strong> - ${it?.tenBo || ''}
+                            </span>
+                        `).join('')}
+                    </div>
+                </td>
+                <td class="p-3 text-center font-bold text-slate-600">${phieu?.thoiGian || ''}</td>
+                <td class="p-3 text-center action-col">
+                    <button type="button" onclick="moPopupKiemDemThuGom(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm transition-all whitespace-nowrap">
+                        <i class="fa-solid fa-clipboard-check mr-1"></i> Kiểm Đếm & Nhận
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderBangTonKhoRealtime() {
@@ -615,7 +617,7 @@ function renderBangChoRua() {
     const badge = document.getElementById('badgeChoRua');
     if (!tbody) return;
 
-    if (!globalData.choRua) globalData.choRua = [];
+    if (!Array.isArray(globalData.choRua)) globalData.choRua = [];
     if (badge) badge.innerText = `${globalData.choRua.length} Mục`;
 
     if (globalData.choRua.length === 0) {
@@ -641,7 +643,7 @@ function renderBangChoNiemThuRua() {
     const tbody = document.getElementById('bangChoNiemThuRua');
     if (!tbody) return;
 
-    if (!globalData.dangRua) globalData.dangRua = [];
+    if (!Array.isArray(globalData.dangRua)) globalData.dangRua = [];
 
     if (globalData.dangRua.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ rửa nào đang chạy trong buồng.</td></tr>`;
@@ -663,7 +665,7 @@ function renderBangChoNiemThuRua() {
 function renderBangLichSuRua() {
     const tbody = document.getElementById('bangLichSuRua');
     if (!tbody) return;
-    if (!globalData.meRua || globalData.meRua.length === 0) {
+    if (!Array.isArray(globalData.meRua) || globalData.meRua.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có mẻ rửa nào.</td></tr>`;
         return;
     }
@@ -683,7 +685,7 @@ function renderBangDongGoi() {
     const badge = document.getElementById('badgeDongGoi');
     if (!grid) return;
 
-    if (!globalData.choDongGoi) globalData.choDongGoi = [];
+    if (!Array.isArray(globalData.choDongGoi)) globalData.choDongGoi = [];
     if (badge) badge.innerText = `${globalData.choDongGoi.length}`;
 
     if (globalData.choDongGoi.length === 0) {
@@ -714,7 +716,7 @@ function renderBangChoHap() {
     const badge = document.getElementById('badgeChoHap');
     if (!tbody) return;
 
-    if (!globalData.choHap) globalData.choHap = [];
+    if (!Array.isArray(globalData.choHap)) globalData.choHap = [];
     if (badge) badge.innerText = `${globalData.choHap.length} Mục`;
 
     if (globalData.choHap.length === 0) {
@@ -740,7 +742,7 @@ function renderBangChoNghiemThuHap() {
     const tbody = document.getElementById('bangChoNghiệmThu');
     if (!tbody) return;
 
-    if (!globalData.dangHap) globalData.dangHap = [];
+    if (!Array.isArray(globalData.dangHap)) globalData.dangHap = [];
 
     if (globalData.dangHap.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-xs text-slate-400">Không có mẻ hấp nào đang trong lò.</td></tr>`;
@@ -764,7 +766,7 @@ function renderBangKhoVoKhuan() {
     const tbody = document.getElementById('bangKhoVoKhuan');
     if (!tbody) return;
 
-    if (!globalData.khoVoKhuan) globalData.khoVoKhuan = [];
+    if (!Array.isArray(globalData.khoVoKhuan)) globalData.khoVoKhuan = [];
 
     if (globalData.khoVoKhuan.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-xs text-slate-400">Kho vô khuẩn hiện đang trống. Chưa có mâm dụng cụ nào sẵn sàng.</td></tr>`;
@@ -891,7 +893,7 @@ function thuHoiMamHetHanVeRua(idx) {
 function renderBangLichSuLuanChuyen() {
     const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
     if (!tbody) return;
-    if (!globalData.lichSu || globalData.lichSu.length === 0) {
+    if (!Array.isArray(globalData.lichSu) || globalData.lichSu.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký.</td></tr>`;
         return;
     }
@@ -912,7 +914,7 @@ function renderBangLichSuHap() {
     const tbody = document.getElementById('bangLichSuHap');
     if (!tbody) return;
 
-    if (!globalData.meHap || globalData.meHap.length === 0) {
+    if (!Array.isArray(globalData.meHap) || globalData.meHap.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký mẻ hấp trong ngày.</td></tr>`;
         return;
     }
@@ -2062,9 +2064,7 @@ function toggleSelectAllNghiemThu() {
     }
 }
 
-// =========================================================================
-// GÓI 3: HỆ THỐNG NGHIỆM THU QC MẺ HẤP & LƯU BẰNG CHỨNG SỐ (SHA-256)
-// =========================================================================
+// GÓI 3: NGHIỆM THU QC MẺ HẤP & BẰNG CHỨNG SỐ
 function moPopupNghiemThuQC() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
     if (checkedInps.length === 0) {
