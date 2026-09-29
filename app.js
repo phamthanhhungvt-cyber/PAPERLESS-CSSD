@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.6 - CLEAN MASTER DEPLOYMENT)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.7 - GÓI 3 QC MẺ HẤP & BẰNG CHỨNG SỐ)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -64,6 +64,10 @@ let tempSuDungKhay = [];
 let itemDongGoiHienTai = null;
 let currentRecallBatchId = "";
 let anhBangChungDongGoiTam = null;
+
+// Biến quản lý phiên nghiệm thu QC mẻ hấp
+let currentQCBatchData = null;
+let currentQCEvidenceImage = null;
 
 let canvasKy = null;
 let ctxKy = null;
@@ -169,6 +173,21 @@ function parseVietnameseDate(strDate) {
     return new Date(strDate);
 }
 
+// Thuật toán tạo mã băm SHA-256 kiểm toán toàn vẹn
+async function taoMaBamSHA256(text) {
+    if (window.crypto && window.crypto.subtle) {
+        try {
+            const msgUint8 = new TextEncoder().encode(text);
+            const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16).toUpperCase();
+        } catch (e) {
+            console.warn("Crypto API fallback:", e);
+        }
+    }
+    return `HASH_${Date.now().toString(16).toUpperCase()}`;
+}
+
 // =========================================================================
 // 3. ĐỌC DỮ LIỆU LOCALSTORAGE & ĐỒNG BỘ CLOUD
 // =========================================================================
@@ -225,6 +244,7 @@ function capNhatTatCaGiaoDien() {
     renderDashboardTV();
     renderBangKPIPerformance();
     renderBangCongNoKhoa();
+    renderBangLichSuHap();
 }
 
 function dongBoTrangThaiRealtime() {
@@ -354,7 +374,6 @@ function capNhatGoiYBoDungCuTheoKhoa(tenKhoa) {
     ).join('');
 }
 
-// BẢNG CÔNG NỢ & CẢNH BÁO FEFO TẠI KHOA
 function renderBangCongNoKhoa() {
     const tbody = document.getElementById('bangDonGiaoNhan');
     const selKhoa = document.getElementById('khoa_selKhoa');
@@ -885,6 +904,33 @@ function renderBangLichSuLuanChuyen() {
             <td class="p-3 text-center font-mono">${item.maLoHap || '---'}</td>
             <td class="p-3 text-center">${item.nhanSu || 'KTV'}</td>
             <td class="p-3 text-center text-slate-500">${item.thoiGian || 'Vừa xong'}</td>
+        </tr>
+    `).join('');
+}
+
+function renderBangLichSuHap() {
+    const tbody = document.getElementById('bangLichSuHap');
+    if (!tbody) return;
+
+    if (!globalData.meHap || globalData.meHap.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-xs text-slate-400">Chưa có nhật ký mẻ hấp trong ngày.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = globalData.meHap.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-2.5 font-mono font-bold text-purple-700">
+                ${item.batchId || item.maLoHap || '---'}
+                ${item.shaHash ? `<span class="block text-[9px] text-slate-400 font-normal">SHA: ${item.shaHash}</span>` : ''}
+            </td>
+            <td class="p-2.5">${item.maySo || 'Lò Hấp CSSD'}</td>
+            <td class="p-2.5 font-mono">${item.nhietDo || '134°C'} / ${item.apSuat || '2.1 Bar'}</td>
+            <td class="p-2.5 text-center font-bold ${String(item.testBI).includes('ĐẠT') ? 'text-emerald-600' : 'text-amber-600'}">
+                ${item.testBI || 'ĐẠT (-)'}
+            </td>
+            <td class="p-2.5 text-center font-semibold text-emerald-700">
+                ${item.shaHash ? '🟢 ĐÃ LƯU SỔ QC' : 'HOÀN TẤT'}
+            </td>
         </tr>
     `).join('');
 }
@@ -1974,6 +2020,7 @@ function xacNhanMeHap() {
     const batchInp = document.getElementById('hap_batchId');
     const batchId = batchInp ? batchInp.value : `H${Date.now()}`;
     const loaiHap = document.getElementById('hap_loaiHap') ? document.getElementById('hap_loaiHap').value : "Hấp hơi nước";
+    const maySo = document.getElementById('hap_maySo') ? document.getElementById('hap_maySo').value : "Lò Hấp Steam #1";
 
     const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
 
@@ -1986,6 +2033,7 @@ function xacNhanMeHap() {
                 ...item,
                 maLoHap: batchId,
                 loaiHap: loaiHap,
+                maySo: maySo,
                 nhanSuHap: currentUser.nvName,
                 thoiGianBatDauHap: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
                 timestampBatDauHap: Date.now()
@@ -2014,17 +2062,106 @@ function toggleSelectAllNghiemThu() {
     }
 }
 
-function nhapKhoHangLoat() {
+// =========================================================================
+// GÓI 3: HỆ THỐNG NGHIỆM THU QC MẺ HẤP & LƯU BẰNG CHỨNG SỐ (SHA-256)
+// =========================================================================
+function moPopupNghiemThuQC() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
     if (checkedInps.length === 0) {
-        alert("⚠️ Vui lòng chọn mâm dụng cụ cần duyệt đạt để nhập kho!");
+        alert("⚠️ Vui lòng tick chọn ít nhất một mâm để nghiệm thu mẻ hấp!");
         return;
     }
 
-    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx'))).sort((a, b) => b - a);
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx')));
+    const firstItem = (globalData.dangHap || [])[selectedIndices[0]] || {};
+    
+    currentQCBatchData = {
+        indices: selectedIndices,
+        batchId: firstItem.maLoHap || 'H001',
+        maySo: firstItem.maySo || (document.getElementById('hap_maySo')?.value || 'Lò Hấp Steam #1'),
+        loaiHap: firstItem.loaiHap || (document.getElementById('hap_loaiHap')?.value || 'Hấp hơi nước')
+    };
 
+    const pop = document.getElementById('popupNghiemThuChatLuong');
+    const popSub = document.getElementById('qc_pop_sub');
+    const ktvName = document.getElementById('qc_ktv_name');
+    const fileInp = document.getElementById('qc_fileAnhBangIn');
+    const previewZone = document.getElementById('qc_preview_zone');
+
+    if (popSub) popSub.innerText = `Mã mẻ: ${currentQCBatchData.batchId} | ${currentQCBatchData.maySo} (${currentQCBatchData.loaiHap})`;
+    if (ktvName) ktvName.innerText = `${currentUser.nvName} (${currentUser.role})`;
+    if (fileInp) fileInp.value = '';
+    if (previewZone) previewZone.classList.add('hidden');
+    currentQCEvidenceImage = null;
+
+    taoMaBamSHA256(currentQCBatchData.batchId + Date.now()).then(hash => {
+        const hashEl = document.getElementById('qc_hash_preview');
+        if (hashEl) hashEl.innerText = `SHA256: ${hash}...`;
+    });
+
+    if (fileInp) {
+        fileInp.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    currentQCEvidenceImage = evt.target.result;
+                    const imgEl = document.getElementById('qc_img_preview');
+                    if (imgEl) imgEl.src = currentQCEvidenceImage;
+                    if (previewZone) previewZone.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    if (pop) pop.classList.remove('hidden');
+}
+
+function dongPopupNghiemThuQC() {
+    const pop = document.getElementById('popupNghiemThuChatLuong');
+    if (pop) pop.classList.add('hidden');
+    currentQCBatchData = null;
+    currentQCEvidenceImage = null;
+}
+
+async function luuNghiemThuQCVaNhapKho() {
+    if (!currentQCBatchData || !currentQCBatchData.indices) return;
+
+    const nhietDo = document.getElementById('qc_nhietDo')?.value || '134';
+    const apSuat = document.getElementById('qc_apSuat')?.value || '2.1';
+    const thoiGianGiu = document.getElementById('qc_thoiGianGiu')?.value || '5';
+    const bowieDick = document.getElementById('qc_testBowieDick')?.value || 'ĐẠT';
+    const ciTest = document.getElementById('qc_testCI')?.value || 'ĐẠT';
+    const biTest = document.getElementById('qc_testBI')?.value || 'ĐẠT (-)';
+
+    if (bowieDick !== 'ĐẠT' || ciTest !== 'ĐẠT') {
+        if (!confirm("⚠️ CẢNH BÁO Y KHOA: Test Bowie-Dick hoặc Chỉ thị hóa học chưa ĐẠT! Bạn có chắc chắn muốn phát hành mẻ tiệt trùng này?")) {
+            return;
+        }
+    }
+
+    const shaHash = await taoMaBamSHA256(`${currentQCBatchData.batchId}_${nhietDo}_${apSuat}_${Date.now()}`);
+
+    const selectedIndices = currentQCBatchData.indices.sort((a, b) => b - a);
     if (!globalData.khoVoKhuan) globalData.khoVoKhuan = [];
     if (!globalData.meHap) globalData.meHap = [];
+
+    const soMeHapEntry = {
+        batchId: currentQCBatchData.batchId,
+        maLoHap: currentQCBatchData.batchId,
+        maySo: currentQCBatchData.maySo,
+        nhietDo: `${nhietDo}°C`,
+        apSuat: `${apSuat} Bar`,
+        thoiGianGiu: `${thoiGianGiu} phút`,
+        testBowieDick: bowieDick,
+        testCI: ciTest,
+        testBI: biTest,
+        shaHash: shaHash,
+        anhBangIn: currentQCEvidenceImage || '',
+        ktvNghiemThu: currentUser.nvName,
+        thoiGian: new Date().toLocaleString('vi-VN')
+    };
 
     selectedIndices.forEach(idx => {
         const item = globalData.dangHap.splice(idx, 1)[0];
@@ -2032,30 +2169,36 @@ function nhapKhoHangLoat() {
             item.trangThai = "VÔ KHUẨN (Trong Kho)";
             item.viTriKho = "Kệ A1 - Ô 02";
             item.thoiGianHoanTatHap = new Date().toLocaleString('vi-VN');
-            item.timestampHoanTatHap = Date.now();
+            item.qcDetails = soMeHapEntry;
 
             let kpiStatus = "ĐẠT (<30m)";
             if (item.timestampBatDauHap) {
-                const diffMinutes = Math.round((item.timestampHoanTatHap - item.timestampBatDauHap) / 60000);
+                const diffMinutes = Math.round((Date.now() - item.timestampBatDauHap) / 60000);
                 if (diffMinutes > 30) kpiStatus = "TRỄ (>30m)";
             }
             item.kpiBiStatus = kpiStatus;
 
             globalData.khoVoKhuan.unshift(item);
-            globalData.meHap.unshift(item);
+            globalData.meHap.unshift({ ...item, ...soMeHapEntry });
 
             ghiNhatKyFirebase({
                 maBo: item.maBo,
                 tenBo: item.tenBo,
                 khoa: item.khoa,
-                trangThai: 'NHẬP KHO VÔ KHUẨN',
-                maLoHap: item.maLoHap
+                trangThai: `NHẬP KHO VÔ KHUẨN (QC: ${shaHash})`,
+                maLoHap: item.maLoHap || currentQCBatchData.batchId,
+                qcHash: shaHash
             });
         }
     });
 
     dongBoTrangThaiRealtime();
-    alert("🎉 Đã nhập kho vô khuẩn thành công!");
+    dongPopupNghiemThuQC();
+    alert(`🎉 ĐÃ LƯU BẰNG CHỨNG SỐ & NHẬP KHO THÀNH CÔNG!\n- Mã băm toàn vẹn: ${shaHash}\n- Chỉ thị hóa học: [${ciTest}] | Test BI: [${biTest}]`);
+}
+
+function nhapKhoHangLoat() {
+    moPopupNghiemThuQC();
 }
 
 function tuChoiHapHangLoat() {
@@ -2380,6 +2523,7 @@ function switchTab(tabId) {
     if (tabId === 'mayhap') {
         renderBangChoHap();
         renderBangChoNghiemThuHap();
+        renderBangLichSuHap();
     }
     if (tabId === 'khovokhuan') renderBangKhoVoKhuan();
     if (tabId === 'danhmuc') renderBangDanhMucLinhKien();
