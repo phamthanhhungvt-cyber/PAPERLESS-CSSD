@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.8 - CLEAN DEPLOYMENT)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 4.8.1 - FINAL CACHE BUST)
    ========================================================================= */
 
 // 1. CẤU HÌNH FIREBASE
@@ -514,7 +514,7 @@ function renderBangDanhMucLinhKien() {
     }
 }
 
-// BẢNG THU GOM CÓ BẢO VỆ CHỐNG LỖI LENGTH
+// BẢNG THU GOM AN TOÀN CHỐNG CRASH LENGTH
 function renderBangChoThuGom() {
     const tbody = document.getElementById('bangChoThuGom');
     const filterSelect = document.getElementById('filterKhoaThuGom');
