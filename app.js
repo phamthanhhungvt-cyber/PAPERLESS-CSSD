@@ -57,12 +57,6 @@ let globalData = {
     lichSu: [],
     danhMucLinhKien: [],
     danhSachKhoa: [],
-    ktvList: [
-        { id: 'NV01', name: 'Nguyễn Văn A', pin: '1234', role: 'CSSD' },
-        { id: 'NV02', name: 'Trần Thị Thoa', pin: '1234', role: 'CSSD' },
-        { id: 'NV03', name: 'Mai', pin: '1234', role: 'CSSD' },
-        { id: 'ADMIN', name: 'ADMINISTRATOR', pin: '9999', role: 'ADMIN' }
-    ]
 };
 
 let gioHangTraTam = [];
@@ -1364,29 +1358,65 @@ function toggleMobileMenu() {
 function checkLogin() {
     const roleEl = document.getElementById('login_role');
     const passEl = document.getElementById('login_pass');
+    const idEl = document.getElementById('login_nv_id'); // Mã NV (nếu có)
     
     const role = roleEl ? roleEl.value : 'ADMIN';
     const pin = passEl ? passEl.value.trim() : '';
+    let accountId = idEl && idEl.value.trim() ? idEl.value.trim().toLowerCase() : '';
 
-    if (!pin) { alert("Vui lòng nhập Mã PIN xác thực!"); return; }
+    if (!pin) {
+        alert("⚠️ Vui lòng nhập Mã PIN xác thực!");
+        return;
+    }
 
-    let foundUser = (globalData.ktvList || []).find(k => k && k.pin === pin);
-    if (pin === '9999' || role === 'ADMIN') foundUser = { id: 'ADMIN', name: 'ADMINISTRATOR', role: 'ADMIN' };
-    else if (!foundUser && (pin === '1234' || pin === 'NV01')) foundUser = { id: 'NV01', name: 'KTV CSSD', role: 'CSSD' };
+    // Đổi nút thành trạng thái Đang xử lý
+    const btnLogin = document.querySelector('#login-screen button');
+    const originalBtnText = btnLogin.innerHTML;
+    btnLogin.disabled = true;
+    btnLogin.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang mã hóa & xác thực...`;
 
-    if (!foundUser) { alert("❌ Mã PIN xác thực không chính xác! (Admin: 9999, KTV: 1234)"); return; }
+    // THỦ THUẬT: Tự động chế ID thành Email và ghép Pass để thỏa mãn Firebase
+    let emailAuth = "";
+    if (role === 'ADMIN') {
+        emailAuth = `admin@phuongnam.com`;
+    } else if (role === 'CSSD') {
+        if(!accountId) {
+            alert("⚠️ Vui lòng nhập Mã KTV (VD: NV01)!");
+            btnLogin.disabled = false;
+            btnLogin.innerHTML = originalBtnText;
+            return;
+        }
+        emailAuth = `${accountId}@phuongnam.com`;
+    } else {
+        // Vai trò KHOA và GUEST (Demo tạm thời bỏ qua xác thực chặt, hoặc bạn tự cấp email chung cho Khoa)
+        emailAuth = `khoa@phuongnam.com`; 
+    }
 
-    currentUser.role = role;
-    currentUser.nvName = foundUser.name;
-    const userInfoEl = document.getElementById('nav_user_info');
-    if (userInfoEl) userInfoEl.innerText = currentUser.nvName;
+    const passwordAuth = `${pin}cssd`; // Mật khẩu đẩy lên Firebase luôn có đuôi cssd
 
-    const loginScreen = document.getElementById('login-screen');
-    const mainApp = document.getElementById('main-app');
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (mainApp) mainApp.classList.remove('hidden');
+    // Gọi lên máy chủ Firebase Auth để kiểm tra
+    firebase.auth().signInWithEmailAndPassword(emailAuth, passwordAuth)
+        .then((userCredential) => {
+            // Đăng nhập thành công
+            const user = userCredential.user;
+            currentUser.role = role;
+            currentUser.nvName = role === 'ADMIN' ? 'ADMINISTRATOR' : (accountId.toUpperCase() || 'Điều Dưỡng Khoa');
 
-    switchTab('khoaphong');
+            const userInfoEl = document.getElementById('nav_user_info');
+            if (userInfoEl) userInfoEl.innerText = currentUser.nvName;
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+
+            switchTab('khoaphong');
+        })
+        .catch((error) => {
+            // Đăng nhập thất bại (Sai PIN hoặc sai ID)
+            console.warn("Lỗi xác thực:", error.code, error.message);
+            alert("❌ ĐĂNG NHẬP THẤT BẠI: Mã PIN hoặc Mã NV không chính xác! (Hệ thống đã ghi nhận IP)");
+            btnLogin.disabled = false;
+            btnLogin.innerHTML = originalBtnText;
+        });
 }
 
 function toggleLoginFields() {
