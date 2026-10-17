@@ -1718,7 +1718,15 @@ function themNhanSuMoiAdmin() {
     const idInp = document.getElementById('admin_add_nv_id');
     const pinInp = document.getElementById('admin_add_nv_pin');
     const roleInp = document.getElementById('admin_add_nv_role');
-
+// =========================================================================
+// HÀM ĐỒNG HỒ DASHBOARD TV
+// =========================================================================
+function initDashboardTVClock() {
+    setInterval(() => {
+        const tvClockEl = document.getElementById('tv_realtime_clock');
+        if (tvClockEl) tvClockEl.innerText = new Date().toLocaleString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }, 1000);
+}
     if (!nameInp || !idInp || !nameInp.value.trim() || !idInp.value.trim()) {
         alert("Vui lòng nhập Mã NV và Họ Tên!");
         return;
