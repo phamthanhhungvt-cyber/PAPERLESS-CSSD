@@ -1482,6 +1482,76 @@
 
     <!-- FILE SCRIPT ĐIỀU KHIỂN CHÍNH -->
     <script src="app.js"></script>
+    ...
+        <div id="popupThuHoi" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl border-2 border-rose-500 overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-rose-600 text-white px-6 py-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-xl animate-bounce"></i>
+                    <h3 class="text-base font-extrabold uppercase tracking-wide">CẢNH BÁO: THU HỒI KHẨN CẤP LÔ TIỆT TRÙNG</h3>
+                </div>
+                <button onclick="dongPopupThuHoi()" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Mã Lô Tiệt Trùng Cần Thu Hồi (Batch ID / BI (+))</label>
+                        <input type="text" id="recall_inpBatchId" placeholder="Ví dụ: H260821_01" class="w-full border-2 border-rose-300 rounded-lg p-2.5 text-xs font-mono font-bold uppercase focus:border-rose-600 outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="truyVetKhanCapLoHap()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm">
+                            <i class="fa-solid fa-magnifying-glass mr-1"></i> Quét & Phân Tích
+                        </button>
+                    </div>
+                </div>
+                <div id="recall_resultZone" class="hidden space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h5 class="text-xs font-extrabold text-slate-800 uppercase flex items-center gap-1.5">
+                            <i class="fa-solid fa-boxes-stacked text-rose-600"></i> Bản Đồ Định Vị Mâm Dụng Cụ Trong Lô
+                        </h5>
+                        <span id="recall_totalBadge" class="bg-rose-100 text-rose-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full">-- Mâm</span>
+                    </div>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead class="bg-slate-100 text-[10px] font-bold text-slate-600 uppercase">
+                                <tr>
+                                    <th class="p-2.5">Mã Khay</th>
+                                    <th class="p-2.5">Tên Dụng Cụ</th>
+                                    <th class="p-2.5">Khoa Sở Hữu</th>
+                                    <th class="p-2.5 text-center">Vị Trí Hiện Tại</th>
+                                    <th class="p-2.5 text-center">Trạng Thái Rủi Ro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recall_tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Lý Do Thu Hồi / Biên Bản Sự Cố</label>
+                        <textarea id="recall_lyDo" rows="2" class="w-full border border-slate-300 rounded-lg p-2 text-xs font-medium outline-none" placeholder="Nhập lý do: Kết quả BI dương tính sau 30 phút / Lò hấp báo lỗi áp suất..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-between items-center">
+                <span class="text-[11px] text-slate-500 font-medium">Lệnh thu hồi sẽ phát cảnh báo khẩn cấp và khóa mã lô trên toàn hệ thống.</span>
+                <div class="flex gap-2">
+                    <button onclick="xacNhanPhatLenhThuHoi()" class="bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-5 py-2 rounded-lg text-xs uppercase shadow-sm">
+                        <i class="fa-solid fa-lock mr-1"></i> Bấm Phát Lệnh Phong Tỏa & Thu Hồi
+                    </button>
+                    <button onclick="dongPopupThuHoi()" class="bg-slate-200 text-slate-700 font-bold px-4 py-2 rounded-lg text-xs">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone In Ấn Temp Rendering -->
+    <div id="print-zone" class="hidden"></div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-check.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <!-- FILE SCRIPT ĐIỀU KHIỂN CHÍNH -->
+    <script src="app.js"></script>
 </body>
 </html>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
