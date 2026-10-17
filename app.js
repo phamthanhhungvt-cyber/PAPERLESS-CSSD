@@ -1758,7 +1758,6 @@ document.addEventListener('DOMContentLoaded', () => {
     tuDongTaoMaLoMeHap();
     initCanvasKyDienTu();
     initGlobalBarcodeScanner();
-    initDashboardTVClock();
 });
 
 function initExcelLoader() {
