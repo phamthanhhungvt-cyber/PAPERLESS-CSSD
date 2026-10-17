@@ -8,7 +8,7 @@ const CURRENT_TENANT = "PHUONGNAM_01";
 
 // 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
-    apiKey: const firebaseConfig = {
+    apiKey: firebaseConfig = {
     apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx", // Dán mã mới vào đây
     authDomain: "cssd-system-2878c.firebaseapp.com",
     projectId: "cssd-system-2878c",
