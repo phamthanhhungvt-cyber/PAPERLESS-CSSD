@@ -45,18 +45,9 @@ let html5QrCodeScanner = null;
 let currentCameraInputId = null;
 
 let globalData = {
-    phieuTra: [],
-    choRua: [],           
-    dangRua: [],          
-    choDongGoi: [],       
-    choHap: [],           
-    dangHap: [],          
-    khoVoKhuan: [],       
-    meRua: [],
-    meHap: [],
-    lichSu: [],
-    danhMucLinhKien: [],
-    danhSachKhoa: [],
+    phieuTra: [], choRua: [], dangRua: [], choDongGoi: [],       
+    choHap: [], dangHap: [], khoVoKhuan: [], meRua: [], meHap: [],
+    lichSu: [], danhMucLinhKien: [], danhSachKhoa: []
 };
 
 let gioHangTraTam = [];
@@ -83,7 +74,6 @@ const SET_ALIAS_MAPPING = {
     "SANH": "BỘ SANH", "BO SANH": "BỘ SANH",
     "NAO": "BỘ NẠO", "MAYTANGSINHMON": "MAY TẦNG SINH MÔN",
     "MOCTC(HO)": "CẮT TỬ CUNG", "NOISOI": "NỘI SOI"
-    // (Giữ lại các Alias chính để rút gọn code Demo, bạn có thể copy list cũ vào nếu cần)
 };
 
 function cleanSearchStr(str) {
@@ -129,15 +119,9 @@ function docDuLieuLuuTruLocalStorage() {
 }
 
 function capNhatTatCaGiaoDien() {
-    renderBangChoRua();
-    renderBangChoNiemThuRua();
-    renderBangDongGoi();
-    renderBangChoHap();
-    renderBangChoNghiemThuHap();
-    renderBangKhoVoKhuan();
-    renderBangTonKhoRealtime();
-    renderDashboardTV();
-    renderBangCongNoKhoa();
+    renderBangChoRua(); renderBangChoNiemThuRua(); renderBangDongGoi();
+    renderBangChoHap(); renderBangChoNghiemThuHap(); renderBangKhoVoKhuan();
+    renderBangTonKhoRealtime(); renderDashboardTV(); renderBangCongNoKhoa();
 }
 
 function dongBoTrangThaiRealtime() {
@@ -147,7 +131,6 @@ function dongBoTrangThaiRealtime() {
 function initRealtimeListeners() {
     if (!db) return;
 
-    // 1. Lắng nghe toàn bộ Vòng đời mâm dụng cụ của Bệnh viện
     db.collection("instrument_sets").where("tenant_id", "==", CURRENT_TENANT)
         .onSnapshot((snapshot) => {
             globalData.choRua = []; globalData.dangRua = []; globalData.choDongGoi = [];
@@ -167,18 +150,15 @@ function initRealtimeListeners() {
             capNhatTatCaGiaoDien();
         });
 
-    // 2. Lắng nghe Yêu cầu thu gom
     db.collection("phieu_tra").where("tenant_id", "==", CURRENT_TENANT)
         .onSnapshot((snapshot) => {
             let arr = [];
             snapshot.forEach(doc => arr.push(doc.data()));
-            // Sort local
             arr.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
             globalData.phieuTra = arr;
             renderBangChoThuGom();
         });
 
-    // 3. Lắng nghe Nhật ký giao dịch
     db.collection("transaction_logs").where("tenant_id", "==", CURRENT_TENANT)
         .limit(150)
         .onSnapshot((snapshot) => {
@@ -190,7 +170,6 @@ function initRealtimeListeners() {
             renderBangKPIPerformance();
         });
 
-    // 4. Lắng nghe Danh mục
     db.collection("he_thong_config").doc(`danh_muc_${CURRENT_TENANT}`)
         .onSnapshot((doc) => {
             if (doc.exists) {
@@ -202,7 +181,6 @@ function initRealtimeListeners() {
             }
         });
 
-    // 5. Lắng nghe Mẻ Hấp / Rửa
     db.collection("sterilization_batches").where("tenant_id", "==", CURRENT_TENANT)
         .onSnapshot((snapshot) => {
             let arrHap = [], arrRua = [];
@@ -220,7 +198,6 @@ function initRealtimeListeners() {
         });
 }
 
-// HÀM HELPER SAAS: Cập nhật Document hàng loạt
 function updateMams(items, newStatus, extraFields = {}) {
     if (!db || items.length === 0) return Promise.resolve();
     const batch = db.batch();
@@ -255,8 +232,67 @@ function ghiNhatKyFirebase(dataAction) {
 }
 
 // =========================================================================
-// 4. CÁC HÀM RENDER GIAO DIỆN
+// 4. CÁC HÀM RENDER GIAO DIỆN & TƯƠNG TÁC
 // =========================================================================
+function checkLogin() {
+    const roleEl = document.getElementById('login_role');
+    const passEl = document.getElementById('login_pass');
+    const idEl = document.getElementById('login_nv_id');
+    
+    const role = roleEl ? roleEl.value : 'ADMIN';
+    const pin = passEl ? passEl.value.trim() : '';
+    let accountId = idEl && idEl.value.trim() ? idEl.value.trim().toLowerCase() : '';
+
+    if (!pin) { alert("⚠️ Vui lòng nhập Mã PIN xác thực!"); return; }
+
+    const btnLogin = document.querySelector('#login-screen button');
+    const originalBtnText = btnLogin.innerHTML;
+    btnLogin.disabled = true;
+    btnLogin.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang mã hóa & xác thực...`;
+
+    let emailAuth = "";
+    if (role === 'ADMIN') {
+        emailAuth = `admin@phuongnam.com`;
+    } else if (role === 'CSSD') {
+        if(!accountId) {
+            alert("⚠️ Vui lòng nhập Mã KTV (VD: NV01)!");
+            btnLogin.disabled = false;
+            btnLogin.innerHTML = originalBtnText;
+            return;
+        }
+        emailAuth = `${accountId}@phuongnam.com`;
+    } else {
+        emailAuth = `khoa@phuongnam.com`; 
+    }
+
+    const passwordAuth = `${pin}cssd`;
+
+    if(typeof firebase !== 'undefined' && firebase.auth) {
+        firebase.auth().signInWithEmailAndPassword(emailAuth, passwordAuth)
+            .then((userCredential) => {
+                currentUser.role = role;
+                currentUser.nvName = role === 'ADMIN' ? 'ADMINISTRATOR' : (accountId.toUpperCase() || 'Điều Dưỡng Khoa');
+
+                const userInfoEl = document.getElementById('nav_user_info');
+                if (userInfoEl) userInfoEl.innerText = currentUser.nvName;
+
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                switchTab('khoaphong');
+            })
+            .catch((error) => {
+                console.warn("Lỗi xác thực:", error.code, error.message);
+                alert("❌ ĐĂNG NHẬP THẤT BẠI: Mã PIN hoặc Mã NV không chính xác!");
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = originalBtnText;
+            });
+    } else {
+        alert("⚠️ Firebase Auth chưa tải xong, vui lòng F5 lại trang!");
+        btnLogin.disabled = false;
+        btnLogin.innerHTML = originalBtnText;
+    }
+}
+
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'xuat_selKhoa', 'inv_filterKhoa', 'filterKhoaThuGom'];
     selectIds.forEach(id => {
@@ -673,9 +709,6 @@ function renderBangKhoVoKhuan() {
     }).join('');
 }
 
-// -------------------------------------------------------------------------
-// CÁC HÀM XỬ LÝ GIAO DỊCH SAAS (FIRESTORE)
-// -------------------------------------------------------------------------
 function khoaGuiPhieuTraBatches() {
     if (gioHangTraTam.length === 0) { alert("⚠️ Giỏ hàng báo trả đang trống!"); return; }
 
@@ -964,9 +997,67 @@ function xoaSachDuLieuGiaoDichRealtime() {
     }
 }
 
-// -------------------------------------------------------------------------
-// CÁC HÀM XỬ LÝ KHÁC (GIỮ NGUYÊN)
-// -------------------------------------------------------------------------
+function switchTab(tabId) {
+    currentTab = tabId;
+    const allTabs = ['khoaphong', 'thugom', 'mayrua', 'donggoi', 'mayhap', 'khovokhuan', 'quanlykho', 'danhmuc', 'lichsuluanchuyen', 'tracuu', 'performance', 'dashboard_tv', 'admin'];
+    allTabs.forEach(id => {
+        const el = document.getElementById(`tab-${id}`);
+        if (el) el.classList.add('hidden');
+        const menuBtn = document.getElementById(`menu-${id}`);
+        if (menuBtn) menuBtn.classList.remove('sidebar-item-active');
+    });
+
+    const activeEl = document.getElementById(`tab-${tabId}`);
+    if (activeEl) activeEl.classList.remove('hidden');
+
+    const activeMenu = document.getElementById(`menu-${tabId}`);
+    if (activeMenu) activeMenu.classList.add('sidebar-item-active');
+
+    if (tabId === 'thugom') renderBangChoThuGom();
+    if (tabId === 'mayrua') { renderBangChoRua(); renderBangChoNiemThuRua(); renderBangLichSuRua(); }
+    if (tabId === 'donggoi') renderBangDongGoi();
+    if (tabId === 'mayhap') { renderBangChoHap(); renderBangChoNghiemThuHap(); renderBangLichSuHap(); }
+    if (tabId === 'khovokhuan') renderBangKhoVoKhuan();
+    if (tabId === 'danhmuc') renderBangDanhMucLinhKien();
+    if (tabId === 'khoaphong') renderBangCongNoKhoa();
+    if (tabId === 'quanlykho') renderBangTonKhoRealtime();
+    if (tabId === 'performance') renderBangKPIPerformance();
+    if (tabId === 'dashboard_tv') renderDashboardTV();
+
+    const sidebar = document.getElementById('sidebar_menu');
+    if (sidebar && !sidebar.classList.contains('-translate-x-full')) toggleMobileMenu();
+}
+
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar_menu');
+    const overlay = document.getElementById('mobile-overlay');
+    if (sidebar) sidebar.classList.toggle('-translate-x-full');
+    if (overlay) overlay.classList.toggle('hidden');
+}
+
+function switchAdminSubtab(subtab) {
+    const subDb = document.getElementById('subtab-database');
+    const subSec = document.getElementById('subtab-security');
+    const btnDb = document.getElementById('subbtn-database');
+    const btnSec = document.getElementById('subbtn-security');
+
+    if (subDb) subDb.classList.toggle('hidden', subtab !== 'database');
+    if (subSec) subSec.classList.toggle('hidden', subtab !== 'security');
+
+    if (btnDb) btnDb.classList.toggle('admin-subtab-active', subtab === 'database');
+    if (btnSec) btnSec.classList.toggle('admin-subtab-active', subtab === 'security');
+}
+
+function toggleLoginFields() {
+    const roleEl = document.getElementById('login_role');
+    if (!roleEl) return;
+    const role = roleEl.value;
+    const fieldKhoa = document.getElementById('field_khoa');
+    const fieldNv = document.getElementById('field_nhanvien_cssd');
+    if (fieldKhoa) fieldKhoa.classList.toggle('hidden', role !== 'KHOA');
+    if (fieldNv) fieldNv.classList.toggle('hidden', role !== 'CSSD');
+}
+
 function renderBangLichSuLuanChuyen() {
     const tbody = document.getElementById('bangLichSuHanhTrinhGoc');
     if (!tbody) return;
@@ -1012,7 +1103,6 @@ function renderBangKPIPerformance() {
     if (!tbody) return;
     const ktvStats = (globalData.ktvList || []).map((ktv, idx) => {
         const logsOfKtv = (globalData.lichSu || []).filter(l => l && l.nhanSu === ktv.name);
-        const countThuGom = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('THU GOM')).length;
         const countRua = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('RỬA')).length;
         const countDongGoi = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('ĐÓNG GÓI')).length;
         const countHap = logsOfKtv.filter(l => l.trangThai && l.trangThai.includes('HẤP')).length;
@@ -1058,73 +1148,498 @@ function renderDashboardTV() {
     }
 }
 
-function capNhatDanhSachMaMayRua() {
-    const loaiEl = document.getElementById('rua_loaiRua');
-    const maySoEl = document.getElementById('rua_maySo');
-    if (!loaiEl || !maySoEl) return;
-    const val = loaiEl.value;
-    if (val.includes("tự động")) maySoEl.innerHTML = `<option value="Belimed WD250 #1">Belimed WD250 #1</option><option value="Belimed WD250 #2">Belimed WD250 #2</option>`;
-    else if (val.includes("siêu âm")) maySoEl.innerHTML = `<option value="Sonic Washer #1">Sonic Washer #1</option>`;
-    else maySoEl.innerHTML = `<option value="Bồn Rửa Tay 01">Bồn Rửa Thủ Công #1</option>`;
-    tuDongTaoMaLoMeRua();
+function moCamera(inputId) {
+    currentCameraInputId = inputId;
+    const pop = document.getElementById('popupScanner');
+    if (pop) pop.classList.remove('hidden');
+    if (typeof Html5QrcodeScanner !== 'undefined') {
+        html5QrCodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+        html5QrCodeScanner.render((decodedText) => {
+            if (currentCameraInputId) {
+                const inputEl = document.getElementById(currentCameraInputId);
+                if (inputEl) inputEl.value = decodedText;
+            }
+            dongCamera();
+        }, (error) => {});
+    }
 }
 
-function tuDongTaoMaLoMeRua() {
-    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const batchInp = document.getElementById('rua_batchId');
-    const meInp = document.getElementById('rua_meSo');
-    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `R${today}_01`; }
+function dongCamera() {
+    if (html5QrCodeScanner) html5QrCodeScanner.clear().catch(error => console.error(error));
+    const pop = document.getElementById('popupScanner');
+    if (pop) pop.classList.add('hidden');
 }
 
-function capNhatDanhSachMaMay() {
-    const loaiEl = document.getElementById('hap_loaiHap');
-    const maySoEl = document.getElementById('hap_maySo');
-    if (!loaiEl || !maySoEl) return;
-    const val = loaiEl.value;
-    if (val.includes("hơi nước") || val.includes("Steam")) maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>`;
-    else if (val.includes("Plasma") || val.includes("H2O2")) maySoEl.innerHTML = `<option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>`;
-    else if (val.includes("EO")) maySoEl.innerHTML = `<option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>`;
-    else maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>`;
-    tuDongTaoMaLoMeHap();
+function scanKhayVaoSuDung() {
+    const inp = document.getElementById('sd_maKhayInp');
+    if (!inp || !inp.value.trim()) return;
+    const maKhay = inp.value.trim().toUpperCase();
+    const item = (globalData.danhMucLinhKien || []).find(i => i && i.maBo.toUpperCase() === maKhay) || { maBo: maKhay, tenBo: "Khay Dụng Cụ" };
+    tempSuDungKhay.push(item);
+    renderBangKhaySuDung();
+    inp.value = '';
 }
 
-function tuDongTaoMaLoMeHap() {
-    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const batchInp = document.getElementById('hap_batchId');
-    const meInp = document.getElementById('hap_meSo');
-    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `H${today}_01`; }
-}
-
-function renderDanhSachPinAdmin() {
-    const tbody = document.getElementById('bangCauHinhPinAdmin');
+function renderBangKhaySuDung() {
+    const tbody = document.getElementById('sd_bangKhayChon');
     if (!tbody) return;
-    const searchInp = document.getElementById('search_pin_admin');
-    const keyword = searchInp ? searchInp.value.trim().toLowerCase() : '';
-    const filteredList = (globalData.ktvList || []).filter(ktv => ktv && (ktv.name.toLowerCase().includes(keyword) || ktv.id.toLowerCase().includes(keyword)));
-    tbody.innerHTML = filteredList.map((ktv, index) => `
-        <tr class="border-b hover:bg-slate-50 text-xs">
-            <td class="p-3 text-center font-bold text-slate-500">${index + 1}</td>
-            <td class="p-3 font-mono font-bold text-sky-700">${ktv.id}</td>
-            <td class="p-3 font-semibold text-slate-800">${ktv.name}</td>
-            <td class="p-3 text-center font-mono"><input type="password" id="pin_input_${ktv.id}" value="${ktv.pin || '1234'}" class="w-24 text-center border rounded p-1 text-xs font-bold"></td>
-            <td class="p-3 text-center">
-                <select id="role_select_${ktv.id}" class="border rounded px-2 py-1 text-xs">
-                    <option value="CSSD" ${ktv.role === 'CSSD' ? 'selected' : ''}>KTV CSSD</option>
-                    <option value="KHOA" ${ktv.role === 'KHOA' ? 'selected' : ''}>Điều Dưỡng Khoa</option>
-                    <option value="ADMIN" ${ktv.role === 'ADMIN' ? 'selected' : ''}>Administrator</option>
-                </select>
-            </td>
-            <td class="p-3 text-center"><button type="button" onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold">Lưu</button></td>
+    tbody.innerHTML = tempSuDungKhay.map((item, idx) => `
+        <tr class="border-b text-xs">
+            <td class="p-2 text-center font-bold">${idx + 1}</td>
+            <td class="p-2 font-mono font-bold text-teal-700">${item.maBo}</td>
+            <td class="p-2 font-semibold">${item.tenBo}</td>
+            <td class="p-2 text-center font-mono">H260328_01</td>
+            <td class="p-2 text-center"><span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Vô Khuẩn</span></td>
+            <td class="p-2 text-center"><button onclick="tempSuDungKhay.splice(${idx},1); renderBangKhaySuDung();" class="text-rose-600"><i class="fa-solid fa-xmark"></i></button></td>
         </tr>
     `).join('');
 }
 
-function initDashboardTVClock() {
-    setInterval(() => {
-        const tvClockEl = document.getElementById('tv_realtime_clock');
-        if (tvClockEl) tvClockEl.innerText = new Date().toLocaleString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }, 1000);
+function moPopupSuDungBoDungCu() { document.getElementById('popupSuDungBoDungCu').classList.remove('hidden'); }
+function closePopupSuDung() { document.getElementById('popupSuDungBoDungCu').classList.add('hidden'); }
+
+// =========================================================================
+// 11. CÁC HÀM TIỆN ÍCH, XUẤT EXCEL & IN ẤN BỔ SUNG
+// =========================================================================
+function initCanvasKyDienTu() {
+    canvasKy = document.getElementById('canvasKyDienTu');
+    if (!canvasKy) return;
+
+    canvasKy.width = 320;
+    canvasKy.height = 160;
+    ctxKy = canvasKy.getContext('2d');
+    ctxKy.lineWidth = 2.5;
+    ctxKy.strokeStyle = "#0284c7";
+
+    const getPos = (e) => {
+        const rect = canvasKy.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return { x: clientX - rect.left, y: clientY - rect.top };
+    };
+
+    const startDraw = (e) => {
+        isDrawingKy = true;
+        const pos = getPos(e);
+        ctxKy.beginPath();
+        ctxKy.moveTo(pos.x, pos.y);
+    };
+
+    const draw = (e) => {
+        if (!isDrawingKy) return;
+        const pos = getPos(e);
+        ctxKy.lineTo(pos.x, pos.y);
+        ctxKy.stroke();
+    };
+
+    const stopDraw = () => { isDrawingKy = false; };
+
+    canvasKy.addEventListener('mousedown', startDraw);
+    canvasKy.addEventListener('mousemove', draw);
+    canvasKy.addEventListener('mouseup', stopDraw);
+
+    canvasKy.addEventListener('touchstart', startDraw, { passive: true });
+    canvasKy.addEventListener('touchmove', draw, { passive: true });
+    canvasKy.addEventListener('touchend', stopDraw);
 }
+
+function xoaChuKyCanvas() {
+    if (ctxKy && canvasKy) {
+        ctxKy.clearRect(0, 0, canvasKy.width, canvasKy.height);
+    }
+}
+
+function khoaKyNhanDoSachDienTu() {
+    const pop = document.getElementById('popupKyDienTu');
+    if (pop) pop.classList.remove('hidden');
+    xoaChuKyCanvas();
+}
+
+function dongPopupKyDienTu() {
+    const pop = document.getElementById('popupKyDienTu');
+    if (pop) pop.classList.add('hidden');
+}
+
+function luuXacNhanKyNhan() {
+    const tenNguoi = document.getElementById('ky_tenNguoiNhan') ? document.getElementById('ky_tenNguoiNhan').value : "";
+    if (!tenNguoi) {
+        alert("Vui lòng nhập tên người nhận đồ!");
+        return;
+    }
+    dongPopupKyDienTu();
+    alert(`✍️ Đã lưu chữ ký của [${tenNguoi}]!`);
+}
+
+function xuatBaoCaoExcelLuanChuyen() {
+    if (typeof XLSX === 'undefined') return;
+    const dataLuanChuyen = (globalData.lichSu || []).map(item => ({
+        "Mã ID Khay": item.maBo || "N/A",
+        "Tên Bộ Dụng Cụ": item.tenBo || "N/A",
+        "Khoa / Phòng": item.khoa || "N/A",
+        "Trạng Thái": item.trangThai || "N/A",
+        "Mã Lô Tiệt Trùng": item.maLoHap || "N/A",
+        "Nhân Sự Xử Lý": item.nhanSu || "N/A",
+        "Thời Gian Ghi Nhận": item.thoiGian || "N/A"
+    }));
+
+    const wsLuanChuyen = XLSX.utils.json_to_sheet(dataLuanChuyen.length ? dataLuanChuyen : [{ "Ghi chú": "Chưa có dữ liệu" }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsLuanChuyen, "Nhat_Ky_Luan_Chuyen");
+    XLSX.writeFile(wb, `BaoCao_LuanChuyen_CSSD_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+function xuatBaoCaoExcelMeRua() {
+    if (typeof XLSX === 'undefined') return;
+    const dataMeRua = (globalData.meRua || []).map(item => ({
+        "Mã Lô Rửa": item.batchId || "N/A",
+        "Mã Máy Rửa": item.maySo || "Belimed WD250",
+        "Chu Trình": item.chuKy || "Tiêu chuẩn",
+        "Kết Quả": item.testDoSach || "ĐẠT",
+        "Thời Gian": item.thoiGianRuaXong || item.thoiGian || "N/A"
+    }));
+
+    const wsMeRua = XLSX.utils.json_to_sheet(dataMeRua.length ? dataMeRua : [{ "Ghi chú": "Chưa có dữ liệu" }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, wsMeRua, "Me_Rua_Belimed");
+    XLSX.writeFile(wb, `NhatKy_MeRua_Belimed_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+function truyVetTheoMaBatch() {
+    const inp = document.getElementById('inp_searchBatch');
+    const tbody = document.getElementById('bangLichSuTruyXuatAdmin');
+    if (!inp || !tbody) return;
+
+    const maBatch = inp.value.trim().toUpperCase();
+    if (!maBatch) {
+        alert("Vui lòng nhập mã lô tiệt trùng cần truy vết!");
+        return;
+    }
+
+    const res = (globalData.lichSu || []).filter(l => l && l.maLoHap && l.maLoHap.toUpperCase().includes(maBatch));
+    if (res.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-rose-500 font-bold">Không tìm thấy mã lô: ${maBatch}</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = res.map(item => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 font-mono font-bold text-sky-700">${item.maBo || 'N/A'}</td>
+            <td class="p-3 font-bold text-slate-800">${item.tenBo || 'Mâm Dụng Cụ'}</td>
+            <td class="p-3 font-semibold text-slate-600">${item.khoa || 'N/A'}</td>
+            <td class="p-3 text-center"><span class="bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full font-bold text-[10px]">${item.trangThai}</span></td>
+            <td class="p-3 text-center font-mono font-bold text-purple-700">${item.maLoHap}</td>
+            <td class="p-3 text-center text-slate-500">${item.thoiGian}</td>
+        </tr>
+    `).join('');
+}
+
+function clearTruyVetBatch() {
+    const inp = document.getElementById('inp_searchBatch');
+    const tbody = document.getElementById('bangLichSuTruyXuatAdmin');
+    if (inp) inp.value = '';
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-xs text-slate-400">Nhập mã lô hấp để truy vết.</td></tr>`;
+}
+
+function inTemTongHangLoat() {
+    const batchInp = document.getElementById('hap_batchId');
+    const maySoEl = document.getElementById('hap_maySo');
+    const loaiHapEl = document.getElementById('hap_loaiHap');
+    
+    const batchId = batchInp ? batchInp.value : `H${Date.now()}`;
+    const maySo = maySoEl ? maySoEl.value : "Lò Hấp Steam #1";
+    const loaiHap = loaiHapEl ? loaiHapEl.value : "Hấp Hơi Nước";
+
+    const checkedInps = document.querySelectorAll('.chk-hap-item:checked');
+    let itemsToPrint = [];
+
+    if (checkedInps.length > 0) {
+        checkedInps.forEach(chk => {
+            const idx = parseInt(chk.getAttribute('data-idx'));
+            if ((globalData.choHap || [])[idx]) itemsToPrint.push(globalData.choHap[idx]);
+        });
+    } else {
+        itemsToPrint = globalData.choHap || [];
+    }
+
+    if (itemsToPrint.length === 0) {
+        alert("⚠️ Không có mâm dụng cụ nào được chọn!");
+        return;
+    }
+
+    thucHienInTemBixolon(itemsToPrint, batchId, maySo, loaiHap);
+}
+
+function inTemNghiemThuHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng chọn ít nhất một mâm để in tem!");
+        return;
+    }
+
+    let itemsToPrint = [];
+    checkedInps.forEach(chk => {
+        const idx = parseInt(chk.getAttribute('data-idx'));
+        if ((globalData.dangHap || [])[idx]) itemsToPrint.push(globalData.dangHap[idx]);
+    });
+
+    const firstItem = itemsToPrint[0] || {};
+    thucHienInTemBixolon(itemsToPrint, firstItem.maLoHap || 'H001', firstItem.loaiHap || 'Steam', 'Lò Hấp CSSD');
+}
+
+function thucHienInTemBixolon(items, batchId, maySo, loaiHap) {
+    const printZone = document.getElementById('print-zone');
+    if (!printZone) return;
+
+    document.body.className = "print-mode-bixolon";
+    const strNgayIn = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+
+    printZone.innerHTML = `
+        <style>
+            @media print {
+                body * { visibility: hidden; }
+                #print-zone, #print-zone * { visibility: visible; }
+                #print-zone { position: absolute; left: 0; top: 0; width: 100%; }
+            }
+            .label-page {
+                display: flex;
+                justify-content: space-between;
+                gap: 12px;
+                margin-bottom: 12px;
+                page-break-inside: avoid;
+            }
+            .single-label {
+                width: 49%;
+                border: 1px solid #333;
+                padding: 6px 10px;
+                background: #fff;
+                font-family: Arial, sans-serif;
+                box-sizing: border-box;
+                border-radius: 2px;
+            }
+        </style>
+        <div class="labels-container">
+            ${items.map((item, idx) => {
+                const maHienThi = item.maBo || 'SG-BHD800';
+                const tenNhanVien = currentUser.nvName || 'Trần Thị Thoa';
+                const hanSuDung = item.hanSuDung || '31-08-2026';
+                const maSoPhatHanh = item.batchId || item.maLoHap || (1020 + idx);
+
+                const labelHtml = `
+                    <div class="single-label">
+                        <div style="text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 2px; text-transform: uppercase;">
+                            ${maHienThi}
+                        </div>
+                        <div style="text-align: center; margin: 2px 0;">
+                            <svg id="barcode-${idx}" style="max-width: 100%; height: 42px;"></svg>
+                        </div>
+                        <div style="text-align: center; font-size: 11px; color: #222; margin-bottom: 4px;">
+                            ${maSoPhatHanh}
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 500; margin-bottom: 3px;">
+                            <span>SL: ${item.soLuong || 1}</span>
+                            <span style="font-weight: bold; color: #000;">${tenNhanVien}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                            <span>${strNgayIn}</span>
+                            <span><strong>HSD: ${hanSuDung}</strong></span>
+                        </div>
+                    </div>
+                `;
+
+                if (idx % 2 === 0) {
+                    return `<div class="label-page">${labelHtml}${idx + 1 < items.length ? '' : '<div class="single-label" style="visibility:hidden;"></div>'}`;
+                } else {
+                    return `${labelHtml}</div>`;
+                }
+            }).join('')}
+        </div>
+    `;
+
+    if (typeof JsBarcode === 'undefined') {
+        const script = document.createElement('script');
+        script.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js";
+        script.onload = () => renderBarcodesAndPrint(items);
+        document.head.appendChild(script);
+    } else {
+        renderBarcodesAndPrint(items);
+    }
+}
+
+function renderBarcodesAndPrint(items) {
+    items.forEach((item, idx) => {
+        const barcodeId = `#barcode-${idx}`;
+        const codeValue = item.maBo || 'SG-BHD800';
+        if (document.querySelector(barcodeId)) {
+            JsBarcode(barcodeId, codeValue, {
+                format: "CODE128",
+                displayValue: false,
+                margin: 0,
+                height: 40,
+                width: 1.8
+            });
+        }
+    });
+
+    setTimeout(() => {
+        window.print();
+    }, 300);
+}
+
+function inHoaDonGiaoNhan() {
+    const printZone = document.getElementById('print-zone');
+    if (!printZone) return;
+
+    document.body.className = "print-mode-doc";
+
+    printZone.innerHTML = `
+        <div style="padding: 10px; font-family: Arial, sans-serif;">
+            <h2 style="text-align: center; margin-bottom: 5px; text-transform: uppercase;">BIÊN BẢN GIAO NHẬN DỤNG CỤ TIỆT TRÙNG</h2>
+            <p style="text-align: center; font-size: 12px; margin-bottom: 15px;">Thời gian in: ${new Date().toLocaleString('vi-VN')}</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên Bộ Dụng Cụ</th>
+                        <th>Mã ID</th>
+                        <th>Khoa Trả</th>
+                        <th>Số Lượng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${(globalData.danhMucLinhKien || []).slice(0, 10).map(i => `
+                        <tr>
+                            <td>${i.tenBo || ''}</td>
+                            <td>${i.maBo || ''}</td>
+                            <td>${i.khoa || ''}</td>
+                            <td style="text-align: center;">1</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    setTimeout(() => { window.print(); }, 200);
+}
+
+function khaiSinhKhayVangLai() {
+    const ma = prompt("Nhập mã khay vãng lai:");
+    if (ma) alert(`✨ Đã khởi tạo khay: ${ma.toUpperCase()}`);
+}
+
+function moModalXemAnhCauHinh() {
+    const pop = document.getElementById('popupXemAnhCauHinh');
+    if (pop) pop.classList.remove('hidden');
+}
+
+function dongModalXemAnhCauHinh() {
+    const pop = document.getElementById('popupXemAnhCauHinh');
+    if (pop) pop.classList.add('hidden');
+}
+
+function initGlobalBarcodeScanner() {
+    window.addEventListener('keydown', (e) => {
+        if (!isBarcodeScannerEnabled) return;
+
+        const activeElement = document.activeElement;
+        const isInputField = activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA' || activeElement.isContentEditable);
+        if (isInputField && activeElement.id !== 'global_barcode_catcher') {
+            return;
+        }
+
+        if (e.key === 'Enter') {
+            if (barcodeScannerBuffer.length > 2) {
+                const scannedCode = barcodeScannerBuffer.trim().toUpperCase();
+                xuLyMaBarcodeQuetTuSung(scannedCode);
+            }
+            barcodeScannerBuffer = "";
+            clearTimeout(barcodeScannerTimer);
+        } else if (e.key.length === 1) {
+            barcodeScannerBuffer += e.key;
+            clearTimeout(barcodeScannerTimer);
+            barcodeScannerTimer = setTimeout(() => {
+                barcodeScannerBuffer = "";
+            }, 100);
+        }
+    });
+}
+
+function xuLyMaBarcodeQuetTuSung(scannedCode) {
+    if (scannedCode.startsWith('H') || scannedCode.startsWith('R')) {
+        switchTab('tracuu');
+        const inpBatch = document.getElementById('inp_searchBatch');
+        if (inpBatch) inpBatch.value = scannedCode;
+        truyVetTheoMaBatch();
+        return;
+    }
+
+    if (currentTab === 'khoaphong') {
+        const inp = document.getElementById('khoa_inpMaBo');
+        if (inp) {
+            inp.value = scannedCode;
+            themVaoGio();
+        }
+    } else if (currentTab === 'khovokhuan') {
+        const inp = document.getElementById('xuat_inpMaBo');
+        if (inp) {
+            inp.value = scannedCode;
+            xuatKhoXoayVong();
+        }
+    } else {
+        alert(`🔍 Đã quét mã: [${scannedCode}]`);
+    }
+}
+
+function toggleGlobalBarcodeScanner(enable) {
+    isBarcodeScannerEnabled = enable;
+}
+
+function themVaoGio() {
+    const inp = document.getElementById('khoa_inpMaBo');
+    const selKhoa = document.getElementById('khoa_selKhoa');
+    if (!inp || !inp.value.trim()) {
+        alert("Vui lòng chọn hoặc nhập mã mâm dụng cụ bẩn!");
+        return;
+    }
+
+    const maBoInput = inp.value.trim().toUpperCase();
+    const khoaSelect = selKhoa ? selKhoa.value : "";
+
+    const item = (globalData.danhMucLinhKien || []).find(i => i && i.maBo.toUpperCase() === maBoInput) || {
+        maBo: maBoInput,
+        tenBo: "Mâm Dụng Cụ Bẩn",
+        khoa: khoaSelect || "PHÒNG SANH - CẤP CỨU SẢN"
+    };
+
+    gioHangTraTam.push(item);
+    renderGioHangTam();
+    inp.value = '';
+}
+
+function renderGioHangTam() {
+    const khuvuc = document.getElementById('khuVucGioHang');
+    const tbody = document.getElementById('bangGioHang');
+    const badge = document.getElementById('badgeGioHang');
+
+    if (khuvuc) khuvuc.classList.remove('hidden');
+    if (badge) badge.innerText = `${gioHangTraTam.length} món`;
+
+    if (tbody) {
+        tbody.innerHTML = gioHangTraTam.map((item, idx) => `
+            <tr class="border-b text-xs">
+                <td class="p-2 font-mono font-bold text-sky-700">${item.maBo}</td>
+                <td class="p-2 font-semibold">${item.tenBo}</td>
+                <td class="p-2 text-right">
+                    <button type="button" onclick="gioHangTraTam.splice(${idx},1); renderGioHangTam();" class="text-rose-600 hover:text-rose-800 p-1">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function guiBaoTra() { khoaGuiPhieuTraBatches(); }
+function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
 
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
@@ -1135,7 +1650,6 @@ document.addEventListener('DOMContentLoaded', () => {
     capNhatDanhSachMaMay();
     tuDongTaoMaLoMeRua();
     tuDongTaoMaLoMeHap();
-    renderDanhSachPinAdmin(); 
     initCanvasKyDienTu();
     initGlobalBarcodeScanner();
     initDashboardTVClock();
@@ -1314,167 +1828,4 @@ function initWordLoader() {
         capNhatGiaoDienSauKhiNapExcel();
         alert(`🎉 ĐÃ BÓC TÁCH VÀ GHI ĐÈ THÀNH CÔNG ${totalSetsUpdated} BỘ DỤNG CỤ:\n- ${danhSachTenBoCapNhat.join("\n- ")}`);
     });
-}
-
-// CÁC HÀM CÒN LẠI KHÔNG LIÊN QUAN TRỰC TIẾP ĐẾN FIRESTORE (GIỮ NGUYÊN)
-function switchTab(tabId) {
-    currentTab = tabId;
-    const allTabs = ['khoaphong', 'thugom', 'mayrua', 'donggoi', 'mayhap', 'khovokhuan', 'quanlykho', 'danhmuc', 'lichsuluanchuyen', 'tracuu', 'performance', 'dashboard_tv', 'admin'];
-    allTabs.forEach(id => {
-        const el = document.getElementById(`tab-${id}`);
-        if (el) el.classList.add('hidden');
-        const menuBtn = document.getElementById(`menu-${id}`);
-        if (menuBtn) menuBtn.classList.remove('sidebar-item-active');
-    });
-
-    const activeEl = document.getElementById(`tab-${tabId}`);
-    if (activeEl) activeEl.classList.remove('hidden');
-
-    const activeMenu = document.getElementById(`menu-${tabId}`);
-    if (activeMenu) activeMenu.classList.add('sidebar-item-active');
-
-    if (tabId === 'thugom') renderBangChoThuGom();
-    if (tabId === 'mayrua') { renderBangChoRua(); renderBangChoNiemThuRua(); renderBangLichSuRua(); }
-    if (tabId === 'donggoi') renderBangDongGoi();
-    if (tabId === 'mayhap') { renderBangChoHap(); renderBangChoNghiemThuHap(); renderBangLichSuHap(); }
-    if (tabId === 'khovokhuan') renderBangKhoVoKhuan();
-    if (tabId === 'danhmuc') renderBangDanhMucLinhKien();
-    if (tabId === 'khoaphong') renderBangCongNoKhoa();
-    if (tabId === 'quanlykho') renderBangTonKhoRealtime();
-    if (tabId === 'performance') renderBangKPIPerformance();
-    if (tabId === 'dashboard_tv') renderDashboardTV();
-
-    const sidebar = document.getElementById('sidebar_menu');
-    if (sidebar && !sidebar.classList.contains('-translate-x-full')) toggleMobileMenu();
-}
-
-function toggleMobileMenu() {
-    const sidebar = document.getElementById('sidebar_menu');
-    const overlay = document.getElementById('mobile-overlay');
-    if (sidebar) sidebar.classList.toggle('-translate-x-full');
-    if (overlay) overlay.classList.toggle('hidden');
-}
-
-function checkLogin() {
-    const roleEl = document.getElementById('login_role');
-    const passEl = document.getElementById('login_pass');
-    const idEl = document.getElementById('login_nv_id'); // Mã NV (nếu có)
-    
-    const role = roleEl ? roleEl.value : 'ADMIN';
-    const pin = passEl ? passEl.value.trim() : '';
-    let accountId = idEl && idEl.value.trim() ? idEl.value.trim().toLowerCase() : '';
-
-    if (!pin) {
-        alert("⚠️ Vui lòng nhập Mã PIN xác thực!");
-        return;
-    }
-
-    // Đổi nút thành trạng thái Đang xử lý
-    const btnLogin = document.querySelector('#login-screen button');
-    const originalBtnText = btnLogin.innerHTML;
-    btnLogin.disabled = true;
-    btnLogin.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang mã hóa & xác thực...`;
-
-    // THỦ THUẬT: Tự động chế ID thành Email và ghép Pass để thỏa mãn Firebase
-    let emailAuth = "";
-    if (role === 'ADMIN') {
-        emailAuth = `admin@phuongnam.com`;
-    } else if (role === 'CSSD') {
-        if(!accountId) {
-            alert("⚠️ Vui lòng nhập Mã KTV (VD: NV01)!");
-            btnLogin.disabled = false;
-            btnLogin.innerHTML = originalBtnText;
-            return;
-        }
-        emailAuth = `${accountId}@phuongnam.com`;
-    } else {
-        // Vai trò KHOA và GUEST (Demo tạm thời bỏ qua xác thực chặt, hoặc bạn tự cấp email chung cho Khoa)
-        emailAuth = `khoa@phuongnam.com`; 
-    }
-
-    const passwordAuth = `${pin}cssd`; // Mật khẩu đẩy lên Firebase luôn có đuôi cssd
-
-    // Gọi lên máy chủ Firebase Auth để kiểm tra
-    firebase.auth().signInWithEmailAndPassword(emailAuth, passwordAuth)
-        .then((userCredential) => {
-            // Đăng nhập thành công
-            const user = userCredential.user;
-            currentUser.role = role;
-            currentUser.nvName = role === 'ADMIN' ? 'ADMINISTRATOR' : (accountId.toUpperCase() || 'Điều Dưỡng Khoa');
-
-            const userInfoEl = document.getElementById('nav_user_info');
-            if (userInfoEl) userInfoEl.innerText = currentUser.nvName;
-
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-
-            switchTab('khoaphong');
-        })
-        .catch((error) => {
-            // Đăng nhập thất bại (Sai PIN hoặc sai ID)
-            console.warn("Lỗi xác thực:", error.code, error.message);
-            alert("❌ ĐĂNG NHẬP THẤT BẠI: Mã PIN hoặc Mã NV không chính xác! (Hệ thống đã ghi nhận IP)");
-            btnLogin.disabled = false;
-            btnLogin.innerHTML = originalBtnText;
-        });
-}
-
-function toggleLoginFields() {
-    const roleEl = document.getElementById('login_role');
-    if (!roleEl) return;
-    const role = roleEl.value;
-    const fieldKhoa = document.getElementById('field_khoa');
-    const fieldNv = document.getElementById('field_nhanvien_cssd');
-    if (fieldKhoa) fieldKhoa.classList.toggle('hidden', role !== 'KHOA');
-    if (fieldNv) fieldNv.classList.toggle('hidden', role !== 'CSSD');
-}
-
-function moCamera(inputId) {
-    currentCameraInputId = inputId;
-    const pop = document.getElementById('popupScanner');
-    if (pop) pop.classList.remove('hidden');
-    if (typeof Html5QrcodeScanner !== 'undefined') {
-        html5QrCodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-        html5QrCodeScanner.render((decodedText) => {
-            if (currentCameraInputId) {
-                const inputEl = document.getElementById(currentCameraInputId);
-                if (inputEl) inputEl.value = decodedText;
-            }
-            dongCamera();
-        }, (error) => {});
-    }
-}
-
-function dongCamera() {
-    if (html5QrCodeScanner) html5QrCodeScanner.clear().catch(error => console.error(error));
-    const pop = document.getElementById('popupScanner');
-    if (pop) pop.classList.add('hidden');
-}
-
-function moPopupSuDungBoDungCu() { document.getElementById('popupSuDungBoDungCu').classList.remove('hidden'); }
-function closePopupSuDung() { document.getElementById('popupSuDungBoDungCu').classList.add('hidden'); }
-
-function scanKhayVaoSuDung() {
-    const inp = document.getElementById('sd_maKhayInp');
-    if (!inp || !inp.value.trim()) return;
-    const maKhay = inp.value.trim().toUpperCase();
-    const item = (globalData.danhMucLinhKien || []).find(i => i && i.maBo.toUpperCase() === maKhay) || { maBo: maKhay, tenBo: "Khay Dụng Cụ" };
-    tempSuDungKhay.push(item);
-    renderBangKhaySuDung();
-    inp.value = '';
-}
-
-function renderBangKhaySuDung() {
-    const tbody = document.getElementById('sd_bangKhayChon');
-    if (!tbody) return;
-    tbody.innerHTML = tempSuDungKhay.map((item, idx) => `
-        <tr class="border-b text-xs">
-            <td class="p-2 text-center font-bold">${idx + 1}</td>
-            <td class="p-2 font-mono font-bold text-teal-700">${item.maBo}</td>
-            <td class="p-2 font-semibold">${item.tenBo}</td>
-            <td class="p-2 text-center font-mono">H260328_01</td>
-            <td class="p-2 text-center"><span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1.5 py-0.5 rounded">Vô Khuẩn</span></td>
-            <td class="p-2 text-center"><button onclick="tempSuDungKhay.splice(${idx},1); renderBangKhaySuDung();" class="text-rose-600"><i class="fa-solid fa-xmark"></i></button></td>
-        </tr>
-    `).join('');
 }
