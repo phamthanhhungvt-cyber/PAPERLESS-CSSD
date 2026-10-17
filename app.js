@@ -1640,7 +1640,105 @@ function renderGioHangTam() {
 
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
+// =========================================================================
+// HÀM BỔ SUNG BỊ THIẾU
+// =========================================================================
+function capNhatDanhSachMaMayRua() {
+    const loaiEl = document.getElementById('rua_loaiRua');
+    const maySoEl = document.getElementById('rua_maySo');
+    if (!loaiEl || !maySoEl) return;
+    const val = loaiEl.value;
+    if (val.includes("tự động")) maySoEl.innerHTML = `<option value="Belimed WD250 #1">Belimed WD250 #1</option><option value="Belimed WD250 #2">Belimed WD250 #2</option>`;
+    else if (val.includes("siêu âm")) maySoEl.innerHTML = `<option value="Sonic Washer #1">Sonic Washer #1</option>`;
+    else maySoEl.innerHTML = `<option value="Bồn Rửa Tay 01">Bồn Rửa Thủ Công #1</option>`;
+    tuDongTaoMaLoMeRua();
+}
 
+function tuDongTaoMaLoMeRua() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('rua_batchId');
+    const meInp = document.getElementById('rua_meSo');
+    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `R${today}_01`; }
+}
+
+function capNhatDanhSachMaMay() {
+    const loaiEl = document.getElementById('hap_loaiHap');
+    const maySoEl = document.getElementById('hap_maySo');
+    if (!loaiEl || !maySoEl) return;
+    const val = loaiEl.value;
+    if (val.includes("hơi nước") || val.includes("Steam")) maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>`;
+    else if (val.includes("Plasma") || val.includes("H2O2")) maySoEl.innerHTML = `<option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>`;
+    else if (val.includes("EO")) maySoEl.innerHTML = `<option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>`;
+    else maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>`;
+    tuDongTaoMaLoMeHap();
+}
+
+function tuDongTaoMaLoMeHap() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('hap_batchId');
+    const meInp = document.getElementById('hap_meSo');
+    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `H${today}_01`; }
+}
+
+function renderDanhSachPinAdmin() {
+    const tbody = document.getElementById('bangCauHinhPinAdmin');
+    if (!tbody) return;
+    const searchInp = document.getElementById('search_pin_admin');
+    const keyword = searchInp ? searchInp.value.trim().toLowerCase() : '';
+    const filteredList = (globalData.ktvList || []).filter(ktv => ktv && (ktv.name.toLowerCase().includes(keyword) || ktv.id.toLowerCase().includes(keyword)));
+    tbody.innerHTML = filteredList.map((ktv, index) => `
+        <tr class="border-b hover:bg-slate-50 text-xs">
+            <td class="p-3 text-center font-bold text-slate-500">${index + 1}</td>
+            <td class="p-3 font-mono font-bold text-sky-700">${ktv.id}</td>
+            <td class="p-3 font-semibold text-slate-800">${ktv.name}</td>
+            <td class="p-3 text-center font-mono"><input type="password" id="pin_input_${ktv.id}" value="${ktv.pin || '1234'}" class="w-24 text-center border rounded p-1 text-xs font-bold"></td>
+            <td class="p-3 text-center">
+                <select id="role_select_${ktv.id}" class="border rounded px-2 py-1 text-xs">
+                    <option value="CSSD" ${ktv.role === 'CSSD' ? 'selected' : ''}>KTV CSSD</option>
+                    <option value="KHOA" ${ktv.role === 'KHOA' ? 'selected' : ''}>Điều Dưỡng Khoa</option>
+                    <option value="ADMIN" ${ktv.role === 'ADMIN' ? 'selected' : ''}>Administrator</option>
+                </select>
+            </td>
+            <td class="p-3 text-center"><button type="button" onclick="capNhatPinNhanVien('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1 rounded text-xs font-bold">Lưu</button></td>
+        </tr>
+    `).join('');
+}
+
+function capNhatPinNhanVien(ktvId) {
+    const pinInp = document.getElementById(`pin_input_${ktvId}`);
+    const targetKtv = (globalData.ktvList || []).find(k => k && k.id === ktvId);
+    if (targetKtv && pinInp) {
+        targetKtv.pin = pinInp.value.trim();
+        alert(`🔑 Đã cập nhật PIN cho [${targetKtv.name}]!`);
+    }
+}
+
+function themNhanSuMoiAdmin() {
+    const nameInp = document.getElementById('admin_add_nv_name');
+    const idInp = document.getElementById('admin_add_nv_id');
+    const pinInp = document.getElementById('admin_add_nv_pin');
+    const roleInp = document.getElementById('admin_add_nv_role');
+
+    if (!nameInp || !idInp || !nameInp.value.trim() || !idInp.value.trim()) {
+        alert("Vui lòng nhập Mã NV và Họ Tên!");
+        return;
+    }
+
+    if (!globalData.ktvList) globalData.ktvList = [];
+
+    globalData.ktvList.push({
+        id: idInp.value.trim().toUpperCase(),
+        name: nameInp.value.trim(),
+        pin: pinInp && pinInp.value ? pinInp.value.trim() : '1234',
+        role: roleInp ? roleInp.value : 'CSSD'
+    });
+
+    renderDanhSachPinAdmin();
+    nameInp.value = '';
+    idInp.value = '';
+    if (pinInp) pinInp.value = '';
+    alert("➕ Đã thêm nhân sự thành công!");
+}
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
