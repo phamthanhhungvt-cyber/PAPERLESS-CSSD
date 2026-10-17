@@ -30,13 +30,7 @@ if (typeof firebase !== 'undefined' && firebase.appCheck) {
 const db = (typeof firebase !== 'undefined' && firebase.firestore) ? firebase.firestore() : null;
 const storage = (typeof firebase !== 'undefined' && firebase.storage) ? firebase.storage() : null;
 
-if (db) {
-    try {
-        db.settings({ experimentalForceLongPolling: true, useFetchStreams: false });
-    } catch (err) {
-        console.warn("Firestore settings bypass:", err);
-    }
-}
+// ĐÃ XÓA BỎ ĐOẠN db.settings GÂY LỖI FIREBASE OVERRIDE HOST Ở ĐÂY
 
 // 2. BIẾN TRẠNG THÁI TOÀN CỤC
 let currentUser = { role: 'ADMIN', khoa: '', nvName: 'ADMINISTRATOR' };
@@ -1640,6 +1634,7 @@ function renderGioHangTam() {
 
 function guiBaoTra() { khoaGuiPhieuTraBatches(); }
 function guiPhieuBaoTra() { khoaGuiPhieuTraBatches(); }
+
 // =========================================================================
 // HÀM BỔ SUNG BỊ THIẾU
 // =========================================================================
@@ -1718,15 +1713,7 @@ function themNhanSuMoiAdmin() {
     const idInp = document.getElementById('admin_add_nv_id');
     const pinInp = document.getElementById('admin_add_nv_pin');
     const roleInp = document.getElementById('admin_add_nv_role');
-// =========================================================================
-// HÀM ĐỒNG HỒ DASHBOARD TV
-// =========================================================================
-function initDashboardTVClock() {
-    setInterval(() => {
-        const tvClockEl = document.getElementById('tv_realtime_clock');
-        if (tvClockEl) tvClockEl.innerText = new Date().toLocaleString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }, 1000);
-}
+
     if (!nameInp || !idInp || !nameInp.value.trim() || !idInp.value.trim()) {
         alert("Vui lòng nhập Mã NV và Họ Tên!");
         return;
@@ -1747,6 +1734,20 @@ function initDashboardTVClock() {
     if (pinInp) pinInp.value = '';
     alert("➕ Đã thêm nhân sự thành công!");
 }
+
+// =========================================================================
+// HÀM ĐỒNG HỒ DASHBOARD TV
+// =========================================================================
+function initDashboardTVClock() {
+    setInterval(() => {
+        const tvClockEl = document.getElementById('tv_realtime_clock');
+        if (tvClockEl) tvClockEl.innerText = new Date().toLocaleString('vi-VN', { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }, 1000);
+}
+
+// =========================================================================
+// KHỞI TẠO DOM CONTENT LOADED
+// =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
@@ -1758,179 +1759,5 @@ document.addEventListener('DOMContentLoaded', () => {
     tuDongTaoMaLoMeHap();
     initCanvasKyDienTu();
     initGlobalBarcodeScanner();
+    initDashboardTVClock();
 });
-
-function initExcelLoader() {
-    const excelInput = document.getElementById('excelFileInput');
-    if (!excelInput) return;
-    excelInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        if (typeof XLSX === 'undefined') { alert("❌ Chưa tải thư viện SheetJS (XLSX)!"); return; }
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                const data = new Uint8Array(evt.target.result);
-                const workbook = XLSX.read(data, { type: 'array' });
-                let targetSheetName = workbook.SheetNames.find(s => s.trim().toLowerCase().includes('chi tiết') || s.trim().toLowerCase().includes('cơ số') || s.trim().toLowerCase().includes('sheet1')) || workbook.SheetNames[0];
-                const rawRows = XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1, defval: "" });
-                if (!rawRows || rawRows.length === 0) return;
-
-                const headerRow = (rawRows[0] || []).map(v => String(v).trim().toLowerCase());
-                let idxKhoa = headerRow.findIndex(h => h.includes('khoa') || h.includes('phòng') || h.includes('tên ts (i)') || h.includes('đơn vị'));
-                let idxMa = headerRow.findIndex(h => h.includes('mã dc') || h.includes('mã ts') || h.includes('mã'));
-                let idxTen = headerRow.findIndex(h => h.includes('tên ts chuẩn') || h.includes('tên chi tiết') || h.includes('tên dụng cụ') || h.includes('tên bộ'));
-                let idxSoLuong = headerRow.findIndex(h => h.includes('số lượng') || h.includes('cơ số') || h.includes('sl'));
-                if (idxKhoa === -1) idxKhoa = 1; if (idxMa === -1) idxMa = 2; if (idxTen === -1) idxTen = 3; if (idxSoLuong === -1) idxSoLuong = 4;
-
-                let danhSachBoMoi = [];
-                let setKhoa = new Set();
-                const mapAesculap = JSON.parse(localStorage.getItem('cssd_aesculapCatalog') || '{}');
-
-                for (let i = 1; i < rawRows.length; i++) {
-                    const r = rawRows[i];
-                    if (!r || r.length === 0) continue;
-                    const tenKhoa = r[idxKhoa] ? String(r[idxKhoa]).trim().toUpperCase() : "";
-                    const maBo = r[idxMa] ? String(r[idxMa]).trim().toUpperCase() : `BO_${i}`;
-                    const tenBo = r[idxTen] ? String(r[idxTen]).trim() : "Bộ Dụng Cụ";
-                    const soLuong = r[idxSoLuong] !== "" && r[idxSoLuong] !== undefined ? Number(r[idxSoLuong]) || 1 : 1;
-
-                    if (!tenKhoa || !tenBo) continue;
-                    setKhoa.add(tenKhoa);
-
-                    let chiTietLinhKien = [];
-                    const maBoClean = cleanSearchStr(maBo);
-                    const tenBoClean = cleanSearchStr(tenBo);
-                    let targetAesculapName = "";
-                    for (const [keyAlias, valAesculap] of Object.entries(SET_ALIAS_MAPPING)) {
-                        if (maBoClean.includes(cleanSearchStr(keyAlias)) || tenBoClean.includes(cleanSearchStr(keyAlias))) { targetAesculapName = valAesculap; break; }
-                    }
-                    for (const [tenBoAesculap, listLinhKien] of Object.entries(mapAesculap)) {
-                        const aescClean = cleanSearchStr(tenBoAesculap);
-                        if ((targetAesculapName && cleanSearchStr(targetAesculapName) === aescClean) || tenBoClean.includes(aescClean) || aescClean.includes(tenBoClean)) {
-                            chiTietLinhKien = listLinhKien; break;
-                        }
-                    }
-                    danhSachBoMoi.push({ khoa: tenKhoa, maBo: maBo, tenBo: tenBo, soLuong: soLuong, chiTietLinhKien: chiTietLinhKien });
-                }
-
-                if (danhSachBoMoi.length > 0) {
-                    globalData.danhMucLinhKien = danhSachBoMoi;
-                    globalData.danhSachKhoa = Array.from(setKhoa);
-                    localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
-                    localStorage.setItem('cssd_danhSachKhoa', JSON.stringify(globalData.danhSachKhoa));
-                    if (db) db.collection("he_thong_config").doc(`danh_muc_${CURRENT_TENANT}`).set({ danhMucLinhKien: globalData.danhMucLinhKien, danhSachKhoa: globalData.danhSachKhoa, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-                    capNhatGiaoDienSauKhiNapExcel();
-                    alert(`🎉 NẠP THÀNH CÔNG!\n- Tổng cộng: ${danhSachBoMoi.length} bộ dụng cụ.`);
-                }
-            } catch (err) { alert("❌ Lỗi khi đọc file Excel!"); }
-        };
-        reader.readAsArrayBuffer(file);
-    });
-}
-
-function initWordLoader() {
-    const wordInput = document.getElementById('wordFileInput');
-    if (!wordInput) return;
-    wordInput.addEventListener('change', async function(e) {
-        const files = Array.from(e.target.files);
-        if (files.length === 0) return;
-        if (typeof mammoth === 'undefined') { alert("❌ Chưa tải được thư viện mammoth.js!"); return; }
-
-        let totalSetsUpdated = 0;
-        let danhSachTenBoCapNhat = [];
-        const mapAesculap = JSON.parse(localStorage.getItem('cssd_aesculapCatalog') || '{}');
-
-        for (const file of files) {
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-                const doc = new DOMParser().parseFromString(result.value, 'text/html');
-                
-                doc.querySelectorAll('table').forEach(table => {
-                    let tenBo = "", chiTietLinhKien = [], idxMa = -1, idxTen = -1, idxQty = -1;
-                    const rows = Array.from(table.querySelectorAll('tr'));
-
-                    rows.forEach(tr => {
-                        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
-                        if (cells.length === 0) return;
-                        const fullRow = cells.join(" ").toUpperCase();
-                        if (!tenBo) {
-                            if (fullRow.includes("MỔ LẤY THAI") || fullRow.includes("MỔ BẮT CON")) tenBo = "MỔ LẤY THAI";
-                            else if (fullRow.includes("BỘ SANH") || fullRow.includes("ĐỠ SANH")) tenBo = "BỘ SANH";
-                            else if (cells.some(c => c.toUpperCase().includes("TÊN TS") || c.toUpperCase().includes("TÊN BỘ"))) {
-                                for (let c of cells) {
-                                    if (c.length > 2 && !c.includes("KHOA") && !c.includes("KIỂM") && !c.includes("STT") && !c.includes("Ngày") && !/^\d+$/.test(c)) {
-                                        tenBo = c.replace(/checklist|danh mục|bộ dụng cụ/gi, '').trim(); break;
-                                    }
-                                }
-                            }
-                        }
-                        cells.forEach((c, i) => {
-                            const u = c.toUpperCase();
-                            if (u.includes("MÃ TS") || u === "MÃ" || u.includes("MÃ SỐ")) idxMa = i;
-                            if (u.includes("TÊN TS") || u.includes("TÊN DỤNG CỤ") || u === "TÊN") idxTen = i;
-                            if (u.includes("SL") || u.includes("SỐ LƯỢNG") || u.includes("CƠ SỐ")) idxQty = i;
-                        });
-                    });
-
-                    if (!tenBo) tenBo = file.name.replace(/\.[^/.]+$/, "").replace(/checklist|danh muc|bo dung cu|phieu kiem/gi, "").trim();
-
-                    rows.forEach(tr => {
-                        const cells = Array.from(tr.querySelectorAll('td, th')).map(c => c.innerText.trim());
-                        if (cells.length < 2) return;
-                        const fullRow = cells.join(" ").toUpperCase();
-                        if (fullRow.includes("KHOA KIỂM SOÁT") || fullRow.includes("CHECK SẠCH") || fullRow.includes("GHI CHÚ") || fullRow.includes("TỔNG CỘNG") || fullRow.includes("ĐIỀU DƯỠNG")) return;
-
-                        let maTS = "", tenTS = "", soLuong = 0;
-                        if (idxTen !== -1 && idxQty !== -1) {
-                            tenTS = cells[idxTen] || ""; maTS = idxMa !== -1 ? (cells[idxMa] || "") : ""; soLuong = parseInt(cells[idxQty], 10) || 0;
-                        } else {
-                            let qtyIndex = cells.findIndex((c, i) => i >= 1 && /^\d+$/.test(c) && parseInt(c, 10) > 0 && parseInt(c, 10) < 50);
-                            if (qtyIndex !== -1) {
-                                soLuong = parseInt(cells[qtyIndex], 10);
-                                let textCells = cells.slice(0, qtyIndex).filter(c => !/^\d+$/.test(c));
-                                if (textCells.length >= 2) {
-                                    if (/[A-Z]{1,3}\s?\d+|\d{5,}/.test(textCells[0])) { maTS = textCells[0]; tenTS = textCells[1]; } 
-                                    else { tenTS = textCells[0]; maTS = textCells[1]; }
-                                } else if (textCells.length === 1) { tenTS = textCells[0]; }
-                            }
-                        }
-
-                        if (tenTS && soLuong > 0 && !tenTS.toUpperCase().includes("TÊN TS") && !tenTS.toUpperCase().includes("BỘ SANH") && !tenTS.toUpperCase().includes("MỔ LẤY THAI")) {
-                            chiTietLinhKien.push({ maLinhKien: maTS, tenLinhKien: tenTS, soLuong: soLuong });
-                        }
-                    });
-
-                    if (chiTietLinhKien.length > 0 && tenBo) {
-                        const tenBoClean = cleanSearchStr(tenBo);
-                        mapAesculap[tenBo] = chiTietLinhKien;
-                        mapAesculap[tenBoClean] = chiTietLinhKien;
-                        if (tenBoClean.includes("MOLAYTHAI") || tenBoClean.includes("MOBATCON")) {
-                            mapAesculap["MỔ LẤY THAI"] = chiTietLinhKien; mapAesculap["MOLAYTHAI"] = chiTietLinhKien;
-                        }
-
-                        (globalData.danhMucLinhKien || []).forEach(bo => {
-                            const boClean = cleanSearchStr(bo.tenBo); const maClean = cleanSearchStr(bo.maBo);
-                            if ((tenBoClean.includes("MOLAYTHAI") && (boClean.includes("MOLAYTHAI") || maClean.includes("MOLAYTHAI") || boClean.includes("MOBATCON"))) ||
-                                (tenBoClean.includes("SANH") && !tenBoClean.includes("MOLAYTHAI") && (boClean === "BOSANH" || maClean === "SGSANH")) ||
-                                boClean === tenBoClean || maClean === tenBoClean) {
-                                bo.chiTietLinhKien = chiTietLinhKien;
-                            }
-                        });
-                        totalSetsUpdated++;
-                        danhSachTenBoCapNhat.push(`${tenBo} (${chiTietLinhKien.length} món)`);
-                    }
-                });
-            } catch (err) { console.error(`Lỗi đọc file ${file.name}:`, err); }
-        }
-
-        localStorage.setItem('cssd_aesculapCatalog', JSON.stringify(mapAesculap));
-        localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
-
-        if (db) db.collection("he_thong_config").doc(`danh_muc_${CURRENT_TENANT}`).set({ danhMucLinhKien: globalData.danhMucLinhKien, danhSachKhoa: globalData.danhSachKhoa, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-        
-        capNhatGiaoDienSauKhiNapExcel();
-        alert(`🎉 ĐÃ BÓC TÁCH VÀ GHI ĐÈ THÀNH CÔNG ${totalSetsUpdated} BỘ DỤNG CỤ:\n- ${danhSachTenBoCapNhat.join("\n- ")}`);
-    });
-}
