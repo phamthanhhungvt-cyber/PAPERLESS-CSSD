@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 5.2.0 - RBAC FIRESTORE SYNC & FIX)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 5.2.1 - SYNTAX CLEANED)
    ========================================================================= */
 
 // BIẾN ĐỊNH DANH SAAS (MULTI-TENANT)
@@ -8,7 +8,7 @@ const CURRENT_TENANT = "PHUONGNAM_01";
 
 // 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx", // Giữ nguyên API Key thật của bạn
+    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx",
     authDomain: "cssd-system-2878c.firebaseapp.com",
     projectId: "cssd-system-2878c",
     storageBucket: "cssd-system-2878c.appspot.com",
@@ -76,18 +76,9 @@ let gioHangTraTam = [];
 let tempSuDungKhay = [];
 let itemDongGoiHienTai = null;
 let currentRecallBatchId = "";
-let anhBangChungDongGoiTam = null;
 let currentQCBatchData = null;
 let currentQCEvidenceImage = null;
 let currentKiemDemIndex = null;
-
-let canvasKy = null;
-let ctxKy = null;
-let isDrawingKy = false;
-
-let barcodeScannerBuffer = "";
-let barcodeScannerTimer = null;
-let isBarcodeScannerEnabled = true;
 
 const ALL_SYSTEM_TABS = [
     { id: 'khoaphong', name: 'Lâm Sàng' },
@@ -104,44 +95,8 @@ const ALL_SYSTEM_TABS = [
     { id: 'dashboard_tv', name: 'TV Hub' }
 ];
 
-const SET_ALIAS_MAPPING = {
-    "MOLAYTHAI": "MỔ LẤY THAI", "MO LAY THAI": "MỔ LẤY THAI",
-    "SANH": "BỘ SANH", "BO SANH": "BỘ SANH",
-    "NAO": "BỘ NẠO", "MAYTANGSINHMON": "MAY TẦNG SINH MÔN",
-    "MOCTC(HO)": "CẮT TỬ CUNG", "NOISOI": "NỘI SOI"
-};
-
-function cleanSearchStr(str) {
-    return (str || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
-}
-
-function parseVietnameseDate(strDate) {
-    if (!strDate) return null;
-    if (strDate.includes('/')) {
-        const parts = strDate.split('/');
-        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
-    } else if (strDate.includes('-')) {
-        const parts = strDate.split('-');
-        if (parts[0].length === 4) return new Date(parts[0], parts[1] - 1, parts[2]);
-        else return new Date(parts[2], parts[1] - 1, parts[0]);
-    }
-    return new Date(strDate);
-}
-
-async function taoMaBamSHA256(text) {
-    if (window.crypto && window.crypto.subtle) {
-        try {
-            const msgUint8 = new TextEncoder().encode(text);
-            const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16).toUpperCase();
-        } catch (e) {}
-    }
-    return `HASH_${Date.now().toString(16).toUpperCase()}`;
-}
-
 // =========================================================================
-// 3. ĐIỀU HƯỚNG TAB CHÍNH (ĐẶT LÊN TRÊN ĐỂ TRÁNH LỖI NOT DEFINED)
+// 3. ĐIỀU HƯỚNG TAB CHÍNH
 // =========================================================================
 function switchTab(tabId) {
     currentTab = tabId;
@@ -186,7 +141,7 @@ function toggleMobileMenu() {
 }
 
 // =========================================================================
-// 4. XÁC THỰC VÀ MA TRẬN PHÂN QUYỀN (RBAC & FIRESTORE)
+// 4. XÁC THỰC VÀ MA TRẬN PHÂN QUYỀN
 // =========================================================================
 function checkLogin() {
     const roleEl = document.getElementById('login_role');
@@ -331,7 +286,6 @@ function renderDanhSachPinAdmin() {
     }).join('');
 }
 
-// HÀM LƯU ĐỒNG BỘ MA TRẬN PHÂN QUYỀN LÊN CLOUD FIRESTORE
 function luuPhanQuyenNhanSu(ktvId) {
     const targetKtv = (globalData.ktvList || []).find(k => k.id === ktvId);
     if (!targetKtv) return;
@@ -429,7 +383,6 @@ function capNhatTatCaGiaoDien() {
 function initRealtimeListeners() {
     if (!db) return;
 
-    // Lắng nghe Ma trận Phân quyền từ Cloud Firestore
     db.collection("he_thong_config").doc(`phan_quyen_${CURRENT_TENANT}`)
         .onSnapshot((doc) => {
             if (doc.exists) {
@@ -625,7 +578,7 @@ function renderBangChoThuGom() {
             </td>
             <td class="p-3 text-center font-bold text-slate-600">${phieu?.thoiGian || ''}</td>
             <td class="p-3 text-center action-col">
-                <button type="button" onclick="moPopupKiemDemThuGom('${phieu.id}')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm">
+                <button type="button" onclick="moPopupKiemDemThuGom('${phieu.id || idx}')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm">
                     Kiểm Đếm & Nhận
                 </button>
             </td>
@@ -878,21 +831,6 @@ function renderDashboardTV() {
     setTxt('tv_khoVoKhuan', (globalData.khoVoKhuan || []).length);
 }
 
-function switchAdminSubtab(subtab) {
-    const subDb = document.getElementById('subtab-database');
-    const subSec = document.getElementById('subtab-security');
-    const btnDb = document.getElementById('subbtn-database');
-    const btnSec = document.getElementById('subbtn-security');
-
-    if (subDb) subDb.classList.toggle('hidden', subtab !== 'database');
-    if (subSec) subSec.classList.toggle('hidden', subtab !== 'security');
-
-    if (btnDb) btnDb.classList.toggle('admin-subtab-active', subtab === 'database');
-    if (btnSec) btnSec.classList.toggle('admin-subtab-active', subtab === 'security');
-
-    if (subtab === 'security') renderDanhSachPinAdmin();
-}
-
 // =========================================================================
 // 7. CÁC THAO TÁC POPUP VẬN HÀNH (ĐÓNG GÓI, QC MẺ HẤP, KIỂM ĐẾM)
 // =========================================================================
@@ -1142,7 +1080,7 @@ function xuatKhoDungCu(idx) {
 }
 
 function moPopupKiemDemThuGom(idPhieu) {
-    currentKiemDemIndex = globalData.phieuTra.findIndex(p => p.id === idPhieu);
+    currentKiemDemIndex = typeof idPhieu === 'number' ? idPhieu : globalData.phieuTra.findIndex(p => p.id === idPhieu);
     const phieu = globalData.phieuTra[currentKiemDemIndex];
     if (!phieu) return;
 
@@ -1169,7 +1107,9 @@ function closePopupKiemDem() { document.getElementById('popupKiemDem')?.classLis
 function saveKiemDem() {
     const phieuHienTai = globalData.phieuTra[currentKiemDemIndex];
     if (phieuHienTai && phieuHienTai.items) {
-        db.collection("phieu_tra").doc(phieuHienTai.id).delete();
+        if (phieuHienTai.id) {
+            db.collection("phieu_tra").doc(phieuHienTai.id).delete();
+        }
         phieuHienTai.items.forEach(item => {
             item.khoa = phieuHienTai.khoa;
             item.thoiGianThuGom = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
@@ -1244,43 +1184,6 @@ function khoaGuiPhieuTraBatches() {
     alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn!`);
 }
 
-function capNhatDanhSachMaMayRua() {
-    const loaiEl = document.getElementById('rua_loaiRua');
-    const maySoEl = document.getElementById('rua_maySo');
-    if (!loaiEl || !maySoEl) return;
-    const val = loaiEl.value;
-    if (val.includes("tự động")) maySoEl.innerHTML = `<option value="Belimed WD250 #1">Belimed WD250 #1</option><option value="Belimed WD250 #2">Belimed WD250 #2</option>`;
-    else if (val.includes("siêu âm")) maySoEl.innerHTML = `<option value="Sonic Washer #1">Sonic Washer #1</option>`;
-    else maySoEl.innerHTML = `<option value="Bồn Rửa Tay 01">Bồn Rửa Thủ Công #1</option>`;
-    tuDongTaoMaLoMeRua();
-}
-
-function tuDongTaoMaLoMeRua() {
-    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const batchInp = document.getElementById('rua_batchId');
-    const meInp = document.getElementById('rua_meSo');
-    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `R${today}_01`; }
-}
-
-function capNhatDanhSachMaMay() {
-    const loaiEl = document.getElementById('hap_loaiHap');
-    const maySoEl = document.getElementById('hap_maySo');
-    if (!loaiEl || !maySoEl) return;
-    const val = loaiEl.value;
-    if (val.includes("hơi nước") || val.includes("Steam")) maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>`;
-    else if (val.includes("Plasma") || val.includes("H2O2")) maySoEl.innerHTML = `<option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>`;
-    else if (val.includes("EO")) maySoEl.innerHTML = `<option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>`;
-    else maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>`;
-    tuDongTaoMaLoMeHap();
-}
-
-function tuDongTaoMaLoMeHap() {
-    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const batchInp = document.getElementById('hap_batchId');
-    const meInp = document.getElementById('hap_meSo');
-    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `H${today}_01`; }
-}
-
 function moModalXemAnhCauHinh() { document.getElementById('popupXemAnhCauHinh')?.classList.remove('hidden'); }
 function dongModalXemAnhCauHinh() { document.getElementById('popupXemAnhCauHinh')?.classList.add('hidden'); }
 function moPopupThuHoiKhanCap() { document.getElementById('popupThuHoi')?.classList.remove('hidden'); }
@@ -1292,8 +1195,4 @@ function dongPopupThuHoi() { document.getElementById('popupThuHoi')?.classList.a
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
-    capNhatDanhSachMaMayRua();
-    capNhatDanhSachMaMay();
-    tuDongTaoMaLoMeRua();
-    tuDongTaoMaLoMeHap();
 });
