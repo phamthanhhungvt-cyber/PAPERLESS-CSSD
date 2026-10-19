@@ -6,16 +6,15 @@
 // BIẾN ĐỊNH DANH SAAS (MULTI-TENANT) - BẮT BUỘC
 const CURRENT_TENANT = "PHUONGNAM_01"; 
 
-// 1. CẤU HÌNH FIREBASE
+// 1. CẤU HÌNH FIREBASE (CHUẨN CÚ PHÁP - KHÔNG LỒNG GHÉP)
 const firebaseConfig = {
-    apiKey: firebaseConfig = {
-    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx"}, // Dán mã mới vào đây
+    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx", // Chỉ giữ đúng chuỗi mã API thật của bạn trong ngoặc kép
     authDomain: "cssd-system-2878c.firebaseapp.com",
     projectId: "cssd-system-2878c",
     storageBucket: "cssd-system-2878c.appspot.com",
     messagingSenderId: "1234567890",
     appId: "1:1234567890:web:abcdef123456"
-}
+};
 
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
