@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 5.1.0 - FIX SWITCHTAB)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 5.2.0 - RBAC FIRESTORE SYNC & FIX)
    ========================================================================= */
 
 // BIẾN ĐỊNH DANH SAAS (MULTI-TENANT)
@@ -8,7 +8,7 @@ const CURRENT_TENANT = "PHUONGNAM_01";
 
 // 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx",
+    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx", // Giữ nguyên API Key thật của bạn
     authDomain: "cssd-system-2878c.firebaseapp.com",
     projectId: "cssd-system-2878c",
     storageBucket: "cssd-system-2878c.appspot.com",
@@ -76,9 +76,18 @@ let gioHangTraTam = [];
 let tempSuDungKhay = [];
 let itemDongGoiHienTai = null;
 let currentRecallBatchId = "";
+let anhBangChungDongGoiTam = null;
 let currentQCBatchData = null;
 let currentQCEvidenceImage = null;
 let currentKiemDemIndex = null;
+
+let canvasKy = null;
+let ctxKy = null;
+let isDrawingKy = false;
+
+let barcodeScannerBuffer = "";
+let barcodeScannerTimer = null;
+let isBarcodeScannerEnabled = true;
 
 const ALL_SYSTEM_TABS = [
     { id: 'khoaphong', name: 'Lâm Sàng' },
@@ -95,8 +104,44 @@ const ALL_SYSTEM_TABS = [
     { id: 'dashboard_tv', name: 'TV Hub' }
 ];
 
+const SET_ALIAS_MAPPING = {
+    "MOLAYTHAI": "MỔ LẤY THAI", "MO LAY THAI": "MỔ LẤY THAI",
+    "SANH": "BỘ SANH", "BO SANH": "BỘ SANH",
+    "NAO": "BỘ NẠO", "MAYTANGSINHMON": "MAY TẦNG SINH MÔN",
+    "MOCTC(HO)": "CẮT TỬ CUNG", "NOISOI": "NỘI SOI"
+};
+
+function cleanSearchStr(str) {
+    return (str || "").toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, "");
+}
+
+function parseVietnameseDate(strDate) {
+    if (!strDate) return null;
+    if (strDate.includes('/')) {
+        const parts = strDate.split('/');
+        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+    } else if (strDate.includes('-')) {
+        const parts = strDate.split('-');
+        if (parts[0].length === 4) return new Date(parts[0], parts[1] - 1, parts[2]);
+        else return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+    return new Date(strDate);
+}
+
+async function taoMaBamSHA256(text) {
+    if (window.crypto && window.crypto.subtle) {
+        try {
+            const msgUint8 = new TextEncoder().encode(text);
+            const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16).toUpperCase();
+        } catch (e) {}
+    }
+    return `HASH_${Date.now().toString(16).toUpperCase()}`;
+}
+
 // =========================================================================
-// 3. ĐIỀU HƯỚNG TAB CHÍNH (ĐƯỢC ĐẶT LÊN TRƯỚC ĐỂ TRÁNH LỖI NOT DEFINED)
+// 3. ĐIỀU HƯỚNG TAB CHÍNH (ĐẶT LÊN TRÊN ĐỂ TRÁNH LỖI NOT DEFINED)
 // =========================================================================
 function switchTab(tabId) {
     currentTab = tabId;
@@ -141,7 +186,7 @@ function toggleMobileMenu() {
 }
 
 // =========================================================================
-// 4. XÁC THỰC VÀ PHÂN QUYỀN
+// 4. XÁC THỰC VÀ MA TRẬN PHÂN QUYỀN (RBAC & FIRESTORE)
 // =========================================================================
 function checkLogin() {
     const roleEl = document.getElementById('login_role');
@@ -238,8 +283,127 @@ function toggleLoginFields() {
     if (fieldNv) fieldNv.classList.toggle('hidden', role !== 'CSSD');
 }
 
+function renderDanhSachPinAdmin() {
+    const tbody = document.getElementById('bangCauHinhPinAdmin');
+    if (!tbody) return;
+
+    tbody.innerHTML = (globalData.ktvList || []).map((ktv, idx) => {
+        const isAdmin = ktv.role === 'ADMIN';
+        const allowed = Array.isArray(ktv.allowedTabs) ? ktv.allowedTabs : [];
+
+        const tabCheckboxes = ALL_SYSTEM_TABS.map(t => {
+            const isChecked = isAdmin || allowed.includes(t.id) || allowed.includes('all');
+            return `
+                <label class="inline-flex items-center gap-1 text-[11px] bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded cursor-pointer mr-1 mb-1">
+                    <input type="checkbox" class="chk-tab-${ktv.id}" value="${t.id}" ${isChecked ? 'checked' : ''} ${isAdmin ? 'disabled' : ''}>
+                    <span>${t.name}</span>
+                </label>
+            `;
+        }).join('');
+
+        return `
+            <tr class="border-b hover:bg-slate-50 text-xs">
+                <td class="p-3 text-center font-bold text-slate-500">${idx + 1}</td>
+                <td class="p-3 font-mono font-bold text-sky-700">${ktv.id}</td>
+                <td class="p-3 font-semibold text-slate-800">${ktv.name}</td>
+                <td class="p-3 text-center">
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        ktv.role === 'ADMIN' ? 'bg-amber-100 text-amber-800' : 
+                        ktv.role === 'GUEST' ? 'bg-purple-100 text-purple-800' : 'bg-sky-100 text-sky-800'
+                    }">${ktv.role}</span>
+                </td>
+                <td class="p-3">
+                    <div class="flex flex-wrap max-w-md">${tabCheckboxes}</div>
+                </td>
+                <td class="p-3 text-center">
+                    <label class="inline-flex items-center gap-1 cursor-pointer text-[11px] font-bold ${ktv.readOnly ? 'text-rose-600' : 'text-slate-600'}">
+                        <input type="checkbox" id="readonly_${ktv.id}" ${ktv.readOnly ? 'checked' : ''} ${isAdmin ? 'disabled' : ''}>
+                        Chỉ Xem
+                    </label>
+                </td>
+                <td class="p-3 text-center">
+                    <button onclick="luuPhanQuyenNhanSu('${ktv.id}')" class="bg-sky-600 hover:bg-sky-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm">
+                        Lưu
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// HÀM LƯU ĐỒNG BỘ MA TRẬN PHÂN QUYỀN LÊN CLOUD FIRESTORE
+function luuPhanQuyenNhanSu(ktvId) {
+    const targetKtv = (globalData.ktvList || []).find(k => k.id === ktvId);
+    if (!targetKtv) return;
+
+    if (targetKtv.role !== 'ADMIN') {
+        const checkboxes = document.querySelectorAll(`.chk-tab-${ktvId}:checked`);
+        targetKtv.allowedTabs = Array.from(checkboxes).map(cb => cb.value);
+        
+        const readonlyCb = document.getElementById(`readonly_${ktvId}`);
+        targetKtv.readOnly = readonlyCb ? readonlyCb.checked : false;
+    }
+
+    localStorage.setItem('cssd_ktvList', JSON.stringify(globalData.ktvList));
+
+    if (db) {
+        db.collection("he_thong_config").doc(`phan_quyen_${CURRENT_TENANT}`).set({
+            tenant_id: CURRENT_TENANT,
+            ktvList: globalData.ktvList,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedBy: currentUser.nvName
+        }, { merge: true })
+        .then(() => {
+            alert(`✅ Đã đồng bộ ma trận quyền của [${targetKtv.name}] lên Cloud toàn viện!`);
+        })
+        .catch(err => {
+            console.error("Lỗi lưu Cloud:", err);
+            alert("⚠️ Đã lưu offline trên máy nhưng chưa đẩy được lên Cloud.");
+        });
+    } else {
+        alert(`🔑 Đã lưu ma trận quyền offline cho [${targetKtv.name}]!`);
+    }
+}
+
+function themNhanSuMoiAdmin() {
+    const nameInp = document.getElementById('admin_add_nv_name');
+    const idInp = document.getElementById('admin_add_nv_id');
+    const pinInp = document.getElementById('admin_add_nv_pin');
+    const roleInp = document.getElementById('admin_add_nv_role');
+
+    if (!nameInp || !idInp || !nameInp.value.trim() || !idInp.value.trim()) {
+        alert("Vui lòng nhập Mã NV và Họ Tên!");
+        return;
+    }
+
+    const role = roleInp ? roleInp.value : 'CSSD';
+    const newKtv = {
+        id: idInp.value.trim().toUpperCase(),
+        name: nameInp.value.trim(),
+        pin: pinInp && pinInp.value ? pinInp.value.trim() : '1234',
+        role: role,
+        allowedTabs: role === 'GUEST' ? ['quanlykho', 'tracuu', 'dashboard_tv'] : ['thugom', 'mayrua', 'donggoi', 'mayhap', 'khovokhuan', 'quanlykho'],
+        readOnly: role === 'GUEST'
+    };
+
+    globalData.ktvList.push(newKtv);
+    localStorage.setItem('cssd_ktvList', JSON.stringify(globalData.ktvList));
+
+    if (db) {
+        db.collection("he_thong_config").doc(`phan_quyen_${CURRENT_TENANT}`).set({
+            tenant_id: CURRENT_TENANT,
+            ktvList: globalData.ktvList,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    }
+
+    renderDanhSachPinAdmin();
+    nameInp.value = ''; idInp.value = ''; if (pinInp) pinInp.value = '';
+    alert("➕ Đã thêm nhân sự và cập nhật lên Cloud thành công!");
+}
+
 // =========================================================================
-// 5. CÁC HÀM RENDER & TIỆN ÍCH DỮ LIỆU
+// 5. CƠ SỞ DỮ LIỆU VÀ LẮNG NGHE REALTIME FIRESTORE
 // =========================================================================
 function docDuLieuLuuTruLocalStorage() {
     try {
@@ -262,31 +426,126 @@ function capNhatTatCaGiaoDien() {
     renderBangTonKhoRealtime(); renderDashboardTV(); renderBangCongNoKhoa();
 }
 
-function parseVietnameseDate(strDate) {
-    if (!strDate) return null;
-    if (strDate.includes('/')) {
-        const parts = strDate.split('/');
-        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
-    } else if (strDate.includes('-')) {
-        const parts = strDate.split('-');
-        if (parts[0].length === 4) return new Date(parts[0], parts[1] - 1, parts[2]);
-        else return new Date(parts[2], parts[1] - 1, parts[0]);
-    }
-    return new Date(strDate);
+function initRealtimeListeners() {
+    if (!db) return;
+
+    // Lắng nghe Ma trận Phân quyền từ Cloud Firestore
+    db.collection("he_thong_config").doc(`phan_quyen_${CURRENT_TENANT}`)
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (Array.isArray(data.ktvList) && data.ktvList.length > 0) {
+                    globalData.ktvList = data.ktvList;
+                    localStorage.setItem('cssd_ktvList', JSON.stringify(globalData.ktvList));
+                    renderDanhSachPinAdmin();
+                    console.log("⚡ [RBAC] Đã cập nhật ma trận phân quyền từ Firestore Cloud!");
+                }
+            }
+        }, (err) => console.warn("Lỗi đọc phân quyền Cloud:", err));
+
+    db.collection("instrument_sets").where("tenant_id", "==", CURRENT_TENANT)
+        .onSnapshot((snapshot) => {
+            globalData.choRua = []; globalData.dangRua = []; globalData.choDongGoi = [];
+            globalData.choHap = []; globalData.dangHap = []; globalData.khoVoKhuan = [];
+
+            snapshot.forEach((doc) => {
+                const item = doc.data();
+                switch(item.current_status) {
+                    case 'CHO_RUA': globalData.choRua.push(item); break;
+                    case 'DANG_RUA': globalData.dangRua.push(item); break;
+                    case 'CHO_DONG_GOI': globalData.choDongGoi.push(item); break;
+                    case 'CHO_HAP': globalData.choHap.push(item); break;
+                    case 'DANG_HAP': globalData.dangHap.push(item); break;
+                    case 'VO_KHUAN': globalData.khoVoKhuan.push(item); break;
+                }
+            });
+            capNhatTatCaGiaoDien();
+        });
+
+    db.collection("phieu_tra").where("tenant_id", "==", CURRENT_TENANT)
+        .onSnapshot((snapshot) => {
+            let arr = [];
+            snapshot.forEach(doc => arr.push(doc.data()));
+            arr.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+            globalData.phieuTra = arr;
+            renderBangChoThuGom();
+        });
+
+    db.collection("transaction_logs").where("tenant_id", "==", CURRENT_TENANT)
+        .limit(150)
+        .onSnapshot((snapshot) => {
+            let arr = [];
+            snapshot.forEach((doc) => arr.push(doc.data()));
+            arr.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+            globalData.lichSu = arr;
+            renderBangLichSuLuanChuyen();
+            renderBangKPIPerformance();
+        });
+
+    db.collection("he_thong_config").doc(`danh_muc_${CURRENT_TENANT}`)
+        .onSnapshot((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.danhMucLinhKien) globalData.danhMucLinhKien = data.danhMucLinhKien;
+                if (data.danhSachKhoa) globalData.danhSachKhoa = data.danhSachKhoa;
+                localStorage.setItem('cssd_danhMucLinhKien', JSON.stringify(globalData.danhMucLinhKien));
+                capNhatGiaoDienSauKhiNapExcel();
+            }
+        });
+
+    db.collection("sterilization_batches").where("tenant_id", "==", CURRENT_TENANT)
+        .onSnapshot((snapshot) => {
+            let arrHap = [], arrRua = [];
+            snapshot.forEach(doc => {
+                const b = doc.data();
+                if (b.batch_type === 'HAP') arrHap.push(b);
+                if (b.batch_type === 'RUA') arrRua.push(b);
+            });
+            arrHap.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+            arrRua.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+            globalData.meHap = arrHap;
+            globalData.meRua = arrRua;
+            renderBangLichSuHap();
+            renderBangLichSuRua();
+        });
 }
 
-async function taoMaBamSHA256(text) {
-    if (window.crypto && window.crypto.subtle) {
-        try {
-            const msgUint8 = new TextEncoder().encode(text);
-            const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16).toUpperCase();
-        } catch (e) {}
-    }
-    return `HASH_${Date.now().toString(16).toUpperCase()}`;
+function updateMams(items, newStatus, extraFields = {}) {
+    if (!db || items.length === 0) return Promise.resolve();
+    const batch = db.batch();
+    items.forEach(item => {
+        if (!item.maBo) return;
+        const ref = db.collection("instrument_sets").doc(`${CURRENT_TENANT}_${item.maBo}`);
+        batch.set(ref, {
+            ...item,
+            tenant_id: CURRENT_TENANT,
+            current_status: newStatus,
+            ...extraFields,
+            updated_at: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    });
+    return batch.commit();
 }
 
+function ghiNhatKyFirebase(dataAction) {
+    if (!db) return;
+    const logEntry = {
+        tenant_id: CURRENT_TENANT,
+        maBo: dataAction.maBo || "N/A",
+        tenBo: dataAction.tenBo || "Mâm dụng cụ",
+        khoa: dataAction.khoa || "CSSD",
+        trangThai: dataAction.trangThai || "Đang xử lý",
+        maLoHap: dataAction.maLoHap || dataAction.batchId || "---",
+        nhanSu: currentUser.nvName || "KTV CSSD",
+        thoiGian: new Date().toLocaleString('vi-VN'),
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    db.collection("transaction_logs").add(logEntry);
+}
+
+// =========================================================================
+// 6. CÁC HÀM RENDER CHI TIẾT
+// =========================================================================
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'filterKhoaThuGom', 'inv_filterKhoa'];
     selectIds.forEach(id => {
@@ -366,7 +625,7 @@ function renderBangChoThuGom() {
             </td>
             <td class="p-3 text-center font-bold text-slate-600">${phieu?.thoiGian || ''}</td>
             <td class="p-3 text-center action-col">
-                <button type="button" onclick="moPopupKiemDemThuGom(${idx})" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm">
+                <button type="button" onclick="moPopupKiemDemThuGom('${phieu.id}')" class="bg-sky-600 hover:bg-sky-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs shadow-sm">
                     Kiểm Đếm & Nhận
                 </button>
             </td>
@@ -634,15 +893,407 @@ function switchAdminSubtab(subtab) {
     if (subtab === 'security') renderDanhSachPinAdmin();
 }
 
+// =========================================================================
+// 7. CÁC THAO TÁC POPUP VẬN HÀNH (ĐÓNG GÓI, QC MẺ HẤP, KIỂM ĐẾM)
+// =========================================================================
+function moPopupDongGoi(idx) {
+    itemDongGoiHienTai = idx;
+    const item = (globalData.choDongGoi || [])[idx];
+    if (!item) return;
+
+    const pop = document.getElementById('popupDongGoi');
+    const popBo = document.getElementById('popDG_Bo');
+    const popSub = document.getElementById('popDG_SubTitle');
+    const tbody = document.getElementById('popDG_DanhSachLinhKien');
+
+    if (popBo) popBo.innerHTML = `<i class="fa-solid fa-box-open text-sky-600 mr-2"></i> ĐÓNG GÓI: ${item.tenBo}`;
+    if (popSub) popSub.innerText = `Mã khay: ${item.maBo} | Khoa: ${item.khoa || 'N/A'}`;
+
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td class="p-2 font-semibold text-slate-800">${item.tenBo} (Tiêu chuẩn)</td>
+                <td class="p-2 text-center font-mono font-bold text-sky-700">${item.soLuong || 1}</td>
+            </tr>
+        `;
+    }
+
+    tinhHanSuDung();
+    if (pop) pop.classList.remove('hidden');
+}
+
+function closePopupDongGoi() {
+    const pop = document.getElementById('popupDongGoi');
+    if (pop) pop.classList.add('hidden');
+    itemDongGoiHienTai = null;
+}
+
+function tinhHanSuDung() {
+    const loaiEl = document.getElementById('popDG_Loai');
+    const hanEl = document.getElementById('popDG_Han');
+    if (!loaiEl || !hanEl) return;
+    const days = parseInt(loaiEl.value.split('|')[1]) || 30;
+    const future = new Date(); future.setDate(future.getDate() + days);
+    hanEl.innerText = future.toLocaleDateString('vi-VN');
+}
+
+async function chotDongGoi() {
+    if (itemDongGoiHienTai === null || !globalData.choDongGoi[itemDongGoiHienTai]) return;
+
+    const item = globalData.choDongGoi[itemDongGoiHienTai];
+    item.vatLieuBaoBoc = document.getElementById('popDG_Loai')?.value.split('|')[0] || "Giấy gói chuyên dụng";
+    item.hanSuDung = document.getElementById('popDG_Han')?.innerText || "";
+    item.nhanSuDongGoi = currentUser.nvName;
+
+    updateMams([item], 'CHO_HAP');
+    ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: item.khoa, trangThai: 'ĐÃ ĐÓNG GÓI CHỜ HẤP', maLoHap: '---' });
+
+    alert("✅ Đóng gói thành công! Dụng cụ đã tự động chuyển sang Trạm Hấp.");
+    closePopupDongGoi();
+}
+
+function xacNhanMeRua() {
+    const checkedInps = document.querySelectorAll('.chk-rua-item:checked');
+    if (checkedInps.length === 0) { alert("⚠️ Vui lòng chọn ít nhất một bộ dụng cụ để rửa!"); return; }
+
+    const batchId = document.getElementById('rua_batchId').value || `R${Date.now()}`;
+    const loaiRua = document.getElementById('rua_loaiRua').value;
+    const chuKy = document.getElementById('rua_chuKy').value;
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx')));
+    let itemsToUpdate = selectedIndices.map(idx => globalData.choRua[idx]);
+
+    itemsToUpdate.forEach(item => {
+        item.batchId = batchId; item.loaiRua = loaiRua; item.chuKy = chuKy;
+        item.nhanSuRua = currentUser.nvName;
+        ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: item.khoa, trangThai: `ĐANG RỬA (${loaiRua})`, maLoHap: batchId });
+    });
+    updateMams(itemsToUpdate, 'DANG_RUA');
+    alert(`🚀 Đã kích hoạt mẻ rửa ${batchId}!`);
+}
+
+function duyetSachMeRuaHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-rua:checked');
+    if (checkedInps.length === 0) { alert("⚠️ Vui lòng chọn mâm dụng cụ cần nghiệm thu!"); return; }
+
+    const testResult = document.getElementById('rua_testDoSach').value;
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx')));
+    let itemsToUpdate = selectedIndices.map(idx => globalData.dangRua[idx]);
+
+    itemsToUpdate.forEach(item => {
+        item.testDoSach = testResult;
+        ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: item.khoa, trangThai: 'NGHIỆM THU RỬA ĐẠT', maLoHap: item.batchId });
+    });
+    
+    updateMams(itemsToUpdate, 'CHO_DONG_GOI');
+
+    if (itemsToUpdate.length > 0) {
+        db.collection("sterilization_batches").add({
+            tenant_id: CURRENT_TENANT, batch_type: 'RUA', batchId: itemsToUpdate[0].batchId,
+            loaiRua: itemsToUpdate[0].loaiRua, chuKy: itemsToUpdate[0].chuKy,
+            testDoSach: testResult, thoiGian: new Date().toLocaleString('vi-VN'),
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+    alert("✅ Đã nghiệm thu đạt mẻ rửa!");
+}
+
+function tuChoiMeRuaHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-rua:checked');
+    if (checkedInps.length === 0) return;
+    let itemsToUpdate = Array.from(checkedInps).map(c => globalData.dangRua[parseInt(c.getAttribute('data-idx'))]);
+    updateMams(itemsToUpdate, 'CHO_RUA');
+    alert("🔴 Đã trả các mâm về Hàng Đợi Rửa!");
+}
+
+function xacNhanMeHap() {
+    const checkedInps = document.querySelectorAll('.chk-hap-item:checked');
+    if (checkedInps.length === 0) { alert("⚠️ Vui lòng chọn ít nhất một bộ dụng cụ để hấp!"); return; }
+
+    const batchId = document.getElementById('hap_batchId').value || `H${Date.now()}`;
+    const loaiHap = document.getElementById('hap_loaiHap').value;
+    const maySo = document.getElementById('hap_maySo').value;
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx')));
+    let itemsToUpdate = selectedIndices.map(idx => globalData.choHap[idx]);
+
+    itemsToUpdate.forEach(item => {
+        item.maLoHap = batchId; item.loaiHap = loaiHap; item.maySo = maySo;
+        item.nhanSuHap = currentUser.nvName;
+        item.timestampBatDauHap = Date.now();
+        ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: item.khoa, trangThai: `ĐANG HẤP TIỆT TRÙNG (${loaiHap})`, maLoHap: batchId });
+    });
+    updateMams(itemsToUpdate, 'DANG_HAP');
+    alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp: ${batchId}!`);
+}
+
+function moPopupNghiemThuQC() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
+    if (checkedInps.length === 0) {
+        alert("⚠️ Vui lòng tick chọn ít nhất một mâm để nghiệm thu mẻ hấp!");
+        return;
+    }
+
+    const selectedIndices = Array.from(checkedInps).map(c => parseInt(c.getAttribute('data-idx')));
+    const firstItem = (globalData.dangHap || [])[selectedIndices[0]] || {};
+    
+    currentQCBatchData = {
+        indices: selectedIndices,
+        batchId: firstItem.maLoHap || 'H001',
+        maySo: firstItem.maySo || (document.getElementById('hap_maySo')?.value || 'Lò Hấp Steam #1'),
+        loaiHap: firstItem.loaiHap || (document.getElementById('hap_loaiHap')?.value || 'Hấp hơi nước')
+    };
+
+    const pop = document.getElementById('popupNghiemThuChatLuong');
+    const popSub = document.getElementById('qc_pop_sub');
+    const ktvName = document.getElementById('qc_ktv_name');
+    const fileInp = document.getElementById('qc_fileAnhBangIn');
+    const previewZone = document.getElementById('qc_preview_zone');
+
+    if (popSub) popSub.innerText = `Mã mẻ: ${currentQCBatchData.batchId} | ${currentQCBatchData.maySo} (${currentQCBatchData.loaiHap})`;
+    if (ktvName) ktvName.innerText = `${currentUser.nvName} (${currentUser.role})`;
+    if (fileInp) fileInp.value = '';
+    if (previewZone) previewZone.classList.add('hidden');
+    currentQCEvidenceImage = null;
+
+    taoMaBamSHA256(currentQCBatchData.batchId + Date.now()).then(hash => {
+        const hashEl = document.getElementById('qc_hash_preview');
+        if (hashEl) hashEl.innerText = `SHA256: ${hash}...`;
+    });
+
+    if (fileInp) {
+        fileInp.onchange = function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    currentQCEvidenceImage = evt.target.result;
+                    const imgEl = document.getElementById('qc_img_preview');
+                    if (imgEl) imgEl.src = currentQCEvidenceImage;
+                    if (previewZone) previewZone.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+    }
+
+    if (pop) pop.classList.remove('hidden');
+}
+
+function dongPopupNghiemThuQC() {
+    document.getElementById('popupNghiemThuChatLuong')?.classList.add('hidden');
+    currentQCBatchData = null;
+    currentQCEvidenceImage = null;
+}
+
+async function luuNghiemThuQCVaNhapKho() {
+    if (!currentQCBatchData || !currentQCBatchData.indices) return;
+
+    const nhietDo = document.getElementById('qc_nhietDo')?.value || '134';
+    const apSuat = document.getElementById('qc_apSuat')?.value || '2.1';
+    const thoiGianGiu = document.getElementById('qc_thoiGianGiu')?.value || '5';
+    const bowieDick = document.getElementById('qc_testBowieDick')?.value || 'ĐẠT';
+    const ciTest = document.getElementById('qc_testCI')?.value || 'ĐẠT';
+    const biTest = document.getElementById('qc_testBI')?.value || 'ĐẠT (-)';
+
+    if (bowieDick !== 'ĐẠT' || ciTest !== 'ĐẠT') {
+        if (!confirm("⚠️ CẢNH BÁO: Chỉ thị kiểm tra chưa ĐẠT! Bạn có chắc chắn muốn phát hành mẻ này?")) return;
+    }
+
+    const shaHash = await taoMaBamSHA256(`${currentQCBatchData.batchId}_${nhietDo}_${apSuat}_${Date.now()}`);
+    let itemsToUpdate = currentQCBatchData.indices.map(idx => globalData.dangHap[idx]);
+
+    const soMeHapEntry = {
+        batchId: currentQCBatchData.batchId, maLoHap: currentQCBatchData.batchId, maySo: currentQCBatchData.maySo,
+        nhietDo: `${nhietDo}°C`, apSuat: `${apSuat} Bar`, thoiGianGiu: `${thoiGianGiu} phút`,
+        testBowieDick: bowieDick, testCI: ciTest, testBI: biTest, shaHash: shaHash,
+        anhBangIn: currentQCEvidenceImage || '', ktvNghiemThu: currentUser.nvName,
+        thoiGian: new Date().toLocaleString('vi-VN')
+    };
+
+    itemsToUpdate.forEach(item => {
+        item.viTriKho = "Kệ A1 - Ô 02";
+        item.qcDetails = soMeHapEntry;
+        item.kpiBiStatus = item.timestampBatDauHap && Math.round((Date.now() - item.timestampBatDauHap) / 60000) > 30 ? "TRỄ (>30m)" : "ĐẠT (<30m)";
+        ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: item.khoa, trangThai: `NHẬP KHO VÔ KHUẨN (QC: ${shaHash})`, maLoHap: item.maLoHap || currentQCBatchData.batchId, qcHash: shaHash });
+    });
+
+    updateMams(itemsToUpdate, 'VO_KHUAN');
+    db.collection("sterilization_batches").doc(`${CURRENT_TENANT}_${currentQCBatchData.batchId}`).set({ ...soMeHapEntry, tenant_id: CURRENT_TENANT, batch_type: 'HAP', timestamp: firebase.firestore.FieldValue.serverTimestamp() });
+
+    dongPopupNghiemThuQC();
+    alert(`🎉 ĐÃ LƯU BẰNG CHỨNG SỐ & NHẬP KHO THÀNH CÔNG!\n- Mã băm toàn vẹn: ${shaHash}`);
+}
+
+function tuChoiHapHangLoat() {
+    const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
+    if (checkedInps.length === 0) return;
+    let itemsToUpdate = Array.from(checkedInps).map(c => globalData.dangHap[parseInt(c.getAttribute('data-idx'))]);
+    updateMams(itemsToUpdate, 'CHO_HAP');
+    alert("🔴 Đã trả các mâm về Hàng Đợi Hấp!");
+}
+
+function xuatKhoDungCu(idx) {
+    const item = globalData.khoVoKhuan[idx];
+    if (!item) return;
+    updateMams([item], 'DA_XUAT');
+    ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: item.khoa || 'Khoa Lâm Sàng', trangThai: 'XUẤT KHO VỀ KHOA', maLoHap: item.maLoHap || item.batchId || '---' });
+    alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa!`);
+}
+
+function moPopupKiemDemThuGom(idPhieu) {
+    currentKiemDemIndex = globalData.phieuTra.findIndex(p => p.id === idPhieu);
+    const phieu = globalData.phieuTra[currentKiemDemIndex];
+    if (!phieu) return;
+
+    document.getElementById('popDG_Bo').innerText = `LỆNH THU GOM: ${(phieu.items || []).length} MÂM DỤNG CỤ`;
+    document.getElementById('popKhoa').innerText = phieu.khoa;
+
+    document.getElementById('popKiemDemChecklist').innerHTML = (phieu.items || []).map((it) => `
+        <div class="p-2.5 bg-slate-50 rounded-lg flex justify-between items-center text-xs">
+            <div>
+                <span class="font-mono font-bold text-sky-700 mr-2">${it.maBo}</span>
+                <span class="font-semibold text-slate-800">${it.tenBo}</span>
+            </div>
+            <label class="flex items-center gap-1.5 text-emerald-700 font-bold cursor-pointer">
+                <input type="checkbox" checked class="w-4 h-4 rounded text-emerald-600"> Đủ Linh Kiện
+            </label>
+        </div>
+    `).join('');
+
+    document.getElementById('popupKiemDem').classList.remove('hidden');
+}
+
+function closePopupKiemDem() { document.getElementById('popupKiemDem')?.classList.add('hidden'); }
+
+function saveKiemDem() {
+    const phieuHienTai = globalData.phieuTra[currentKiemDemIndex];
+    if (phieuHienTai && phieuHienTai.items) {
+        db.collection("phieu_tra").doc(phieuHienTai.id).delete();
+        phieuHienTai.items.forEach(item => {
+            item.khoa = phieuHienTai.khoa;
+            item.thoiGianThuGom = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            item.nhanSuThuGom = currentUser.nvName;
+            ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: phieuHienTai.khoa, trangThai: 'ĐÃ THU GOM VỀ CSSD', maLoHap: '---' });
+        });
+        updateMams(phieuHienTai.items, 'CHO_RUA');
+    }
+    closePopupKiemDem();
+    alert("✅ Đã chốt kiểm đếm đối soát thành công!");
+}
+
+function themVaoGio() {
+    const inp = document.getElementById('khoa_inpMaBo');
+    const selKhoa = document.getElementById('khoa_selKhoa');
+    if (!inp || !inp.value.trim()) return;
+
+    gioHangTraTam.push({
+        maBo: inp.value.trim().toUpperCase(),
+        tenBo: "Mâm Dụng Cụ Bẩn",
+        khoa: selKhoa?.value || "PHÒNG SANH - CẤP CỨU SẢN"
+    });
+    renderGioHangTam();
+    inp.value = '';
+}
+
+function renderGioHangTam() {
+    const khuvuc = document.getElementById('khuVucGioHang');
+    const tbody = document.getElementById('bangGioHang');
+    const badge = document.getElementById('badgeGioHang');
+
+    if (khuvuc) khuvuc.classList.remove('hidden');
+    if (badge) badge.innerText = `${gioHangTraTam.length} món`;
+
+    if (tbody) {
+        tbody.innerHTML = gioHangTraTam.map((item, idx) => `
+            <tr class="border-b text-xs">
+                <td class="p-2 font-mono font-bold text-sky-700">${item.maBo}</td>
+                <td class="p-2 font-semibold">${item.tenBo}</td>
+                <td class="p-2 text-right">
+                    <button type="button" onclick="gioHangTraTam.splice(${idx},1); renderGioHangTam();" class="text-rose-600 hover:text-rose-800 p-1">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function khoaGuiPhieuTraBatches() {
+    if (gioHangTraTam.length === 0) { alert("⚠️ Giỏ hàng báo trả đang trống!"); return; }
+
+    const selKhoa = document.getElementById('khoa_selKhoa');
+    let tenKhoa = selKhoa && selKhoa.value ? selKhoa.value : (gioHangTraTam[0].khoa || "PHÒNG SANH - CẤP CỨU SẢN");
+
+    const newPhieu = {
+        id: `PGN_${Date.now()}`,
+        tenant_id: CURRENT_TENANT,
+        khoa: tenKhoa,
+        items: [...gioHangTraTam],
+        thoiGian: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+        nhanSu: currentUser.nvName,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection("phieu_tra").doc(newPhieu.id).set(newPhieu);
+    newPhieu.items.forEach(it => {
+        ghiNhatKyFirebase({ maBo: it.maBo, tenBo: it.tenBo, khoa: tenKhoa, trangThai: 'KHOA BÁO TRẢ ĐỒ BẨN', maLoHap: '---' });
+    });
+
+    gioHangTraTam = []; renderGioHangTam();
+    alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn!`);
+}
+
+function capNhatDanhSachMaMayRua() {
+    const loaiEl = document.getElementById('rua_loaiRua');
+    const maySoEl = document.getElementById('rua_maySo');
+    if (!loaiEl || !maySoEl) return;
+    const val = loaiEl.value;
+    if (val.includes("tự động")) maySoEl.innerHTML = `<option value="Belimed WD250 #1">Belimed WD250 #1</option><option value="Belimed WD250 #2">Belimed WD250 #2</option>`;
+    else if (val.includes("siêu âm")) maySoEl.innerHTML = `<option value="Sonic Washer #1">Sonic Washer #1</option>`;
+    else maySoEl.innerHTML = `<option value="Bồn Rửa Tay 01">Bồn Rửa Thủ Công #1</option>`;
+    tuDongTaoMaLoMeRua();
+}
+
+function tuDongTaoMaLoMeRua() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('rua_batchId');
+    const meInp = document.getElementById('rua_meSo');
+    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `R${today}_01`; }
+}
+
+function capNhatDanhSachMaMay() {
+    const loaiEl = document.getElementById('hap_loaiHap');
+    const maySoEl = document.getElementById('hap_maySo');
+    if (!loaiEl || !maySoEl) return;
+    const val = loaiEl.value;
+    if (val.includes("hơi nước") || val.includes("Steam")) maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>`;
+    else if (val.includes("Plasma") || val.includes("H2O2")) maySoEl.innerHTML = `<option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>`;
+    else if (val.includes("EO")) maySoEl.innerHTML = `<option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>`;
+    else maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>`;
+    tuDongTaoMaLoMeHap();
+}
+
+function tuDongTaoMaLoMeHap() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('hap_batchId');
+    const meInp = document.getElementById('hap_meSo');
+    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `H${today}_01`; }
+}
+
 function moModalXemAnhCauHinh() { document.getElementById('popupXemAnhCauHinh')?.classList.remove('hidden'); }
 function dongModalXemAnhCauHinh() { document.getElementById('popupXemAnhCauHinh')?.classList.add('hidden'); }
 function moPopupThuHoiKhanCap() { document.getElementById('popupThuHoi')?.classList.remove('hidden'); }
 function dongPopupThuHoi() { document.getElementById('popupThuHoi')?.classList.add('hidden'); }
 
 // =========================================================================
-// 6. KHỞI TẠO DOM
+// 8. KHỞI TẠO DOM CONTENT LOADED
 // =========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
+    capNhatDanhSachMaMayRua();
+    capNhatDanhSachMaMay();
+    tuDongTaoMaLoMeRua();
+    tuDongTaoMaLoMeHap();
 });
