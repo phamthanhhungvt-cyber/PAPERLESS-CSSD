@@ -1195,4 +1195,33 @@ function dongPopupThuHoi() { document.getElementById('popupThuHoi')?.classList.a
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
+   // =========================================================================
+// CHUYỂN SUBTAB TRONG QUẢN TRỊ HỆ THỐNG
+// =========================================================================
+function switchAdminSubtab(subtab) {
+    const subDb = document.getElementById('subtab-database');
+    const subSec = document.getElementById('subtab-security');
+    const btnDb = document.getElementById('subbtn-database');
+    const btnSec = document.getElementById('subbtn-security');
+
+    if (subDb) subDb.classList.toggle('hidden', subtab !== 'database');
+    if (subSec) subSec.classList.toggle('hidden', subtab !== 'security');
+
+    if (btnDb) {
+        btnDb.classList.toggle('admin-subtab-active', subtab === 'database');
+        btnDb.classList.toggle('text-sky-600', subtab === 'database');
+        btnDb.classList.toggle('border-b-2', subtab === 'database');
+        btnDb.classList.toggle('border-sky-600', subtab === 'database');
+    }
+    if (btnSec) {
+        btnSec.classList.toggle('admin-subtab-active', subtab === 'security');
+        btnSec.classList.toggle('text-sky-600', subtab === 'security');
+        btnSec.classList.toggle('border-b-2', subtab === 'security');
+        btnSec.classList.toggle('border-sky-600', subtab === 'security');
+    }
+
+    if (subtab === 'security') {
+        renderDanhSachPinAdmin();
+    }
+}
 });
