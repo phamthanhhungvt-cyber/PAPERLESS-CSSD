@@ -1761,7 +1761,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCanvasKyDienTu();
     initGlobalBarcodeScanner();
     initDashboardTVClock();
-})
+});
    // =========================================================================
 // HÀM ĐỌC FILE EXCEL VÀ WORD (BỊ THIẾU)
 // =========================================================================
