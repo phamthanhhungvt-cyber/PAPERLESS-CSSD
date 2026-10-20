@@ -1195,7 +1195,7 @@ function dongPopupThuHoi() { document.getElementById('popupThuHoi')?.classList.a
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
-   // =========================================================================
+// =========================================================================
 // CHUYỂN SUBTAB TRONG QUẢN TRỊ HỆ THỐNG
 // =========================================================================
 function switchAdminSubtab(subtab) {
