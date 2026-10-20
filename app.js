@@ -605,7 +605,7 @@ function renderBangChoThuGom() {
                 <div class="space-y-1">
                     ${(phieu?.items || []).map(it => `
                         <span class="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-mono mr-1">
-                            <strong>${it?.maBo \vert{}\vert{} ''}</strong> -${it?.tenBo || ''}
+                            <strong>${it?.maBo || ''}</strong> -${it?.tenBo || ''}
                         </span>
                     `).join('')}
                 </div>
