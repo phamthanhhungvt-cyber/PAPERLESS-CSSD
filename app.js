@@ -1,6 +1,6 @@
 /* =========================================================================
    HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL
-   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 5.2.1 - SYNTAX CLEANED)
+   FILE ĐIỀU KHIỂN CHÍNH: app.js (VERSION 5.2.5 - GLOBAL EXPORT FIX)
    ========================================================================= */
 
 // BIẾN ĐỊNH DANH SAAS (MULTI-TENANT)
@@ -8,7 +8,7 @@ const CURRENT_TENANT = "PHUONGNAM_01";
 
 // 1. CẤU HÌNH FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx",
+    apiKey: "AIzaSyB-xxxxxxxxxxxxxxxxxxxxxxxxx", // Giữ API key của bạn
     authDomain: "cssd-system-2878c.firebaseapp.com",
     projectId: "cssd-system-2878c",
     storageBucket: "cssd-system-2878c.appspot.com",
@@ -96,7 +96,7 @@ const ALL_SYSTEM_TABS = [
 ];
 
 // =========================================================================
-// 3. ĐIỀU HƯỚNG TAB CHÍNH
+// 3. ĐIỀU HƯỚNG TAB & SUBTAB QUẢN TRỊ (GẮN VÀO WINDOW ĐẢM BẢO HTML GỌI ĐƯỢC)
 // =========================================================================
 function switchTab(tabId) {
     currentTab = tabId;
@@ -132,6 +132,35 @@ function switchTab(tabId) {
         toggleMobileMenu();
     }
 }
+window.switchTab = switchTab;
+
+function switchAdminSubtab(subtab) {
+    const subDb = document.getElementById('subtab-database');
+    const subSec = document.getElementById('subtab-security');
+    const btnDb = document.getElementById('subbtn-database');
+    const btnSec = document.getElementById('subbtn-security');
+
+    if (subDb) subDb.classList.toggle('hidden', subtab !== 'database');
+    if (subSec) subSec.classList.toggle('hidden', subtab !== 'security');
+
+    if (btnDb) {
+        btnDb.classList.toggle('admin-subtab-active', subtab === 'database');
+        btnDb.classList.toggle('text-sky-600', subtab === 'database');
+        btnDb.classList.toggle('border-b-2', subtab === 'database');
+        btnDb.classList.toggle('border-sky-600', subtab === 'database');
+    }
+    if (btnSec) {
+        btnSec.classList.toggle('admin-subtab-active', subtab === 'security');
+        btnSec.classList.toggle('text-sky-600', subtab === 'security');
+        btnSec.classList.toggle('border-b-2', subtab === 'security');
+        btnSec.classList.toggle('border-sky-600', subtab === 'security');
+    }
+
+    if (subtab === 'security') {
+        renderDanhSachPinAdmin();
+    }
+}
+window.switchAdminSubtab = switchAdminSubtab;
 
 function toggleMobileMenu() {
     const sidebar = document.getElementById('sidebar_menu');
@@ -139,6 +168,7 @@ function toggleMobileMenu() {
     if (sidebar) sidebar.classList.toggle('-translate-x-full');
     if (overlay) overlay.classList.toggle('hidden');
 }
+window.toggleMobileMenu = toggleMobileMenu;
 
 // =========================================================================
 // 4. XÁC THỰC VÀ MA TRẬN PHÂN QUYỀN
@@ -192,6 +222,7 @@ function checkLogin() {
 
     apDungPhanQuyenGiaoDien(foundUser);
 }
+window.checkLogin = checkLogin;
 
 function apDungPhanQuyenGiaoDien(userConfig) {
     const allMenuIds = ['khoaphong', 'thugom', 'mayrua', 'donggoi', 'mayhap', 'khovokhuan', 'quanlykho', 'danhmuc', 'lichsuluanchuyen', 'tracuu', 'performance', 'dashboard_tv', 'admin'];
@@ -237,6 +268,7 @@ function toggleLoginFields() {
     if (fieldKhoa) fieldKhoa.classList.toggle('hidden', role !== 'KHOA');
     if (fieldNv) fieldNv.classList.toggle('hidden', role !== 'CSSD');
 }
+window.toggleLoginFields = toggleLoginFields;
 
 function renderDanhSachPinAdmin() {
     const tbody = document.getElementById('bangCauHinhPinAdmin');
@@ -285,6 +317,7 @@ function renderDanhSachPinAdmin() {
         `;
     }).join('');
 }
+window.renderDanhSachPinAdmin = renderDanhSachPinAdmin;
 
 function luuPhanQuyenNhanSu(ktvId) {
     const targetKtv = (globalData.ktvList || []).find(k => k.id === ktvId);
@@ -318,6 +351,7 @@ function luuPhanQuyenNhanSu(ktvId) {
         alert(`🔑 Đã lưu ma trận quyền offline cho [${targetKtv.name}]!`);
     }
 }
+window.luuPhanQuyenNhanSu = luuPhanQuyenNhanSu;
 
 function themNhanSuMoiAdmin() {
     const nameInp = document.getElementById('admin_add_nv_name');
@@ -355,9 +389,10 @@ function themNhanSuMoiAdmin() {
     nameInp.value = ''; idInp.value = ''; if (pinInp) pinInp.value = '';
     alert("➕ Đã thêm nhân sự và cập nhật lên Cloud thành công!");
 }
+window.themNhanSuMoiAdmin = themNhanSuMoiAdmin;
 
 // =========================================================================
-// 5. CƠ SỞ DỮ LIỆU VÀ LẮNG NGHE REALTIME FIRESTORE
+// 5. CƠ SỞ DỮ LIỆU & FIRESTORE REALTIME
 // =========================================================================
 function docDuLieuLuuTruLocalStorage() {
     try {
@@ -391,7 +426,6 @@ function initRealtimeListeners() {
                     globalData.ktvList = data.ktvList;
                     localStorage.setItem('cssd_ktvList', JSON.stringify(globalData.ktvList));
                     renderDanhSachPinAdmin();
-                    console.log("⚡ [RBAC] Đã cập nhật ma trận phân quyền từ Firestore Cloud!");
                 }
             }
         }, (err) => console.warn("Lỗi đọc phân quyền Cloud:", err));
@@ -497,7 +531,7 @@ function ghiNhatKyFirebase(dataAction) {
 }
 
 // =========================================================================
-// 6. CÁC HÀM RENDER CHI TIẾT
+// 6. CÁC HÀM RENDER BẢNG GIAO DIỆN
 // =========================================================================
 function capNhatGiaoDienSauKhiNapExcel() {
     const selectIds = ['login_khoa', 'khoa_selKhoa', 'filterKhoaThuGom', 'inv_filterKhoa'];
@@ -571,7 +605,7 @@ function renderBangChoThuGom() {
                 <div class="space-y-1">
                     ${(phieu?.items || []).map(it => `
                         <span class="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] font-mono mr-1">
-                           <strong>${it?.maBo || ''}</strong> -${it?.tenBo || ''}
+                            <strong>${it?.maBo \vert{}\vert{} ''}</strong> -${it?.tenBo || ''}
                         </span>
                     `).join('')}
                 </div>
@@ -859,12 +893,14 @@ function moPopupDongGoi(idx) {
     tinhHanSuDung();
     if (pop) pop.classList.remove('hidden');
 }
+window.moPopupDongGoi = moPopupDongGoi;
 
 function closePopupDongGoi() {
     const pop = document.getElementById('popupDongGoi');
     if (pop) pop.classList.add('hidden');
     itemDongGoiHienTai = null;
 }
+window.closePopupDongGoi = closePopupDongGoi;
 
 function tinhHanSuDung() {
     const loaiEl = document.getElementById('popDG_Loai');
@@ -874,6 +910,7 @@ function tinhHanSuDung() {
     const future = new Date(); future.setDate(future.getDate() + days);
     hanEl.innerText = future.toLocaleDateString('vi-VN');
 }
+window.tinhHanSuDung = tinhHanSuDung;
 
 async function chotDongGoi() {
     if (itemDongGoiHienTai === null || !globalData.choDongGoi[itemDongGoiHienTai]) return;
@@ -889,6 +926,7 @@ async function chotDongGoi() {
     alert("✅ Đóng gói thành công! Dụng cụ đã tự động chuyển sang Trạm Hấp.");
     closePopupDongGoi();
 }
+window.chotDongGoi = chotDongGoi;
 
 function xacNhanMeRua() {
     const checkedInps = document.querySelectorAll('.chk-rua-item:checked');
@@ -909,6 +947,7 @@ function xacNhanMeRua() {
     updateMams(itemsToUpdate, 'DANG_RUA');
     alert(`🚀 Đã kích hoạt mẻ rửa ${batchId}!`);
 }
+window.xacNhanMeRua = xacNhanMeRua;
 
 function duyetSachMeRuaHangLoat() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-rua:checked');
@@ -935,6 +974,7 @@ function duyetSachMeRuaHangLoat() {
     }
     alert("✅ Đã nghiệm thu đạt mẻ rửa!");
 }
+window.duyetSachMeRuaHangLoat = duyetSachMeRuaHangLoat;
 
 function tuChoiMeRuaHangLoat() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-rua:checked');
@@ -943,6 +983,7 @@ function tuChoiMeRuaHangLoat() {
     updateMams(itemsToUpdate, 'CHO_RUA');
     alert("🔴 Đã trả các mâm về Hàng Đợi Rửa!");
 }
+window.tuChoiMeRuaHangLoat = tuChoiMeRuaHangLoat;
 
 function xacNhanMeHap() {
     const checkedInps = document.querySelectorAll('.chk-hap-item:checked');
@@ -964,6 +1005,7 @@ function xacNhanMeHap() {
     updateMams(itemsToUpdate, 'DANG_HAP');
     alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp: ${batchId}!`);
 }
+window.xacNhanMeHap = xacNhanMeHap;
 
 function moPopupNghiemThuQC() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
@@ -1017,12 +1059,14 @@ function moPopupNghiemThuQC() {
 
     if (pop) pop.classList.remove('hidden');
 }
+window.moPopupNghiemThuQC = moPopupNghiemThuQC;
 
 function dongPopupNghiemThuQC() {
     document.getElementById('popupNghiemThuChatLuong')?.classList.add('hidden');
     currentQCBatchData = null;
     currentQCEvidenceImage = null;
 }
+window.dongPopupNghiemThuQC = dongPopupNghiemThuQC;
 
 async function luuNghiemThuQCVaNhapKho() {
     if (!currentQCBatchData || !currentQCBatchData.indices) return;
@@ -1062,6 +1106,7 @@ async function luuNghiemThuQCVaNhapKho() {
     dongPopupNghiemThuQC();
     alert(`🎉 ĐÃ LƯU BẰNG CHỨNG SỐ & NHẬP KHO THÀNH CÔNG!\n- Mã băm toàn vẹn: ${shaHash}`);
 }
+window.luuNghiemThuQCVaNhapKho = luuNghiemThuQCVaNhapKho;
 
 function tuChoiHapHangLoat() {
     const checkedInps = document.querySelectorAll('.chk-nghiemthu-hap:checked');
@@ -1070,6 +1115,7 @@ function tuChoiHapHangLoat() {
     updateMams(itemsToUpdate, 'CHO_HAP');
     alert("🔴 Đã trả các mâm về Hàng Đợi Hấp!");
 }
+window.tuChoiHapHangLoat = tuChoiHapHangLoat;
 
 function xuatKhoDungCu(idx) {
     const item = globalData.khoVoKhuan[idx];
@@ -1078,6 +1124,7 @@ function xuatKhoDungCu(idx) {
     ghiNhatKyFirebase({ maBo: item.maBo, tenBo: item.tenBo, khoa: item.khoa || 'Khoa Lâm Sàng', trangThai: 'XUẤT KHO VỀ KHOA', maLoHap: item.maLoHap || item.batchId || '---' });
     alert(`📦 Đã xuất mâm [${item.tenBo}] cho Khoa!`);
 }
+window.xuatKhoDungCu = xuatKhoDungCu;
 
 function moPopupKiemDemThuGom(idPhieu) {
     currentKiemDemIndex = typeof idPhieu === 'number' ? idPhieu : globalData.phieuTra.findIndex(p => p.id === idPhieu);
@@ -1101,8 +1148,10 @@ function moPopupKiemDemThuGom(idPhieu) {
 
     document.getElementById('popupKiemDem').classList.remove('hidden');
 }
+window.moPopupKiemDemThuGom = moPopupKiemDemThuGom;
 
 function closePopupKiemDem() { document.getElementById('popupKiemDem')?.classList.add('hidden'); }
+window.closePopupKiemDem = closePopupKiemDem;
 
 function saveKiemDem() {
     const phieuHienTai = globalData.phieuTra[currentKiemDemIndex];
@@ -1121,6 +1170,7 @@ function saveKiemDem() {
     closePopupKiemDem();
     alert("✅ Đã chốt kiểm đếm đối soát thành công!");
 }
+window.saveKiemDem = saveKiemDem;
 
 function themVaoGio() {
     const inp = document.getElementById('khoa_inpMaBo');
@@ -1135,6 +1185,7 @@ function themVaoGio() {
     renderGioHangTam();
     inp.value = '';
 }
+window.themVaoGio = themVaoGio;
 
 function renderGioHangTam() {
     const khuvuc = document.getElementById('khuVucGioHang');
@@ -1158,6 +1209,7 @@ function renderGioHangTam() {
         `).join('');
     }
 }
+window.renderGioHangTam = renderGioHangTam;
 
 function khoaGuiPhieuTraBatches() {
     if (gioHangTraTam.length === 0) { alert("⚠️ Giỏ hàng báo trả đang trống!"); return; }
@@ -1183,11 +1235,60 @@ function khoaGuiPhieuTraBatches() {
     gioHangTraTam = []; renderGioHangTam();
     alert(`🚀 THÀNH CÔNG! Đã phát lệnh báo trả ${newPhieu.items.length} bộ dụng cụ bẩn!`);
 }
+window.khoaGuiPhieuTraBatches = khoaGuiPhieuTraBatches;
+
+function capNhatDanhSachMaMayRua() {
+    const loaiEl = document.getElementById('rua_loaiRua');
+    const maySoEl = document.getElementById('rua_maySo');
+    if (!loaiEl || !maySoEl) return;
+    const val = loaiEl.value;
+    if (val.includes("tự động")) maySoEl.innerHTML = `<option value="Belimed WD250 #1">Belimed WD250 #1</option><option value="Belimed WD250 #2">Belimed WD250 #2</option>`;
+    else if (val.includes("siêu âm")) maySoEl.innerHTML = `<option value="Sonic Washer #1">Sonic Washer #1</option>`;
+    else maySoEl.innerHTML = `<option value="Bồn Rửa Tay 01">Bồn Rửa Thủ Công #1</option>`;
+    tuDongTaoMaLoMeRua();
+}
+window.capNhatDanhSachMaMayRua = capNhatDanhSachMaMayRua;
+
+function tuDongTaoMaLoMeRua() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('rua_batchId');
+    const meInp = document.getElementById('rua_meSo');
+    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `R${today}_01`; }
+}
+window.tuDongTaoMaLoMeRua = tuDongTaoMaLoMeRua;
+
+function capNhatDanhSachMaMay() {
+    const loaiEl = document.getElementById('hap_loaiHap');
+    const maySoEl = document.getElementById('hap_maySo');
+    if (!loaiEl || !maySoEl) return;
+    const val = loaiEl.value;
+    if (val.includes("hơi nước") || val.includes("Steam")) maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1 (Nhiệt Độ Cao)</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2 (Nhiệt Độ Cao)</option>`;
+    else if (val.includes("Plasma") || val.includes("H2O2")) maySoEl.innerHTML = `<option value="Lò Hấp H2O2 Plasma #1">Lò Hấp H2O2 Plasma #1 (Nhiệt Độ Thấp)</option>`;
+    else if (val.includes("EO")) maySoEl.innerHTML = `<option value="Máy EO #1">Máy Tiệt Trùng EO #1</option>`;
+    else maySoEl.innerHTML = `<option value="Lò Hấp Steam #1">Lò Hấp Steam #1</option><option value="Lò Hấp Steam #2">Lò Hấp Steam #2</option>`;
+    tuDongTaoMaLoMeHap();
+}
+window.capNhatDanhSachMaMay = capNhatDanhSachMaMay;
+
+function tuDongTaoMaLoMeHap() {
+    const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+    const batchInp = document.getElementById('hap_batchId');
+    const meInp = document.getElementById('hap_meSo');
+    if (batchInp && meInp) { meInp.value = "01"; batchInp.value = `H${today}_01`; }
+}
+window.tuDongTaoMaLoMeHap = tuDongTaoMaLoMeHap;
 
 function moModalXemAnhCauHinh() { document.getElementById('popupXemAnhCauHinh')?.classList.remove('hidden'); }
+window.moModalXemAnhCauHinh = moModalXemAnhCauHinh;
+
 function dongModalXemAnhCauHinh() { document.getElementById('popupXemAnhCauHinh')?.classList.add('hidden'); }
+window.dongModalXemAnhCauHinh = dongModalXemAnhCauHinh;
+
 function moPopupThuHoiKhanCap() { document.getElementById('popupThuHoi')?.classList.remove('hidden'); }
+window.moPopupThuHoiKhanCap = moPopupThuHoiKhanCap;
+
 function dongPopupThuHoi() { document.getElementById('popupThuHoi')?.classList.add('hidden'); }
+window.dongPopupThuHoi = dongPopupThuHoi;
 
 // =========================================================================
 // 8. KHỞI TẠO DOM CONTENT LOADED
@@ -1195,33 +1296,8 @@ function dongPopupThuHoi() { document.getElementById('popupThuHoi')?.classList.a
 document.addEventListener('DOMContentLoaded', () => {
     docDuLieuLuuTruLocalStorage();
     initRealtimeListeners();
-// =========================================================================
-// CHUYỂN SUBTAB TRONG QUẢN TRỊ HỆ THỐNG
-// =========================================================================
-function switchAdminSubtab(subtab) {
-    const subDb = document.getElementById('subtab-database');
-    const subSec = document.getElementById('subtab-security');
-    const btnDb = document.getElementById('subbtn-database');
-    const btnSec = document.getElementById('subbtn-security');
-
-    if (subDb) subDb.classList.toggle('hidden', subtab !== 'database');
-    if (subSec) subSec.classList.toggle('hidden', subtab !== 'security');
-
-    if (btnDb) {
-        btnDb.classList.toggle('admin-subtab-active', subtab === 'database');
-        btnDb.classList.toggle('text-sky-600', subtab === 'database');
-        btnDb.classList.toggle('border-b-2', subtab === 'database');
-        btnDb.classList.toggle('border-sky-600', subtab === 'database');
-    }
-    if (btnSec) {
-        btnSec.classList.toggle('admin-subtab-active', subtab === 'security');
-        btnSec.classList.toggle('text-sky-600', subtab === 'security');
-        btnSec.classList.toggle('border-b-2', subtab === 'security');
-        btnSec.classList.toggle('border-sky-600', subtab === 'security');
-    }
-
-    if (subtab === 'security') {
-        renderDanhSachPinAdmin();
-    }
-}
+    capNhatDanhSachMaMayRua();
+    capNhatDanhSachMaMay();
+    tuDongTaoMaLoMeRua();
+    tuDongTaoMaLoMeHap();
 });
