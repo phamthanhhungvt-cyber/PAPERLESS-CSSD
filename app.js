@@ -571,7 +571,14 @@ window.chotDongGoi = function() {
 window.xacNhanMeHap = function() {
     const checked = Array.from(document.querySelectorAll('.chk-hap-item:checked')).map(c => globalData.choHap[parseInt(c.getAttribute('data-idx'))]);
     if (checked.length === 0) return alert("⚠️ Vui lòng chọn dụng cụ để hấp!");
-    const batchId = document.getElementById('hap_batchId').value || `H${Date.now()}`;
+    
+    // Ép tạo mã theo định dạng ngày (YYMMDD_01) nếu ô bị trống
+    let batchId = document.getElementById('hap_batchId').value;
+    if (!batchId) {
+        const today = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+        batchId = `H${today}_01`;
+    }
+
     checked.forEach(item => { item.maLoHap = batchId; });
     updateMams(checked, 'DANG_HAP');
     alert(`🔥 Đã khởi động mẻ tiệt trùng lò hấp: ${batchId}!`);
