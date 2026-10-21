@@ -30,13 +30,13 @@
     <!-- FontAwesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
     
-    <!-- Firebase SDK (v8) - Đầy đủ App, Auth, App-Check và Firestore -->
+    <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-check.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <!-- Thư viện quét mã Barcode, QR Code & File Master (SheetJS XLSX, Mammoth Word) -->
+    <!-- Thư viện quét mã Barcode, QR Code & File Master -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -45,7 +45,6 @@
     <!-- Kích hoạt reCAPTCHA v3 cho Firebase App Check -->
     <script src="https://www.google.com/recaptcha/api.js?render=6LeynPEtAAAAAEalPBsXM_2XwUjMv482Oyjp-oR5"></script>
 
-    <!-- Stylesheet Nội bộ & Print Config -->
     <style>
         @media print {
             html, body {
@@ -56,53 +55,21 @@
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-
-            #main-app, 
-            #login-screen, 
-            #sidebar_menu, 
-            #mobile-overlay, 
-            .action-col, 
-            aside, 
-            button, 
-            input, 
-            select, 
-            .md\:hidden {
+            #main-app, #login-screen, #sidebar_menu, #mobile-overlay, .action-col, aside, button, input, select, .md\:hidden {
                 display: none !important;
             }
-
             #print-zone {
                 display: block !important;
                 width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
-
-            body.print-mode-bixolon @page {
-                size: A4 portrait;
-                margin: 8mm;
-            }
-
-            body.print-mode-doc @page {
-                size: A4 portrait;
-                margin: 15mm;
-            }
-            body.print-mode-doc #print-zone {
-                font-family: 'Inter', 'Times New Roman', serif;
-                color: #000000 !important;
-            }
-            body.print-mode-doc #print-zone table {
-                width: 100% !important;
-                border-collapse: collapse !important;
-                margin-top: 10px !important;
-            }
-            body.print-mode-doc #print-zone th, 
-            body.print-mode-doc #print-zone td {
-                border: 1px solid #000000 !important;
-                padding: 6px 8px !important;
-                font-size: 12px !important;
-            }
+            body.print-mode-bixolon @page { size: A4 portrait; margin: 8mm; }
+            body.print-mode-doc @page { size: A4 portrait; margin: 15mm; }
+            body.print-mode-doc #print-zone { font-family: 'Inter', serif; color: #000000 !important; }
+            body.print-mode-doc #print-zone table { width: 100% !important; border-collapse: collapse !important; margin-top: 10px !important; }
+            body.print-mode-doc #print-zone th, body.print-mode-doc #print-zone td { border: 1px solid #000000 !important; padding: 6px 8px !important; font-size: 12px !important; }
         }
-
         .sidebar-item-active {
             background-color: rgba(51, 65, 85, 0.8) !important;
             border-left: 4px solid #38bdf8 !important;
@@ -118,47 +85,94 @@
 </head>
 <body class="bg-slate-100 font-sans text-slate-700 antialiased min-h-screen">
 
-    <!-- 1. MÀN HÌNH ĐĂNG NHẬP -->
-    <div id="login-screen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 border border-slate-200">
-            <div class="text-center mb-6">
-                <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-sky-50 text-sky-600 mb-3 text-xl border border-sky-100 shadow-sm">
-                    <i class="fa-solid fa-hospital-user"></i>
+    <!-- 1. MÀN HÌNH ĐĂNG NHẬP NÂNG CẤP CHUYÊN NGHIỆP -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 sm:p-10 border border-slate-100 relative overflow-hidden">
+            <!-- Dải màu điểm nhấn phía trên -->
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-sky-500 to-teal-400"></div>
+
+            <!-- Logo & Tiêu đề -->
+            <div class="text-center mb-8 mt-2">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-50 to-slate-50 text-sky-600 mb-4 text-2xl shadow-sm border border-slate-100">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
-                <h1 class="text-xl font-extrabold text-slate-800 tracking-tight uppercase">PHUONG NAM HOSPITAL</h1>
-                <p class="text-[11px] font-bold text-sky-600 uppercase tracking-widest mt-1">Hệ Thống Quản Lý Tiệt Trùng CSSD</p>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Phuong Nam</h1>
+                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] mt-1.5">Hệ Thống Quản Lý Tiệt Trùng CSSD</p>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-5">
+                <!-- Chọn Vai Trò -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Vai trò truy cập</label>
-                    <select id="login_role" onchange="toggleLoginFields()" class="w-full border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
-                        <option value="ADMIN">👑 VAI TRÒ QUẢN TRỊ (ADMIN)</option>
-                        <option value="CSSD">🧪 NHÂN VIÊN VẬN HÀNH CSSD</option>
-                        <option value="KHOA">🏥 ĐIỀU DƯỠNG LÂM SÀNG (KHOA / PHÒNG)</option>
-                        <option value="GUEST">👁️ KHÁCH THAM QUAN (GUEST)</option>
-                    </select>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Vai trò truy cập</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-id-badge"></i>
+                        </div>
+                        <select id="login_role" onchange="toggleLoginFields()" class="w-full border border-slate-200 rounded-xl py-3.5 pl-10 pr-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50 appearance-none transition-all cursor-pointer">
+                            <option value="ADMIN">Quản Trị Hệ Thống (ADMIN)</option>
+                            <option value="CSSD">KTV Vận Hành CSSD</option>
+                            <option value="KHOA">Điều Dưỡng Lâm Sàng (Khoa/Phòng)</option>
+                            <option value="GUEST">Khách Tham Quan (GUEST)</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Chọn Khoa (Bị ẩn mặc định) -->
                 <div id="field_khoa" class="hidden">
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Chọn Khoa / Phòng</label>
-                    <select id="login_khoa" class="w-full border border-slate-300 rounded-xl p-3 text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
-                        <option value="">-- Chọn Khoa --</option>
-                    </select>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Khoa / Phòng trực thuộc</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-hospital-user"></i>
+                        </div>
+                        <select id="login_khoa" class="w-full border border-slate-200 rounded-xl py-3.5 pl-10 pr-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50 appearance-none transition-all cursor-pointer">
+                            <option value="">-- Chọn Khoa --</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Nhập Mã NV (Bị ẩn mặc định) -->
                 <div id="field_nhanvien_cssd" class="hidden">
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Mã Nhân viên CSSD</label>
-                    <input type="text" id="login_nv_id" placeholder="Nhập mã NV (Ví dụ: NV01)" class="w-full border border-slate-300 rounded-xl p-3 text-sm font-mono font-bold uppercase text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Mã định danh KTV</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-user-tag"></i>
+                        </div>
+                        <input type="text" id="login_nv_id" placeholder="VD: NV01" class="w-full border border-slate-200 rounded-xl py-3.5 pl-10 pr-4 text-sm font-mono font-bold uppercase text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50 transition-all">
+                    </div>
                 </div>
 
+                <!-- Nhập PIN -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1.5 uppercase tracking-wide">Mã PIN xác thực</label>
-                    <input type="password" id="login_pass" onkeydown="if(event.key==='Enter') checkLogin()" placeholder="••••••••" class="w-full border border-slate-300 rounded-xl p-3 text-center text-base font-mono font-bold text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
+                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Mã PIN xác thực</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <input type="password" id="login_pass" onkeydown="if(event.key==='Enter') checkLogin()" placeholder="Nhập PIN 4 số" class="w-full border border-slate-200 rounded-xl py-3.5 pl-10 pr-4 text-base tracking-[0.3em] font-mono font-bold text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50 transition-all">
+                    </div>
                 </div>
 
-                <button onclick="checkLogin()" class="w-full bg-sky-600 hover:bg-sky-700 active:scale-[0.99] text-white font-bold py-3 rounded-xl shadow-md text-xs tracking-wider uppercase transition-all mt-2">
-                    Xác Nhận Đăng Nhập
+                <!-- Link hỗ trợ -->
+                <div class="flex justify-between items-center px-1 pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="w-3.5 h-3.5 text-sky-600 border-slate-300 rounded focus:ring-sky-500">
+                        <span class="text-[11px] font-semibold text-slate-500">Lưu phiên</span>
+                    </label>
+                    <button type="button" onclick="alert('Vui lòng liên hệ Admin Khoa CSSD hoặc IT Bệnh viện để cấp lại mã PIN.')" class="text-[11px] font-bold text-sky-600 hover:text-sky-700 hover:underline">
+                        Quên mã PIN?
+                    </button>
+                </div>
+
+                <!-- Nút Submit -->
+                <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-sky-500/30 text-xs tracking-wider uppercase transition-all mt-2 flex justify-center items-center gap-2">
+                    <span>Đăng Nhập</span>
+                    <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -1084,7 +1098,7 @@
     <!-- Zone In Ấn Temp Rendering -->
     <div id="print-zone" class="hidden"></div>
 
-    <!-- FILE SCRIPT ĐIỀU KHIỂN CHÍNH (Version v=5.2.3 để xóa triệt để cache) -->
-    <script src="app.js?v=5.2.6"></script>
+    <!-- FILE SCRIPT ĐIỀU KHIỂN CHÍNH -->
+    <script src="app.js?v=5.2.7"></script>
 </body>
 </html>
