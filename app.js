@@ -600,7 +600,21 @@ window.xuatKhoDungCu = function(idx) {
     updateMams([globalData.khoVoKhuan[idx]], 'DA_XUAT');
     alert(`📦 Đã xuất mâm cho Khoa!`);
 };
-
+window.tinhHanSuDung = function() {
+    const loaiEl = document.getElementById('popDG_Loai');
+    const hanEl = document.getElementById('popDG_Han');
+    if (!loaiEl || !hanEl) return;
+    
+    // Tách lấy số ngày từ Option đang chọn (VD: "...|30" -> lấy số 30)
+    const days = parseInt(loaiEl.value.split('|')[1]) || 30;
+    
+    // Cộng số ngày vào thời điểm hiện tại
+    const future = new Date(); 
+    future.setDate(future.getDate() + days);
+    
+    // Hiển thị ra màn hình theo định dạng ngày VN
+    hanEl.innerText = future.toLocaleDateString('vi-VN');
+};
 window.inHoaDonGiaoNhan = function() { window.print(); };
 window.moModalXemAnhCauHinh = function() { alert("Đang tải ảnh cấu hình sơ đồ..."); };
 window.xuatBaoCaoExcelLuanChuyen = function() { alert("Đang xuất file Excel Nhật Ký Luân Chuyển..."); };
