@@ -114,7 +114,7 @@
                     </div>
                 </div>
                 <nav class="p-3 space-y-1 text-xs font-medium overflow-y-auto max-h-[calc(100vh-140px)]">
-                    <!-- Các Menu cũ giữ nguyên -->
+                    <!-- Menu -->
                     <div class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Cổng Lâm Sàng</div>
                     <button onclick="switchTab('khoaphong')" id="menu-khoaphong" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-hospital-user w-4 text-sky-400"></i><span>Báo Trả & Nhận Đồ</span></button>
                     
@@ -163,8 +163,8 @@
                 <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
                     <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
                         <div>
-                            <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-temperature-half mr-2 text-teal-600"></i>SỔ THEO DÕI NHIỆT ĐỘ, ĐỘ ẨM</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Ghi nhận thông số môi trường và tự động lập biểu đồ BM.QTQL.35.02</p>
+                            <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-temperature-half mr-2 text-teal-600"></i>SỔ THEO DÕI NHIỆT ĐỘ, ĐỘ ẨM (FIREBASE REALTIME)</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Dữ liệu được đồng bộ hóa trên tất cả các thiết bị. Tên KTV được tự động xác thực.</p>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="na_exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm"><i class="fa-solid fa-file-excel mr-1"></i> Xuất Excel</button>
@@ -204,12 +204,18 @@
                                 </div>
                             </div>
                             
+                            <!-- Bỏ Input Nhập Tên, thay bằng Label tự động nhận diện -->
+                            <div class="bg-slate-200 p-2 rounded-lg border border-slate-300">
+                                <span class="text-xs text-slate-500 block mb-0.5">KTV Đang Trực (Tự Động):</span>
+                                <span id="na-nv-display" class="font-bold text-sky-700 text-sm">Đang xác thực...</span>
+                            </div>
+
                             <div id="na-alert-box" class="hidden bg-red-100 border border-red-300 text-red-700 p-3 rounded-lg text-xs">
                                 <strong><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo vượt ngưỡng!</strong> Chỉ số không đạt. Yêu cầu báo ngay NVAT/QLKT.
                             </div>
 
                             <button id="na-btn-save" onclick="na_saveLog()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm">
-                                <i class="fa-solid fa-floppy-disk mr-1"></i> Lưu Kết Quả
+                                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Gửi Số Liệu Lên Cloud
                             </button>
                         </div>
 
@@ -217,7 +223,7 @@
                         <div class="lg:col-span-2 space-y-4">
                             <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
                                 <div class="flex justify-between items-center mb-4">
-                                    <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-chart-line text-teal-600 mr-1"></i> Biểu đồ xu hướng (Tháng này)</h3>
+                                    <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-chart-line text-teal-600 mr-1"></i> Biểu đồ xu hướng (Real-time)</h3>
                                 </div>
                                 <div class="h-60 w-full"><canvas id="na-canvas-chart"></canvas></div>
                             </div>
@@ -225,7 +231,7 @@
                             <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
                                 <div class="max-h-56 overflow-y-auto">
                                     <table class="w-full text-left text-xs border-collapse">
-                                        <thead class="bg-slate-100 font-bold text-slate-600 sticky top-0">
+                                        <thead class="bg-slate-100 font-bold text-slate-600 sticky top-0 shadow-sm">
                                             <tr><th class="p-2 border-b">Ngày/Buổi</th><th class="p-2 border-b">Nhiệt độ</th><th class="p-2 border-b">Độ ẩm</th><th class="p-2 border-b">Nhân viên đo</th><th class="p-2 border-b">Trạng thái</th></tr>
                                         </thead>
                                         <tbody id="na-tbody" class="divide-y divide-slate-100"></tbody>
@@ -324,11 +330,6 @@
     </div>
 
     <!-- KHU VỰC ẨN: HTML TEMPLATES ĐỂ KẾT XUẤT RA PDF CHUẨN A4 -->
-    <!-- Template PDF Bowie Dick A4 Dọc -->
-    <div id="cert-bowie-hidden">
-        <!-- Được sao chép nội dung cấu trúc A4 từ tab hiển thị vào lúc xuất PDF -->
-    </div>
-
     <!-- Template PDF Nhiệt Ẩm A4 Ngang -->
     <div id="cert-container-hidden">
         <table style="width:100%; border:none; margin-bottom: 5px;">
@@ -383,43 +384,52 @@
         </table>
     </div>
 
-
-    <div id="mobile-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden transition-opacity"></div>
-    
-    <!-- (Phần Modal cũ của bạn để nguyên ở đây) -->
-
     <!-- FILE SCRIPT ĐIỀU KHIỂN CHÍNH -->
+    <!-- Gọi file app.js cũ của bạn để khởi tạo Firebase và Login -->
     <script src="app.js?v=5.4.0"></script>
     
-    <!-- SCRIPT CHUYÊN DỤNG CHO NHIỆT ẨM VÀ BOWIE DICK -->
+    <!-- SCRIPT CHUYÊN DỤNG CHO NHIỆT ẨM VÀ BOWIE DICK KẾT NỐI FIRESTORE -->
     <script>
         // HÀM CHUYỂN TAB CƠ BẢN (Gắn vào hệ thống cũ của bạn)
         function switchTab(tabId) {
-            // Giấu tất cả các tab
             document.querySelectorAll('main > div[id^="tab-"]').forEach(el => el.classList.add('hidden'));
-            // Bỏ style active của sidebar
             document.querySelectorAll('#sidebar_menu button').forEach(el => el.classList.remove('sidebar-item-active'));
-            
-            // Hiện tab được chọn
             const target = document.getElementById('tab-' + tabId);
             if(target) target.classList.remove('hidden');
-            
             const btn = document.getElementById('menu-' + tabId);
             if(btn) btn.classList.add('sidebar-item-active');
-            
             if(window.innerWidth < 768) toggleMobileMenu();
         }
 
         // ==========================================
-        // LOGIC TAB 14: THEO DÕI NHIỆT ẨM QC
+        // LÕI XỬ LÝ NHIỆT ẨM VỚI FIREBASE REALTIME
         // ==========================================
-        let naLogs = JSON.parse(localStorage.getItem('cssd_na_logs')) || [];
+        let naLogs = []; // Mảng chứa dữ liệu tải từ Firestore
         let naChartInst = null;
+        const db = firebase.firestore(); // Đảm bảo Firebase đã được init trong app.js
+        const nhietAmRef = db.collection("NhietAmLogs"); // Tạo Collection mới trên Firebase
         
+        // Cập nhật tên user trên UI Nhiệt Ẩm liên tục
+        setInterval(() => {
+            let currentUser = firebase.auth().currentUser;
+            let currentName = currentUser ? (currentUser.displayName || currentUser.email) : document.getElementById('nav_user_info').innerText;
+            document.getElementById('na-nv-display').innerText = currentName;
+        }, 2000);
+
         // Auto Buổi
         const curH = new Date().getHours();
         document.getElementById('na-buoi').value = curH < 12 ? 'Sáng (8h-9h)' : 'Chiều (14h-15h)';
         
+        // Listener lấy dữ liệu Real-time từ Firebase
+        nhietAmRef.orderBy("id", "desc").limit(100).onSnapshot((snapshot) => {
+            naLogs = [];
+            snapshot.forEach((doc) => {
+                naLogs.push(doc.data());
+            });
+            // Mỗi khi có người lưu kết quả, hàm renderUI sẽ tự động chạy để cập nhật Biểu đồ & Bảng
+            na_renderUI();
+        });
+
         function na_checkWarning() {
             let nd = parseFloat(document.getElementById('na-nhietdo').value);
             let da = parseFloat(document.getElementById('na-doam').value);
@@ -448,55 +458,88 @@
             document.getElementById('na-matb').value = mtb;
         });
 
-        function na_saveLog() {
+        // NÚT LƯU - BẮN DỮ LIỆU LÊN FIREBASE
+        async function na_saveLog() {
             let nd = document.getElementById('na-nhietdo').value;
             let da = document.getElementById('na-doam').value;
-            let nv = "KTV. CSSD"; // Thay bằng tên user login
-            if(!nd || !da) { alert("Nhập đủ nhiệt độ, độ ẩm"); return; }
+            
+            if(!nd || !da) { alert("Vui lòng nhập đủ chỉ số Nhiệt độ và Độ ẩm!"); return; }
+
+            // Lấy tên User chính xác từ Firebase Auth
+            let currentUser = firebase.auth().currentUser;
+            let nv = currentUser ? (currentUser.displayName || currentUser.email) : document.getElementById('nav_user_info').innerText;
             
             let log = {
-                id: Date.now(),
+                id: Date.now(), // Dùng id làm timestamp để Order
                 ngay: new Date().toLocaleDateString('vi-VN'),
                 buoi: document.getElementById('na-buoi').value.includes('Sáng') ? 'S' : 'C',
                 vitri: document.getElementById('na-vitri').value,
                 nd: parseFloat(nd),
                 da: parseFloat(da),
-                nv: nv,
+                nv: nv, // Tên KTV được bảo mật, không cho tự gõ
                 bad: na_checkWarning()
             };
-            naLogs.push(log);
-            localStorage.setItem('cssd_na_logs', JSON.stringify(naLogs));
-            
-            document.getElementById('na-nhietdo').value = "";
-            document.getElementById('na-doam').value = "";
-            na_checkWarning();
-            na_renderUI();
-            alert("Lưu kết quả thành công!");
+
+            const btnSave = document.getElementById('na-btn-save');
+            const ogText = btnSave.innerHTML;
+            btnSave.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Đẩy Lên Cloud...`;
+            btnSave.disabled = true;
+
+            try {
+                // Đẩy lên Firestore
+                await nhietAmRef.add(log);
+                
+                document.getElementById('na-nhietdo').value = "";
+                document.getElementById('na-doam').value = "";
+                na_checkWarning();
+                // Không cần gọi renderUI vì Listener onSnapshot sẽ tự động kích hoạt
+                
+                btnSave.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Đã Lưu Thành Công!`;
+                btnSave.classList.replace('bg-teal-600', 'bg-emerald-600');
+                
+                setTimeout(() => {
+                    btnSave.innerHTML = ogText;
+                    btnSave.classList.replace('bg-emerald-600', 'bg-teal-600');
+                    btnSave.disabled = false;
+                }, 2000);
+
+            } catch(e) {
+                console.error("Lỗi Firestore:", e);
+                alert("Lỗi khi kết nối đến máy chủ Cloud. Vui lòng kiểm tra mạng!");
+                btnSave.innerHTML = ogText;
+                btnSave.disabled = false;
+            }
         }
 
         function na_renderUI() {
             let tbody = document.getElementById('na-tbody');
             tbody.innerHTML = '';
             
-            // Render Table (Hiển thị 30 dòng gần nhất)
-            let arr = [...naLogs].reverse().slice(0,30);
+            // Lấy vị trí đang lọc
+            let currentVitri = document.getElementById('na-vitri').value;
+            // Lọc logs theo vị trí để render bảng và chart
+            let filteredLogs = naLogs.filter(l => l.vitri === currentVitri);
+
+            // Render Table (Hiển thị 30 dòng gần nhất của vị trí đó)
+            let arr = [...filteredLogs].slice(0, 30); // Do mảng đã order desc từ Firestore
             arr.forEach(l => {
                 let tr = document.createElement('tr');
                 let stt = l.bad ? '<span class="text-red-600 font-bold">Bất thường</span>' : '<span class="text-emerald-600">Bình thường</span>';
-                tr.innerHTML = `<td class="p-2 border-b">${l.ngay} ${l.buoi}</td><td class="p-2 border-b font-bold">${l.nd}°C</td><td class="p-2 border-b font-bold">${l.da}%</td><td class="p-2 border-b">${l.nv}</td><td class="p-2 border-b">${stt}</td>`;
+                tr.innerHTML = `<td class="p-2 border-b">${l.ngay} ${l.buoi}</td><td class="p-2 border-b font-bold text-sky-600">${l.nd}°C</td><td class="p-2 border-b font-bold text-rose-600">${l.da}%</td><td class="p-2 border-b">${l.nv}</td><td class="p-2 border-b">${stt}</td>`;
                 tbody.appendChild(tr);
             });
 
-            // Render Chart
+            // Render Chart (Vẽ từ trái qua phải -> Đảo ngược mảng)
+            let chartData = [...arr].reverse();
             if(naChartInst) naChartInst.destroy();
             let ctx = document.getElementById('na-canvas-chart').getContext('2d');
             naChartInst = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: arr.reverse().map(l => l.ngay.split('/')[0] + l.buoi),
+                    labels: chartData.map(l => l.ngay.split('/')[0] + l.buoi),
                     datasets: [
-                        { label: 'Nhiệt độ', data: arr.map(l=>l.nd), borderColor: '#0ea5e9', backgroundColor: '#0ea5e9' },
-                        { label: 'Độ ẩm', data: arr.map(l=>l.da), borderColor: '#f43f5e', backgroundColor: '#f43f5e' }
+                        { label: 'Nhiệt độ', data: chartData.map(l=>l.nd), borderColor: '#0ea5e9', backgroundColor: '#0ea5e9', tension: 0.3 },
+                        { label: 'Độ ẩm', data: chartData.map(l=>l.da), borderColor: '#f43f5e', backgroundColor: '#f43f5e', tension: 0.3 }
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
@@ -513,7 +556,6 @@
             document.getElementById('pdf-na-vitri').innerText = `Vị trí: ${document.getElementById('na-vitri').value}`;
             document.getElementById('pdf-na-matb').innerText = `Mã số: ${document.getElementById('na-matb').value}`;
             
-            // Header: Độ ẩm | Cột 1-31 (S/C) | Nhiệt độ
             gridHtml += '<tr style="background:#f1f5f9;"><th style="width:35px;">Độ ẩm</th>';
             for(let i=1; i<=31; i++) gridHtml += `<th colspan="2">${i}</th>`;
             gridHtml += '<th style="width:35px;">Nhiệt độ</th></tr>';
@@ -522,8 +564,6 @@
             for(let i=1; i<=31; i++) gridHtml += `<th>S</th><th>C</th>`;
             gridHtml += '<th>(°C)</th></tr>';
 
-            // Data rows: Từ mức max (Độ ẩm 82 / Nhiệt độ 37) lùi về min (Độ ẩm 40 / Nhiệt độ 16)
-            // Cấu trúc BM yêu cầu 22 dòng (mỗi dòng tương ứng độ ẩm giảm 2, nhiệt độ giảm 1)
             let da_start = 82, nd_start = 37; 
             for(let row=0; row<22; row++) {
                 let current_da = da_start - (row * 2);
@@ -539,21 +579,19 @@
                 gridHtml += `<tr><td style="font-weight:bold;">${label_da}</td>`;
                 
                 for(let d=1; d<=31; d++) {
-                    // Check ca Sáng
                     let cell_S = "";
-                    let log_S = naLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'S');
+                    let log_S = naLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'S' && l.vitri == document.getElementById('na-vitri').value);
                     if(log_S) {
                         let isNdHere = Math.round(log_S.nd) == current_nd;
-                        let isDaHere = Math.round(log_S.da) == current_da || Math.round(log_S.da) == (current_da-1); // Làm tròn gần đúng
+                        let isDaHere = Math.round(log_S.da) == current_da || Math.round(log_S.da) == (current_da-1);
                         if(isNdHere && isDaHere) cell_S = '<span class="na-dot-mix"></span>';
                         else if(isNdHere) cell_S = '<span class="na-dot-t"></span>';
                         else if(isDaHere) cell_S = '<span class="na-dot-h"></span>';
                     }
                     gridHtml += `<td>${cell_S}</td>`;
                     
-                    // Check ca Chiều
                     let cell_C = "";
-                    let log_C = naLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'C');
+                    let log_C = naLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'C' && l.vitri == document.getElementById('na-vitri').value);
                     if(log_C) {
                         let isNdHere = Math.round(log_C.nd) == current_nd;
                         let isDaHere = Math.round(log_C.da) == current_da || Math.round(log_C.da) == (current_da-1);
@@ -570,17 +608,14 @@
             document.getElementById('pdf-na-grid').innerHTML = gridHtml;
             document.getElementById('pdf-na-ngayky').innerText = `Ngày ${new Date().getDate()} tháng ${currentMonth} năm ${currentYear}`;
 
-            // Chụp ảnh PDF
             let pdfZone = document.getElementById('cert-container-hidden');
-            
             html2canvas(pdfZone, { scale: 2 }).then(canvas => {
                 const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const pdf = new window.jspdf.jsPDF('l', 'mm', 'a4'); // 'l' = Landscape
+                const pdf = new window.jspdf.jsPDF('l', 'mm', 'a4');
                 pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
                 pdf.save(`SoTheoDoiNhietAm_T${currentMonth}_${currentYear}.pdf`);
             });
         }
-
 
         // ==========================================
         // LOGIC TAB 15: BOWIE DICK (GIẢN LƯỢC)
@@ -622,13 +657,12 @@
             let ctx = canvas.getContext('2d');
             let pCtx = pCanvas.getContext('2d');
             
-            // Xử lý responsive size cho canvas
             let resize = () => { 
                 let rect = canvas.parentElement.getBoundingClientRect();
                 canvas.width = rect.width; canvas.height = rect.height;
                 pCanvas.width = rect.width; pCanvas.height = rect.height;
             };
-            resize(); // gọi lúc đầu
+            resize(); 
             
             ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.strokeStyle = "blue";
             let drawing = false;
