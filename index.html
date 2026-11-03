@@ -1,692 +1,497 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HỆ THỐNG QUẢN LÝ TIỆT TRÙNG CSSD - PHUONG NAM HOSPITAL</title>
-    
-    <link rel="shortcut icon" href="#">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cổng Thông Tin Số Hóa CSSD</title>
+  
+  <!-- Tailwind & Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Firebase SDK (v8) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-    <!-- Tailwind & FontAwesome -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'sans-serif'] } } }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
-    
-    <!-- Firebase SDK (v8) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script> 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-check.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- Utilities -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    
-    <!-- Added for Nhiệt Ẩm & Bowie Dick -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <!-- Thư viện biểu đồ và xuất PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
-    <style>
-        @media print {
-            html, body { background: #ffffff !important; color: #000000 !important; margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            #main-app, #login-screen, #sidebar_menu, #mobile-overlay, .action-col, aside, button, input, select, .md\:hidden { display: none !important; }
-            #print-zone { display: block !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            body.print-mode-bixolon @page { size: A4 portrait; margin: 8mm; }
-            body.print-mode-doc @page { size: A4 portrait; margin: 15mm; }
-            body.print-mode-doc #print-zone { font-family: 'Inter', serif; color: #000000 !important; }
-            body.print-mode-doc #print-zone table { width: 100% !important; border-collapse: collapse !important; margin-top: 10px !important; }
-            body.print-mode-doc #print-zone th, body.print-mode-doc #print-zone td { border: 1px solid #000000 !important; padding: 6px 8px !important; font-size: 12px !important; }
-        }
-        .sidebar-item-active { background-color: rgba(51, 65, 85, 0.8) !important; border-left: 4px solid #38bdf8 !important; color: #ffffff !important; font-weight: 700 !important; }
-        .admin-subtab-active { border-bottom: 2px solid #0284c7 !important; color: #0284c7 !important; font-weight: 700 !important; }
-        
-        /* Cố định layout chứng nhận PDF Ẩn */
-        #cert-container-hidden, #cert-bowie-hidden { position: fixed; left: -9999px; top: 0; background: white; color: #000; z-index: -100; }
-        #cert-container-hidden { width: 297mm; height: 210mm; padding: 15mm; font-family: 'Times New Roman', serif; }
-        #cert-bowie-hidden { width: 210mm; min-height: 297mm; padding: 10mm; font-family: 'Inter', sans-serif; }
-        .na-table-print { width: 100%; border-collapse: collapse; text-align: center; font-size: 11px; margin-top: 10px; }
-        .na-table-print th, .na-table-print td { border: 1px solid #000; padding: 2px; }
-        .na-dot-t { display: inline-block; width: 6px; height: 6px; background-color: #0000ff; border-radius: 50%; }
-        .na-dot-h { display: inline-block; width: 6px; height: 6px; background-color: #ff0000; border-radius: 50%; }
-        .na-dot-mix { display: inline-block; width: 8px; height: 8px; background: linear-gradient(90deg, #0000ff 50%, #ff0000 50%); border-radius: 50%; }
-    </style>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+    .mono-font { font-family: 'JetBrains Mono', monospace; }
+    #certificate-container { background: white; color: #0f172a; width: 210mm; min-height: 297mm; margin: 0 auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4); }
+    
+    /* Cấu hình template PDF Nhiệt Ẩm Ẩn */
+    #cert-na-hidden { position: fixed; left: -9999px; top: 0; background: white; color: #000; z-index: -100; width: 297mm; height: 210mm; padding: 15mm; font-family: 'Times New Roman', serif; }
+    .na-table-print { width: 100%; border-collapse: collapse; text-align: center; font-size: 11px; margin-top: 10px; }
+    .na-table-print th, .na-table-print td { border: 1px solid #000; padding: 2px; }
+    .na-dot-t { display: inline-block; width: 6px; height: 6px; background-color: #0000ff; border-radius: 50%; }
+    .na-dot-h { display: inline-block; width: 6px; height: 6px; background-color: #ff0000; border-radius: 50%; }
+    .na-dot-mix { display: inline-block; width: 8px; height: 8px; background: linear-gradient(90deg, #0000ff 50%, #ff0000 50%); border-radius: 50%; }
+  </style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-700 antialiased min-h-screen">
+<body class="min-h-screen pb-16">
 
-    <!-- 1. MÀN HÌNH ĐĂNG NHẬP -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 sm:p-10 border border-slate-100 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-sky-500 to-teal-400"></div>
-            <div class="text-center mb-8 mt-2">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-50 to-slate-50 text-sky-600 mb-4 text-2xl shadow-sm border border-slate-100"><i class="fa-solid fa-shield-halved"></i></div>
-                <h1 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Phuong Nam</h1>
-                <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-[0.2em] mt-1.5">Hệ Thống Quản Lý Tiệt Trùng CSSD</p>
-            </div>
-            <div class="space-y-5">
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Vai trò truy cập</label>
-                    <select id="login_role" onchange="toggleLoginFields()" class="w-full border border-slate-200 rounded-xl py-3.5 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
-                        <option value="ADMIN">Quản Trị Hệ Thống (ADMIN)</option>
-                        <option value="CSSD">KTV Vận Hành CSSD</option>
-                        <option value="KHOA">Điều Dưỡng Lâm Sàng (Khoa/Phòng)</option>
-                    </select>
-                </div>
-                <div id="field_khoa" class="hidden">
-                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Khoa / Phòng trực thuộc</label>
-                    <select id="login_khoa" class="w-full border border-slate-200 rounded-xl py-3.5 px-4 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
-                        <option value="">-- Chọn Khoa --</option>
-                    </select>
-                </div>
-                <div id="field_nhanvien_cssd" class="hidden">
-                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Mã định danh KTV</label>
-                    <input type="text" id="login_nv_id" placeholder="VD: NV01" class="w-full border border-slate-200 rounded-xl py-3.5 px-4 text-sm font-mono font-bold uppercase text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-2 uppercase tracking-wide">Mã PIN xác thực</label>
-                    <input type="password" id="login_pass" onkeydown="if(event.key==='Enter') checkLogin()" placeholder="Nhập PIN 4 số" class="w-full border border-slate-200 rounded-xl py-3.5 px-4 text-base tracking-[0.3em] font-mono font-bold text-slate-800 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 outline-none bg-slate-50/50">
-                </div>
-                <button onclick="checkLogin()" class="w-full bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-sky-500/30 text-xs tracking-wider uppercase transition-all mt-2">Đăng Nhập</button>
-            </div>
+  <!-- LOGIN MODAL (Hiển thị đầu tiên để lấy tên User) -->
+  <div id="login-modal" class="fixed inset-0 z-50 bg-slate-900 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-8 shadow-2xl space-y-6 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-sky-500/20 text-sky-400 mx-auto flex items-center justify-center"><i data-lucide="shield-check" class="w-8 h-8"></i></div>
+      <div>
+        <h2 class="text-xl font-bold text-white uppercase tracking-wider">ĐĂNG NHẬP HỆ THỐNG</h2>
+        <p class="text-xs text-slate-400 mt-1">Sử dụng tài khoản Bệnh viện Phương Nam</p>
+      </div>
+      <div class="space-y-4 text-left">
+        <div><label class="block text-xs font-bold text-slate-400 mb-1">Email / Mã NV</label><input type="text" id="login-email" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white outline-none focus:border-sky-500" placeholder="VD: ktv01@phuongchau.com"></div>
+        <div><label class="block text-xs font-bold text-slate-400 mb-1">Mật khẩu</label><input type="password" id="login-pass" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm text-white outline-none focus:border-sky-500" placeholder="••••••••"></div>
+        <button onclick="handleLogin()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 rounded-lg text-sm transition-colors">Đăng Nhập <i data-lucide="arrow-right" class="inline w-4 h-4 ml-1"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP HEADER & TABS -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3 w-full md:w-auto">
+        <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 border border-teal-500/30 flex items-center justify-center"><i data-lucide="shield-check" class="w-6 h-6"></i></div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-100">Cổng Thông Tin Số Hóa CSSD <span class="text-[10px] bg-teal-500/20 text-teal-300 border border-teal-500/30 px-2 py-0.5 rounded-full ml-2">SECURE PRO</span></h1>
+          <p class="text-xs text-slate-400">KTV: <span id="current-user-name" class="font-bold text-sky-400">Chưa đăng nhập</span></p>
         </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto justify-between">
+        <div class="flex gap-1 bg-slate-950 p-1.5 rounded-lg border border-slate-800">
+          <button id="tab-btn-bowiedick" onclick="switchTab('bowiedick')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all bg-emerald-600 text-white text-xs font-semibold"><i data-lucide="file-check" class="w-3.5 h-3.5"></i> Bowie-Dick</button>
+          <button id="tab-btn-nhietam" onclick="switchTab('nhietam')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-semibold"><i data-lucide="thermometer" class="w-3.5 h-3.5"></i> Nhiệt Ẩm</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 pt-6">
+
+    <!-- ============================================================== -->
+    <!-- MODULE 1: BOWIE-DICK TEST (GIỮ NGUYÊN GIAO DIỆN CŨ CỦA BẠN) -->
+    <!-- ============================================================== -->
+    <div id="module-bowiedick" class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+      <div class="lg:col-span-5 space-y-6">
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5">
+          <h2 class="text-sm font-bold text-teal-400 flex items-center gap-2 mb-3"><i data-lucide="camera" class="w-4 h-4"></i> 1. Chụp Ảnh Tổ Hợp</h2>
+          <div class="w-full aspect-[4/3] rounded-xl bg-slate-900 border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-400 relative overflow-hidden mb-3">
+             <i data-lucide="image-plus" class="w-8 h-8 mb-2"></i><p class="text-xs">Chưa có ảnh</p>
+             <img id="bd-img-preview" class="hidden absolute inset-0 w-full h-full object-contain bg-black/40">
+          </div>
+          <label class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-xl text-xs font-medium flex items-center justify-center gap-2 cursor-pointer transition">
+             <i data-lucide="upload" class="w-4 h-4"></i> Chọn Từ Máy
+             <input type="file" id="bd-file" accept="image/*" class="hidden" onchange="bdLoadImage(this)">
+          </label>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 space-y-4">
+          <h2 class="text-sm font-bold text-teal-400 flex items-center gap-2"><i data-lucide="clipboard-list" class="w-4 h-4"></i> 2. Thông Tin Hồ Sơ</h2>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div><label class="block text-slate-400 mb-1">Mã Máy Hấp</label><input type="text" id="bd-may" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none"></div>
+            <div><label class="block text-slate-400 mb-1">Số Mẻ Hấp</label><input type="text" id="bd-me" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none"></div>
+            <div><label class="block text-slate-400 mb-1">Số Lô (LOT)</label><input type="text" id="bd-lot" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none font-mono"></div>
+            <div><label class="block text-slate-400 mb-1">Hạn Dùng (EXP)</label><input type="date" id="bd-exp" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none"></div>
+          </div>
+        </div>
+      </div>
+      <div class="lg:col-span-7 flex flex-col items-center">
+        <button onclick="bdExportPDF()" class="mb-4 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Xuất PDF</button>
+        <div id="certificate-container" class="p-10 bg-white text-black w-full max-w-[210mm]">
+          <h1 class="text-xl font-bold text-center mb-6 uppercase">Phiếu Kiểm Tra Lò Tiệt Khuẩn Hơi Nước</h1>
+          <table class="w-full text-xs text-center border-collapse border border-black mb-6">
+            <tr class="bg-gray-100 font-bold"><td class="border border-black p-2">Thiết bị hấp</td><td class="border border-black p-2">Số mẻ</td><td class="border border-black p-2">Lô (LOT)</td><td class="border border-black p-2">Kết quả</td></tr>
+            <tr><td class="border border-black p-2" id="pr-may">---</td><td class="border border-black p-2" id="pr-me">---</td><td class="border border-black p-2" id="pr-lot">---</td><td class="border border-black p-2 text-emerald-600 font-bold">ĐẠT (PASS)</td></tr>
+          </table>
+          <div class="h-64 border border-gray-300 bg-gray-50 flex items-center justify-center p-2"><img id="pr-img" class="hidden max-h-full object-contain"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- 2. GIAO DIỆN CHÍNH -->
-    <div id="main-app" class="hidden min-h-screen flex flex-col md:flex-row">
-        <!-- Sidebar Navigation -->
-        <aside id="sidebar_menu" class="fixed inset-y-0 left-0 z-40 w-64 bg-slate-800 text-slate-300 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl md:shadow-lg">
+    <!-- ============================================================== -->
+    <!-- MODULE 2: THEO DÕI NHIỆT ĐỘ ĐỘ ẨM (FIREBASE + XUẤT PDF A4) -->
+    <!-- ============================================================== -->
+    <div id="module-nhietam" class="hidden grid-cols-1 lg:grid-cols-3 gap-6 w-full">
+      <div class="lg:col-span-1 space-y-6">
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg relative overflow-hidden">
+          <div id="na-warning-bar" class="hidden absolute top-0 left-0 w-full h-1 bg-red-500 animate-pulse"></div>
+          <h2 class="text-xl font-semibold mb-4 text-teal-400 flex items-center gap-2"><i data-lucide="thermometer" class="w-5 h-5"></i> Ghi nhận số liệu</h2>
+          <div class="space-y-4 text-sm">
+            <div><label class="block text-slate-400 mb-1">Ca ghi nhận</label><input type="text" id="na-buoi" disabled class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-slate-300"></div>
             <div>
-                <div class="p-4 border-b border-slate-700 flex justify-between bg-slate-800">
-                    <div>
-                        <div class="text-[10px] font-black text-sky-400 tracking-wider uppercase">Phuong Nam Hospital</div>
-                        <div class="text-xs font-extrabold text-white tracking-wide">CSSD DIGITAL WORKFLOW</div>
-                    </div>
-                </div>
-                <nav class="p-3 space-y-1 text-xs font-medium overflow-y-auto max-h-[calc(100vh-140px)]">
-                    <!-- Menu -->
-                    <div class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Cổng Lâm Sàng</div>
-                    <button onclick="switchTab('khoaphong')" id="menu-khoaphong" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-hospital-user w-4 text-sky-400"></i><span>Báo Trả & Nhận Đồ</span></button>
-                    
-                    <div class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Trạm Vận Hành CSSD</div>
-                    <button onclick="switchTab('thugom')" id="menu-thugom" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-truck-pickup w-4 text-sky-400"></i><span>Thu Gom & Đối Soát</span></button>
-                    <button onclick="switchTab('mayrua')" id="menu-mayrua" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-soap w-4 text-sky-400"></i><span>Mẻ Rửa Belimed</span></button>
-                    <button onclick="switchTab('donggoi')" id="menu-donggoi" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-box-open w-4 text-sky-400"></i><span>Đóng Gói</span></button>
-                    <button onclick="switchTab('mayhap')" id="menu-mayhap" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-temperature-arrow-up w-4 text-sky-400"></i><span>Mẻ Hấp Tiệt Trùng</span></button>
-                    <button onclick="switchTab('khovokhuan')" id="menu-khovokhuan" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-warehouse w-4 text-sky-400"></i><span>Kho Vô Khuẩn</span></button>
-
-                    <!-- MENU MỚI THÊM: Quản Lý Chất Lượng (QC) -->
-                    <div class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider text-teal-400">Quản Lý Chất Lượng (QC)</div>
-                    <button onclick="switchTab('nhietam')" id="menu-nhietam" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 text-teal-300"><i class="fa-solid fa-temperature-half w-4"></i><span>Theo Dõi Nhiệt Ẩm</span></button>
-                    <button onclick="switchTab('bowiedick')" id="menu-bowiedick" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 text-emerald-300"><i class="fa-solid fa-file-signature w-4"></i><span>Bowie-Dick Test</span></button>
-
-                    <div class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Dữ Liệu & Báo Cáo</div>
-                    <button onclick="switchTab('quanlykho')" id="menu-quanlykho" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-boxes-stacked w-4 text-sky-400"></i><span>Tồn Kho Realtime</span></button>
-                    <button onclick="switchTab('danhmuc')" id="menu-danhmuc" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-list-check w-4 text-sky-400"></i><span>Cơ Số Linh Kiện</span></button>
-                    <button onclick="switchTab('lichsuluanchuyen')" id="menu-lichsuluanchuyen" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-clock-rotate-left w-4 text-sky-400"></i><span>Nhật Ký Luân Chuyển</span></button>
-                    <button onclick="switchTab('tracuu')" id="menu-tracuu" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-magnifying-glass w-4 text-sky-400"></i><span>Truy Xuất Tiệt Trùng</span></button>
-                    <button onclick="switchTab('performance')" id="menu-performance" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60"><i class="fa-solid fa-chart-line w-4 text-sky-400"></i><span>KPI Đọc BI 30 Phút</span></button>
-                    
-                    <div class="text-[10px] font-bold text-slate-400 uppercase px-3 pt-3 pb-1 tracking-wider">Hệ Thống</div>
-                    <button onclick="switchTab('admin')" id="menu-admin" class="w-full text-left px-3 py-2.5 rounded-lg flex items-center gap-2.5 hover:bg-slate-700/60 text-amber-400"><i class="fa-solid fa-user-shield w-4"></i><span>Quản Trị Hệ Thống</span></button>
-                </nav>
+              <label class="block text-slate-400 mb-1">Vị trí / Khu vực</label>
+              <select id="na-vitri" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white outline-none focus:border-teal-500">
+                <option value="Kho vật tư y tế - Khoa Dược">Kho vật tư y tế - Khoa Dược</option>
+                <option value="Kho hóa chất">Kho hóa chất</option>
+                <option value="Phòng Xét Nghiệm">Phòng Xét Nghiệm</option>
+              </select>
             </div>
-            <div class="p-3 border-t border-slate-700 bg-slate-900 flex justify-between items-center">
-                <div class="text-xs font-bold text-sky-400 truncate" id="nav_user_info">ADMINISTRATOR</div>
-                <button onclick="location.reload()" class="p-2 text-slate-400 hover:text-rose-400"><i class="fa-solid fa-power-off"></i></button>
+            <div><label class="block text-slate-400 mb-1">Mã thiết bị</label><input type="text" id="na-matb" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white" value="H86210605"></div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-slate-400 mb-1">Nhiệt độ (°C)</label><input type="number" step="0.1" id="na-nhietdo" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-lg font-bold text-white focus:border-teal-500 outline-none"></div>
+              <div><label class="block text-slate-400 mb-1">Độ ẩm (%)</label><input type="number" step="0.1" id="na-doam" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-lg font-bold text-white focus:border-teal-500 outline-none"></div>
             </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="flex-1 md:ml-64 p-3 sm:p-6 lg:p-8 w-full max-w-full overflow-x-hidden">
-            <!-- (Giữ nguyên các Tab 1-13 cũ của bạn ở đây. Do không gian, tôi chỉ giả lập giữ nguyên Tab Khoa Phòng, bạn copy nối tiếp từ file cũ của bạn vào) -->
-            <div id="tab-khoaphong" class="space-y-6 hidden">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                    <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-hospital-user mr-2 text-sky-600"></i>TRẠM GIAO NHẬN TẠI KHOA / PHÒNG</h2>
-                </div>
-            </div>
-            <!-- ... Paste Tabs cũ của bạn vào đây ... -->
-
-
-            <!-- TAB MỚI 14: THEO DÕI NHIỆT ẨM QC -->
-            <div id="tab-nhietam" class="space-y-6 hidden">
-                <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-temperature-half mr-2 text-teal-600"></i>SỔ THEO DÕI NHIỆT ĐỘ, ĐỘ ẨM (FIREBASE REALTIME)</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Dữ liệu được đồng bộ hóa trên tất cả các thiết bị. Tên KTV được tự động xác thực.</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="na_exportExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm"><i class="fa-solid fa-file-excel mr-1"></i> Xuất Excel</button>
-                            <button onclick="na_exportPDFThang()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-2 rounded-lg text-xs shadow-sm"><i class="fa-solid fa-file-pdf mr-1"></i> Xuất PDF Tháng Này</button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Form nhập liệu -->
-                        <div class="lg:col-span-1 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4 relative overflow-hidden">
-                            <div id="na-warning-bar" class="hidden absolute top-0 left-0 w-full h-1 bg-red-500 animate-pulse"></div>
-                            <h3 class="font-bold text-sm text-slate-700">Ghi nhận thông số</h3>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Ca ghi nhận (Tự động)</label>
-                                <input type="text" id="na-buoi" disabled class="w-full bg-slate-200 border border-slate-300 rounded p-2.5 text-xs text-slate-600 font-bold">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Vị trí / Khu vực đo</label>
-                                <select id="na-vitri" class="w-full border border-slate-300 rounded p-2.5 text-xs font-bold outline-none bg-white">
-                                    <option value="Kho vật tư y tế - Khoa Dược">Kho vật tư y tế - Khoa Dược (Khu vực vật tư)</option>
-                                    <option value="Kho hóa chất">Kho hóa chất</option>
-                                    <option value="Phòng Xét Nghiệm">Phòng Xét Nghiệm</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-600 mb-1">Mã thiết bị (Nhiệt ẩm kế)</label>
-                                <input type="text" id="na-matb" class="w-full border border-slate-300 rounded p-2.5 text-xs font-bold outline-none" value="H86210605">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1">Nhiệt độ (°C)</label>
-                                    <input type="number" step="0.1" id="na-nhietdo" class="w-full border border-slate-300 rounded p-2.5 text-base font-bold outline-none focus:border-teal-500" placeholder="VD: 24.5">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-600 mb-1">Độ ẩm (%)</label>
-                                    <input type="number" step="0.1" id="na-doam" class="w-full border border-slate-300 rounded p-2.5 text-base font-bold outline-none focus:border-teal-500" placeholder="VD: 60">
-                                </div>
-                            </div>
-                            
-                            <!-- Bỏ Input Nhập Tên, thay bằng Label tự động nhận diện -->
-                            <div class="bg-slate-200 p-2 rounded-lg border border-slate-300">
-                                <span class="text-xs text-slate-500 block mb-0.5">KTV Đang Trực (Tự Động):</span>
-                                <span id="na-nv-display" class="font-bold text-sky-700 text-sm">Đang xác thực...</span>
-                            </div>
-
-                            <div id="na-alert-box" class="hidden bg-red-100 border border-red-300 text-red-700 p-3 rounded-lg text-xs">
-                                <strong><i class="fa-solid fa-triangle-exclamation"></i> Cảnh báo vượt ngưỡng!</strong> Chỉ số không đạt. Yêu cầu báo ngay NVAT/QLKT.
-                            </div>
-
-                            <button id="na-btn-save" onclick="na_saveLog()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-lg text-xs uppercase shadow-sm">
-                                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Gửi Số Liệu Lên Cloud
-                            </button>
-                        </div>
-
-                        <!-- Biểu đồ và Bảng -->
-                        <div class="lg:col-span-2 space-y-4">
-                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h3 class="font-bold text-sm text-slate-700"><i class="fa-solid fa-chart-line text-teal-600 mr-1"></i> Biểu đồ xu hướng (Real-time)</h3>
-                                </div>
-                                <div class="h-60 w-full"><canvas id="na-canvas-chart"></canvas></div>
-                            </div>
-                            
-                            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
-                                <div class="max-h-56 overflow-y-auto">
-                                    <table class="w-full text-left text-xs border-collapse">
-                                        <thead class="bg-slate-100 font-bold text-slate-600 sticky top-0 shadow-sm">
-                                            <tr><th class="p-2 border-b">Ngày/Buổi</th><th class="p-2 border-b">Nhiệt độ</th><th class="p-2 border-b">Độ ẩm</th><th class="p-2 border-b">Nhân viên đo</th><th class="p-2 border-b">Trạng thái</th></tr>
-                                        </thead>
-                                        <tbody id="na-tbody" class="divide-y divide-slate-100"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TAB MỚI 15: BOWIE DICK TEST QC -->
-            <div id="tab-bowiedick" class="space-y-6 hidden">
-                <div class="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
-                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
-                        <div>
-                            <h2 class="text-base font-bold text-slate-800"><i class="fa-solid fa-file-signature mr-2 text-emerald-600"></i>HỒ SƠ BOWIE-DICK TEST SỐ HÓA</h2>
-                            <p class="text-xs text-slate-500 mt-0.5">Số hóa & Đánh giá tự động theo tiêu chuẩn ISO 11140-5:2014 Type 2</p>
-                        </div>
-                        <button onclick="bd_exportPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-sm"><i class="fa-solid fa-print mr-1"></i> Xuất Phiếu A4</button>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Left: Form -->
-                        <div class="space-y-4">
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <h3 class="font-bold text-xs text-slate-700 mb-3 uppercase">1. Hình Ảnh Minh Chứng (4 Vùng)</h3>
-                                <div id="bd-image-wrapper" class="w-full aspect-[4/3] border-2 border-dashed border-slate-300 rounded-lg bg-white flex flex-col items-center justify-center text-slate-400 relative overflow-hidden mb-3">
-                                    <i class="fa-solid fa-image text-3xl mb-2"></i>
-                                    <span class="text-xs">Chưa có ảnh tải lên</span>
-                                    <img id="bd-img-preview" src="" class="hidden absolute inset-0 w-full h-full object-contain bg-slate-900">
-                                </div>
-                                <label class="w-full bg-slate-700 hover:bg-slate-800 text-white text-center font-bold py-2 rounded-lg text-xs cursor-pointer block">
-                                    <i class="fa-solid fa-upload mr-1"></i> Tải Ảnh Từ Máy
-                                    <input type="file" id="bd-file-input" accept="image/*" class="hidden" onchange="bd_handleImage(this)">
-                                </label>
-                            </div>
-
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-2 gap-3 text-xs">
-                                <h3 class="font-bold text-xs text-slate-700 col-span-2 uppercase">2. Thông Tin Hồ Sơ</h3>
-                                <div><label class="block font-bold mb-1">Số Máy Hấp</label><input type="text" id="bd-mayso" class="w-full border p-2 rounded" placeholder="VD: Lò 1"></div>
-                                <div><label class="block font-bold mb-1">Số Mẻ Hấp</label><input type="text" id="bd-meso" class="w-full border p-2 rounded" placeholder="VD: 01"></div>
-                                <div><label class="block font-bold mb-1">Số Lô (LOT)</label><input type="text" id="bd-lot" class="w-full border p-2 rounded font-mono"></div>
-                                <div><label class="block font-bold mb-1">Hạn Dùng (EXP)</label><input type="date" id="bd-exp" class="w-full border p-2 rounded"></div>
-                                <div class="col-span-2">
-                                    <label class="block font-bold mb-1">Kết quả Đánh giá</label>
-                                    <select id="bd-ketqua" class="w-full border p-2 rounded font-bold text-emerald-700">
-                                        <option value="ĐẠT (PASS)">ĐẠT (Biến màu chuẩn đen)</option>
-                                        <option value="KHÔNG ĐẠT (FAIL)">KHÔNG ĐẠT</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-2 gap-3 text-xs">
-                                <h3 class="font-bold text-xs text-slate-700 col-span-2 uppercase">3. Chữ Ký Điện Tử</h3>
-                                <div>
-                                    <label class="block font-bold mb-1">KTV Vận Hành</label>
-                                    <input type="text" id="bd-ktv" class="w-full border p-2 rounded mb-1" placeholder="Họ tên...">
-                                    <div class="border bg-white h-20 relative"><canvas id="bd-canvas-ktv" class="w-full h-full cursor-crosshair"></canvas></div>
-                                </div>
-                                <div>
-                                    <label class="block font-bold mb-1">Quản Lý / ĐD Trưởng</label>
-                                    <input type="text" id="bd-ql" class="w-full border p-2 rounded mb-1" placeholder="Họ tên...">
-                                    <div class="border bg-white h-20 relative"><canvas id="bd-canvas-ql" class="w-full h-full cursor-crosshair"></canvas></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right: Preview form A4 -->
-                        <div class="bg-slate-200 rounded-xl p-4 flex justify-center items-start overflow-hidden">
-                            <div class="bg-white w-full max-w-[210mm] aspect-[210/297] shadow-lg p-6 flex flex-col text-slate-900 transform scale-[0.7] origin-top">
-                                <div class="text-right text-[10px] mb-4"><p>MÃ: BM-CSSD-BD01</p><p>ISO 11140-5:2014 Type 2</p></div>
-                                <h1 class="text-center font-bold text-lg mb-6 uppercase">Phiếu Kiểm Tra Lò Tiệt Khuẩn Hơi Nước</h1>
-                                <table class="w-full border-collapse border border-black text-xs text-center mb-6">
-                                    <tr class="font-bold bg-slate-100">
-                                        <td class="border border-black p-2">Thiết bị hấp</td><td class="border border-black p-2">Số mẻ</td><td class="border border-black p-2">Lô (LOT)</td><td class="border border-black p-2">Kết quả</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="border border-black p-2" id="prev-may">---</td><td class="border border-black p-2" id="prev-me">---</td><td class="border border-black p-2" id="prev-lot">---</td><td class="border border-black p-2 font-bold text-emerald-600" id="prev-kq">ĐẠT (PASS)</td>
-                                    </tr>
-                                </table>
-                                <div class="flex-1 border border-slate-300 p-2 flex items-center justify-center bg-slate-50 mb-6">
-                                    <span class="text-slate-300">Ảnh minh chứng</span>
-                                    <img id="prev-img" src="" class="hidden max-w-full max-h-full">
-                                </div>
-                                <div class="grid grid-cols-2 text-center text-xs">
-                                    <div><p class="font-bold">KTV Vận Hành</p><canvas id="prev-sign-ktv" class="h-16 mx-auto mt-2 hidden"></canvas><p class="mt-8 border-t border-dotted mx-8 pt-1" id="prev-ktv-name">---</p></div>
-                                    <div><p class="font-bold">Quản Lý Duyệt</p><canvas id="prev-sign-ql" class="h-16 mx-auto mt-2 hidden"></canvas><p class="mt-8 border-t border-dotted mx-8 pt-1" id="prev-ql-name">---</p></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- KHU VỰC ẨN: HTML TEMPLATES ĐỂ KẾT XUẤT RA PDF CHUẨN A4 -->
-    <!-- Template PDF Nhiệt Ẩm A4 Ngang -->
-    <div id="cert-container-hidden">
-        <table style="width:100%; border:none; margin-bottom: 5px;">
-            <tr>
-                <td style="width:20%;"><img src="https://via.placeholder.com/100x40?text=LOGO" style="width:100px;"></td>
-                <td style="width:60%; text-align:center;">
-                    <h2 style="margin:0; font-size:16px; text-transform:uppercase;">PHIẾU THEO DÕI NHIỆT ĐỘ, ĐỘ ẨM</h2>
-                </td>
-                <td style="width:20%; text-align:right; font-size:10px;">Mã số: BM.QTQL.35.02<br>Lần ban hành: 02<br>Ngày áp dụng: 01/03/2026</td>
-            </tr>
-        </table>
-        
-        <table style="width:100%; border: 1px solid #000; border-collapse: collapse; font-size: 11px; font-weight: bold; margin-bottom: 5px;">
-            <tr>
-                <td style="border: 1px solid #000; padding: 3px;">Giới hạn nhiệt độ: 18 - 25°C</td>
-                <td style="border: 1px solid #000; padding: 3px;">Hiệu chính nhiệt độ: -0.2</td>
-            </tr>
-            <tr>
-                <td style="border: 1px solid #000; padding: 3px;">Giới hạn độ ẩm: ≤ 70%</td>
-                <td style="border: 1px solid #000; padding: 3px;">Hiệu chính độ ẩm: -1.3</td>
-            </tr>
-            <tr>
-                <td style="border: 1px solid #000; padding: 3px;" id="pdf-na-vitri">Vị trí: Kho vật tư y tế - Khoa Dược</td>
-                <td style="border: 1px solid #000; padding: 3px;" id="pdf-na-matb">Mã số nhiệt ẩm kế: H86210605</td>
-            </tr>
-            <tr>
-                <td style="border: 1px solid #000; padding: 3px;" id="pdf-na-thang">Thời gian: Tháng 11 Năm 2026</td>
-                <td style="border: 1px solid #000; padding: 3px;">RH: Độ ẩm, T°: Nhiệt độ</td>
-            </tr>
-        </table>
-
-        <!-- Khung vẽ 62 cột -->
-        <table class="na-table-print" id="pdf-na-grid">
-            <!-- Sẽ được Render bằng Javascript (Hàm renderNhietAmPDFGrid) -->
-        </table>
-
-        <div style="font-size: 10px; margin-top: 5px; font-style: italic;">
-            Ghi chú: Ghi nhận vào lúc Sáng (8h-9h) và Chiều (14h – 15h). Khi phát hiện bất thường và báo ngay với NVAT/QLKT và thực hiện khắc phục.
-            <br>
-            <span class="na-dot-t" style="margin-left: 10px;"></span> Nhiệt độ (Màu xanh) &nbsp;&nbsp;&nbsp;&nbsp; <span class="na-dot-h"></span> Độ ẩm (Màu đỏ)
+            <div id="na-alert-box" class="hidden bg-red-500/20 border border-red-500 text-red-400 p-3 rounded-lg text-xs"><i data-lucide="alert-triangle" class="inline w-3 h-3 mr-1"></i> Cảnh báo vượt ngưỡng!</div>
+            <button onclick="saveNhietAmToFirebase()" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 rounded-lg text-sm shadow-sm transition-colors"><i data-lucide="check-circle" class="inline w-4 h-4 mr-1"></i> Lưu Kết Quả</button>
+          </div>
         </div>
-        
-        <table style="width:100%; border:none; margin-top: 15px; text-align: center; font-size: 11px;">
-            <tr>
-                <td style="width:50%;"></td>
-                <td style="width:50%;" id="pdf-na-ngayky">Ngày ... tháng ... năm ...</td>
-            </tr>
-            <tr style="font-weight: bold;">
-                <td>Người phụ trách</td>
-                <td>NVAT/QLKT</td>
-            </tr>
-        </table>
+      </div>
+
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-semibold text-white"><i data-lucide="bar-chart-3" class="inline w-5 h-5 text-teal-400 mr-2"></i> Biểu đồ xu hướng</h2>
+            <button onclick="exportNhietAmPDF()" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-1.5 rounded text-xs font-bold"><i data-lucide="file-pdf" class="inline w-3 h-3 mr-1"></i> Xuất PDF Tháng</button>
+          </div>
+          <div class="h-64 w-full relative"><canvas id="na-canvas-chart"></canvas></div>
+        </div>
+
+        <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
+          <h2 class="text-lg font-semibold text-white mb-4">Sổ nhật ký đám mây (Real-time)</h2>
+          <div class="overflow-x-auto max-h-56 overflow-y-auto">
+            <table class="w-full text-sm text-left whitespace-nowrap">
+              <thead class="text-xs text-slate-400 uppercase bg-slate-900 sticky top-0">
+                <tr><th class="p-3">Ngày/Buổi</th><th class="p-3">Vị trí</th><th class="p-3">Nhiệt độ</th><th class="p-3">Độ ẩm</th><th class="p-3">Nhân viên</th><th class="p-3">Trạng thái</th></tr>
+              </thead>
+              <tbody id="na-tbody" class="divide-y divide-slate-700"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
+  </main>
 
-    <!-- FILE SCRIPT ĐIỀU KHIỂN CHÍNH -->
-    <!-- Gọi file app.js cũ của bạn để khởi tạo Firebase và Login -->
-    <script src="app.js?v=5.4.0"></script>
-    
-    <!-- SCRIPT CHUYÊN DỤNG CHO NHIỆT ẨM VÀ BOWIE DICK KẾT NỐI FIRESTORE -->
-    <script>
-        // HÀM CHUYỂN TAB CƠ BẢN (Gắn vào hệ thống cũ của bạn)
-        function switchTab(tabId) {
-            document.querySelectorAll('main > div[id^="tab-"]').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('#sidebar_menu button').forEach(el => el.classList.remove('sidebar-item-active'));
-            const target = document.getElementById('tab-' + tabId);
-            if(target) target.classList.remove('hidden');
-            const btn = document.getElementById('menu-' + tabId);
-            if(btn) btn.classList.add('sidebar-item-active');
-            if(window.innerWidth < 768) toggleMobileMenu();
+  <!-- TEMPLATE ẨN ĐỂ XUẤT PDF A4 NGANG CHO NHIỆT ẨM -->
+  <div id="cert-na-hidden">
+      <table style="width:100%; border:none; margin-bottom: 5px;">
+          <tr>
+              <td style="width:20%;"><div style="font-size:24px; font-weight:bold;">CSSD</div></td>
+              <td style="width:60%; text-align:center;"><h2 style="margin:0; font-size:16px; text-transform:uppercase;">PHIẾU THEO DÕI NHIỆT ĐỘ, ĐỘ ẨM</h2></td>
+              <td style="width:20%; text-align:right; font-size:10px;">Mã số: BM.QTQL.35.02<br>Lần ban hành: 02<br>Ngày áp dụng: 01/03/2026</td>
+          </tr>
+      </table>
+      <table style="width:100%; border: 1px solid #000; border-collapse: collapse; font-size: 11px; font-weight: bold; margin-bottom: 5px;">
+          <tr>
+              <td style="border: 1px solid #000; padding: 3px;">Giới hạn nhiệt độ: 18 - 25°C</td>
+              <td style="border: 1px solid #000; padding: 3px;">Hiệu chính nhiệt độ: -0.2</td>
+          </tr>
+          <tr>
+              <td style="border: 1px solid #000; padding: 3px;">Giới hạn độ ẩm: ≤ 70%</td>
+              <td style="border: 1px solid #000; padding: 3px;">Hiệu chính độ ẩm: -1.3</td>
+          </tr>
+          <tr>
+              <td style="border: 1px solid #000; padding: 3px;" id="pdf-na-vitri">Vị trí: Kho vật tư y tế - Khoa Dược</td>
+              <td style="border: 1px solid #000; padding: 3px;" id="pdf-na-matb">Mã số nhiệt ẩm kế: H86210605</td>
+          </tr>
+          <tr>
+              <td style="border: 1px solid #000; padding: 3px;" id="pdf-na-thang">Thời gian: Tháng ... Năm ...</td>
+              <td style="border: 1px solid #000; padding: 3px;">RH: Độ ẩm, T°: Nhiệt độ</td>
+          </tr>
+      </table>
+      <table class="na-table-print" id="pdf-na-grid"></table>
+      <div style="font-size: 10px; margin-top: 5px; font-style: italic;">
+          Ghi chú: Ghi nhận vào lúc Sáng (8h-9h) và Chiều (14h-15h).<br>
+          <span class="na-dot-t"></span> Nhiệt độ (Màu xanh) &nbsp;&nbsp; <span class="na-dot-h"></span> Độ ẩm (Màu đỏ)
+      </div>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // ==========================================
+    // 1. CẤU HÌNH FIREBASE & AUTH
+    // ==========================================
+    // LƯU Ý: Bạn cần thay thế thông tin cấu hình dưới đây bằng thông tin Firebase của bệnh viện.
+    // Nếu bạn chưa điền, hệ thống sẽ báo lỗi ở Console và tự động chuyển về dùng LocalStorage để bạn vẫn dùng thử được.
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    let db;
+    let loggedInUser = "KTV Vô Danh"; // Default fallback
+    let isFirebaseReady = false;
+
+    try {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        isFirebaseReady = true;
+    } catch (e) {
+        console.warn("Firebase chưa được cấu hình chuẩn. Ứng dụng sẽ dùng LocalStorage nội bộ.");
+    }
+
+    // Hàm Login Giả Lập / Thật
+    function handleLogin() {
+        const email = document.getElementById('login-email').value;
+        if(email.length < 3) { alert("Vui lòng nhập mã NV hoặc Email"); return; }
+        
+        // Cập nhật tên User
+        loggedInUser = email.split('@')[0].toUpperCase();
+        document.getElementById('current-user-name').innerText = loggedInUser;
+        
+        // Đóng modal login
+        document.getElementById('login-modal').classList.add('hidden');
+        
+        // Load data Nhiệt Ẩm
+        loadNhietAmData();
+    }
+
+    // ==========================================
+    // 2. CHUYỂN TAB CƠ BẢN
+    // ==========================================
+    function switchTab(tabId) {
+        document.getElementById('module-bowiedick').classList.add('hidden');
+        document.getElementById('module-bowiedick').classList.remove('grid');
+        document.getElementById('module-nhietam').classList.add('hidden');
+        document.getElementById('module-nhietam').classList.remove('grid');
+        
+        document.getElementById('tab-btn-bowiedick').classList.replace('bg-emerald-600', 'hover:bg-slate-800');
+        document.getElementById('tab-btn-bowiedick').classList.replace('text-white', 'text-slate-400');
+        document.getElementById('tab-btn-nhietam').classList.replace('bg-teal-600', 'hover:bg-slate-800');
+        document.getElementById('tab-btn-nhietam').classList.replace('text-white', 'text-slate-400');
+
+        document.getElementById('module-' + tabId).classList.remove('hidden');
+        document.getElementById('module-' + tabId).classList.add('grid');
+
+        if(tabId === 'bowiedick') {
+            document.getElementById('tab-btn-bowiedick').classList.replace('hover:bg-slate-800', 'bg-emerald-600');
+            document.getElementById('tab-btn-bowiedick').classList.replace('text-slate-400', 'text-white');
+        } else {
+            document.getElementById('tab-btn-nhietam').classList.replace('hover:bg-slate-800', 'bg-teal-600');
+            document.getElementById('tab-btn-nhietam').classList.replace('text-slate-400', 'text-white');
         }
+    }
 
-        // ==========================================
-        // LÕI XỬ LÝ NHIỆT ẨM VỚI FIREBASE REALTIME
-        // ==========================================
-        let naLogs = []; // Mảng chứa dữ liệu tải từ Firestore
-        let naChartInst = null;
-        const db = firebase.firestore(); // Đảm bảo Firebase đã được init trong app.js
-        const nhietAmRef = db.collection("NhietAmLogs"); // Tạo Collection mới trên Firebase
+    // ==========================================
+    // 3. LOGIC NHIỆT ẨM FIREBASE
+    // ==========================================
+    let naLogs = [];
+    let chartInstance = null;
+
+    // Set auto Buổi
+    const h = new Date().getHours();
+    document.getElementById('na-buoi').value = h < 12 ? 'Sáng (8h-9h)' : 'Chiều (14h-15h)';
+
+    document.getElementById('na-nhietdo').addEventListener('input', checkWarning);
+    document.getElementById('na-doam').addEventListener('input', checkWarning);
+
+    function checkWarning() {
+        let nd = parseFloat(document.getElementById('na-nhietdo').value);
+        let da = parseFloat(document.getElementById('na-doam').value);
+        let vitri = document.getElementById('na-vitri').value;
+        let isBad = false;
         
-        // Cập nhật tên user trên UI Nhiệt Ẩm liên tục
-        setInterval(() => {
-            let currentUser = firebase.auth().currentUser;
-            let currentName = currentUser ? (currentUser.displayName || currentUser.email) : document.getElementById('nav_user_info').innerText;
-            document.getElementById('na-nv-display').innerText = currentName;
-        }, 2000);
-
-        // Auto Buổi
-        const curH = new Date().getHours();
-        document.getElementById('na-buoi').value = curH < 12 ? 'Sáng (8h-9h)' : 'Chiều (14h-15h)';
-        
-        // Listener lấy dữ liệu Real-time từ Firebase
-        nhietAmRef.orderBy("id", "desc").limit(100).onSnapshot((snapshot) => {
-            naLogs = [];
-            snapshot.forEach((doc) => {
-                naLogs.push(doc.data());
-            });
-            // Mỗi khi có người lưu kết quả, hàm renderUI sẽ tự động chạy để cập nhật Biểu đồ & Bảng
-            na_renderUI();
-        });
-
-        function na_checkWarning() {
-            let nd = parseFloat(document.getElementById('na-nhietdo').value);
-            let da = parseFloat(document.getElementById('na-doam').value);
-            let bad = false;
-            let vitri = document.getElementById('na-vitri').value;
-            
-            if(!isNaN(nd)) {
-                if(vitri.includes('Dược') && (nd < 18 || nd > 25)) bad = true;
-                if(vitri.includes('Xét Nghiệm') && (nd < 21 || nd > 26)) bad = true;
-            }
-            if(!isNaN(da) && da > 70) bad = true;
-            
-            const alertBox = document.getElementById('na-alert-box');
-            const warnBar = document.getElementById('na-warning-bar');
-            if(bad) { alertBox.classList.remove('hidden'); warnBar.classList.remove('hidden'); }
-            else { alertBox.classList.add('hidden'); warnBar.classList.add('hidden'); }
-            return bad;
+        if(!isNaN(nd)) {
+            if(vitri.includes('Dược') && (nd < 18 || nd > 25)) isBad = true;
+            if(vitri.includes('Xét Nghiệm') && (nd < 21 || nd > 26)) isBad = true;
         }
+        if(!isNaN(da) && da > 70) isBad = true;
         
-        document.getElementById('na-nhietdo').addEventListener('input', na_checkWarning);
-        document.getElementById('na-doam').addEventListener('input', na_checkWarning);
-        document.getElementById('na-vitri').addEventListener('change', (e) => {
-            let mtb = "H86210605";
-            if(e.target.value.includes("hóa chất")) mtb = "NAK-02";
-            if(e.target.value.includes("Xét Nghiệm")) mtb = "NAK-03";
-            document.getElementById('na-matb').value = mtb;
-        });
+        if(isBad) {
+            document.getElementById('na-alert-box').classList.remove('hidden');
+            document.getElementById('na-warning-bar').classList.remove('hidden');
+        } else {
+            document.getElementById('na-alert-box').classList.add('hidden');
+            document.getElementById('na-warning-bar').classList.add('hidden');
+        }
+        return isBad;
+    }
 
-        // NÚT LƯU - BẮN DỮ LIỆU LÊN FIREBASE
-        async function na_saveLog() {
-            let nd = document.getElementById('na-nhietdo').value;
-            let da = document.getElementById('na-doam').value;
-            
-            if(!nd || !da) { alert("Vui lòng nhập đủ chỉ số Nhiệt độ và Độ ẩm!"); return; }
+    async function saveNhietAmToFirebase() {
+        let nd = document.getElementById('na-nhietdo').value;
+        let da = document.getElementById('na-doam').value;
+        if(!nd || !da) { alert("Nhập đủ nhiệt độ, độ ẩm"); return; }
+        
+        const logData = {
+            ngay: new Date().toLocaleDateString('vi-VN'),
+            thang: new Date().getMonth() + 1,
+            nam: new Date().getFullYear(),
+            buoi: document.getElementById('na-buoi').value.includes('Sáng') ? 'S' : 'C',
+            vitri: document.getElementById('na-vitri').value,
+            matb: document.getElementById('na-matb').value,
+            nd: parseFloat(nd),
+            da: parseFloat(da),
+            nv: loggedInUser, // Lấy tên user từ lúc Đăng Nhập
+            bad: checkWarning(),
+            timestamp: Date.now()
+        };
 
-            // Lấy tên User chính xác từ Firebase Auth
-            let currentUser = firebase.auth().currentUser;
-            let nv = currentUser ? (currentUser.displayName || currentUser.email) : document.getElementById('nav_user_info').innerText;
-            
-            let log = {
-                id: Date.now(), // Dùng id làm timestamp để Order
-                ngay: new Date().toLocaleDateString('vi-VN'),
-                buoi: document.getElementById('na-buoi').value.includes('Sáng') ? 'S' : 'C',
-                vitri: document.getElementById('na-vitri').value,
-                nd: parseFloat(nd),
-                da: parseFloat(da),
-                nv: nv, // Tên KTV được bảo mật, không cho tự gõ
-                bad: na_checkWarning()
-            };
-
-            const btnSave = document.getElementById('na-btn-save');
-            const ogText = btnSave.innerHTML;
-            btnSave.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang Đẩy Lên Cloud...`;
-            btnSave.disabled = true;
-
+        if(isFirebaseReady) {
             try {
-                // Đẩy lên Firestore
-                await nhietAmRef.add(log);
-                
-                document.getElementById('na-nhietdo').value = "";
-                document.getElementById('na-doam').value = "";
-                na_checkWarning();
-                // Không cần gọi renderUI vì Listener onSnapshot sẽ tự động kích hoạt
-                
-                btnSave.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Đã Lưu Thành Công!`;
-                btnSave.classList.replace('bg-teal-600', 'bg-emerald-600');
-                
-                setTimeout(() => {
-                    btnSave.innerHTML = ogText;
-                    btnSave.classList.replace('bg-emerald-600', 'bg-teal-600');
-                    btnSave.disabled = false;
-                }, 2000);
-
+                // Lưu lên Đám mây
+                await db.collection("NhietAmLogs").add(logData);
+                alert("Đã đồng bộ lên Cloud thành công!");
             } catch(e) {
-                console.error("Lỗi Firestore:", e);
-                alert("Lỗi khi kết nối đến máy chủ Cloud. Vui lòng kiểm tra mạng!");
-                btnSave.innerHTML = ogText;
-                btnSave.disabled = false;
+                console.error("Lỗi lưu Firebase: ", e);
             }
+        } else {
+            // Fallback LocalStorage
+            naLogs.push(logData);
+            localStorage.setItem("cssd_na_logs", JSON.stringify(naLogs));
+            renderNhietAmUI();
+            alert("Đã lưu cục bộ (Không có Firebase)");
         }
 
-        function na_renderUI() {
-            let tbody = document.getElementById('na-tbody');
-            tbody.innerHTML = '';
-            
-            // Lấy vị trí đang lọc
-            let currentVitri = document.getElementById('na-vitri').value;
-            // Lọc logs theo vị trí để render bảng và chart
-            let filteredLogs = naLogs.filter(l => l.vitri === currentVitri);
+        document.getElementById('na-nhietdo').value = "";
+        document.getElementById('na-doam').value = "";
+        checkWarning();
+    }
 
-            // Render Table (Hiển thị 30 dòng gần nhất của vị trí đó)
-            let arr = [...filteredLogs].slice(0, 30); // Do mảng đã order desc từ Firestore
-            arr.forEach(l => {
-                let tr = document.createElement('tr');
-                let stt = l.bad ? '<span class="text-red-600 font-bold">Bất thường</span>' : '<span class="text-emerald-600">Bình thường</span>';
-                tr.innerHTML = `<td class="p-2 border-b">${l.ngay} ${l.buoi}</td><td class="p-2 border-b font-bold text-sky-600">${l.nd}°C</td><td class="p-2 border-b font-bold text-rose-600">${l.da}%</td><td class="p-2 border-b">${l.nv}</td><td class="p-2 border-b">${stt}</td>`;
-                tbody.appendChild(tr);
+    function loadNhietAmData() {
+        if(isFirebaseReady) {
+            // Lắng nghe dữ liệu thay đổi Realtime từ Cloud
+            db.collection("NhietAmLogs").orderBy("timestamp", "desc").limit(100).onSnapshot((querySnapshot) => {
+                naLogs = [];
+                querySnapshot.forEach((doc) => { naLogs.push(doc.data()); });
+                renderNhietAmUI();
             });
-
-            // Render Chart (Vẽ từ trái qua phải -> Đảo ngược mảng)
-            let chartData = [...arr].reverse();
-            if(naChartInst) naChartInst.destroy();
-            let ctx = document.getElementById('na-canvas-chart').getContext('2d');
-            naChartInst = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: chartData.map(l => l.ngay.split('/')[0] + l.buoi),
-                    datasets: [
-                        { label: 'Nhiệt độ', data: chartData.map(l=>l.nd), borderColor: '#0ea5e9', backgroundColor: '#0ea5e9', tension: 0.3 },
-                        { label: 'Độ ẩm', data: chartData.map(l=>l.da), borderColor: '#f43f5e', backgroundColor: '#f43f5e', tension: 0.3 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+        } else {
+            naLogs = JSON.parse(localStorage.getItem("cssd_na_logs")) || [];
+            renderNhietAmUI();
         }
+    }
+
+    function renderNhietAmUI() {
+        let tbody = document.getElementById('na-tbody');
+        tbody.innerHTML = '';
         
-        // HÀM VẼ KHUNG GRID PDF A4 NGANG VÀ ĐIỀN CHẤM
-        function na_exportPDFThang() {
-            let gridHtml = '';
-            let currentMonth = new Date().getMonth() + 1;
-            let currentYear = new Date().getFullYear();
-            
-            document.getElementById('pdf-na-thang').innerText = `Thời gian: Tháng ${currentMonth} Năm ${currentYear}`;
-            document.getElementById('pdf-na-vitri').innerText = `Vị trí: ${document.getElementById('na-vitri').value}`;
-            document.getElementById('pdf-na-matb').innerText = `Mã số: ${document.getElementById('na-matb').value}`;
-            
-            gridHtml += '<tr style="background:#f1f5f9;"><th style="width:35px;">Độ ẩm</th>';
-            for(let i=1; i<=31; i++) gridHtml += `<th colspan="2">${i}</th>`;
-            gridHtml += '<th style="width:35px;">Nhiệt độ</th></tr>';
-            
-            gridHtml += '<tr style="background:#f1f5f9;"><th>(%)</th>';
-            for(let i=1; i<=31; i++) gridHtml += `<th>S</th><th>C</th>`;
-            gridHtml += '<th>(°C)</th></tr>';
-
-            let da_start = 82, nd_start = 37; 
-            for(let row=0; row<22; row++) {
-                let current_da = da_start - (row * 2);
-                let current_nd = nd_start - row;
-                
-                let label_da = current_da;
-                if(current_da == 70) label_da = "70 (Max)";
-                
-                let label_nd = current_nd;
-                if(current_nd == 25) label_nd = "25 (Max)";
-                if(current_nd == 18) label_nd = "18 (Min)";
-                
-                gridHtml += `<tr><td style="font-weight:bold;">${label_da}</td>`;
-                
-                for(let d=1; d<=31; d++) {
-                    let cell_S = "";
-                    let log_S = naLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'S' && l.vitri == document.getElementById('na-vitri').value);
-                    if(log_S) {
-                        let isNdHere = Math.round(log_S.nd) == current_nd;
-                        let isDaHere = Math.round(log_S.da) == current_da || Math.round(log_S.da) == (current_da-1);
-                        if(isNdHere && isDaHere) cell_S = '<span class="na-dot-mix"></span>';
-                        else if(isNdHere) cell_S = '<span class="na-dot-t"></span>';
-                        else if(isDaHere) cell_S = '<span class="na-dot-h"></span>';
-                    }
-                    gridHtml += `<td>${cell_S}</td>`;
-                    
-                    let cell_C = "";
-                    let log_C = naLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'C' && l.vitri == document.getElementById('na-vitri').value);
-                    if(log_C) {
-                        let isNdHere = Math.round(log_C.nd) == current_nd;
-                        let isDaHere = Math.round(log_C.da) == current_da || Math.round(log_C.da) == (current_da-1);
-                        if(isNdHere && isDaHere) cell_C = '<span class="na-dot-mix"></span>';
-                        else if(isNdHere) cell_C = '<span class="na-dot-t"></span>';
-                        else if(isDaHere) cell_C = '<span class="na-dot-h"></span>';
-                    }
-                    gridHtml += `<td>${cell_C}</td>`;
-                }
-                
-                gridHtml += `<td style="font-weight:bold;">${label_nd}</td></tr>`;
-            }
-            
-            document.getElementById('pdf-na-grid').innerHTML = gridHtml;
-            document.getElementById('pdf-na-ngayky').innerText = `Ngày ${new Date().getDate()} tháng ${currentMonth} năm ${currentYear}`;
-
-            let pdfZone = document.getElementById('cert-container-hidden');
-            html2canvas(pdfZone, { scale: 2 }).then(canvas => {
-                const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                const pdf = new window.jspdf.jsPDF('l', 'mm', 'a4');
-                pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
-                pdf.save(`SoTheoDoiNhietAm_T${currentMonth}_${currentYear}.pdf`);
-            });
-        }
-
-        // ==========================================
-        // LOGIC TAB 15: BOWIE DICK (GIẢN LƯỢC)
-        // ==========================================
-        function bd_handleImage(input) {
-            if(input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('bd-img-preview').src = e.target.result;
-                    document.getElementById('bd-img-preview').classList.remove('hidden');
-                    document.getElementById('prev-img').src = e.target.result;
-                    document.getElementById('prev-img').classList.remove('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        
-        function bd_syncForm() {
-            document.getElementById('prev-may').innerText = document.getElementById('bd-mayso').value || '---';
-            document.getElementById('prev-me').innerText = document.getElementById('bd-meso').value || '---';
-            document.getElementById('prev-lot').innerText = document.getElementById('bd-lot').value || '---';
-            let kq = document.getElementById('bd-ketqua').value;
-            let pkq = document.getElementById('prev-kq');
-            pkq.innerText = kq;
-            pkq.className = kq.includes('ĐẠT') ? "border border-black p-2 font-bold text-emerald-600" : "border border-black p-2 font-bold text-red-600";
-            document.getElementById('prev-ktv-name').innerText = document.getElementById('bd-ktv').value || '---';
-            document.getElementById('prev-ql-name').innerText = document.getElementById('bd-ql').value || '---';
-        }
-        
-        ['bd-mayso','bd-meso','bd-lot','bd-ketqua','bd-ktv','bd-ql'].forEach(id => {
-            document.getElementById(id).addEventListener('input', bd_syncForm);
-            document.getElementById(id).addEventListener('change', bd_syncForm);
+        // Vẽ Bảng
+        naLogs.forEach(l => {
+            let tr = document.createElement('tr');
+            let stt = l.bad ? '<span class="text-red-400 font-bold">Vượt Ngưỡng</span>' : '<span class="text-emerald-400">Bình thường</span>';
+            tr.innerHTML = `<td class="p-3 text-white">${l.ngay} (${l.buoi})</td><td class="p-3 text-slate-300">${l.vitri}</td><td class="p-3 font-bold text-teal-400">${l.nd}°C</td><td class="p-3 font-bold text-indigo-400">${l.da}%</td><td class="p-3 text-slate-300">${l.nv}</td><td class="p-3">${stt}</td>`;
+            tbody.appendChild(tr);
         });
 
-        // Hàm Sign cho BD
-        function bd_initSign(canvasId, prevCanvasId) {
-            let canvas = document.getElementById(canvasId);
-            let pCanvas = document.getElementById(prevCanvasId);
-            let ctx = canvas.getContext('2d');
-            let pCtx = pCanvas.getContext('2d');
+        // Vẽ Chart
+        if(chartInstance) chartInstance.destroy();
+        // Lấy 30 bản ghi mới nhất xếp từ cũ đến mới cho chart
+        let chartData = [...naLogs].reverse().slice(-30);
+        let ctx = document.getElementById('na-canvas-chart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartData.map(l => l.ngay.split('/')[0] + l.buoi),
+                datasets: [
+                    { label: 'Nhiệt độ', data: chartData.map(l=>l.nd), borderColor: '#2dd4bf', backgroundColor: '#2dd4bf' },
+                    { label: 'Độ ẩm', data: chartData.map(l=>l.da), borderColor: '#818cf8', backgroundColor: '#818cf8' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#fff' } } } }
+        });
+    }
+
+    // ==========================================
+    // Xuất PDF A4 Lưới Chấm (Nhiệt Ẩm)
+    // ==========================================
+    function exportNhietAmPDF() {
+        let currentMonth = new Date().getMonth() + 1;
+        let currentYear = new Date().getFullYear();
+        let vitriFilter = document.getElementById('na-vitri').value;
+        
+        document.getElementById('pdf-na-thang').innerText = `Thời gian: Tháng ${currentMonth} Năm ${currentYear}`;
+        document.getElementById('pdf-na-vitri').innerText = `Vị trí: ${vitriFilter}`;
+        
+        // Lọc log đúng tháng và đúng vị trí
+        let targetLogs = naLogs.filter(l => l.thang == currentMonth && l.nam == currentYear && l.vitri == vitriFilter);
+        
+        let gridHtml = '<tr style="background:#f1f5f9;"><th style="width:35px;">Độ ẩm</th>';
+        for(let i=1; i<=31; i++) gridHtml += `<th colspan="2">${i}</th>`;
+        gridHtml += '<th style="width:35px;">Nhiệt độ</th></tr>';
+        gridHtml += '<tr style="background:#f1f5f9;"><th>(%)</th>';
+        for(let i=1; i<=31; i++) gridHtml += `<th>S</th><th>C</th>`;
+        gridHtml += '<th>(°C)</th></tr>';
+
+        let da_start = 82, nd_start = 37; 
+        for(let row=0; row<22; row++) {
+            let current_da = da_start - (row * 2);
+            let current_nd = nd_start - row;
+            let label_da = current_da == 70 ? "70(Max)" : current_da;
+            let label_nd = current_nd == 25 ? "25(Max)" : (current_nd == 18 ? "18(Min)" : current_nd);
             
-            let resize = () => { 
-                let rect = canvas.parentElement.getBoundingClientRect();
-                canvas.width = rect.width; canvas.height = rect.height;
-                pCanvas.width = rect.width; pCanvas.height = rect.height;
-            };
-            resize(); 
-            
-            ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.strokeStyle = "blue";
-            let drawing = false;
-            
-            let start = (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(e.offsetX || e.touches[0].clientX - canvas.getBoundingClientRect().left, e.offsetY || e.touches[0].clientY - canvas.getBoundingClientRect().top); };
-            let move = (e) => { if(drawing) { ctx.lineTo(e.offsetX || e.touches[0].clientX - canvas.getBoundingClientRect().left, e.offsetY || e.touches[0].clientY - canvas.getBoundingClientRect().top); ctx.stroke(); } };
-            let stop = () => { 
-                drawing = false; 
-                pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-                pCtx.drawImage(canvas,0,0);
-                pCanvas.classList.remove('hidden');
-            };
-            
-            canvas.onmousedown = start; canvas.onmousemove = move; canvas.onmouseup = stop; canvas.onmouseout = stop;
-            canvas.ontouchstart = start; canvas.ontouchmove = move; canvas.ontouchend = stop;
+            gridHtml += `<tr><td style="font-weight:bold;">${label_da}</td>`;
+            for(let d=1; d<=31; d++) {
+                // Ca Sáng
+                let cell_S = "";
+                let log_S = targetLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'S');
+                if(log_S) {
+                    let isNdHere = Math.round(log_S.nd) == current_nd;
+                    let isDaHere = Math.round(log_S.da) == current_da || Math.round(log_S.da) == (current_da-1);
+                    if(isNdHere && isDaHere) cell_S = '<span class="na-dot-mix"></span>';
+                    else if(isNdHere) cell_S = '<span class="na-dot-t"></span>';
+                    else if(isDaHere) cell_S = '<span class="na-dot-h"></span>';
+                }
+                gridHtml += `<td>${cell_S}</td>`;
+                
+                // Ca Chiều
+                let cell_C = "";
+                let log_C = targetLogs.find(l => parseInt(l.ngay.split('/')[0]) == d && l.buoi == 'C');
+                if(log_C) {
+                    let isNdHere = Math.round(log_C.nd) == current_nd;
+                    let isDaHere = Math.round(log_C.da) == current_da || Math.round(log_C.da) == (current_da-1);
+                    if(isNdHere && isDaHere) cell_C = '<span class="na-dot-mix"></span>';
+                    else if(isNdHere) cell_C = '<span class="na-dot-t"></span>';
+                    else if(isDaHere) cell_C = '<span class="na-dot-h"></span>';
+                }
+                gridHtml += `<td>${cell_C}</td>`;
+            }
+            gridHtml += `<td style="font-weight:bold;">${label_nd}</td></tr>`;
         }
+        
+        document.getElementById('pdf-na-grid').innerHTML = gridHtml;
+        
+        let pdfZone = document.getElementById('cert-na-hidden');
+        html2canvas(pdfZone, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const pdf = new window.jspdf.jsPDF('l', 'mm', 'a4');
+            pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+            pdf.save(`SoNhietAm_T${currentMonth}_${currentYear}.pdf`);
+        });
+    }
 
-        // Gọi UI Render
-        setTimeout(() => {
-            na_renderUI();
-            bd_initSign('bd-canvas-ktv', 'prev-sign-ktv');
-            bd_initSign('bd-canvas-ql', 'prev-sign-ql');
-        }, 1000);
-
-    </script>
+    // ==========================================
+    // 4. LOGIC BOWIE DICK CƠ BẢN
+    // ==========================================
+    function bdLoadImage(input) {
+        if(input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('bd-img-preview').src = e.target.result;
+                document.getElementById('bd-img-preview').classList.remove('hidden');
+                document.getElementById('pr-img').src = e.target.result;
+                document.getElementById('pr-img').classList.remove('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    
+    function bdSync() {
+        document.getElementById('pr-may').innerText = document.getElementById('bd-may').value || '---';
+        document.getElementById('pr-me').innerText = document.getElementById('bd-me').value || '---';
+        document.getElementById('pr-lot').innerText = document.getElementById('bd-lot').value || '---';
+    }
+    ['bd-may','bd-me','bd-lot'].forEach(id => document.getElementById(id).addEventListener('input', bdSync));
+    
+    function bdExportPDF() {
+        let pdfZone = document.getElementById('certificate-container');
+        html2canvas(pdfZone, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+            pdf.save(`BowieDick_Result.pdf`);
+        });
+    }
+  </script>
 </body>
 </html>
